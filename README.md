@@ -6,6 +6,7 @@
 ![React](https://img.shields.io/badge/React-19.0.0--rc-61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6)
 ![Vite](https://img.shields.io/badge/Vite-6.2-646CFF)
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/oinam-labs/tac-portal?utm_source=oss&utm_medium=github&utm_campaign=oinam-labs%2Ftac-portal&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 
 ---
 
