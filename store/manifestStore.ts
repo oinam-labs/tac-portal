@@ -95,11 +95,15 @@ export const useManifestStore = create<ManifestState>((set) => ({
         set({ isLoading: true });
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        db.updateManifestStatus(manifestId, status);
-
-        set({
-            manifests: db.getManifests(),
-            isLoading: false
-        });
+        try {
+            db.updateManifestStatus(manifestId, status);
+            set({
+                manifests: db.getManifests(),
+                isLoading: false
+            });
+        } catch (error) {
+            console.error('Failed to update manifest status:', error);
+            set({ isLoading: false });
+        }
     }
 }));
