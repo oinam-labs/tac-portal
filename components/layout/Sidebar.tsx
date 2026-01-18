@@ -54,7 +54,7 @@ const NAV_GROUPS: NavGroupDef[] = [
     {
         title: "Business",
         items: [
-            { label: 'Finance', icon: CreditCard, path: '/finance', roles: ['ADMIN', 'MANAGER', 'FINANCE_STAFF'] },
+            { label: 'Invoices', icon: CreditCard, path: '/finance', roles: ['ADMIN', 'MANAGER', 'FINANCE_STAFF'] },
             { label: 'Customers', icon: Users, path: '/customers', roles: ['ADMIN', 'MANAGER', 'FINANCE_STAFF', 'OPS_STAFF'] },
             { label: 'Management', icon: Briefcase, path: '/management', roles: ['ADMIN', 'MANAGER'] },
         ]

@@ -2,7 +2,7 @@
 import React, { useEffect, Suspense, lazy } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from 'sonner';
+import { Toaster, toast } from 'sonner';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { useStore } from './store';
@@ -30,6 +30,7 @@ const Management = lazy(() => import('./pages/Management').then(module => ({ def
 const Settings = lazy(() => import('./pages/Settings').then(module => ({ default: module.Settings })));
 const PublicTracking = lazy(() => import('./pages/PublicTracking').then(module => ({ default: module.PublicTracking })));
 const PrintLabel = lazy(() => import('./pages/PrintLabel').then(module => ({ default: module.PrintLabel })));
+const Notifications = lazy(() => import('./pages/Notifications').then(module => ({ default: module.Notifications })));
 
 // Simple Login Page Component
 const Login: React.FC = () => {
@@ -43,20 +44,34 @@ const Login: React.FC = () => {
         }
     }, [isAuthenticated, navigate]);
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Mock login
-        const mockUser: User = {
-            id: 'u1',
-            email: 'admin@taccargo.com',
-            name: 'Admin User',
-            role: 'ADMIN',
-            assignedHub: 'IMPHAL',
-            active: true,
-            lastLogin: new Date().toISOString()
-        };
-        login(mockUser);
-        navigate('/dashboard');
+
+        // Simulate async login with toast.promise
+        const loginPromise = new Promise<User>((resolve) => {
+            setTimeout(() => {
+                const mockUser: User = {
+                    id: 'u1',
+                    email: 'admin@taccargo.com',
+                    name: 'Admin User',
+                    role: 'ADMIN',
+                    assignedHub: 'IMPHAL',
+                    active: true,
+                    lastLogin: new Date().toISOString()
+                };
+                resolve(mockUser);
+            }, 800); // Simulate network delay
+        });
+
+        toast.promise(loginPromise, {
+            loading: 'Signing you in...',
+            success: (user) => {
+                login(user);
+                navigate('/dashboard');
+                return `Welcome back, ${user.name}!`;
+            },
+            error: 'Login failed. Please try again.',
+        });
     };
 
     return (
@@ -204,6 +219,7 @@ const App: React.FC = () => {
 
                                 {/* System Routes */}
                                 <Route path="/settings" element={<ProtectedRoute><DashboardLayout><Settings /></DashboardLayout></ProtectedRoute>} />
+                                <Route path="/notifications" element={<ProtectedRoute><DashboardLayout><Notifications /></DashboardLayout></ProtectedRoute>} />
                                 <Route path="/print/label/:awb" element={<ProtectedRoute><PrintLabel /></ProtectedRoute>} />
 
                                 {/* Catch all */}

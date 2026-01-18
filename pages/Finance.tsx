@@ -152,8 +152,8 @@ Thank you for choosing TAC Cargo.`;
         <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Finance & Invoices</h1>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">Manage billing, invoices, and payment gateways.</p>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Invoices</h1>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">Manage invoices, billing, and payment gateways.</p>
                 </div>
                 <div className="flex gap-3">
                     <Button onClick={() => setIsCreateOpen(true)}>

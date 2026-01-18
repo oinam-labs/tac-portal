@@ -312,3 +312,40 @@ export interface ApiError {
     message: string;
     details?: Record<string, unknown>;
 }
+
+// --- NOTES/COMMENTS SYSTEM ---
+
+export type NoteEntityType = 'SHIPMENT' | 'INVOICE' | 'CUSTOMER' | 'EXCEPTION' | 'MANIFEST';
+
+export interface Note {
+    id: string;
+    entityType: NoteEntityType;
+    entityId: string;
+    content: string; // HTML content from rich text editor
+    plainText: string; // Plain text version for search
+    createdBy: string;
+    createdAt: string;
+    updatedAt: string;
+    isPinned?: boolean;
+    isInternal?: boolean; // Internal notes not visible to customers
+    attachments?: NoteAttachment[];
+}
+
+export interface NoteAttachment {
+    id: string;
+    noteId: string;
+    fileName: string;
+    fileUrl: string;
+    fileType: string;
+    fileSize: number;
+    uploadedAt: string;
+}
+
+export interface NoteFilters {
+    entityType?: NoteEntityType;
+    entityId?: string;
+    createdBy?: string;
+    isPinned?: boolean;
+    search?: string;
+    limit?: number;
+}

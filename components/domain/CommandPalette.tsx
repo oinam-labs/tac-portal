@@ -30,7 +30,7 @@ const NAVIGATION_ITEMS = [
   { name: 'Manifests', path: '/manifests', icon: Truck },
   { name: 'Tracking', path: '/tracking', icon: Search },
   { name: 'Inventory', path: '/inventory', icon: Warehouse },
-  { name: 'Finance', path: '/finance', icon: FileText },
+  { name: 'Invoices', path: '/finance', icon: FileText },
   { name: 'Exceptions', path: '/exceptions', icon: AlertTriangle },
   { name: 'Customers', path: '/customers', icon: Users },
   { name: 'Analytics', path: '/analytics', icon: BarChart3 },

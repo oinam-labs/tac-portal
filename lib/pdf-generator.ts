@@ -143,7 +143,7 @@ export async function generateShipmentLabel(shipment: Shipment): Promise<string>
 
     page.drawText(address.substring(0, 45), { x: 16, y: y - 60, size: 9, font });
     page.drawText(city, { x: 16, y: y - 72, size: 9, font });
-    page.drawText(`${destHub.name} Hub Hub`, { x: 16, y: y - 84, size: 9, font: fontBold });
+    page.drawText(destHub.name, { x: 16, y: y - 84, size: 9, font: fontBold });
 
     // --- SORTING GRIDS (DELIVERY STATION | ORIGIN SORT | DEST SORT) ---
     y = yShipToBottom;
@@ -364,9 +364,9 @@ export async function generateEnterpriseInvoice(invoice: Invoice): Promise<strin
 
     const thY = tableTop + 10;
     const col1 = margin + 16;
-    const col2 = width - 240; // Qty
-    const col3 = width - 160; // Price
-    const col4 = width - 70;  // Total (Anchor Right)
+    const col2 = width - 220; // Qty - positioned for balance
+    const col3 = width - 160; // Price - positioned to avoid overlap
+    const col4 = width - margin - 10;  // Total (Anchor Right) - right-aligned
 
     const drawTh = (text: string, x: number, align = 'left') => {
         const txtWidth = fontBold.widthOfTextAtSize(text, 8);
@@ -391,8 +391,11 @@ export async function generateEnterpriseInvoice(invoice: Invoice): Promise<strin
         const txtY = y + 14;
         page.drawText(desc, { x: col1, y: txtY, size: 9, font: fontRegular, color: C.INK });
         page.drawText(qty, { x: col2 + 5, y: txtY, size: 9, font: fontMono, color: C.INK });
-        page.drawText(price, { x: col3, y: txtY, size: 9, font: fontMono, color: C.INK });
+        // Right-align price
+        const priceW = fontMono.widthOfTextAtSize(price, 9);
+        page.drawText(price, { x: col3 + 50 - priceW, y: txtY, size: 9, font: fontMono, color: C.INK });
 
+        // Right-align total
         const totW = fontBold.widthOfTextAtSize(total, 9);
         page.drawText(total, { x: col4 - totW, y: txtY, size: 9, font: fontBold, color: C.INK });
     };
@@ -422,9 +425,9 @@ export async function generateEnterpriseInvoice(invoice: Invoice): Promise<strin
     y -= 30; // Spacing after table
 
     // Card Background (Optional, or just whitespace)
-    // We align values to the right
-    const totalsLabelX = width - 220;
-    const totalsValX = width - 40;
+    // We align values to the right - adjusted for better spacing
+    const totalsLabelX = width - 200;
+    const totalsValX = width - margin - 10;
 
     const drawTotalRow = (label: string, value: string, isBold = false) => {
         y -= 20;
@@ -447,10 +450,12 @@ export async function generateEnterpriseInvoice(invoice: Invoice): Promise<strin
 
     // Grand Total
     const totalStr = safeCurrency(invoice.financials.totalAmount);
-    const gtw = fontBold.widthOfTextAtSize(totalStr, 16);
+    // Dynamic font size based on amount length to prevent overflow
+    const grandTotalFontSize = totalStr.length > 14 ? 12 : totalStr.length > 11 ? 14 : 16;
+    const gtw = fontBold.widthOfTextAtSize(totalStr, grandTotalFontSize);
     y -= 10;
     page.drawText("Grand Total", { x: totalsLabelX, y, size: 10, font: fontBold, color: C.NAVY });
-    page.drawText(totalStr, { x: totalsValX - gtw, y, size: 16, font: fontBold, color: C.NAVY });
+    page.drawText(totalStr, { x: totalsValX - gtw, y, size: grandTotalFontSize, font: fontBold, color: C.NAVY });
 
 
     // --- 6. TERMS & CONDITIONS (Bottom Panel) ---

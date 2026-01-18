@@ -3,9 +3,10 @@ import { Shipment } from '../../types';
 import { useShipmentStore } from '../../store/shipmentStore';
 import { Button, Card, Badge } from '../ui/CyberComponents';
 import { STATUS_COLORS } from '../../lib/design-tokens';
-import { generateShipmentLabel } from '../../lib/pdf-generator';
 import { Printer, X, Clock } from 'lucide-react';
 import { HUBS } from '../../lib/constants';
+import { toast } from 'sonner';
+import { NotesPanel } from '../domain/NotesPanel';
 
 interface Props {
     shipment: Shipment;
@@ -19,15 +20,26 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
         fetchShipmentEvents(shipment.id);
     }, [shipment.id]);
 
-    const handlePrintLabel = async () => {
-        const url = await generateShipmentLabel(shipment);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `LABEL-${shipment.awb}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+    const handlePrintLabel = () => {
+        try {
+            // Save shipment to localStorage for the print page
+            localStorage.setItem('print_shipping_label', JSON.stringify(shipment));
+
+            // Open print page in a popup (consistent with Invoice section)
+            const width = 500;
+            const height = 700;
+            const left = (window.screen.width - width) / 2;
+            const top = (window.screen.height - height) / 2;
+
+            window.open(
+                `#/print/label/${shipment.awb}`,
+                'PrintLabel',
+                `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+            );
+        } catch (error) {
+            console.error('Label error:', error);
+            toast.error('Failed to open label');
+        }
     };
 
     const origin = HUBS[shipment.originHub];
@@ -122,6 +134,15 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
                     )}
                 </div>
             </Card>
+
+            {/* Notes & Comments */}
+            <NotesPanel
+                entityType="SHIPMENT"
+                entityId={shipment.id}
+                title="Shipment Notes"
+                currentUserId="System"
+                maxHeight="300px"
+            />
         </div>
     );
 };

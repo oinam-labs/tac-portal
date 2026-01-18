@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { NavItem, User } from '../types';
 
+export { useNoteStore } from './noteStore';
+
 interface AppState {
     user: User | null;
     currentNav: NavItem;
