@@ -5,7 +5,7 @@ import { Button } from '../components/ui/CyberComponents';
 import { RefreshCw } from 'lucide-react';
 import { QuickActions } from '../components/dashboard/QuickActions';
 import { RecentActivity } from '../components/dashboard/RecentActivity';
-import { AIAssistant } from '../components/dashboard/AIAssistant';
+
 import { ErrorBoundary, InlineError } from '../components/ui/error-boundary';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../lib/query-keys';
@@ -46,15 +46,11 @@ export const Dashboard: React.FC = () => {
                 <DashboardCharts />
             </ErrorBoundary>
 
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Recent Shipments */}
                 <ErrorBoundary fallback={<InlineError message="Failed to load recent activity" />}>
                     <RecentActivity />
-                </ErrorBoundary>
-
-                {/* AI Assistant */}
-                <ErrorBoundary fallback={<InlineError message="AI Assistant unavailable" />}>
-                    <AIAssistant />
                 </ErrorBoundary>
             </div>
         </div>

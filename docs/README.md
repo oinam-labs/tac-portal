@@ -65,7 +65,7 @@ TAC Cargo Enterprise Portal is a modern, React-based logistics management system
 - **Role-Based Access Control (RBAC)** - Five user roles with granular permissions
 - **Dark/Light Theme** - Toggle between cyber-futuristic dark mode and clean light mode
 - **PDF Generation** - Shipping labels (4x6) and enterprise invoices (A4)
-- **AI Assistant** - Natural language queries powered by Google Gemini
+
 - **Real-time State** - Zustand-based reactive state management
 - **Offline-First** - localStorage persistence for mock database
 
@@ -114,11 +114,7 @@ TAC Cargo Enterprise Portal is a modern, React-based logistics management system
 | uuid | 10.0.0 | ID Generation |
 | lucide-react | 0.469.0 | Icons |
 
-### AI Integration
 
-| Technology | Purpose |
-|------------|---------|
-| @google/genai | Gemini API for AI Assistant |
 
 ---
 
@@ -128,7 +124,7 @@ TAC Cargo Enterprise Portal is a modern, React-based logistics management system
 
 - **Node.js** 18.x or higher
 - **npm** 9.x or higher
-- **Gemini API Key** (optional, for AI features)
+
 
 ### Installation
 
@@ -140,9 +136,7 @@ cd tac-portal
 # Install dependencies
 npm install
 
-# Set up environment variables
-# Edit .env.local and add your Gemini API key
-GEMINI_API_KEY=your_api_key_here
+
 
 # Start development server
 npm run dev
