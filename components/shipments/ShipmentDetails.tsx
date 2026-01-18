@@ -27,6 +27,7 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     };
 
     const origin = HUBS[shipment.originHub];

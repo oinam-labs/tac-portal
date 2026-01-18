@@ -94,9 +94,19 @@ interface SelectContentProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const SelectContent = React.forwardRef<HTMLDivElement, SelectContentProps>(
-    ({ className, children, ...props }, _ref) => {
+    ({ className, children, ...props }, ref) => {
         const { open, setOpen } = useSelectContext()
         const contentRef = React.useRef<HTMLDivElement>(null)
+
+        // Merge forwarded ref with internal ref
+        const mergedRef = React.useCallback(
+            (node: HTMLDivElement | null) => {
+                contentRef.current = node
+                if (typeof ref === "function") ref(node)
+                else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node
+            },
+            [ref]
+        )
 
         React.useEffect(() => {
             const handleClickOutside = (event: MouseEvent) => {
@@ -118,7 +128,7 @@ const SelectContent = React.forwardRef<HTMLDivElement, SelectContentProps>(
 
         return (
             <div
-                ref={contentRef}
+                ref={mergedRef}
                 className={cn(
                     "absolute top-full left-0 z-50 mt-1 min-w-[8rem] w-full overflow-hidden rounded-xl border border-cyber-border bg-cyber-surface shadow-lg animate-in fade-in-0 zoom-in-95",
                     className

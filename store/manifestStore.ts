@@ -60,13 +60,18 @@ export const useManifestStore = create<ManifestState>((set) => ({
             ...data as any
         };
 
-        await new Promise(resolve => setTimeout(resolve, 800));
-        db.addManifest(newManifest);
+        try {
+            await new Promise(resolve => setTimeout(resolve, 800));
+            db.addManifest(newManifest);
 
-        set(state => ({
-            manifests: [newManifest, ...state.manifests],
-            isLoading: false
-        }));
+            set(state => ({
+                manifests: [newManifest, ...state.manifests],
+                isLoading: false
+            }));
+        } catch (error) {
+            console.error('Failed to create manifest:', error);
+            set({ isLoading: false });
+        }
     },
 
     addShipmentsToManifest: async (manifestId, shipmentIds) => {
