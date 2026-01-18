@@ -85,7 +85,7 @@ export const ExceptionDetails: React.FC<ExceptionDetailsProps> = ({
                             </div>
                             <div>
                                 <div className="text-xs text-slate-500 mb-1">Severity</div>
-                                <Badge className={SEVERITY_COLORS[exception.severity]}>
+                                <Badge className={SEVERITY_COLORS[exception.severity] || 'bg-gray-500/10 text-gray-600 border-gray-500/30'}>
                                     {exception.severity}
                                 </Badge>
                             </div>

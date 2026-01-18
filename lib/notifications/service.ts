@@ -2,6 +2,10 @@ import { toast } from 'sonner';
 import { useNotificationStore } from './store';
 import type { NotificationPayload, NotificationCategory, NotificationType } from './types';
 
+// Helper to get toast function by type
+const getToastFn = (type: NotificationType) =>
+    ({ success: toast.success, error: toast.error, warning: toast.warning, info: toast.info }[type] || toast);
+
 /**
  * Smart toast rules - determines if a notification should show a toast
  */
@@ -30,12 +34,7 @@ export function notify(payload: NotificationPayload): void {
 
     // Smart toast rule
     if (shouldShowToast(payload.category, payload.type)) {
-        const toastFn = {
-            success: toast.success,
-            error: toast.error,
-            warning: toast.warning,
-            info: toast.info,
-        }[payload.type] || toast;
+        const toastFn = getToastFn(payload.type);
 
         toastFn(payload.title, {
             description: payload.message ?? undefined,
@@ -63,12 +62,7 @@ export function showToast(
         duration?: number;
     }
 ): void {
-    const toastFn = {
-        success: toast.success,
-        error: toast.error,
-        warning: toast.warning,
-        info: toast.info,
-    }[type] || toast;
+    const toastFn = getToastFn(type);
 
     toastFn(title, {
         description: options?.description,
@@ -80,7 +74,7 @@ export function showToast(
 /**
  * Promise-based toast for async operations (login, form submit, etc.)
  */
-export async function toastPromise<T>(
+export function toastPromise<T>(
     promise: Promise<T>,
     messages: {
         loading: string;
@@ -103,6 +97,9 @@ export async function toastPromise<T>(
 const getCurrentUserId = (): string => {
     // In a real app, this would read from auth context/store
     // For now, return a placeholder that should be overridden by callers
+    if (process.env.NODE_ENV === 'development') {
+        console.warn('getCurrentUserId: Using fallback "system" user ID. Pass userId parameter to notification helpers.');
+    }
     return 'system';
 };
 

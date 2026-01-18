@@ -299,7 +299,7 @@ In the Windsurf UI, system-level workflows are displayed with a “System” lab
 Important: System-level workflows should be managed by your IT or security team. Ensure your internal teams handle deployment, updates, and compliance according to your organization’s policies. You can use standard tools and workflows such as Mobile Device Management (MDM) or Configuration Management to do so.
 AGENTS.md
 Worktrees
-ascade
+Cascade
 Worktrees
 Automatically set up git worktrees for parallel Cascade tasks
 

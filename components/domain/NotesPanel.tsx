@@ -243,6 +243,15 @@ export const NotesPanel = memo<NotesPanelProps>(({
                     collapsible && 'cursor-pointer hover:bg-muted/50'
                 )}
                 onClick={collapsible ? () => setIsCollapsed(!isCollapsed) : undefined}
+                onKeyDown={collapsible ? (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setIsCollapsed(!isCollapsed);
+                    }
+                } : undefined}
+                role={collapsible ? 'button' : undefined}
+                tabIndex={collapsible ? 0 : undefined}
+                aria-expanded={collapsible ? !isCollapsed : undefined}
             >
                 <div className="flex items-center gap-2">
                     <MessageSquare className="h-4 w-4 text-muted-foreground" />

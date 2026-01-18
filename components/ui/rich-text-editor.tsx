@@ -128,6 +128,19 @@ const EditorToolbar = memo<EditorToolbarProps>(({ editor, variant }) => {
             editor.chain().focus().extendMarkRange('link').unsetLink().run();
             return;
         }
+
+        // Validate URL to prevent dangerous schemes
+        try {
+            const parsed = new URL(url);
+            if (!['http:', 'https:', 'mailto:'].includes(parsed.protocol)) {
+                alert('Invalid URL protocol. Only http, https, and mailto are allowed.');
+                return;
+            }
+        } catch {
+            alert('Invalid URL format.');
+            return;
+        }
+
         editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
     }, [editor]);
 
