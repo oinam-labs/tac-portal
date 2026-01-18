@@ -1,0 +1,314 @@
+
+import React from 'react';
+
+// --- ENUMS & CONSTANTS ---
+
+export type HubLocation = 'IMPHAL' | 'NEW_DELHI';
+
+export type ShipmentMode = 'AIR' | 'TRUCK';
+
+export type ServiceLevel = 'STANDARD' | 'EXPRESS';
+
+export type PaymentMode = 'PAID' | 'TO_PAY' | 'TBB';
+
+// PRD Exact Status Codes
+export type ShipmentStatus =
+    | 'CREATED'
+    | 'PICKED_UP'
+    | 'RECEIVED_AT_ORIGIN_HUB'
+    | 'LOADED_FOR_LINEHAUL'
+    | 'IN_TRANSIT_TO_DESTINATION'
+    | 'RECEIVED_AT_DEST_HUB'
+    | 'OUT_FOR_DELIVERY'
+    | 'DELIVERED'
+    | 'RETURNED'
+    | 'CANCELLED'
+    | 'DAMAGED'
+    | 'EXCEPTION_RAISED'
+    | 'EXCEPTION_RESOLVED';
+
+export type ManifestStatus = 'OPEN' | 'CLOSED' | 'DEPARTED' | 'ARRIVED';
+
+export type InvoiceStatus = 'DRAFT' | 'ISSUED' | 'PAID' | 'CANCELLED' | 'OVERDUE';
+
+export type ExceptionType = 'DAMAGED' | 'LOST' | 'DELAYED' | 'OVERWEIGHT' | 'MISROUTED' | 'CUSTOMS';
+
+export type ExceptionSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+export type UserRole = 'ADMIN' | 'MANAGER' | 'WAREHOUSE_IMPHAL' | 'WAREHOUSE_DELHI' | 'OPS' | 'INVOICE' | 'SUPPORT' | 'WAREHOUSE_STAFF' | 'OPS_STAFF' | 'FINANCE_STAFF';
+
+export enum NavItem {
+    DASHBOARD = 'Dashboard',
+    ANALYTICS = 'Analytics',
+    SHIPMENTS = 'Shipments',
+    TRACKING = 'Tracking',
+    MANIFESTS = 'Manifests',
+    SCANNING = 'Scanning',
+    INVENTORY = 'Inventory',
+    EXCEPTIONS = 'Exceptions',
+    FINANCE = 'Finance',
+    INVOICES = 'Invoices',
+    CUSTOMERS = 'Customers',
+    MANAGEMENT = 'Management',
+    SETTINGS = 'Settings'
+}
+
+// --- DOMAIN MODELS ---
+
+export interface Address {
+    line1: string;
+    city: string;
+    state: string;
+    zip: string;
+}
+
+export interface Hub {
+    id: HubLocation;
+    name: string;
+    code: string;
+    address: string;
+    sortCode: string;
+}
+
+export interface Customer {
+    id: string;
+    type: 'INDIVIDUAL' | 'BUSINESS';
+    name: string;
+    companyName?: string;
+    phone: string;
+    email: string;
+    address: string; // Legacy string support
+    addressDetails?: Address; // New structured
+    gstin?: string;
+    tier: 'STANDARD' | 'PRIORITY' | 'ENTERPRISE';
+    createdAt: string;
+    activeContracts?: number;
+    contactPerson?: string;
+
+    // Smart features (Phase 2)
+    preferences?: {
+        preferredTransportMode?: 'AIR' | 'TRUCK';
+        preferredPaymentMode?: 'PAID' | 'TO_PAY' | 'TBB';
+        gstApplicable?: boolean;
+        typicalContents?: string;
+    };
+    lastInvoiceAt?: string;
+    invoiceCount?: number;
+    avgInvoiceValue?: number;
+}
+
+export interface Package {
+    id: string;
+    shipmentId: string;
+    packageIndex: number;
+    weight: {
+        dead: number;
+        volumetric: number;
+        chargeable: number;
+    };
+    dimensions: {
+        length: number;
+        width: number;
+        height: number;
+    };
+    currentHubId: HubLocation;
+    binLocation?: string;
+    status: ShipmentStatus;
+    description?: string;
+}
+
+export interface Shipment {
+    id: string;
+    awb: string;
+    customerId: string;
+    customerName: string;
+    originHub: HubLocation;
+    destinationHub: HubLocation;
+    mode: ShipmentMode;
+    serviceLevel: ServiceLevel;
+    totalPackageCount: number;
+    totalWeight: {
+        dead: number;
+        volumetric: number;
+        chargeable: number;
+    };
+    status: ShipmentStatus;
+    invoiceId?: string;
+    manifestId?: string;
+    createdAt: string;
+    updatedAt: string;
+    eta: string;
+    lastUpdate?: string;
+
+    // Expanded Fields for Invoice/Label
+    consignor?: { name: string; phone: string; address: string; gstin?: string; city?: string; state?: string; zip?: string; };
+    consignee?: { name: string; phone: string; address: string; gstin?: string; city?: string; state?: string; zip?: string; };
+    contentsDescription?: string;
+    declaredValue?: number;
+    bookingDate?: string;
+    paymentMode?: PaymentMode;
+}
+
+export interface TrackingEvent {
+    id: string;
+    shipmentId: string;
+    awb: string;
+    eventCode: ShipmentStatus;
+    hubId?: HubLocation;
+    description: string;
+    timestamp: string;
+    actorId: string;
+    meta?: Record<string, any>;
+}
+
+export interface Manifest {
+    id: string;
+    reference: string;
+    type: ShipmentMode;
+    originHub: HubLocation;
+    destinationHub: HubLocation;
+    status: ManifestStatus;
+    vehicleMeta: {
+        vehicleId?: string;
+        driverName?: string;
+        driverPhone?: string;
+        flightNumber?: string;
+        carrier?: string;
+    };
+    shipmentIds: string[];
+    shipmentCount: number;
+    totalWeight: number;
+    createdBy: string;
+    createdAt: string;
+    departedAt?: string;
+    arrivedAt?: string;
+}
+
+export interface Invoice {
+    id: string;
+    invoiceNumber: string;
+    customerId: string;
+    customerName: string;
+    shipmentId: string;
+    awb: string;
+    status: InvoiceStatus;
+    paymentMode: PaymentMode; // New
+    financials: {
+        ratePerKg: number;
+        baseFreight: number;
+        docketCharge: number;
+        pickupCharge: number;
+        packingCharge: number;
+        fuelSurcharge: number;
+        handlingFee: number;
+        insurance: number;
+        tax: {
+            cgst: number;
+            sgst: number;
+            igst: number;
+            total: number;
+        };
+        discount: number;
+        totalAmount: number;
+        advancePaid: number;
+        balance: number;
+    };
+    dueDate: string;
+    paidAt?: string;
+    pdfUrl?: string;
+    createdAt: string;
+}
+
+export interface Exception {
+    id: string;
+    shipmentId: string;
+    awb: string;
+    type: ExceptionType;
+    severity: ExceptionSeverity;
+    description: string;
+    status: 'OPEN' | 'INVESTIGATING' | 'RESOLVED';
+    reportedAt: string;
+    resolvedAt?: string;
+    assignedTo?: string;
+}
+
+export interface User {
+    id: string;
+    name: string;
+    email: string;
+    role: UserRole;
+    assignedHub?: HubLocation;
+    active: boolean;
+    lastLogin: string;
+}
+
+export interface AuditLog {
+    id: string;
+    actorId: string;
+    action: string;
+    entityType: 'SHIPMENT' | 'MANIFEST' | 'INVOICE' | 'USER' | 'CUSTOMER';
+    entityId: string;
+    timestamp: string;
+    payload?: Record<string, unknown>;
+}
+
+// --- LEGACY/UI COMPATIBILITY TYPES ---
+
+export interface KPI {
+    label: string;
+    value: string | number;
+    trend: number;
+    trendDirection: 'up' | 'down' | 'neutral';
+    icon: React.ComponentType<{ className?: string }>;
+}
+
+export interface InventoryItem {
+    id: string;
+    sku: string;
+    name: string;
+    category: string;
+    quantity: number;
+    location: string;
+    status: 'In Stock' | 'Low Stock' | 'Critical';
+}
+
+// --- FILTER TYPES FOR REACT QUERY ---
+
+export interface ShipmentFilters {
+    status?: ShipmentStatus;
+    originHub?: HubLocation;
+    destinationHub?: HubLocation;
+    customerId?: string;
+    dateRange?: { start: string; end: string };
+    limit?: number;
+}
+
+export interface InvoiceFilters {
+    status?: InvoiceStatus;
+    customerId?: string;
+    dateRange?: { start: string; end: string };
+    limit?: number;
+}
+
+export interface CustomerFilters {
+    type?: 'INDIVIDUAL' | 'BUSINESS';
+    tier?: 'STANDARD' | 'PRIORITY' | 'ENTERPRISE';
+    search?: string;
+    limit?: number;
+}
+
+// --- API RESPONSE TYPES ---
+
+export interface PaginatedResponse<T> {
+    data: T[];
+    total: number;
+    page: number;
+    pageSize: number;
+    hasMore: boolean;
+}
+
+export interface ApiError {
+    code: string;
+    message: string;
+    details?: Record<string, unknown>;
+}
