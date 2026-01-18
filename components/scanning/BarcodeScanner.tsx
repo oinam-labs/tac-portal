@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library'
 import { cn } from '@/lib/utils'
-import { Camera, CameraOff, RefreshCw, Volume2, VolumeX } from 'lucide-react'
+import { CameraOff, RefreshCw, Volume2, VolumeX } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface BarcodeScannerProps {
@@ -11,11 +11,11 @@ interface BarcodeScannerProps {
   className?: string
 }
 
-export function BarcodeScanner({ 
-  onScan, 
-  onError, 
-  active = true, 
-  className 
+export function BarcodeScanner({
+  onScan,
+  onError,
+  active = true,
+  className
 }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const readerRef = useRef<BrowserMultiFormatReader | null>(null)
@@ -32,14 +32,14 @@ export function BarcodeScanner({
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
     const oscillator = audioContext.createOscillator()
     const gainNode = audioContext.createGain()
-    
+
     oscillator.connect(gainNode)
     gainNode.connect(audioContext.destination)
-    
+
     oscillator.frequency.value = 1200
     oscillator.type = 'sine'
     gainNode.gain.value = 0.3
-    
+
     oscillator.start()
     setTimeout(() => {
       oscillator.stop()
@@ -60,8 +60,8 @@ export function BarcodeScanner({
         setCameras(devices)
         if (devices.length > 0) {
           // Prefer back camera on mobile
-          const backCamera = devices.find(d => 
-            d.label.toLowerCase().includes('back') || 
+          const backCamera = devices.find(d =>
+            d.label.toLowerCase().includes('back') ||
             d.label.toLowerCase().includes('rear')
           )
           setSelectedCamera(backCamera?.deviceId || devices[0].deviceId)
@@ -98,7 +98,7 @@ export function BarcodeScanner({
             setLastScanned(text)
             playBeep()
             onScan(text)
-            
+
             // Reset last scanned after 2 seconds to allow re-scan
             setTimeout(() => setLastScanned(null), 2000)
           }
@@ -144,8 +144,8 @@ export function BarcodeScanner({
   return (
     <div className={cn("relative overflow-hidden rounded-lg", className)}>
       {/* Video feed */}
-      <video 
-        ref={videoRef} 
+      <video
+        ref={videoRef}
         className="w-full h-full object-cover"
         playsInline
         muted
@@ -163,7 +163,7 @@ export function BarcodeScanner({
 
         {/* Scanning line animation */}
         {isScanning && (
-          <div 
+          <div
             className="absolute left-8 right-8 h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_10px_#ef4444] animate-scan"
           />
         )}
@@ -190,8 +190,8 @@ export function BarcodeScanner({
       {/* Controls */}
       <div className="absolute top-4 right-4 flex gap-2 pointer-events-auto">
         {cameras.length > 1 && (
-          <Button 
-            size="icon" 
+          <Button
+            size="icon"
             variant="secondary"
             onClick={switchCamera}
             className="bg-black/50 hover:bg-black/70"
@@ -199,8 +199,8 @@ export function BarcodeScanner({
             <RefreshCw className="w-4 h-4" />
           </Button>
         )}
-        <Button 
-          size="icon" 
+        <Button
+          size="icon"
           variant="secondary"
           onClick={() => setSoundEnabled(!soundEnabled)}
           className="bg-black/50 hover:bg-black/70"

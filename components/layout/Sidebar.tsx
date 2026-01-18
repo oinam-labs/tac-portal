@@ -1,21 +1,19 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { 
-    LayoutDashboard, 
+import {
+    LayoutDashboard,
     BarChart2,
-    Truck, 
-    Map, 
-    ScanLine, 
-    FileText, 
-    CreditCard, 
+    Map,
+    ScanLine,
+    CreditCard,
     Settings,
     LogOut,
     Box,
     AlertTriangle,
     Users,
-    Briefcase,
     Layers,
     ClipboardList,
+    Briefcase,
     MapPin
 } from 'lucide-react';
 import { useStore } from '../../store';
@@ -97,7 +95,7 @@ export const Sidebar: React.FC = () => {
             <nav className="flex-1 py-6 px-3 space-y-6 overflow-y-auto">
                 {NAV_GROUPS.map((group, groupIndex) => {
                     const visibleItems = group.items.filter(item => hasAccess(item.roles));
-                    
+
                     if (visibleItems.length === 0) return null;
 
                     return (
@@ -115,8 +113,8 @@ export const Sidebar: React.FC = () => {
                                         title={sidebarCollapsed ? item.label : ''}
                                         className={({ isActive }) => `
                                             flex items-center px-3 py-2 rounded-lg transition-all duration-200 group
-                                            ${isActive 
-                                                ? 'bg-cyber-accent/10 text-cyber-neon shadow-[0_0_15px_rgba(34,211,238,0.1)] border border-cyber-neon/20' 
+                                            ${isActive
+                                                ? 'bg-cyber-accent/10 text-cyber-neon shadow-[0_0_15px_rgba(34,211,238,0.1)] border border-cyber-neon/20'
                                                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-black/5 dark:hover:bg-white/5'}
                                         `}
                                     >
@@ -137,14 +135,14 @@ export const Sidebar: React.FC = () => {
                         <div className="text-xs font-mono text-slate-500 uppercase">Logged in as</div>
                         <div className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.name}</div>
                         <div className="text-xs text-cyber-accentHover dark:text-cyber-neon truncate mb-1">{user.role}</div>
-                        
+
                         <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-2 bg-slate-100 dark:bg-white/5 p-1.5 rounded">
                             <MapPin className="w-3 h-3" />
                             <span className="truncate">{userHub}</span>
                         </div>
                     </div>
                 )}
-                <button 
+                <button
                     onClick={logout}
                     className={`flex items-center w-full px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
                 >

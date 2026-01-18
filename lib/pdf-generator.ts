@@ -510,7 +510,6 @@ export async function generateEnterpriseInvoice(invoice: Invoice): Promise<strin
     page.drawText("No: **** **** 9876", { x: margin, y: footerY - 36, size: 8, font: fontRegular, color: C.INK });
 
     // Right: Contact Info
-    const footerRightX = width - 150;
     // Align Right logic
     const drawRightFooter = (text: string, y: number, bold = false) => {
         const w = (bold ? fontBold : fontRegular).widthOfTextAtSize(text, bold ? 7 : 8);

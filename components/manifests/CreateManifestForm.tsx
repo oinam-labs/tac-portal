@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button, Input, Table, Th, Td } from '../ui/CyberComponents';
+import { Button, Input } from '../ui/CyberComponents';
 import { HUBS, SHIPMENT_MODES } from '../../lib/constants';
 import { useManifestStore } from '../../store/manifestStore';
 import { Truck, Plane, CheckSquare, Square } from 'lucide-react';
@@ -30,8 +30,8 @@ interface Props {
 
 export const CreateManifestForm: React.FC<Props> = ({ onSuccess, onCancel }) => {
     const { createManifest, addShipmentsToManifest, fetchAvailableShipments, availableShipments, isLoading } = useManifestStore();
-    
-    const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
+
+    const { register, handleSubmit, watch, setValue } = useForm<FormData>({
         resolver: zodResolver(schema),
         defaultValues: {
             originHub: 'IMPHAL',
@@ -62,7 +62,7 @@ export const CreateManifestForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
 
     const onSubmit = async (data: FormData) => {
         // 1. Create Manifest
-        const vehicleMeta = data.type === 'TRUCK' 
+        const vehicleMeta = data.type === 'TRUCK'
             ? { driverName: data.driverName, vehicleId: data.vehicleId }
             : { carrier: data.carrier, flightNumber: data.flightNumber };
 
@@ -76,15 +76,15 @@ export const CreateManifestForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
         // 2. Add Shipments (Wait for store refresh or grab ID - in mock we grab latest from DB or rely on internal logic. 
         // For simplicity in this mock, createManifest pushes to top of list, so we grab [0]. 
         // In real app, createManifest returns the ID.)
-        
+
         // However, in our mock store, we don't get ID back easily without refactor. 
         // Let's assume we can fetch the latest one created matching ref. 
         // Or better, let's just make createManifest handle shipmentIds if we passed them.
-        
+
         // Refactor: We'll do it in two steps by finding the latest one created.
         // A robust way in a mock:
         // We will assume the store's "manifests[0]" is the new one after creation.
-        
+
         const latestManifest = useManifestStore.getState().manifests[0];
         if (data.selectedShipments.length > 0 && latestManifest) {
             await addShipmentsToManifest(latestManifest.id, data.selectedShipments);
@@ -169,13 +169,13 @@ export const CreateManifestForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
                                 {availableShipments.map(s => (
                                     <tr key={s.id} onClick={() => toggleSelection(s.id)} className="hover:bg-cyber-accent/5 cursor-pointer border-b border-cyber-border/30 last:border-0">
                                         <td className="p-2 text-center">
-                                            {selected.includes(s.id) 
-                                                ? <CheckSquare className="w-4 h-4 text-cyber-neon" /> 
+                                            {selected.includes(s.id)
+                                                ? <CheckSquare className="w-4 h-4 text-cyber-neon" />
                                                 : <Square className="w-4 h-4 text-slate-400" />}
                                         </td>
                                         <td className="p-2 font-mono">{s.awb}</td>
                                         <td className="p-2">{s.totalWeight.chargeable}kg</td>
-                                        <td className="p-2 text-xs">{s.serviceLevel.substring(0,3)}</td>
+                                        <td className="p-2 text-xs">{s.serviceLevel.substring(0, 3)}</td>
                                     </tr>
                                 ))}
                             </tbody>

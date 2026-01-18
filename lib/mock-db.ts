@@ -1,5 +1,5 @@
 
-import { Shipment, Customer, HubLocation, ShipmentStatus, Package, TrackingEvent, Manifest, Exception, Invoice, User, UserRole, AuditLog, InvoiceStatus } from '../types';
+import { Shipment, Customer, HubLocation, ShipmentStatus, TrackingEvent, Manifest, Exception, Invoice, User, AuditLog, InvoiceStatus } from '../types';
 import { calculateFreight } from './utils';
 
 // Simple ID Generator

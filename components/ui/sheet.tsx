@@ -6,12 +6,6 @@ import { XIcon } from "lucide-react";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
-// import { Button } from "@/components/ui/button";
-import { Button } from "./button";
-
-function VisuallyHidden({ children }: { children: React.ReactNode }) {
-    return <span className="sr-only">{children}</span>;
-}
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
     return <SheetPrimitive.Root data-slot="sheet" {...props} />;

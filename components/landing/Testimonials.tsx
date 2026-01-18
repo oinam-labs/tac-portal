@@ -84,7 +84,7 @@ const TESTIMONIALS: TestimonialProps[] = [
         author: "Amit Kumar",
         role: "CTO",
         company: "TechLogix",
-        metric: null,
+        metric: undefined,
         featured: false,
     },
     {
@@ -92,7 +92,7 @@ const TESTIMONIALS: TestimonialProps[] = [
         author: "Deepika Singh",
         role: "Founder",
         company: "Manipur Crafts Co",
-        metric: null,
+        metric: undefined,
         featured: false,
     },
 ];

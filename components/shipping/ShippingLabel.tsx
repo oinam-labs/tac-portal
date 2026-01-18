@@ -37,7 +37,7 @@ function Code128Svg({ value }: { value: string }) {
             // Clear previous content
             svgRef.current.innerHTML = '';
 
-            const svg = bwipjs.toSVG({
+            const svg = (bwipjs as any).toSVG({
                 bcid: "code128",
                 text: value,
                 scale: 2,          // controls density

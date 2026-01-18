@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useShipmentStore } from '@/store/shipmentStore'
 import {
@@ -67,7 +67,7 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
 
   const handleSelect = useCallback((value: string) => {
     setOpen(false)
-    
+
     // Check if it's a navigation path
     if (value.startsWith('/')) {
       navigate(value)
@@ -176,7 +176,7 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
 // Hook for programmatic control
 export function useCommandPalette() {
   const [open, setOpen] = useState(false)
-  
+
   const toggle = useCallback(() => setOpen(o => !o), [])
   const show = useCallback(() => setOpen(true), [])
   const hide = useCallback(() => setOpen(false), [])

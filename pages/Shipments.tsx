@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Card, Button, Input } from '../components/ui/CyberComponents';
+import { Card, Button } from '../components/ui/CyberComponents';
 import { DataTable } from '../components/ui/data-table';
 import { StatusBadge } from '../components/domain/StatusBadge';
 import { ColumnDef } from '@tanstack/react-table';
-import { Filter, Download, Plus, Search, Eye, MoreHorizontal, Plane, Truck } from 'lucide-react';
+import { Download, Plus, Eye, Plane, Truck } from 'lucide-react';
 import { useShipmentStore } from '../store/shipmentStore';
 import { Modal } from '../components/ui/Modal';
 import { CreateShipmentForm } from '../components/shipments/CreateShipmentForm';
 import { ShipmentDetails } from '../components/shipments/ShipmentDetails';
 import { HUBS } from '../lib/constants';
 import { Shipment } from '../types';
-import { format } from 'date-fns';
 
 export const Shipments: React.FC = () => {
     const { shipments, fetchShipments, fetchCustomers } = useShipmentStore();
@@ -56,11 +55,10 @@ export const Shipments: React.FC = () => {
             accessorKey: 'serviceLevel',
             header: 'Service',
             cell: ({ row }) => (
-                <span className={`text-xs font-bold px-2 py-0.5 rounded ${
-                    row.getValue('serviceLevel') === 'EXPRESS' 
-                        ? 'bg-amber-500/20 text-amber-400' 
-                        : 'bg-slate-500/20 text-slate-400'
-                }`}>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded ${row.getValue('serviceLevel') === 'EXPRESS'
+                    ? 'bg-amber-500/20 text-amber-400'
+                    : 'bg-slate-500/20 text-slate-400'
+                    }`}>
                     {(row.getValue('serviceLevel') as string)?.substring(0, 3)}
                 </span>
             ),
@@ -81,8 +79,8 @@ export const Shipments: React.FC = () => {
             id: 'actions',
             header: '',
             cell: ({ row }) => (
-                <Button 
-                    variant="ghost" 
+                <Button
+                    variant="ghost"
                     size="sm"
                     onClick={() => setSelectedShipment(row.original)}
                 >
@@ -100,15 +98,15 @@ export const Shipments: React.FC = () => {
                     <p className="text-slate-500 dark:text-slate-400 text-sm">Manage and track all logistics orders.</p>
                 </div>
                 <div className="flex gap-3">
-                     <Button variant="ghost"><Download className="w-4 h-4 mr-2" /> Export</Button>
-                     <Button onClick={() => setIsCreateModalOpen(true)}>
+                    <Button variant="ghost"><Download className="w-4 h-4 mr-2" /> Export</Button>
+                    <Button onClick={() => setIsCreateModalOpen(true)}>
                         <Plus className="w-4 h-4 mr-2" /> New Shipment
-                     </Button>
+                    </Button>
                 </div>
             </div>
 
             <Card className="p-6">
-                <DataTable 
+                <DataTable
                     columns={columns}
                     data={shipments}
                     searchKey="awb"
@@ -118,12 +116,12 @@ export const Shipments: React.FC = () => {
             </Card>
 
             {/* Create Wizard Modal */}
-            <Modal 
-                isOpen={isCreateModalOpen} 
+            <Modal
+                isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 title="Create New Shipment"
             >
-                <CreateShipmentForm 
+                <CreateShipmentForm
                     onSuccess={() => setIsCreateModalOpen(false)}
                     onCancel={() => setIsCreateModalOpen(false)}
                 />
@@ -136,9 +134,9 @@ export const Shipments: React.FC = () => {
                 title="Shipment Details"
             >
                 {selectedShipment && (
-                    <ShipmentDetails 
-                        shipment={selectedShipment} 
-                        onClose={() => setSelectedShipment(null)} 
+                    <ShipmentDetails
+                        shipment={selectedShipment}
+                        onClose={() => setSelectedShipment(null)}
                     />
                 )}
             </Modal>

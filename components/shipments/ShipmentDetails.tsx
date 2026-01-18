@@ -4,7 +4,7 @@ import { useShipmentStore } from '../../store/shipmentStore';
 import { Button, Card, Badge } from '../ui/CyberComponents';
 import { STATUS_COLORS } from '../../lib/design-tokens';
 import { generateShipmentLabel } from '../../lib/pdf-generator';
-import { Printer, X, Box, ArrowRight, Clock } from 'lucide-react';
+import { Printer, X, Clock } from 'lucide-react';
 import { HUBS } from '../../lib/constants';
 
 interface Props {
@@ -27,6 +27,7 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     };
 
     const origin = HUBS[shipment.originHub];
@@ -89,12 +90,12 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
                         </div>
                     </div>
                 </Card>
-                
+
                 <Card>
                     <h3 className="text-sm font-bold mb-3">Customer</h3>
                     <div className="text-sm font-medium">{shipment.customerName}</div>
                     <div className="text-xs text-slate-500 mt-1">ID: {shipment.customerId}</div>
-                    
+
                     <h3 className="text-sm font-bold mt-4 mb-2">ETA</h3>
                     <div className="text-lg font-mono text-green-500">{shipment.eta}</div>
                 </Card>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Table, Th, Td, Badge, Button, Input } from '../components/ui/CyberComponents';
-import { User, Shield, User as UserIcon, Plus } from 'lucide-react';
+import { User as UserIcon, Plus } from 'lucide-react';
 import { useManagementStore } from '../store/managementStore';
 import { Modal } from '../components/ui/Modal';
 import { useForm } from 'react-hook-form';
@@ -17,7 +17,7 @@ interface FormData {
 export const Management: React.FC = () => {
     const { users, fetchUsers, addUser, toggleUserStatus, isLoading } = useManagementStore();
     const [isInviteOpen, setIsInviteOpen] = useState(false);
-    
+
     const { register, handleSubmit, reset } = useForm<FormData>();
 
     useEffect(() => {
@@ -86,8 +86,8 @@ export const Management: React.FC = () => {
                                 </Td>
                                 <Td className="text-xs text-slate-500 dark:text-slate-400">{u.lastLogin}</Td>
                                 <Td>
-                                    <Button 
-                                        variant={u.active ? "danger" : "secondary"} 
+                                    <Button
+                                        variant={u.active ? "danger" : "secondary"}
                                         size="sm"
                                         onClick={() => toggleUserStatus(u.id, u.active)}
                                     >

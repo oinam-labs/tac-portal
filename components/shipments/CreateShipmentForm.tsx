@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { Button, Input } from '../ui/CyberComponents';
 import { HUBS, SHIPMENT_MODES, SERVICE_LEVELS } from '../../lib/constants';
 import { useShipmentStore } from '../../store/shipmentStore';
-import { Package, Truck, Plane, Zap, Clock, Box } from 'lucide-react';
+import { Package, Truck, Plane, Zap, Clock } from 'lucide-react';
 
 const schema = z.object({
     customerId: z.string().min(1, "Customer is required"),
@@ -33,7 +33,7 @@ interface Props {
 
 export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => {
     const { customers, createShipment, isLoading } = useShipmentStore();
-    
+
     const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema),
         defaultValues: {
@@ -55,7 +55,7 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
         const divisor = data.mode === 'AIR' ? 5000 : 4000; // Mock standard
         const volWeight = (data.dimL * data.dimW * data.dimH) / divisor;
         const chargeable = Math.max(data.weightDead, volWeight);
-        
+
         const customer = customers.find(c => c.id === data.customerId);
 
         await createShipment({
@@ -71,8 +71,8 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
                 volumetric: parseFloat(volWeight.toFixed(2)),
                 chargeable: parseFloat(chargeable.toFixed(2))
             }
-        }, []); 
-        
+        }, []);
+
         onSuccess();
     };
 
@@ -82,7 +82,7 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <label className="block text-xs font-mono text-slate-500 mb-1">ORIGIN HUB</label>
-                    <select 
+                    <select
                         {...register('originHub')}
                         className="w-full bg-white/50 dark:bg-cyber-surface/50 border border-cyber-border rounded-lg px-4 py-2"
                     >
@@ -93,7 +93,7 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
                 </div>
                 <div>
                     <label className="block text-xs font-mono text-slate-500 mb-1">DESTINATION HUB</label>
-                    <select 
+                    <select
                         {...register('destinationHub')}
                         className="w-full bg-white/50 dark:bg-cyber-surface/50 border border-cyber-border rounded-lg px-4 py-2"
                     >
@@ -108,7 +108,7 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
             {/* Customer */}
             <div>
                 <label className="block text-xs font-mono text-slate-500 mb-1">CUSTOMER</label>
-                <select 
+                <select
                     {...register('customerId')}
                     className="w-full bg-white/50 dark:bg-cyber-surface/50 border border-cyber-border rounded-lg px-4 py-2"
                 >
@@ -128,8 +128,8 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
                         {SHIPMENT_MODES.map(mode => (
                             <label key={mode.id} className={`
                                 cursor-pointer border rounded-lg p-2 flex flex-col items-center justify-center text-xs transition-all text-center
-                                ${selectedMode === mode.id 
-                                    ? 'bg-cyber-accent/10 border-cyber-neon text-cyber-accentHover dark:text-cyber-neon' 
+                                ${selectedMode === mode.id
+                                    ? 'bg-cyber-accent/10 border-cyber-neon text-cyber-accentHover dark:text-cyber-neon'
                                     : 'border-cyber-border hover:bg-slate-50 dark:hover:bg-white/5'}
                             `}>
                                 <input type="radio" value={mode.id} {...register('mode')} className="hidden" />
@@ -142,11 +142,11 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
                 <div>
                     <label className="block text-xs font-mono text-slate-500 mb-1">SERVICE LEVEL</label>
                     <div className="grid grid-cols-2 gap-2">
-                         {SERVICE_LEVELS.map(level => (
+                        {SERVICE_LEVELS.map(level => (
                             <label key={level.id} className={`
                                 cursor-pointer border rounded-lg p-2 flex flex-col items-center justify-center text-xs transition-all text-center
-                                ${selectedService === level.id 
-                                    ? 'bg-purple-500/10 border-purple-400 text-purple-600 dark:text-purple-400' 
+                                ${selectedService === level.id
+                                    ? 'bg-purple-500/10 border-purple-400 text-purple-600 dark:text-purple-400'
                                     : 'border-cyber-border hover:bg-slate-50 dark:hover:bg-white/5'}
                             `}>
                                 <input type="radio" value={level.id} {...register('serviceLevel')} className="hidden" />

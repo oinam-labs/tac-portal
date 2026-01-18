@@ -4,9 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { Card, Table, Th, Td, Badge, Button } from '../components/ui/CyberComponents';
 import { useInvoiceStore } from '../store/invoiceStore';
 import { useShipmentStore } from '../store/shipmentStore'; // Needed to fetch linked shipment
-import { FileText, CreditCard, Download, Plus, Check, X, Printer, Share2, Mail, MessageCircle, Map } from 'lucide-react';
+import { FileText, CreditCard, Plus, Check, X, Printer, Mail, MessageCircle, Map } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
-import { generateEnterpriseInvoice, generateShipmentLabel } from '../lib/pdf-generator';
+import { generateEnterpriseInvoice } from '../lib/pdf-generator';
 import { Invoice, Shipment } from '../types';
 import { Modal } from '../components/ui/Modal';
 import { CreateInvoiceForm } from '../components/finance/CreateInvoiceForm';

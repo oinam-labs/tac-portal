@@ -1,11 +1,10 @@
-import React from 'react'
 import { cn } from '@/lib/utils'
 import { Shipment } from '@/types'
 import { StatusBadge } from './StatusBadge'
 import { format } from 'date-fns'
-import { 
-  Package, Plane, Truck, MapPin, Clock, 
-  ArrowRight, Weight, ChevronRight 
+import {
+  Package, Plane, Truck, Clock,
+  ArrowRight, Weight, ChevronRight
 } from 'lucide-react'
 
 interface ShipmentCardProps {
@@ -32,7 +31,7 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
 
   if (compact) {
     return (
-      <div 
+      <div
         onClick={onClick}
         className={cn(
           "flex items-center gap-4 p-3 rounded-lg border border-white/5 bg-cyber-surface/50 hover:bg-cyber-surface hover:border-cyber-accent/30 transition-all cursor-pointer group",
@@ -42,7 +41,7 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
         <div className="p-2 rounded-lg bg-cyber-accent/10">
           <Package className="w-4 h-4 text-cyber-accent" />
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-mono font-bold text-white text-sm">{shipment.awb}</span>
@@ -63,7 +62,7 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
   }
 
   return (
-    <div 
+    <div
       onClick={onClick}
       className={cn(
         "relative overflow-hidden rounded-xl border border-white/10 bg-cyber-card/80 backdrop-blur-sm p-5 transition-all hover:border-cyber-accent/30 hover:shadow-lg hover:shadow-cyber-accent/5 cursor-pointer group",
@@ -104,13 +103,13 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
           <p className="text-2xl font-bold text-white">{origin.code}</p>
           <p className="text-xs text-slate-500">{origin.name}</p>
         </div>
-        
+
         <div className="flex-1 flex items-center justify-center gap-2 px-4">
           <div className="h-px flex-1 bg-gradient-to-r from-slate-600 to-transparent" />
           <ModeIcon className="w-4 h-4 text-slate-400" />
           <div className="h-px flex-1 bg-gradient-to-l from-slate-600 to-transparent" />
         </div>
-        
+
         <div className="text-center">
           <p className="text-2xl font-bold text-white">{dest.code}</p>
           <p className="text-xs text-slate-500">{dest.name}</p>
@@ -141,8 +140,8 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
       <div className="absolute top-4 right-4">
         <span className={cn(
           "text-xs font-bold px-2 py-0.5 rounded",
-          shipment.serviceLevel === 'EXPRESS' 
-            ? 'bg-amber-500/20 text-amber-400' 
+          shipment.serviceLevel === 'EXPRESS'
+            ? 'bg-amber-500/20 text-amber-400'
             : 'bg-slate-500/20 text-slate-400'
         )}>
           {shipment.serviceLevel}

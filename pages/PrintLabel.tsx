@@ -12,7 +12,7 @@ const mapShipmentToLabel = (shipment: Shipment): ShippingLabelData => {
     // Address lines logic
     const address = shipment.consignee?.address || `${destHub.name} Airport Road`;
     const city = shipment.consignee?.city || destHub.name;
-    const stateZip = "Manipur 795001"; // Fallback or extract from address if structured
+    // stateZip fallback removed - extract from address if structured
     // We'll simplisticly split address or just use as is. 
     // The reference design used 3 lines.
     const shipToLines = [

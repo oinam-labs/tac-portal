@@ -40,9 +40,9 @@ const StatCard: React.FC<StatCardProps> = ({ icon, value, label, trend }) => (
 
 const STATS = [
     { icon: <Package className="w-5 h-5" />, value: '10K+', label: 'Packages Monthly', trend: '+12%' },
-    { icon: <TrendingUp className="w-5 h-5" />, value: '98.7%', label: 'Scan Reliability', trend: null },
-    { icon: <Clock className="w-5 h-5" />, value: '24-48h', label: 'Air Corridor', trend: null },
-    { icon: <Award className="w-5 h-5" />, value: 'SLA', label: 'Enterprise Support', trend: null },
+    { icon: <TrendingUp className="w-5 h-5" />, value: '98.7%', label: 'Scan Reliability', trend: undefined },
+    { icon: <Clock className="w-5 h-5" />, value: '24-48h', label: 'Air Corridor', trend: undefined },
+    { icon: <Award className="w-5 h-5" />, value: 'SLA', label: 'Enterprise Support', trend: undefined },
 ];
 
 interface StatsRowProps {
