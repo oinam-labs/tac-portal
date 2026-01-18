@@ -34,6 +34,7 @@ interface InvoiceDetailsProps {
     onDownloadLabel: (inv: Invoice) => void;
     onMarkPaid?: (id: string) => void;
     onCancel?: (id: string) => void;
+    currentUserId?: string;
 }
 
 export const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
@@ -44,6 +45,7 @@ export const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
     onDownloadLabel,
     onMarkPaid,
     onCancel,
+    currentUserId = 'System',
 }) => {
     const origin = shipment ? HUBS[shipment.originHub] : null;
     const dest = shipment ? HUBS[shipment.destinationHub] : null;
@@ -231,7 +233,7 @@ export const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
                         entityType="INVOICE"
                         entityId={invoice.id}
                         title="Invoice Notes"
-                        currentUserId="System"
+                        currentUserId={currentUserId}
                         maxHeight="400px"
                     />
 

@@ -28,9 +28,9 @@ interface NoteState {
 const generateId = () => `NOTE-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
 const stripHtml = (html: string): string => {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || '';
+    if (typeof window === 'undefined') return '';
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.textContent ?? '';
 };
 
 export const useNoteStore = create<NoteState>()(

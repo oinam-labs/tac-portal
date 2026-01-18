@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, memo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import DOMPurify from 'dompurify';
 import {
     MessageSquare,
     Plus,
@@ -87,7 +88,7 @@ const NoteItem = memo<NoteItemProps>(({ note, currentUserId, onEdit, onDelete, o
 
                 {/* Content */}
                 <div className="prose-sm">
-                    <RichTextViewer content={note.content} className="text-sm" />
+                    <RichTextViewer content={DOMPurify.sanitize(note.content)} className="text-sm" />
                 </div>
 
                 {/* Actions */}

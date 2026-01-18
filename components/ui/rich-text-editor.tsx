@@ -119,9 +119,8 @@ interface EditorToolbarProps {
 }
 
 const EditorToolbar = memo<EditorToolbarProps>(({ editor, variant }) => {
-    if (!editor) return null;
-
     const setLink = useCallback(() => {
+        if (!editor) return;
         const previousUrl = editor.getAttributes('link').href;
         const url = window.prompt('URL', previousUrl);
         if (url === null) return;
@@ -133,11 +132,14 @@ const EditorToolbar = memo<EditorToolbarProps>(({ editor, variant }) => {
     }, [editor]);
 
     const addImage = useCallback(() => {
+        if (!editor) return;
         const url = window.prompt('Image URL');
         if (url) {
             editor.chain().focus().setImage({ src: url }).run();
         }
     }, [editor]);
+
+    if (!editor) return null;
 
     const basicTools = (
         <>

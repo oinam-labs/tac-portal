@@ -99,11 +99,18 @@ export async function toastPromise<T>(
 /**
  * Notification helpers for common events
  */
+// Helper to get current user ID from auth context
+const getCurrentUserId = (): string => {
+    // In a real app, this would read from auth context/store
+    // For now, return a placeholder that should be overridden by callers
+    return 'system';
+};
+
 export const notifications = {
     // Invoice notifications
-    invoiceCreated: (invoiceNumber: string, href?: string) => {
+    invoiceCreated: (invoiceNumber: string, href?: string, userId?: string) => {
         notify({
-            user_id: 'current',
+            user_id: userId ?? getCurrentUserId(),
             type: 'success',
             category: 'invoice',
             title: 'Invoice Created',
@@ -113,9 +120,9 @@ export const notifications = {
         });
     },
 
-    invoicePaid: (invoiceNumber: string) => {
+    invoicePaid: (invoiceNumber: string, userId?: string) => {
         notify({
-            user_id: 'current',
+            user_id: userId ?? getCurrentUserId(),
             type: 'success',
             category: 'payment',
             title: 'Payment Received',
@@ -125,9 +132,9 @@ export const notifications = {
     },
 
     // Shipment notifications
-    shipmentCreated: (awb: string, href?: string) => {
+    shipmentCreated: (awb: string, href?: string, userId?: string) => {
         notify({
-            user_id: 'current',
+            user_id: userId ?? getCurrentUserId(),
             type: 'success',
             category: 'shipment',
             title: 'Shipment Created',
@@ -137,9 +144,9 @@ export const notifications = {
         });
     },
 
-    shipmentStatusUpdate: (awb: string, status: string) => {
+    shipmentStatusUpdate: (awb: string, status: string, userId?: string) => {
         notify({
-            user_id: 'current',
+            user_id: userId ?? getCurrentUserId(),
             type: 'info',
             category: 'shipment',
             title: 'Shipment Update',
@@ -149,9 +156,9 @@ export const notifications = {
         });
     },
 
-    shipmentDelivered: (awb: string) => {
+    shipmentDelivered: (awb: string, userId?: string) => {
         notify({
-            user_id: 'current',
+            user_id: userId ?? getCurrentUserId(),
             type: 'success',
             category: 'shipment',
             title: 'Shipment Delivered',

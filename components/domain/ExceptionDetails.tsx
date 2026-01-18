@@ -20,6 +20,7 @@ interface ExceptionDetailsProps {
     exception: Exception;
     onClose: () => void;
     onResolve?: (id: string) => void;
+    currentUserId?: string;
 }
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -42,6 +43,7 @@ export const ExceptionDetails: React.FC<ExceptionDetailsProps> = ({
     exception,
     onClose,
     onResolve,
+    currentUserId = 'System',
 }) => {
     return (
         <div className="space-y-6">
@@ -185,7 +187,7 @@ export const ExceptionDetails: React.FC<ExceptionDetailsProps> = ({
                         entityType="EXCEPTION"
                         entityId={exception.id}
                         title="Exception Notes"
-                        currentUserId="System"
+                        currentUserId={currentUserId}
                         maxHeight="350px"
                     />
 

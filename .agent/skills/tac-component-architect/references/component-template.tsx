@@ -7,11 +7,9 @@
  * @note This is a reference template - copy to components/ before use.
  */
 
-// @ts-nocheck
 import { forwardRef, memo } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
-// When using this template, import cn from your project's lib/utils
-import { cn } from '@/lib/utils'; // eslint-disable-line
+import { cn } from '@/lib/utils';
 
 // 1. VARIANTS - Define visual variations
 const componentVariants = cva(
@@ -62,18 +60,31 @@ const ComponentName = forwardRef<HTMLDivElement, ComponentNameProps>(
       }
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleClick();
+      }
+    };
+
     return (
       <div
         ref={ref}
         className={cn(componentVariants({ variant, size }), className)}
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
         aria-disabled={disabled || isLoading}
         role="button"
         tabIndex={disabled ? -1 : 0}
         {...props}
       >
         {isLoading ? (
-          <span className="animate-spin mr-2">⏳</span>
+          <span className="animate-spin mr-2" aria-hidden="true">
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10" strokeWidth="4" className="opacity-25" />
+              <path d="M4 12a8 8 0 018-8" strokeWidth="4" className="opacity-75" />
+            </svg>
+          </span>
         ) : null}
         {children}
       </div>
