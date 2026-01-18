@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Input, Table, Th, Td } from '../components/ui/CyberComponents';
-import { Bell, Shield, Smartphone, Globe, Activity, FileText } from 'lucide-react';
+import { Bell, Shield, Globe, Activity } from 'lucide-react';
 import { useAuditStore } from '../store/auditStore';
 
 export const Settings: React.FC = () => {
@@ -16,22 +16,22 @@ export const Settings: React.FC = () => {
     return (
         <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">System Configuration</h1>
-            
+
             <div className="flex gap-4 border-b border-cyber-border mb-6">
-                <button 
-                    onClick={() => setActiveTab('GENERAL')} 
+                <button
+                    onClick={() => setActiveTab('GENERAL')}
                     className={`pb-2 px-4 text-sm font-bold border-b-2 transition-colors ${activeTab === 'GENERAL' ? 'border-cyber-neon text-cyber-accentHover dark:text-cyber-neon' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                 >
                     General
                 </button>
-                <button 
-                    onClick={() => setActiveTab('SECURITY')} 
+                <button
+                    onClick={() => setActiveTab('SECURITY')}
                     className={`pb-2 px-4 text-sm font-bold border-b-2 transition-colors ${activeTab === 'SECURITY' ? 'border-cyber-neon text-cyber-accentHover dark:text-cyber-neon' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                 >
                     Security & Notifications
                 </button>
-                <button 
-                    onClick={() => setActiveTab('AUDIT')} 
+                <button
+                    onClick={() => setActiveTab('AUDIT')}
                     className={`pb-2 px-4 text-sm font-bold border-b-2 transition-colors ${activeTab === 'AUDIT' ? 'border-cyber-neon text-cyber-accentHover dark:text-cyber-neon' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                 >
                     Audit Logs
@@ -55,7 +55,7 @@ export const Settings: React.FC = () => {
                                 <Input defaultValue="UTC-5 (Eastern Standard Time)" />
                             </div>
                             <div className="pt-2">
-                                 <Button>Save Changes</Button>
+                                <Button>Save Changes</Button>
                             </div>
                         </div>
                     </Card>
@@ -87,20 +87,20 @@ export const Settings: React.FC = () => {
                             <h3 className="font-bold text-slate-900 dark:text-white">Security</h3>
                         </div>
                         <div className="space-y-4">
-                             <div className="flex justify-between items-center">
-                                 <div>
-                                     <div className="text-sm font-bold text-slate-900 dark:text-white">Two-Factor Authentication</div>
-                                     <div className="text-xs text-slate-500 dark:text-slate-400">Enabled via Authenticator App</div>
-                                 </div>
-                                 <Button variant="secondary" size="sm">Configure</Button>
-                             </div>
-                             <div className="flex justify-between items-center">
-                                 <div>
-                                     <div className="text-sm font-bold text-slate-900 dark:text-white">API Access Keys</div>
-                                     <div className="text-xs text-slate-500 dark:text-slate-400">Last used 2 hours ago</div>
-                                 </div>
-                                 <Button variant="secondary" size="sm">Manage Keys</Button>
-                             </div>
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <div className="text-sm font-bold text-slate-900 dark:text-white">Two-Factor Authentication</div>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400">Enabled via Authenticator App</div>
+                                </div>
+                                <Button variant="secondary" size="sm">Configure</Button>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <div className="text-sm font-bold text-slate-900 dark:text-white">API Access Keys</div>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400">Last used 2 hours ago</div>
+                                </div>
+                                <Button variant="secondary" size="sm">Manage Keys</Button>
+                            </div>
                         </div>
                     </Card>
                 </div>

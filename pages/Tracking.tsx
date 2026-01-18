@@ -4,7 +4,7 @@ import { Card, Input, Button } from '../components/ui/CyberComponents';
 import { TrackingTimeline } from '../components/domain/TrackingTimeline';
 import { StatusBadge } from '../components/domain/StatusBadge';
 import { ShipmentCard } from '../components/domain/ShipmentCard';
-import { Search, MapPin, Truck, CheckCircle, Package, AlertCircle, Plane } from 'lucide-react';
+import { Search, MapPin, Truck, Package, Plane } from 'lucide-react';
 import { db } from '../lib/mock-db';
 import { Shipment, TrackingEvent } from '../types';
 import { HUBS } from '../lib/constants';
@@ -18,7 +18,7 @@ export const Tracking: React.FC = () => {
     const performSearch = (awb: string) => {
         setError('');
         setResult(null);
-        
+
         const shipment = db.getShipmentByAWB(awb);
         if (shipment) {
             const events = db.getEvents(shipment.id);
@@ -43,14 +43,14 @@ export const Tracking: React.FC = () => {
     return (
         <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Live Tracking</h1>
-            
+
             {/* Search Area */}
             <Card className="max-w-3xl mx-auto p-8 border-cyber-accent/30 shadow-[0_0_30px_rgba(34,211,238,0.05)]">
                 <div className="flex gap-4">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-3 text-slate-500 w-5 h-5" />
-                        <Input 
-                            placeholder="Enter AWB (e.g., TAC...)" 
+                        <Input
+                            placeholder="Enter AWB (e.g., TAC...)"
                             className="pl-10 h-12 text-lg"
                             value={trackId}
                             onChange={(e) => setTrackId(e.target.value)}
@@ -69,18 +69,18 @@ export const Tracking: React.FC = () => {
                             <div className="text-sm text-slate-500 mb-2">Current Status</div>
                             <StatusBadge status={result.shipment.status} size="lg" />
                         </div>
-                        
+
                         <h3 className="text-lg font-bold text-white mb-6">Shipment Journey</h3>
                         <TrackingTimeline events={result.events} />
                     </Card>
 
                     {/* Map & Shipment Details */}
                     <Card className="lg:col-span-2 relative overflow-hidden min-h-[400px] bg-slate-900">
-                        <div className="absolute inset-0 opacity-20" style={{ 
-                            backgroundImage: 'radial-gradient(circle at 50% 50%, #1e293b 1px, transparent 1px)', 
-                            backgroundSize: '20px 20px' 
+                        <div className="absolute inset-0 opacity-20" style={{
+                            backgroundImage: 'radial-gradient(circle at 50% 50%, #1e293b 1px, transparent 1px)',
+                            backgroundSize: '20px 20px'
                         }}></div>
-                        
+
                         {/* Route Visualization */}
                         <div className="absolute inset-0">
                             <div className="absolute top-1/2 left-1/4 -translate-y-1/2 text-center">
@@ -91,7 +91,7 @@ export const Tracking: React.FC = () => {
                                     {HUBS[result.shipment.originHub]?.code || 'ORIGIN'}
                                 </span>
                             </div>
-                             
+
                             <div className="absolute top-1/2 right-1/4 -translate-y-1/2 text-center">
                                 <div className="w-6 h-6 rounded-full bg-emerald-500 mx-auto mb-2 flex items-center justify-center">
                                     <MapPin className="w-3 h-3 text-white" />
@@ -103,7 +103,7 @@ export const Tracking: React.FC = () => {
 
                             {/* Route line */}
                             <div className="absolute top-1/2 left-[28%] right-[28%] h-1 bg-gradient-to-r from-cyan-500 via-amber-500 to-emerald-500 rounded-full"></div>
-                             
+
                             {/* Moving vehicle indicator */}
                             {(result.shipment.status === 'IN_TRANSIT_TO_DESTINATION' || result.shipment.status === 'LOADED_FOR_LINEHAUL') && (
                                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-cyber-card border-2 border-cyber-accent p-3 rounded-xl shadow-lg animate-pulse">

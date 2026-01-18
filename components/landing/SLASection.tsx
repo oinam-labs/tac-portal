@@ -46,13 +46,13 @@ const GUARANTEES = [
         icon: <FileCheck className="w-5 h-5" />,
         title: 'Insurance & Claims',
         description: 'Full transit insurance with streamlined claims processing within 72 hours.',
-        badge: null,
+        badge: undefined,
     },
     {
         icon: <Link2 className="w-5 h-5" />,
         title: 'Chain of Custody',
         description: 'Complete audit trail with timestamped scans at every checkpoint.',
-        badge: null,
+        badge: undefined,
     },
     {
         icon: <Webhook className="w-5 h-5" />,

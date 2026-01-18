@@ -12,7 +12,7 @@ import { HUBS } from '../lib/constants';
 import { Manifest } from '../types';
 
 export const Manifests: React.FC = () => {
-    const { manifests, fetchManifests, updateManifestStatus, isLoading } = useManifestStore();
+    const { manifests, fetchManifests, updateManifestStatus } = useManifestStore();
     const [isCreateOpen, setIsCreateOpen] = useState(false);
 
     useEffect(() => {
@@ -43,13 +43,13 @@ export const Manifests: React.FC = () => {
                     )}
                     <div>
                         <span className="font-medium text-white">
-                            {row.original.type === 'AIR' 
-                                ? row.original.vehicleMeta?.flightNumber 
+                            {row.original.type === 'AIR'
+                                ? row.original.vehicleMeta?.flightNumber
                                 : row.original.vehicleMeta?.driverName}
                         </span>
                         <div className="text-xs text-slate-500">
-                            {row.original.type === 'AIR' 
-                                ? row.original.vehicleMeta?.carrier 
+                            {row.original.type === 'AIR'
+                                ? row.original.vehicleMeta?.carrier
                                 : row.original.vehicleMeta?.vehicleId}
                         </div>
                     </div>
@@ -119,27 +119,27 @@ export const Manifests: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <KPICard 
-                    title="Open Manifests" 
+                <KPICard
+                    title="Open Manifests"
                     value={openCount}
                     icon={<Package className="w-5 h-5" />}
                     trend="neutral"
                 />
-                <KPICard 
-                    title="In Transit" 
+                <KPICard
+                    title="In Transit"
                     value={transitCount}
                     icon={<Truck className="w-5 h-5" />}
                     trend="up"
                 />
-                <KPICard 
-                    title="Transit Weight" 
+                <KPICard
+                    title="Transit Weight"
                     value={`${transitWeight} kg`}
                     icon={<Weight className="w-5 h-5" />}
                 />
             </div>
 
             <Card className="p-6">
-                <DataTable 
+                <DataTable
                     columns={columns}
                     data={manifests}
                     searchKey="reference"
@@ -149,9 +149,9 @@ export const Manifests: React.FC = () => {
             </Card>
 
             <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Create New Manifest">
-                <CreateManifestForm 
-                    onSuccess={() => setIsCreateOpen(false)} 
-                    onCancel={() => setIsCreateOpen(false)} 
+                <CreateManifestForm
+                    onSuccess={() => setIsCreateOpen(false)}
+                    onCancel={() => setIsCreateOpen(false)}
                 />
             </Modal>
         </div>

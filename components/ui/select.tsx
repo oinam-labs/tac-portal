@@ -94,7 +94,7 @@ interface SelectContentProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const SelectContent = React.forwardRef<HTMLDivElement, SelectContentProps>(
-    ({ className, children, ...props }, ref) => {
+    ({ className, children, ...props }, _ref) => {
         const { open, setOpen } = useSelectContext()
         const contentRef = React.useRef<HTMLDivElement>(null)
 

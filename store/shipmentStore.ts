@@ -7,7 +7,7 @@ interface ShipmentState {
     customers: Customer[];
     currentShipmentEvents: TrackingEvent[];
     isLoading: boolean;
-    
+
     // Actions
     fetchShipments: () => void;
     fetchCustomers: () => void;
@@ -16,7 +16,7 @@ interface ShipmentState {
     addCustomer: (customer: Partial<Customer>) => Promise<void>;
 }
 
-export const useShipmentStore = create<ShipmentState>((set, get) => ({
+export const useShipmentStore = create<ShipmentState>((set) => ({
     shipments: [],
     customers: [],
     currentShipmentEvents: [],
@@ -39,9 +39,9 @@ export const useShipmentStore = create<ShipmentState>((set, get) => ({
         set({ currentShipmentEvents: events });
     },
 
-    createShipment: async (shipmentData, packages) => {
+    createShipment: async (shipmentData, _packages) => {
         set({ isLoading: true });
-        
+
         const newShipment: Shipment = {
             id: `SH-${Math.floor(Math.random() * 10000)}`,
             awb: db.generateAWB(),
@@ -57,18 +57,18 @@ export const useShipmentStore = create<ShipmentState>((set, get) => ({
 
         // Simulate DB write
         await new Promise(resolve => setTimeout(resolve, 800));
-        
+
         db.addShipment(newShipment);
-        
-        set((state) => ({ 
+
+        set((state) => ({
             shipments: [newShipment, ...state.shipments],
-            isLoading: false 
+            isLoading: false
         }));
     },
 
     addCustomer: async (customer) => {
         set({ isLoading: true });
-        
+
         const newCustomer: Customer = {
             id: `C-${Math.floor(Math.random() * 10000)}`,
             createdAt: new Date().toISOString(),
@@ -85,7 +85,7 @@ export const useShipmentStore = create<ShipmentState>((set, get) => ({
 
         await new Promise(resolve => setTimeout(resolve, 500));
         db.addCustomer(newCustomer);
-        
+
         set(state => ({
             customers: [newCustomer, ...state.customers],
             isLoading: false

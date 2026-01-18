@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import JsBarcode from 'jsbarcode'
 import QRCode from 'qrcode.react'
 import { Shipment, HubLocation } from '@/types'
@@ -34,7 +34,7 @@ export function ShippingLabel({ shipment, packageIndex = 1 }: ShippingLabelProps
 
   const origin = HUB_INFO[shipment.originHub]
   const dest = HUB_INFO[shipment.destinationHub]
-  
+
   const qrData = JSON.stringify({
     awb: shipment.awb,
     pkg: `${shipment.awb}-${packageIndex}`,
@@ -44,7 +44,7 @@ export function ShippingLabel({ shipment, packageIndex = 1 }: ShippingLabelProps
   })
 
   return (
-    <div 
+    <div
       className="bg-white text-black p-4 font-sans"
       style={{ width: '4in', height: '6in' }}
     >
@@ -97,9 +97,9 @@ export function ShippingLabel({ shipment, packageIndex = 1 }: ShippingLabelProps
       {/* QR Code & Consignee */}
       <div className="flex gap-3">
         <div className="flex-shrink-0">
-          <QRCode 
-            value={qrData} 
-            size={80} 
+          <QRCode
+            value={qrData}
+            size={80}
             level="M"
             renderAs="svg"
           />

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { Plane, Truck, Activity, Package, AlertTriangle, Clock } from 'lucide-react';
+import { Plane, Truck, Activity } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 interface CorridorVisualizationProps {

@@ -1,4 +1,3 @@
-import React from 'react'
 import { cn } from '@/lib/utils'
 import { ShipmentStatus, ManifestStatus, InvoiceStatus, ExceptionSeverity } from '@/types'
 
@@ -26,25 +25,25 @@ const STATUS_CONFIG: Record<string, { bg: string; text: string; dot: string }> =
   DAMAGED: { bg: 'bg-red-500/20', text: 'text-red-400', dot: 'bg-red-400' },
   EXCEPTION_RAISED: { bg: 'bg-red-500/20', text: 'text-red-400', dot: 'bg-red-400 animate-pulse' },
   EXCEPTION_RESOLVED: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', dot: 'bg-emerald-400' },
-  
+
   // Manifest Statuses
   OPEN: { bg: 'bg-blue-500/20', text: 'text-blue-400', dot: 'bg-blue-400' },
   CLOSED: { bg: 'bg-amber-500/20', text: 'text-amber-400', dot: 'bg-amber-400' },
   DEPARTED: { bg: 'bg-cyan-500/20', text: 'text-cyan-400', dot: 'bg-cyan-400 animate-pulse' },
   ARRIVED: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', dot: 'bg-emerald-400' },
-  
+
   // Invoice Statuses
   DRAFT: { bg: 'bg-slate-500/20', text: 'text-slate-400', dot: 'bg-slate-400' },
   ISSUED: { bg: 'bg-blue-500/20', text: 'text-blue-400', dot: 'bg-blue-400' },
   PAID: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', dot: 'bg-emerald-400' },
   OVERDUE: { bg: 'bg-red-500/20', text: 'text-red-400', dot: 'bg-red-400 animate-pulse' },
-  
+
   // Exception Severities
   LOW: { bg: 'bg-slate-500/20', text: 'text-slate-400', dot: 'bg-slate-400' },
   MEDIUM: { bg: 'bg-amber-500/20', text: 'text-amber-400', dot: 'bg-amber-400' },
   HIGH: { bg: 'bg-orange-500/20', text: 'text-orange-400', dot: 'bg-orange-400' },
   CRITICAL: { bg: 'bg-red-500/20', text: 'text-red-400', dot: 'bg-red-400 animate-pulse' },
-  
+
   // Default
   DEFAULT: { bg: 'bg-slate-500/20', text: 'text-slate-400', dot: 'bg-slate-400' },
 }
