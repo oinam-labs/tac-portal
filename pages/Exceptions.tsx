@@ -1,21 +1,22 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, Button, Input } from '../components/ui/CyberComponents';
 import { DataTable } from '../components/ui/data-table';
 import { StatusBadge } from '../components/domain/StatusBadge';
 import { KPICard } from '../components/domain/KPICard';
 import { ColumnDef } from '@tanstack/react-table';
-import { useExceptionStore } from '../store/exceptionStore';
+import { useExceptions, useCreateException, useResolveException, ExceptionWithRelations } from '../hooks/useExceptions';
+import { useRealtimeExceptions } from '../hooks/useRealtime';
 import { AlertTriangle, AlertCircle, CheckCircle, Plus, ShieldAlert, Clock } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ExceptionType, ExceptionSeverity, Exception } from '../types';
+import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
 
 const raiseSchema = z.object({
     awb: z.string().min(1, "AWB Required"),
-    type: z.enum(['DAMAGED', 'LOST', 'DELAYED', 'OVERWEIGHT', 'MISROUTED', 'CUSTOMS']),
+    type: z.enum(['DAMAGE', 'SHORTAGE', 'MISROUTE', 'DELAY', 'CUSTOMER_REFUSAL', 'ADDRESS_ISSUE', 'OTHER']),
     severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']),
     description: z.string().min(5, "Description required")
 });
@@ -28,10 +29,15 @@ type RaiseFormData = z.infer<typeof raiseSchema>;
 type ResolveFormData = z.infer<typeof resolveSchema>;
 
 export const Exceptions: React.FC = () => {
-    const { exceptions, fetchExceptions, raiseException, resolveException, isLoading } = useExceptionStore();
+    const { data: exceptions = [], isLoading } = useExceptions();
+    const createMutation = useCreateException();
+    const resolveMutation = useResolveException();
     const [isRaiseModalOpen, setIsRaiseModalOpen] = useState(false);
-    const [selectedException, setSelectedException] = useState<Exception | null>(null);
-    
+    const [selectedException, setSelectedException] = useState<ExceptionWithRelations | null>(null);
+
+    // Enable realtime updates
+    useRealtimeExceptions();
+
     const { register: registerRaise, handleSubmit: handleSubmitRaise, reset: resetRaise } = useForm<RaiseFormData>({
         resolver: zodResolver(raiseSchema)
     });
@@ -40,20 +46,16 @@ export const Exceptions: React.FC = () => {
         resolver: zodResolver(resolveSchema)
     });
 
-    useEffect(() => {
-        fetchExceptions();
-    }, []);
-
-    const columns: ColumnDef<Exception>[] = useMemo(() => [
+    const columns: ColumnDef<ExceptionWithRelations>[] = useMemo(() => [
         {
             accessorKey: 'id',
             header: 'ID',
             cell: ({ row }) => <span className="font-mono text-xs">{row.getValue('id')}</span>,
         },
         {
-            accessorKey: 'awb',
+            id: 'awb',
             header: 'AWB',
-            cell: ({ row }) => <span className="font-mono font-bold text-cyber-accent">{row.getValue('awb')}</span>,
+            cell: ({ row }) => <span className="font-mono font-bold text-cyber-accent">{row.original.shipment?.awb_number || 'N/A'}</span>,
         },
         {
             accessorKey: 'type',
@@ -73,11 +75,11 @@ export const Exceptions: React.FC = () => {
             ),
         },
         {
-            accessorKey: 'reportedAt',
+            accessorKey: 'created_at',
             header: 'Reported',
             cell: ({ row }) => (
                 <span className="text-xs text-slate-400">
-                    {format(new Date(row.getValue('reportedAt')), 'dd MMM HH:mm')}
+                    {format(new Date(row.getValue('created_at')), 'dd MMM HH:mm')}
                 </span>
             ),
         },
@@ -107,11 +109,24 @@ export const Exceptions: React.FC = () => {
     const criticalCount = exceptions.filter(e => e.severity === 'CRITICAL' && e.status === 'OPEN').length;
 
     const onRaiseSubmit = async (data: RaiseFormData) => {
-        await raiseException({
-            awb: data.awb,
-            shipmentId: 'UNKNOWN', // In real app, look up ID
-            type: data.type as ExceptionType,
-            severity: data.severity as ExceptionSeverity,
+        // Look up shipment by AWB
+        const { data: shipmentData } = await (supabase
+            .from('shipments') as any)
+            .select('id')
+            .eq('awb_number', data.awb)
+            .single();
+
+        if (!shipmentData) {
+            alert('Shipment not found');
+            return;
+        }
+
+        const shipment = shipmentData as { id: string };
+        await createMutation.mutateAsync({
+            shipment_id: shipment.id,
+            awb_number: data.awb,
+            type: data.type as ExceptionWithRelations['type'],
+            severity: data.severity as ExceptionWithRelations['severity'],
             description: data.description
         });
         setIsRaiseModalOpen(false);
@@ -120,7 +135,7 @@ export const Exceptions: React.FC = () => {
 
     const onResolveSubmit = async (data: ResolveFormData) => {
         if (selectedException) {
-            await resolveException(selectedException.id, data.note);
+            await resolveMutation.mutateAsync({ id: selectedException.id, resolution: data.note });
             setSelectedException(null);
             resetResolve();
         }
@@ -137,29 +152,29 @@ export const Exceptions: React.FC = () => {
                     <Plus className="w-4 h-4 mr-2" /> Raise Exception
                 </Button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <KPICard 
-                    title="Open Exceptions" 
+                <KPICard
+                    title="Open Exceptions"
                     value={openCount}
                     icon={<AlertCircle className="w-5 h-5" />}
                     trend={openCount > 0 ? 'down' : 'neutral'}
                 />
-                <KPICard 
-                    title="Critical Issues" 
+                <KPICard
+                    title="Critical Issues"
                     value={criticalCount}
                     icon={<ShieldAlert className="w-5 h-5" />}
                     trend={criticalCount > 0 ? 'down' : 'neutral'}
                 />
-                <KPICard 
-                    title="Total Exceptions" 
+                <KPICard
+                    title="Total Exceptions"
                     value={exceptions.length}
                     icon={<Clock className="w-5 h-5" />}
                 />
             </div>
 
             <Card className="p-6">
-                <DataTable 
+                <DataTable
                     columns={columns}
                     data={exceptions}
                     searchKey="awb"

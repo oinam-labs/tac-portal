@@ -1,9 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
+import { getOrCreateDefaultOrg } from '../lib/org-helper';
 
 // Type helper for Supabase client
 const db = supabase as any;
+
+/**
+ * Query key factory for staff.
+ * Provides consistent, type-safe query keys for caching.
+ */
+export const staffKeys = {
+  all: ['staff'] as const,
+  lists: () => [...staffKeys.all, 'list'] as const,
+  list: (filters?: { hubId?: string }) => [...staffKeys.lists(), filters] as const,
+  details: () => [...staffKeys.all, 'detail'] as const,
+  detail: (id: string) => [...staffKeys.details(), id] as const,
+};
 
 export interface Staff {
   id: string;
@@ -52,14 +65,13 @@ export function useCreateStaff() {
       role: Staff['role'];
       hub_id?: string;
     }) => {
-      const { data: org } = await db.from('orgs').select('id').single();
-      if (!org) throw new Error('No organization found');
+      const orgId = await getOrCreateDefaultOrg();
 
       const { data, error } = await db
         .from('staff')
         .insert({
           ...staff,
-          org_id: org.id,
+          org_id: orgId,
           is_active: true,
         })
         .select()
@@ -124,6 +136,34 @@ export function useToggleStaffStatus() {
     },
     onError: (error: Error) => {
       toast.error(`Failed to update status: ${error.message}`);
+    },
+  });
+}
+
+/**
+ * Hook to delete a staff member (soft delete via deleted_at).
+ */
+export function useDeleteStaff() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await db
+        .from('staff')
+        .update({
+          deleted_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.lists() });
+      toast.success('Staff member removed successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to remove staff: ${error.message}`);
     },
   });
 }

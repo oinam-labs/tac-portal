@@ -1,67 +1,68 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, Button } from '../components/ui/CyberComponents';
 import { DataTable } from '../components/ui/data-table';
 import { StatusBadge } from '../components/domain/StatusBadge';
 import { KPICard } from '../components/domain/KPICard';
 import { ColumnDef } from '@tanstack/react-table';
-import { useManifestStore } from '../store/manifestStore';
-import { Modal } from '../components/ui/Modal';
-import { CreateManifestForm } from '../components/manifests/CreateManifestForm';
+import { useManifests, useUpdateManifestStatus, ManifestWithRelations } from '../hooks/useManifests';
+import { useRealtimeManifests } from '../hooks/useRealtime';
+import { CreateManifestModal } from '@/components/manifests/CreateManifestModal';
 import { FileText, Truck, Plane, Play, CheckCircle, Package, Weight } from 'lucide-react';
-import { HUBS } from '../lib/constants';
-import { Manifest } from '../types';
 
 export const Manifests: React.FC = () => {
-    const { manifests, fetchManifests, updateManifestStatus } = useManifestStore();
+    const { data: manifests = [] } = useManifests();
+    const updateStatusMutation = useUpdateManifestStatus();
     const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-    useEffect(() => {
-        fetchManifests();
-    }, []);
+    // Enable realtime updates
+    useRealtimeManifests();
 
     const handleStatusChange = async (id: string, newStatus: 'DEPARTED' | 'ARRIVED') => {
-        await updateManifestStatus(id, newStatus);
+        await updateStatusMutation.mutateAsync({ id, status: newStatus });
     };
 
-    const columns: ColumnDef<Manifest>[] = useMemo(() => [
+    const columns: ColumnDef<ManifestWithRelations>[] = useMemo(() => [
         {
-            accessorKey: 'reference',
+            accessorKey: 'manifest_no',
             header: 'Reference',
             cell: ({ row }) => (
-                <span className="font-mono font-bold text-white">{row.getValue('reference')}</span>
+                <span className="font-mono font-bold text-white">{row.getValue('manifest_no')}</span>
             ),
         },
         {
             id: 'transport',
             header: 'Transport',
-            cell: ({ row }) => (
-                <div className="flex items-center gap-2">
-                    {row.original.type === 'AIR' ? (
-                        <Plane className="w-4 h-4 text-cyan-400" />
-                    ) : (
-                        <Truck className="w-4 h-4 text-amber-400" />
-                    )}
-                    <div>
-                        <span className="font-medium text-white">
-                            {row.original.type === 'AIR'
-                                ? row.original.vehicleMeta?.flightNumber
-                                : row.original.vehicleMeta?.driverName}
-                        </span>
-                        <div className="text-xs text-slate-500">
-                            {row.original.type === 'AIR'
-                                ? row.original.vehicleMeta?.carrier
-                                : row.original.vehicleMeta?.vehicleId}
+            cell: ({ row }) => {
+                const meta = row.original.vehicle_meta as any;
+                return (
+                    <div className="flex items-center gap-2">
+                        {row.original.type === 'AIR' ? (
+                            <Plane className="w-4 h-4 text-cyan-400" />
+                        ) : (
+                            <Truck className="w-4 h-4 text-amber-400" />
+                        )}
+                        <div>
+                            <span className="font-medium text-white">
+                                {row.original.type === 'AIR'
+                                    ? meta?.flightNumber || 'N/A'
+                                    : meta?.driverName || 'N/A'}
+                            </span>
+                            <div className="text-xs text-slate-500">
+                                {row.original.type === 'AIR'
+                                    ? meta?.carrier || ''
+                                    : meta?.vehicleId || ''}
+                            </div>
                         </div>
                     </div>
-                </div>
-            ),
+                );
+            },
         },
         {
             id: 'route',
             header: 'Route',
             cell: ({ row }) => (
                 <span className="font-mono text-sm">
-                    {HUBS[row.original.originHub]?.code} → {HUBS[row.original.destinationHub]?.code}
+                    {row.original.from_hub?.code || '?'} → {row.original.to_hub?.code || '?'}
                 </span>
             ),
         },
@@ -70,8 +71,8 @@ export const Manifests: React.FC = () => {
             header: 'Load',
             cell: ({ row }) => (
                 <div>
-                    <div className="font-semibold">{row.original.shipmentCount} shipments</div>
-                    <div className="text-xs text-slate-500">{row.original.totalWeight} kg</div>
+                    <div className="font-semibold">{row.original.total_shipments} shipments</div>
+                    <div className="text-xs text-slate-500">{row.original.total_weight} kg</div>
                 </div>
             ),
         },
@@ -106,7 +107,7 @@ export const Manifests: React.FC = () => {
 
     const openCount = manifests.filter(m => m.status === 'OPEN').length;
     const transitCount = manifests.filter(m => m.status === 'DEPARTED').length;
-    const transitWeight = manifests.filter(m => m.status === 'DEPARTED').reduce((acc, m) => acc + m.totalWeight, 0);
+    const transitWeight = manifests.filter(m => m.status === 'DEPARTED').reduce((acc, m) => acc + (m.total_weight || 0), 0);
 
     return (
         <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
@@ -142,18 +143,16 @@ export const Manifests: React.FC = () => {
                 <DataTable
                     columns={columns}
                     data={manifests}
-                    searchKey="reference"
+                    searchKey="manifest_no"
                     searchPlaceholder="Search manifests..."
                     pageSize={10}
                 />
             </Card>
 
-            <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Create New Manifest">
-                <CreateManifestForm
-                    onSuccess={() => setIsCreateOpen(false)}
-                    onCancel={() => setIsCreateOpen(false)}
-                />
-            </Modal>
+            <CreateManifestModal
+                open={isCreateOpen}
+                onOpenChange={setIsCreateOpen}
+            />
         </div>
     );
 };

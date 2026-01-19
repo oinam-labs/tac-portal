@@ -1,0 +1,73 @@
+
+import { supabase } from './supabase';
+
+// Type helper
+const db = supabase as any;
+
+/**
+ * Ensures a default organization exists for the demo environment.
+ * 
+ * Strategy:
+ * 1. Try to fetch the first existing organization.
+ * 2. If none exists, create a new one with a valid UUID.
+ * 3. Return the organization ID.
+ */
+export async function getOrCreateDefaultOrg(): Promise<string> {
+    try {
+        // 1. Try to find any existing org
+        const { data: existingOrg } = await db
+            .from('orgs')
+            .select('id')
+            .limit(1)
+            .single();
+
+        if (existingOrg) {
+            return existingOrg.id;
+        }
+
+        // 2. If no org exists, create one
+        // Note: in a real app, this would be handled by auth/onboarding
+        const demoOrgId = '00000000-0000-0000-0000-000000000001';
+
+        // Check if our specific demo org exists (might have failed previously due to rls but checking anyway)
+        const { data: demoOrg } = await db
+            .from('orgs')
+            .select('id')
+            .eq('id', demoOrgId)
+            .single();
+
+        if (demoOrg) {
+            return demoOrg.id;
+        }
+
+        // Attempt to insert
+        const { data: newOrg, error } = await db
+            .from('orgs')
+            .insert({
+                id: demoOrgId,
+                name: 'TAC Cargo Demo',
+                slug: 'tac-cargo-demo'
+            })
+            .select('id')
+            .single();
+
+        if (error) {
+            console.error('Failed to create default org:', error);
+            // Fallback: If insert fails (likely RLS), we can't do much but throw
+            // However, for the specific error "22P02" (invalid input syntax for uuid),
+            // it usually means we sent a string like 'tac-cargo-demo' for the ID column.
+            // Here we are sending a valid UUID, so that error should be resolved.
+            throw error;
+        }
+
+        return newOrg.id;
+    } catch (error) {
+        console.error('Error in getOrCreateDefaultOrg:', error);
+        // If everything fails, try to query one last time without single() to see if ANY exist
+        const { data: fallbackOrgs } = await db.from('orgs').select('id').limit(1);
+        if (fallbackOrgs && fallbackOrgs.length > 0) {
+            return fallbackOrgs[0].id;
+        }
+        throw new Error('Could not find or create a default organization. Please check database permissions.');
+    }
+}

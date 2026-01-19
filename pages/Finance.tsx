@@ -1,49 +1,59 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Table, Th, Td, Badge, Button } from '../components/ui/CyberComponents';
-import { useInvoiceStore } from '../store/invoiceStore';
-import { useShipmentStore } from '../store/shipmentStore'; // Needed to fetch linked shipment
-import { FileText, CreditCard, Plus, Check, X, Printer, Mail, MessageCircle, Map } from 'lucide-react';
-import { formatCurrency } from '../lib/utils';
-import { generateEnterpriseInvoice } from '../lib/pdf-generator';
-import { Invoice, Shipment } from '../types';
-import { Modal } from '../components/ui/Modal';
-import { CreateInvoiceForm } from '../components/finance/CreateInvoiceForm';
-import { db } from '../lib/mock-db'; // Direct access for efficiency in this mock
-import { toast } from 'sonner';
+import { FileText, CreditCard, Plus, Check, Printer, Mail, MessageCircle } from 'lucide-react';
 
-const STATUS_STYLES: Record<string, string> = {
-    'PAID': 'text-green-600 dark:text-green-400 border-green-400/30 bg-green-400/10',
-    'ISSUED': 'text-yellow-600 dark:text-yellow-400 border-yellow-400/30 bg-yellow-400/10',
-    'OVERDUE': 'text-red-600 dark:text-red-400 border-red-400/30 bg-red-400/10',
-    'DRAFT': 'text-slate-600 dark:text-slate-400 border-slate-400/30 bg-slate-400/10',
-    'CANCELLED': 'text-gray-600 dark:text-gray-400 border-gray-400/30 bg-gray-400/10',
-};
+// UI Components
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/CyberComponents';
+import { Modal } from '@/components/ui/Modal';
+
+// CRUD Components
+import { CrudTable } from '@/components/crud/CrudTable';
+import { CrudDeleteDialog } from '@/components/crud/CrudDeleteDialog';
+
+// Domain Components
+import { CreateInvoiceForm } from '@/components/finance/CreateInvoiceForm';
+
+// Hooks & Data
+import { useInvoices, useUpdateInvoiceStatus } from '@/hooks/useInvoices';
+import { getInvoicesColumns } from '@/components/finance/invoices.columns';
+
+// Utils
+import { formatCurrency } from '@/lib/utils';
+import { generateEnterpriseInvoice } from '@/lib/pdf-generator';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import { Invoice, Shipment } from '@/types';
 
 export const Finance: React.FC = () => {
     const navigate = useNavigate();
-    const { invoices, fetchInvoices, updateInvoiceStatus } = useInvoiceStore();
-    const { fetchShipments } = useShipmentStore(); // Ensure shipments are loaded
+
+    // Use Supabase hooks for invoices
+    const { data: invoicesData = [] } = useInvoices();
+    const updateStatusMutation = useUpdateInvoiceStatus();
+
+    // Modal state
     const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const [successData, setSuccessData] = useState<{ invoice: Invoice, shipment: Shipment | undefined } | null>(null);
+    const [successData, setSuccessData] = useState<{ invoice: Invoice; shipment: Shipment | undefined } | null>(null);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [rowToDelete, setRowToDelete] = useState<Invoice | null>(null);
 
-    useEffect(() => {
-        fetchInvoices();
-        fetchShipments(); // Pre-load shipments to allow label generation
-    }, []);
-
-    const getShipment = (inv: Invoice) => {
-        return db.getShipmentByAWB(inv.awb);
+    // Helper to get shipment from Supabase
+    const getShipment = async (awb: string) => {
+        const { data } = await supabase
+            .from('shipments')
+            .select('*')
+            .eq('awb_number', awb)
+            .single();
+        return data;
     };
 
     const handleDownloadInvoice = async (inv: Invoice, e?: React.MouseEvent) => {
         e?.stopPropagation();
         try {
             toast.info('Generating invoice PDF...');
-            const shipment = getShipment(inv);
-            // Enrich invoice with shipment data for PDF if needed
-            const fullInvoice = { ...inv, ...(shipment ? { consignor: shipment.consignor, consignee: shipment.consignee } : {}) };
+            const shipment = inv.awb ? await getShipment(inv.awb) : null;
+            const fullInvoice = { ...inv, ...(shipment ? { consignor: (shipment as any).consignor, consignee: (shipment as any).consignee } : {}) };
 
             const url = await generateEnterpriseInvoice(fullInvoice as Invoice);
             const link = document.createElement('a');
@@ -53,7 +63,6 @@ export const Finance: React.FC = () => {
             link.click();
             document.body.removeChild(link);
 
-            // Also open in new tab for viewing
             window.open(url, '_blank');
             toast.success('Invoice downloaded!');
         } catch (error) {
@@ -65,23 +74,21 @@ export const Finance: React.FC = () => {
     const handleDownloadLabel = async (inv: Invoice, e?: React.MouseEvent) => {
         e?.stopPropagation();
         try {
-            const shipment = getShipment(inv);
+            const shipment = inv.awb ? await getShipment(inv.awb) : null;
             if (!shipment) {
                 toast.error('No shipment data found');
                 return;
             }
 
-            // Save to LS for the print page
             localStorage.setItem('print_shipping_label', JSON.stringify(shipment));
 
-            // Open print page in a popup
             const width = 500;
             const height = 700;
             const left = (window.screen.width - width) / 2;
             const top = (window.screen.height - height) / 2;
 
             window.open(
-                `#/print/label/${shipment.awb}`,
+                `#/print/label/${(shipment as any).awb_number || (shipment as any).awb}`,
                 'PrintLabel',
                 `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
             );
@@ -91,9 +98,9 @@ export const Finance: React.FC = () => {
         }
     };
 
-    const handleShareWhatsapp = (inv: Invoice) => {
-        const shipment = getShipment(inv);
-        const phone = (inv as any).consignee?.phone || shipment?.consignee?.phone || '';
+    const handleShareWhatsapp = async (inv: Invoice) => {
+        const shipment = inv.awb ? await getShipment(inv.awb) : null;
+        const phone = (inv as any).consignee?.phone || (shipment as any)?.consignee?.phone || '';
         if (!phone) {
             alert("No customer phone number found.");
             return;
@@ -112,9 +119,9 @@ Thank you for choosing TAC Cargo.`;
         window.open(url, '_blank');
     };
 
-    const handleShareEmail = (inv: Invoice) => {
-        const shipment = getShipment(inv);
-        const email = (shipment as any)?.customerEmail || ''; // Assuming we might store it, or ask user
+    const handleShareEmail = async (inv: Invoice) => {
+        const shipment = inv.awb ? await getShipment(inv.awb) : null;
+        const email = (shipment as any)?.customerEmail || '';
 
         const subject = `Invoice ${inv.invoiceNumber} - TAC Cargo`;
         const body = `Dear Customer,%0D%0A%0D%0APlease find details for invoice ${inv.invoiceNumber} related to shipment ${inv.awb}.%0D%0A%0D%0AAmount: ${formatCurrency(inv.financials.totalAmount)}%0D%0A%0D%0AThank you,%0D%0ATAC Cargo Team`;
@@ -124,44 +131,113 @@ Thank you for choosing TAC Cargo.`;
 
     const handleStatusUpdate = async (id: string, status: 'PAID' | 'CANCELLED') => {
         if (confirm(`Mark invoice as ${status}?`)) {
-            await updateInvoiceStatus(id, status);
+            await updateStatusMutation.mutateAsync({ id, status });
         }
     };
 
-    // Callback when new invoice is created
     const onInvoiceCreated = () => {
         setIsCreateOpen(false);
-        fetchInvoices();
-        // Automatically find the latest invoice to show success modal
-        setTimeout(() => {
-            const latest = useInvoiceStore.getState().invoices[0];
-            if (latest) {
-                setSuccessData({
-                    invoice: latest,
-                    shipment: getShipment(latest)
-                });
-            }
-        }, 500);
+        // React Query will auto-refetch
     };
 
-    const totalRevenue = invoices.reduce((acc, inv) => acc + (inv.status === 'PAID' ? inv.financials.totalAmount : 0), 0);
-    const pendingAmount = invoices.reduce((acc, inv) => acc + (inv.status === 'ISSUED' ? inv.financials.totalAmount : 0), 0);
-    const overdueAmount = invoices.reduce((acc, inv) => acc + (inv.status === 'OVERDUE' ? inv.financials.totalAmount : 0), 0);
+    const handleDelete = async () => {
+        if (!rowToDelete) return;
+        await updateStatusMutation.mutateAsync({ id: rowToDelete.id, status: 'CANCELLED' });
+        setRowToDelete(null);
+        setDeleteOpen(false);
+    };
+
+    // Table columns with callbacks
+    const columns = useMemo(
+        () =>
+            getInvoicesColumns({
+                onView: (row) => navigate(`/tracking?awb=${(row as any).awb_number || (row as any).awb}`),
+                onDownload: (row) => {
+                    const inv: Invoice = {
+                        id: row.id,
+                        invoiceNumber: row.invoice_number,
+                        customerId: row.customer_id,
+                        customerName: row.customer?.name || 'Unknown',
+                        shipmentId: row.shipment_id || '',
+                        awb: row.awb_number || '',
+                        status: row.status,
+                        createdAt: row.created_at,
+                        dueDate: row.due_date || '',
+                        paymentMode: 'PAID',
+                        financials: {
+                            ratePerKg: 0,
+                            baseFreight: row.subtotal,
+                            docketCharge: 0,
+                            pickupCharge: 0,
+                            packingCharge: 0,
+                            fuelSurcharge: 0,
+                            handlingFee: 0,
+                            insurance: 0,
+                            tax: { cgst: 0, sgst: 0, igst: 0, total: row.tax_amount },
+                            discount: 0,
+                            totalAmount: row.total_amount,
+                            advancePaid: 0,
+                            balance: row.total_amount,
+                        },
+                    };
+                    handleDownloadInvoice(inv);
+                },
+                onMarkPaid: (row) => handleStatusUpdate(row.id, 'PAID'),
+                onCancel: (row) => handleStatusUpdate(row.id, 'CANCELLED'),
+                onDelete: (row) => {
+                    const inv: Invoice = {
+                        id: row.id,
+                        invoiceNumber: row.invoice_number,
+                        customerId: row.customer_id,
+                        customerName: row.customer?.name || 'Unknown',
+                        shipmentId: row.shipment_id || '',
+                        awb: row.awb_number || '',
+                        status: row.status,
+                        createdAt: row.created_at,
+                        dueDate: row.due_date || '',
+                        paymentMode: 'PAID',
+                        financials: {
+                            ratePerKg: 0,
+                            baseFreight: row.subtotal,
+                            docketCharge: 0,
+                            pickupCharge: 0,
+                            packingCharge: 0,
+                            fuelSurcharge: 0,
+                            handlingFee: 0,
+                            insurance: 0,
+                            tax: { cgst: 0, sgst: 0, igst: 0, total: row.tax_amount },
+                            discount: 0,
+                            totalAmount: row.total_amount,
+                            advancePaid: 0,
+                            balance: row.total_amount,
+                        },
+                    };
+                    setRowToDelete(inv);
+                    setDeleteOpen(true);
+                },
+            }),
+        [navigate]
+    );
+
+    // Use Supabase data directly - already in correct format
+    const tableData = invoicesData;
+
+    // Stats from Supabase data
+    const totalRevenue = invoicesData.reduce((acc: number, inv) => acc + (inv.status === 'PAID' ? (inv.total_amount || 0) : 0), 0);
+    const pendingAmount = invoicesData.reduce((acc: number, inv) => acc + (inv.status === 'ISSUED' ? (inv.total_amount || 0) : 0), 0);
+    const overdueAmount = invoicesData.reduce((acc: number, inv) => acc + (inv.status === 'OVERDUE' ? (inv.total_amount || 0) : 0), 0);
 
     return (
         <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
+            {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Invoices</h1>
                     <p className="text-slate-500 dark:text-slate-400 text-sm">Manage invoices, billing, and payment gateways.</p>
                 </div>
-                <div className="flex gap-3">
-                    <Button onClick={() => setIsCreateOpen(true)}>
-                        <Plus className="w-4 h-4 mr-2" /> New Invoice
-                    </Button>
-                </div>
             </div>
 
+            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card className="bg-gradient-to-br from-white to-slate-50 dark:from-cyber-surface dark:to-cyber-card">
                     <div className="flex items-center gap-4">
@@ -198,75 +274,20 @@ Thank you for choosing TAC Cargo.`;
                 </Card>
             </div>
 
-            <Card>
-                <div className="mb-4">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Recent Invoices</h3>
-                </div>
-                <Table>
-                    <thead>
-                        <tr>
-                            <Th>Invoice #</Th>
-                            <Th>Customer</Th>
-                            <Th>Date</Th>
-                            <Th>Amount</Th>
-                            <Th>Status</Th>
-                            <Th>Documents</Th>
-                            <Th>Actions</Th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {invoices.length === 0 ? (
-                            <tr><td colSpan={7} className="text-center py-8 text-slate-500">No invoices found.</td></tr>
-                        ) : (
-                            invoices.map((inv) => (
-                                <tr key={inv.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                    <Td><span className="font-mono text-slate-900 dark:text-white">{inv.invoiceNumber}</span></Td>
-                                    <Td>{inv.customerName}</Td>
-                                    <Td className="text-slate-500 dark:text-slate-400 text-xs">{inv.createdAt.split('T')[0]}</Td>
-                                    <Td><span className="font-mono text-slate-900 dark:text-white font-bold">{formatCurrency(inv.financials.totalAmount)}</span></Td>
-                                    <Td>
-                                        <Badge className={STATUS_STYLES[inv.status] || ''}>{inv.status}</Badge>
-                                    </Td>
-                                    <Td>
-                                        <div className="flex gap-2">
-                                            <Button variant="secondary" size="sm" onClick={(e) => handleDownloadInvoice(inv, e)} title="PDF Invoice">
-                                                <FileText className="w-4 h-4 mr-1" /> Invoice
-                                            </Button>
-                                            <Button variant="secondary" size="sm" onClick={(e) => handleDownloadLabel(inv, e)} title="Shipping Label">
-                                                <Printer className="w-4 h-4 mr-1" /> Label
-                                            </Button>
-                                        </div>
-                                    </Td>
-                                    <Td>
-                                        <div className="flex gap-2">
-                                            <Button variant="ghost" size="sm" onClick={() => navigate(`/tracking?awb=${inv.awb}`)} title="Track Shipment">
-                                                <Map className="w-4 h-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="sm" onClick={() => handleShareWhatsapp(inv)} title="Share WhatsApp" className="text-green-500 hover:bg-green-500/10">
-                                                <MessageCircle className="w-4 h-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="sm" onClick={() => handleShareEmail(inv)} title="Share Email">
-                                                <Mail className="w-4 h-4" />
-                                            </Button>
-
-                                            {inv.status === 'ISSUED' && (
-                                                <>
-                                                    <Button variant="ghost" size="sm" onClick={() => handleStatusUpdate(inv.id, 'PAID')} title="Mark Paid">
-                                                        <Check className="w-4 h-4 text-green-500" />
-                                                    </Button>
-                                                    <Button variant="ghost" size="sm" onClick={() => handleStatusUpdate(inv.id, 'CANCELLED')} title="Cancel">
-                                                        <X className="w-4 h-4 text-red-500" />
-                                                    </Button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </Td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </Table>
-            </Card>
+            {/* Table with CRUD */}
+            <CrudTable
+                columns={columns}
+                data={tableData}
+                searchKey="invoice_number"
+                searchPlaceholder="Search invoices..."
+                isLoading={false}
+                emptyMessage="No invoices found. Create your first invoice to get started."
+                toolbar={
+                    <Button onClick={() => setIsCreateOpen(true)}>
+                        <Plus className="w-4 h-4 mr-2" /> New Invoice
+                    </Button>
+                }
+            />
 
             {/* Create Invoice Modal */}
             <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Generate New Invoice" size="4xl">
@@ -297,7 +318,7 @@ Thank you for choosing TAC Cargo.`;
                             </Button>
                         </div>
 
-                        <div className="border-t border-cyber-border pt-4">
+                        <div className="border-t border-white/10 pt-4">
                             <p className="text-xs text-slate-500 mb-3 uppercase font-bold tracking-wider">Share with Customer</p>
                             <div className="flex justify-center gap-4">
                                 <Button variant="ghost" className="text-green-500 border border-green-500/30 hover:bg-green-500/10" onClick={() => handleShareWhatsapp(successData.invoice)}>
@@ -311,6 +332,16 @@ Thank you for choosing TAC Cargo.`;
                     </div>
                 )}
             </Modal>
+
+            {/* Delete Confirmation Dialog */}
+            <CrudDeleteDialog
+                open={deleteOpen}
+                onOpenChange={setDeleteOpen}
+                title="Cancel invoice?"
+                description={`This will cancel invoice "${rowToDelete?.invoiceNumber ?? ''}". This action cannot be undone.`}
+                onConfirm={handleDelete}
+                confirmLabel="Cancel Invoice"
+            />
         </div>
     );
 };

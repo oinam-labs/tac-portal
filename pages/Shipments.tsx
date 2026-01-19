@@ -1,119 +1,124 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Card, Button } from '../components/ui/CyberComponents';
-import { DataTable } from '../components/ui/data-table';
-import { StatusBadge } from '../components/domain/StatusBadge';
-import { ColumnDef } from '@tanstack/react-table';
-import { Download, Plus, Eye, Plane, Truck } from 'lucide-react';
-import { useShipmentStore } from '../store/shipmentStore';
-import { Modal } from '../components/ui/Modal';
-import { CreateShipmentForm } from '../components/shipments/CreateShipmentForm';
-import { ShipmentDetails } from '../components/shipments/ShipmentDetails';
-import { HUBS } from '../lib/constants';
-import { Shipment } from '../types';
+import React, { useState, useMemo } from 'react';
+import { Download, Plus } from 'lucide-react';
+
+// UI Components
+import { Button } from '@/components/ui/button';
+import { Modal } from '@/components/ui/Modal';
+
+// CRUD Components
+import { CrudTable } from '@/components/crud/CrudTable';
+import { CrudDeleteDialog } from '@/components/crud/CrudDeleteDialog';
+
+// Domain Components
+import { CreateShipmentForm } from '@/components/shipments/CreateShipmentForm';
+import { ShipmentDetails } from '@/components/shipments/ShipmentDetails';
+
+// Hooks & Data
+import {
+    useShipments,
+    useDeleteShipment,
+    ShipmentWithRelations,
+} from '@/hooks/useShipments';
+import { getShipmentsColumns } from '@/components/shipments/shipments.columns';
+
+// Types
+import { Shipment } from '@/types';
+
+// Adapter: Convert ShipmentWithRelations to Shipment type for ShipmentDetails
+function adaptToShipment(s: ShipmentWithRelations): Shipment {
+    return {
+        id: s.id,
+        awb: s.awb_number,
+        customerId: s.customer_id,
+        customerName: s.customer?.name || 'Unknown',
+        originHub: s.origin_hub?.code as any || s.origin_hub_id as any,
+        destinationHub: s.destination_hub?.code as any || s.destination_hub_id as any,
+        mode: s.mode,
+        serviceLevel: s.service_level,
+        status: s.status as any,
+        totalPackageCount: s.package_count,
+        totalWeight: {
+            dead: s.total_weight,
+            volumetric: 0,
+            chargeable: s.total_weight,
+        },
+        eta: 'TBD',
+        createdAt: s.created_at,
+        updatedAt: s.updated_at,
+        lastUpdate: 'Synced from DB',
+        contentsDescription: 'General Cargo',
+        paymentMode: 'PAID',
+    };
+}
 
 export const Shipments: React.FC = () => {
-    const { shipments, fetchShipments, fetchCustomers } = useShipmentStore();
+    // Data fetching
+    const { data: shipments = [], isLoading } = useShipments();
+    const deleteMutation = useDeleteShipment();
+
+    // Modal state
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
+    const [selectedShipment, setSelectedShipment] = useState<ShipmentWithRelations | null>(null);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [rowToDelete, setRowToDelete] = useState<ShipmentWithRelations | null>(null);
 
-    useEffect(() => {
-        fetchShipments();
-        fetchCustomers();
-    }, []);
+    // Table columns with callbacks
+    const columns = useMemo(
+        () =>
+            getShipmentsColumns({
+                onView: (row) => setSelectedShipment(row),
+                onEdit: (row) => {
+                    // For now, open view modal - edit form could be added later
+                    setSelectedShipment(row);
+                },
+                onDelete: (row) => {
+                    setRowToDelete(row);
+                    setDeleteOpen(true);
+                },
+            }),
+        []
+    );
 
-    const columns: ColumnDef<Shipment>[] = useMemo(() => [
-        {
-            accessorKey: 'awb',
-            header: 'AWB',
-            cell: ({ row }) => (
-                <div className="flex items-center gap-2">
-                    {row.original.mode === 'AIR' ? (
-                        <Plane className="w-4 h-4 text-cyan-400" />
-                    ) : (
-                        <Truck className="w-4 h-4 text-amber-400" />
-                    )}
-                    <span className="font-mono font-bold text-cyber-accent">{row.getValue('awb')}</span>
-                </div>
-            ),
-        },
-        {
-            accessorKey: 'customerName',
-            header: 'Customer',
-        },
-        {
-            id: 'route',
-            header: 'Route',
-            cell: ({ row }) => (
-                <div className="flex items-center gap-2 text-xs font-mono">
-                    <span className="font-semibold">{HUBS[row.original.originHub]?.code || row.original.originHub}</span>
-                    <span className="text-slate-500">→</span>
-                    <span className="font-semibold">{HUBS[row.original.destinationHub]?.code || row.original.destinationHub}</span>
-                </div>
-            ),
-        },
-        {
-            accessorKey: 'serviceLevel',
-            header: 'Service',
-            cell: ({ row }) => (
-                <span className={`text-xs font-bold px-2 py-0.5 rounded ${row.getValue('serviceLevel') === 'EXPRESS'
-                    ? 'bg-amber-500/20 text-amber-400'
-                    : 'bg-slate-500/20 text-slate-400'
-                    }`}>
-                    {(row.getValue('serviceLevel') as string)?.substring(0, 3)}
-                </span>
-            ),
-        },
-        {
-            accessorKey: 'status',
-            header: 'Status',
-            cell: ({ row }) => <StatusBadge status={row.getValue('status')} />,
-        },
-        {
-            accessorKey: 'eta',
-            header: 'ETA',
-            cell: ({ row }) => (
-                <span className="font-mono text-xs text-slate-400">{row.getValue('eta')}</span>
-            ),
-        },
-        {
-            id: 'actions',
-            header: '',
-            cell: ({ row }) => (
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedShipment(row.original)}
-                >
-                    <Eye className="w-4 h-4 mr-1" /> View
-                </Button>
-            ),
-        },
-    ], []);
+    // Handlers
+    const handleDelete = async () => {
+        if (!rowToDelete) return;
+        await deleteMutation.mutateAsync(rowToDelete.id);
+        setRowToDelete(null);
+    };
 
     return (
         <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
+            {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Shipments</h1>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">Manage and track all logistics orders.</p>
-                </div>
-                <div className="flex gap-3">
-                    <Button variant="ghost"><Download className="w-4 h-4 mr-2" /> Export</Button>
-                    <Button onClick={() => setIsCreateModalOpen(true)}>
-                        <Plus className="w-4 h-4 mr-2" /> New Shipment
-                    </Button>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+                        Shipments
+                    </h1>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">
+                        Manage and track all logistics orders.
+                    </p>
                 </div>
             </div>
 
-            <Card className="p-6">
-                <DataTable
-                    columns={columns}
-                    data={shipments}
-                    searchKey="awb"
-                    searchPlaceholder="Search by AWB..."
-                    pageSize={10}
-                />
-            </Card>
+            {/* Table with CRUD */}
+            <CrudTable
+                columns={columns}
+                data={shipments}
+                searchKey="awb_number"
+                searchPlaceholder="Search by AWB..."
+                isLoading={isLoading}
+                emptyMessage="No shipments found. Create your first shipment to get started."
+                toolbar={
+                    <div className="flex gap-3">
+                        <Button variant="ghost">
+                            <Download className="w-4 h-4 mr-2" /> Export
+                        </Button>
+                        <Button onClick={() => setIsCreateModalOpen(true)}>
+                            <Plus className="w-4 h-4 mr-2" /> New Shipment
+                        </Button>
+                    </div>
+                }
+            />
 
             {/* Create Wizard Modal */}
             <Modal
@@ -135,11 +140,20 @@ export const Shipments: React.FC = () => {
             >
                 {selectedShipment && (
                     <ShipmentDetails
-                        shipment={selectedShipment}
+                        shipment={adaptToShipment(selectedShipment)}
                         onClose={() => setSelectedShipment(null)}
                     />
                 )}
             </Modal>
+
+            {/* Delete Confirmation Dialog */}
+            <CrudDeleteDialog
+                open={deleteOpen}
+                onOpenChange={setDeleteOpen}
+                title="Delete shipment?"
+                description={`This will remove shipment "${rowToDelete?.awb_number ?? ''}" from your records. This action cannot be undone.`}
+                onConfirm={handleDelete}
+            />
         </div>
     );
 };

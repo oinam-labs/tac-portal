@@ -15,20 +15,6 @@ const AWB_PATTERN = /^TAC\d{8}$/;
 const GSTIN_PATTERN = /^\d{2}[A-Z]{5}\d{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 const PHONE_PATTERN = /^(\+91)?[6-9]\d{9}$/;
 
-const addressSchema = z.object({
-    line1: z.string().min(5, 'Address line 1 too short'),
-    city: z.string().min(2, 'City required'),
-    state: z.string().min(2, 'State required'),
-    zip: z.string().regex(/^\d{6}$/, 'Invalid PIN code'),
-});
-
-const lineItemSchema = z.object({
-    description: z.string().min(1, 'Description required'),
-    quantity: z.number().positive('Quantity must be positive'),
-    rate: z.number().nonnegative('Rate cannot be negative'),
-    amount: z.number().nonnegative('Amount cannot be negative'),
-});
-
 const financialsSchema = z.object({
     ratePerKg: z.number().nonnegative(),
     baseFreight: z.number().nonnegative(),

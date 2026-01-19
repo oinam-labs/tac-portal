@@ -17,13 +17,12 @@
 
 .label {
     width: 4in;
-    height: 6in;
+    min-height: 6in;
     background: #fff;
     border: var(--rule) solid var(--ink);
     font-family: var(--font);
     color: var(--ink);
     box-sizing: border-box;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
 }
@@ -324,8 +323,11 @@
     }
 
     .label {
+        height: 6in;
+        min-height: 6in;
+        max-height: 6in;
+        overflow: hidden;
         border: var(--rule) solid #000;
-        /* keep frame */
         box-shadow: none;
     }
 }

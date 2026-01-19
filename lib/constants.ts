@@ -7,7 +7,7 @@ export const HUBS: Record<HubLocation, Hub> = {
         name: 'Imphal Hub',
         code: 'IMF',
         address: 'Tulihal Airport Road, Imphal, Manipur 795001',
-        sortCode: 'SUR' 
+        sortCode: 'SUR'
     },
     'NEW_DELHI': {
         id: 'NEW_DELHI',
@@ -24,8 +24,9 @@ export const SHIPMENT_MODES: { id: ShipmentMode; label: string }[] = [
 ];
 
 export const SERVICE_LEVELS = [
-    { id: 'STANDARD', label: 'Standard (3-5 Days)' },
-    { id: 'EXPRESS', label: 'Express (1-2 Days)' }
+    { id: 'STANDARD', label: 'Standard (3-5 Days)', code: 'STD', description: 'Regular delivery service' },
+    { id: 'EXPRESS', label: 'Express (1-2 Days)', code: 'EXP', description: 'Fast delivery service' },
+    { id: 'PRIORITY', label: 'Priority (Same Day)', code: 'PRI', description: 'Urgent same-day delivery' }
 ];
 
 export const PAYMENT_MODES = [
@@ -36,17 +37,17 @@ export const PAYMENT_MODES = [
 
 export const INDIAN_STATES = [
     "Manipur", "Delhi", // Priority States
-    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", 
-    "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", 
-    "Maharashtra", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", 
-    "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", 
-    "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu", 
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat",
+    "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh",
+    "Maharashtra", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan",
+    "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal",
+    "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu",
     "Lakshadweep", "Puducherry", "Ladakh", "Jammu and Kashmir"
 ];
 
 export const POPULAR_CITIES = [
-    "Imphal", "New Delhi", "Guwahati", "Dimapur", "Kohima", "Aizawl", "Shillong", "Agartala", 
-    "Kolkata", "Mumbai", "Bangalore", "Chennai", "Hyderabad", "Pune", "Ahmedabad", "Jaipur", 
+    "Imphal", "New Delhi", "Guwahati", "Dimapur", "Kohima", "Aizawl", "Shillong", "Agartala",
+    "Kolkata", "Mumbai", "Bangalore", "Chennai", "Hyderabad", "Pune", "Ahmedabad", "Jaipur",
     "Lucknow", "Churachandpur", "Thoubal", "Kakching", "Senapati", "Ukhrul", "Bishnupur"
 ];
 

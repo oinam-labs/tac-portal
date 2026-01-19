@@ -1,0 +1,18 @@
+{
+    "mcpServers": {
+        "sentry": {
+            "url": "https://mcp.sentry.dev/mcp",
+            "description": "Sentry MCP Server - Access Sentry issues, errors, projects, and AI-powered issue fixes",
+            "oauth": {
+                "authorizationUrl": "https://sentry.io/oauth/authorize/",
+                "tokenUrl": "https://sentry.io/oauth/token/",
+                "scopes": [
+                    "project:read",
+                    "project:write",
+                    "event:read",
+                    "org:read"
+                ]
+            }
+        }
+    }
+}

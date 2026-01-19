@@ -11,7 +11,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { Check, ChevronRight, ChevronDown, Plus, Search, User, MapPin, Box, Calculator, Ruler, Scale, CheckCircle, Loader2, RotateCcw } from "lucide-react";
+import { Check, ChevronRight, ChevronDown, Plus, Search, User, MapPin, Box, Calculator, Ruler, Scale, CheckCircle, Loader2, RotateCcw, Plane, Truck, Printer } from "lucide-react";
 import { formatCurrency, calculateFreight } from "@/lib/utils";
 import { validateInvoice, validateDiscount } from "@/lib/validation/invoice-validator";
 import { PAYMENT_MODES, POPULAR_CITIES, CONTENT_TYPES } from "@/lib/constants";
@@ -20,6 +20,8 @@ import { useShipmentStore } from "@/store/shipmentStore";
 import { db } from "@/lib/mock-db";
 import { Shipment, Customer } from "@/types";
 import { TrackingDialog } from "@/components/landing-new/tracking-dialog";
+import { LabelPreviewDialog } from "@/components/domain/LabelPreviewDialog";
+import { generateLabelFromFormData } from "@/lib/utils/label-utils";
 
 // --- SCHEMA (Same as original) ---
 const schema = z.object({
@@ -194,8 +196,13 @@ const CustomerSearch: React.FC<{
                                     {c.preferences && (
                                         <div className="flex gap-1 mt-1">
                                             {c.preferences.preferredTransportMode && (
-                                                <span className="text-[8px] px-1 py-0.5 rounded bg-muted text-muted-foreground">
-                                                    {c.preferences.preferredTransportMode === 'AIR' ? '✈️' : '🚚'} {c.preferences.preferredTransportMode}
+                                                <span className="text-[8px] px-1 py-0.5 rounded bg-muted text-muted-foreground flex items-center gap-1">
+                                                    {c.preferences.preferredTransportMode === 'AIR' ? (
+                                                        <Plane className="w-2.5 h-2.5" />
+                                                    ) : (
+                                                        <Truck className="w-2.5 h-2.5" />
+                                                    )}
+                                                    {c.preferences.preferredTransportMode}
                                                 </span>
                                             )}
                                             {c.preferences.preferredPaymentMode && (
@@ -240,6 +247,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_consigneeCityMode, setConsigneeCityMode] = useState<'SELECT' | 'INPUT'>('SELECT');
     const [contentMode, setContentMode] = useState<'SELECT' | 'INPUT'>('SELECT');
+    const [showLabelPreview, setShowLabelPreview] = useState(false);
 
     const form = useForm<FormData>({
         resolver: zodResolver(schema),
@@ -659,10 +667,19 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                             </div>
                             <div className="space-y-2">
                                 <Label>Transport Mode</Label>
-                                <select {...form.register('transportMode')} className="w-full h-10 px-3 bg-background border border-input rounded-md text-sm text-foreground focus:ring-1 focus:ring-primary outline-none">
-                                    <option value="TRUCK">🚚 Surface / Truck</option>
-                                    <option value="AIR">✈️ Air Cargo</option>
-                                </select>
+                                <div className="relative">
+                                    <select {...form.register('transportMode')} className="w-full h-10 pl-10 pr-3 bg-background border border-input rounded-md text-sm text-foreground focus:ring-1 focus:ring-primary outline-none appearance-none">
+                                        <option value="TRUCK">Surface / Truck</option>
+                                        <option value="AIR">Air Cargo</option>
+                                    </select>
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                        {formValues.transportMode === 'AIR' ? (
+                                            <Plane className="w-4 h-4 text-foreground" />
+                                        ) : (
+                                            <Truck className="w-4 h-4 text-foreground" />
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <Label>Payment Mode</Label>
@@ -996,24 +1013,44 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                                 {currentStep === 0 ? 'Cancel' : 'Back'}
                             </Button>
 
-                            <Button
-                                type="button"
-                                onClick={nextStep}
-                                disabled={isLoading}
-                                className="min-w-[120px]"
-                            >
-                                {isLoading ? (
-                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                ) : currentStep === steps.length - 1 ? (
-                                    <>Confirm & Book <Check className="w-4 h-4 ml-2" /></>
-                                ) : (
-                                    <>Continue <ChevronRight className="w-4 h-4 ml-2" /></>
+                            <div className="flex gap-2">
+                                {currentStep === steps.length - 1 && (
+                                    <Button
+                                        variant="outline"
+                                        type="button"
+                                        onClick={() => setShowLabelPreview(true)}
+                                        disabled={isLoading}
+                                    >
+                                        <Printer className="w-4 h-4 mr-2" />
+                                        Preview Label
+                                    </Button>
                                 )}
-                            </Button>
+                                <Button
+                                    type="button"
+                                    onClick={nextStep}
+                                    disabled={isLoading}
+                                    className="min-w-[120px]"
+                                >
+                                    {isLoading ? (
+                                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                    ) : currentStep === steps.length - 1 ? (
+                                        <>Confirm & Book <Check className="w-4 h-4 ml-2" /></>
+                                    ) : (
+                                        <>Continue <ChevronRight className="w-4 h-4 ml-2" /></>
+                                    )}
+                                </Button>
+                            </div>
                         </CardFooter>
                     </Card>
                 </div>
             </MotionConfig>
+
+            {/* Label Preview Dialog */}
+            <LabelPreviewDialog
+                open={showLabelPreview}
+                onOpenChange={setShowLabelPreview}
+                shipmentData={generateLabelFromFormData(formValues)}
+            />
         </Form>
     );
 }

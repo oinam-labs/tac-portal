@@ -2,6 +2,23 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 import type { Json } from '../lib/database.types';
+import { getOrCreateDefaultOrg } from '../lib/org-helper';
+
+// Type helper to work around Supabase client type inference issues
+const db = supabase as any;
+
+/**
+ * Query key factory for shipments.
+ * Provides consistent, type-safe query keys for caching.
+ */
+export const shipmentKeys = {
+  all: ['shipments'] as const,
+  lists: () => [...shipmentKeys.all, 'list'] as const,
+  list: (filters?: { limit?: number; status?: string }) => [...shipmentKeys.lists(), filters] as const,
+  details: () => [...shipmentKeys.all, 'detail'] as const,
+  detail: (id: string) => [...shipmentKeys.details(), id] as const,
+  byAwb: (awb: string) => [...shipmentKeys.all, 'awb', awb] as const,
+};
 
 export interface ShipmentWithRelations {
   id: string;
@@ -99,15 +116,12 @@ export function useCreateShipment() {
 
   return useMutation({
     mutationFn: async (shipment: CreateShipmentInput) => {
-      // Get org_id from the first org (simplified - in production use auth context)
-      // Get org_id from the first org (simplified - in production use auth context)
-      const { data: org } = await (supabase.from('orgs').select('id').single() as any);
-      if (!org) throw new Error('No organization found');
+      const orgId = await getOrCreateDefaultOrg();
 
       // Generate AWB number - fallback if function doesn't exist
       let awbNumber = `TAC${new Date().getFullYear()}${String(Date.now()).slice(-6)}`;
       try {
-        const { data: awbResult } = await supabase.rpc('generate_awb_number', { p_org_id: org.id } as any);
+        const { data: awbResult } = await supabase.rpc('generate_awb_number', { p_org_id: orgId } as any);
         if (awbResult) awbNumber = awbResult as string;
       } catch (e) {
         console.warn('AWB generation function not available, using fallback');
@@ -115,7 +129,7 @@ export function useCreateShipment() {
 
       const insertPayload = {
         ...shipment,
-        org_id: org.id,
+        org_id: orgId,
         awb_number: awbNumber,
         status: 'CREATED' as const,
       };
@@ -174,6 +188,34 @@ export function useUpdateShipmentStatus() {
     },
     onError: (error: Error) => {
       toast.error(`Failed to update status: ${error.message}`);
+    },
+  });
+}
+
+/**
+ * Hook to delete a shipment (soft delete via deleted_at).
+ */
+export function useDeleteShipment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await db
+        .from('shipments')
+        .update({
+          deleted_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: shipmentKeys.lists() });
+      toast.success('Shipment deleted successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to delete shipment: ${error.message}`);
     },
   });
 }

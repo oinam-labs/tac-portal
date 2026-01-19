@@ -9,9 +9,15 @@ import { RecentActivity } from '../components/dashboard/RecentActivity';
 import { ErrorBoundary, InlineError } from '../components/ui/error-boundary';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../lib/query-keys';
+import { useRealtimeShipments, useRealtimeExceptions } from '../hooks/useRealtime';
+import { SentryTestButton } from '../components/dev/SentryTestButton';
 
 export const Dashboard: React.FC = () => {
     const queryClient = useQueryClient();
+
+    // Enable realtime subscriptions for live dashboard updates
+    useRealtimeShipments();
+    useRealtimeExceptions();
 
     // Global refresh handler
     const refreshData = () => {
@@ -53,6 +59,9 @@ export const Dashboard: React.FC = () => {
                     <RecentActivity />
                 </ErrorBoundary>
             </div>
+
+            {/* Sentry Test Button - Only in Development */}
+            {import.meta.env.DEV && <SentryTestButton />}
         </div>
     );
 };

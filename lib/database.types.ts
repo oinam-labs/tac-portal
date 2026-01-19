@@ -341,6 +341,32 @@ export interface Database {
           deleted_at?: string | null
         }
       }
+      manifest_items: {
+        Row: {
+          id: string
+          org_id: string
+          manifest_id: string
+          shipment_id: string
+          scanned_by_staff_id: string | null
+          scanned_at: string | null
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          manifest_id: string
+          shipment_id: string
+          scanned_by_staff_id?: string | null
+          scanned_at?: string | null
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          manifest_id?: string
+          shipment_id?: string
+          scanned_by_staff_id?: string | null
+          scanned_at?: string | null
+        }
+      }
       tracking_events: {
         Row: {
           id: string
