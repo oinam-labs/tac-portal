@@ -42,8 +42,8 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
         }
     };
 
-    const origin = HUBS[shipment.originHub];
-    const dest = HUBS[shipment.destinationHub];
+    const origin = HUBS[shipment.originHub] || { code: shipment.originHub || 'N/A', name: 'Unknown Hub' };
+    const dest = HUBS[shipment.destinationHub] || { code: shipment.destinationHub || 'N/A', name: 'Unknown Hub' };
 
     return (
         <div className="space-y-6">

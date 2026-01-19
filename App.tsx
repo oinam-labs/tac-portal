@@ -152,6 +152,7 @@ const Login: React.FC = () => {
                         />
                     </div>
                     <Button
+                        type="submit"
                         className="w-full mt-4"
                         size="lg"
                         disabled={isLoading}

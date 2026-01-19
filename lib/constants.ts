@@ -5,10 +5,10 @@ export const HUBS: Record<HubLocation, Hub & { uuid: string }> = {
     'IMPHAL': {
         id: 'IMPHAL',
         name: 'Imphal Hub',
-        code: 'IMF',
+        code: 'IXA',
         address: 'Tulihal Airport Road, Imphal, Manipur 795001',
         sortCode: 'SUR',
-        uuid: '66034243-08db-4ebb-b43c-47afa72f4a05'
+        uuid: '00000000-0000-0000-0000-000000000010'
     },
     'NEW_DELHI': {
         id: 'NEW_DELHI',
@@ -16,7 +16,7 @@ export const HUBS: Record<HubLocation, Hub & { uuid: string }> = {
         code: 'DEL',
         address: 'Cargo Terminal 3, IGI Airport, New Delhi 110037',
         sortCode: 'GAUA',
-        uuid: '82a76ce0-1e2d-40ab-9e9b-21c5f5cb2144'
+        uuid: '00000000-0000-0000-0000-000000000011'
     }
 };
 

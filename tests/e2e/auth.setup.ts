@@ -5,6 +5,10 @@
 
 import { test as setup, expect } from '@playwright/test';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const authFile = path.join(__dirname, '../../.auth/user.json');
 
@@ -15,11 +19,11 @@ setup('authenticate', async ({ page }) => {
     await page.goto(`${BASE_URL}/#/login`);
 
     // Fill login form
-    await page.fill('input[type="email"]', 'admin@taccargo.com');
-    await page.fill('input[type="password"]', 'admin123');
+    await page.fill('input[type="email"]', 'tapancargo@gmail.com');
+    await page.fill('input[type="password"]', 'Test@1498');
 
     // Submit
-    await page.click('button[type="submit"]');
+    await page.click('button:has-text("Sign In")');
 
     // Wait for redirect to dashboard
     await page.waitForURL('**/dashboard', { timeout: 10000 });
