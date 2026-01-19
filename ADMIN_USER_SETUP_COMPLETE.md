@@ -3,6 +3,8 @@
 **Date:** January 19, 2026  
 **Status:** 🟡 90% Complete - Final Step Required
 
+> ⚠️ **Security Note:** Test credentials should be stored in `.env.test` (gitignored) and never committed to version control.
+
 ---
 
 ## ✅ Completed Steps
@@ -12,8 +14,8 @@
 Successfully created admin staff record in Supabase:
 
 ```
-Staff ID:    7ff4d1ea-3b78-4e50-8c05-f5570a356c1e
-Email:       tapancargo@gmail.com
+Staff ID:    <staff-uuid>
+Email:       $TEST_USER_EMAIL (from .env.test)
 Full Name:   Test Admin User
 Role:        ADMIN
 Hub:         Imphal Hub (IXA)
@@ -25,22 +27,23 @@ Status:      Active
 ```sql
 SELECT id, email, full_name, role, is_active 
 FROM staff 
-WHERE email = 'tapancargo@gmail.com';
+WHERE email = '<your-test-email>';
 ```
 
 ### 2. Test Files Updated ✅
 
-All E2E test files have been updated with new credentials:
+All E2E test files have been updated to read credentials from environment variables:
 
 **Updated Files:**
 - ✅ `tests/e2e/auth.setup.ts`
 - ✅ `tests/e2e/shipment-workflow.spec.ts`
 - ✅ `tests/e2e/manifest-workflow.spec.ts`
 
-**New Test Credentials:**
-```
-Email:    tapancargo@gmail.com
-Password: Test@1498
+**Test Credentials Setup:**
+```bash
+# Copy .env.test.example to .env.test and fill in your test credentials
+cp .env.test.example .env.test
+# Edit .env.test with your actual test user email and password
 ```
 
 ---

@@ -1,20 +1,22 @@
 # Create Test User - Quick Guide
 
+> ⚠️ **Security Note:** Store test credentials in `.env.test` (gitignored). Never commit credentials to version control.
+
 ## ✅ Step 1: Staff Record Created (DONE)
 
 The staff record has been successfully created in the database:
-- **Email:** tapancargo@gmail.com
+- **Email:** `$TEST_USER_EMAIL` (from .env.test)
 - **Role:** ADMIN
 - **Hub:** Imphal Hub (IXA)
 - **Status:** Active
-- **Staff ID:** 7ff4d1ea-3b78-4e50-8c05-f5570a356c1e
+- **Staff ID:** `<staff-uuid>`
 
 ## 🔐 Step 2: Create Authentication User (DO THIS NOW)
 
 ### Option A: Using Supabase Dashboard (Recommended - 2 minutes)
 
 1. **Open Supabase Dashboard:**
-   - Go to: https://supabase.com/dashboard/project/xkkhxhgkyavxcfgeojww
+   - Go to: https://supabase.com/dashboard/project/<your-project-id>
 
 2. **Navigate to Authentication:**
    - Click on **Authentication** in the left sidebar
@@ -23,8 +25,8 @@ The staff record has been successfully created in the database:
 3. **Add New User:**
    - Click **Add User** button
    - Fill in the form:
-     - **Email:** `tapancargo@gmail.com`
-     - **Password:** `Test@1498`
+     - **Email:** Your test email (save to .env.test as TEST_USER_EMAIL)
+     - **Password:** Your test password (save to .env.test as TEST_USER_PASSWORD)
      - **Auto Confirm User:** ✅ Check this box (important!)
    - Click **Create User**
 
@@ -39,6 +41,7 @@ If you have service role access, run this SQL in Supabase SQL Editor:
 ```sql
 -- This requires service_role privileges
 -- Use Supabase Dashboard method if this doesn't work
+-- Replace <your-test-email> and <your-test-password> with actual values
 
 -- Create auth user
 INSERT INTO auth.users (
@@ -64,8 +67,8 @@ INSERT INTO auth.users (
   gen_random_uuid(),
   'authenticated',
   'authenticated',
-  'tapancargo@gmail.com',
-  crypt('Test@1498', gen_salt('bf')),
+  '<your-test-email>',
+  crypt('<your-test-password>', gen_salt('bf')),
   NOW(),
   NOW(),
   NOW(),
@@ -82,16 +85,16 @@ INSERT INTO auth.users (
 -- Link auth user to staff record
 UPDATE staff 
 SET auth_user_id = (
-  SELECT id FROM auth.users WHERE email = 'tapancargo@gmail.com'
+  SELECT id FROM auth.users WHERE email = '<your-test-email>'
 )
-WHERE email = 'tapancargo@gmail.com';
+WHERE email = '<your-test-email>';
 ```
 
 ## ✅ Step 3: Test Files Updated (DONE)
 
-All test files have been updated with the new credentials:
-- Email: `tapancargo@gmail.com`
-- Password: `Test@1498`
+All test files read credentials from environment variables:
+- `TEST_USER_EMAIL` from .env.test
+- `TEST_USER_PASSWORD` from .env.test
 
 ## 🧪 Step 4: Run Tests
 
@@ -122,15 +125,15 @@ Once the auth user is created, you should see:
 To verify the user was created correctly:
 
 ```sql
--- Check auth user
+-- Check auth user (replace with your test email)
 SELECT id, email, email_confirmed_at, created_at
 FROM auth.users
-WHERE email = 'tapancargo@gmail.com';
+WHERE email = '<your-test-email>';
 
 -- Check staff record
 SELECT id, email, full_name, role, is_active, auth_user_id
 FROM staff
-WHERE email = 'tapancargo@gmail.com';
+WHERE email = '<your-test-email>';
 ```
 
 Both queries should return results, and the `auth_user_id` in the staff table should match the `id` from auth.users.
@@ -139,12 +142,12 @@ Both queries should return results, and the `auth_user_id` in the staff table sh
 
 ### "User already exists"
 - The user might already be in auth.users
-- Check: `SELECT * FROM auth.users WHERE email = 'tapancargo@gmail.com'`
+- Check: `SELECT * FROM auth.users WHERE email = '<your-test-email>'`
 - If exists, just update the password in Supabase Dashboard
 
 ### "Tests still fail with timeout"
 - Verify email is confirmed (email_confirmed_at should have a timestamp)
-- Check password is correct: `Test@1498`
+- Check password matches `TEST_USER_PASSWORD` in your .env.test
 - Try logging in manually at http://localhost:3000/#/login
 
 ### "Cannot access certain pages"

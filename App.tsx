@@ -63,10 +63,10 @@ const Login: React.FC = () => {
     }, [isAuthenticated, user, navigate, legacyLogin]);
 
     // Clear error when inputs change
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- clearError is stable from Zustand
     useEffect(() => {
         if (error) clearError();
-    }, [email, password, error]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- only trigger on input changes, not on error
+    }, [email, password]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -282,7 +282,6 @@ const App: React.FC = () => {
                             </Card>
                         </div>
                     )}>
-                        <CommandPalette />
                         <Suspense fallback={
                             <div className="min-h-screen flex items-center justify-center bg-cyber-bg">
                                 <div className="w-full max-w-7xl p-6">

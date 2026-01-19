@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Shipment } from '../../types';
 import { useShipmentStore } from '../../store/shipmentStore';
+import { useAuthStore } from '../../store/authStore';
 import { Button, Card, Badge } from '../ui/CyberComponents';
 import { STATUS_COLORS } from '../../lib/design-tokens';
 import { Printer, X, Clock } from 'lucide-react';
@@ -15,6 +16,7 @@ interface Props {
 
 export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
     const { fetchShipmentEvents, currentShipmentEvents } = useShipmentStore();
+    const { user } = useAuthStore();
 
     useEffect(() => {
         fetchShipmentEvents(shipment.id);
@@ -22,8 +24,9 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
 
     const handlePrintLabel = () => {
         try {
-            // Save shipment to localStorage for the print page
-            localStorage.setItem('print_shipping_label', JSON.stringify(shipment));
+            // Save shipment to localStorage with per-AWB key to prevent overwrites
+            const storageKey = `print_shipping_label_${shipment.awb}`;
+            localStorage.setItem(storageKey, JSON.stringify(shipment));
 
             // Open print page in a popup (consistent with Invoice section)
             const width = 500;
@@ -31,11 +34,22 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
             const left = (window.screen.width - width) / 2;
             const top = (window.screen.height - height) / 2;
 
-            window.open(
+            const popup = window.open(
                 `#/print/label/${shipment.awb}`,
                 'PrintLabel',
                 `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
             );
+
+            // Check if popup was blocked
+            if (!popup) {
+                toast.error('Popup blocked. Please allow popups and try again.');
+                return;
+            }
+
+            // Clean up localStorage after a delay
+            setTimeout(() => {
+                localStorage.removeItem(storageKey);
+            }, 30000); // Remove after 30 seconds
         } catch (error) {
             console.error('Label error:', error);
             toast.error('Failed to open label');
@@ -140,7 +154,7 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
                 entityType="SHIPMENT"
                 entityId={shipment.id}
                 title="Shipment Notes"
-                currentUserId="System"
+                currentUserId={user?.id || 'System'}
                 maxHeight="300px"
             />
         </div>

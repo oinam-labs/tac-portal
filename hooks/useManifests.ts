@@ -190,13 +190,18 @@ export function useCreateManifest() {
             if (!staffId) throw new Error("Staff profile not found for current user and no default admin available");
 
             // Calculate totals
-            const { data: shipments } = await (supabase.from('shipments') as any)
+            const { data: shipments, error: shipmentsError } = await (supabase.from('shipments') as any)
                 .select('package_count, total_weight')
                 .in('id', input.shipment_ids);
 
-            const totalShipments = shipments?.length || 0;
-            const totalPackages = shipments?.reduce((sum: any, s: any) => sum + s.package_count, 0) || 0;
-            const totalWeight = shipments?.reduce((sum: any, s: any) => sum + s.total_weight, 0) || 0;
+            if (shipmentsError) throw shipmentsError;
+            if (!shipments || shipments.length !== input.shipment_ids.length) {
+                throw new Error('Some shipments were not found or are not accessible');
+            }
+
+            const totalShipments = shipments.length;
+            const totalPackages = shipments.reduce((sum: number, s: { package_count: number }) => sum + (s.package_count || 0), 0);
+            const totalWeight = shipments.reduce((sum: number, s: { total_weight: number }) => sum + (s.total_weight || 0), 0);
 
             // Generate Manifest No (Simple unique string for now)
             const manifestNo = `MAN${new Date().getFullYear()}${String(Date.now()).slice(-6)}`;

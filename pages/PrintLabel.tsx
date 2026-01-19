@@ -104,8 +104,18 @@ export const PrintLabel: React.FC = () => {
 
     useEffect(() => {
         try {
-            // Attempt to get from local storage (passed from Invoices page)
-            const stored = localStorage.getItem('print_shipping_label');
+            // Try per-AWB key first (new format), then fallback to legacy key
+            const perAwbKey = `print_shipping_label_${awb}`;
+            const legacyKey = 'print_shipping_label';
+
+            let stored = localStorage.getItem(perAwbKey);
+            let usedKey = perAwbKey;
+
+            if (!stored) {
+                stored = localStorage.getItem(legacyKey);
+                usedKey = legacyKey;
+            }
+
             if (!stored) {
                 setError('No shipment data found. Please generate label from Invoices dashboard.');
                 return;
@@ -127,6 +137,9 @@ export const PrintLabel: React.FC = () => {
             }
 
             setData(mapShipmentToLabel(shipment));
+
+            // Clean up localStorage after reading to prevent PII lingering
+            localStorage.removeItem(usedKey);
         } catch (e) {
             console.error('Failed to load shipment:', e);
             setError('Failed to parse shipment data. Please try generating the label again.');
