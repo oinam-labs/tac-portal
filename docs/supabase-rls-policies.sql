@@ -6,6 +6,34 @@
 -- Enable RLS on all tables
 ALTER TABLE orgs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE hubs ENABLE ROW LEVEL SECURITY;
+
+-- ============================================================================
+-- Organizations - Users can view their own org, service role can insert
+-- ============================================================================
+DROP POLICY IF EXISTS "Orgs viewable by same org" ON orgs;
+CREATE POLICY "Orgs viewable by same org"
+  ON orgs FOR SELECT
+  TO authenticated
+  USING (id = get_current_org_id());
+
+DROP POLICY IF EXISTS "Orgs insertable by service role" ON orgs;
+CREATE POLICY "Orgs insertable by service role"
+  ON orgs FOR INSERT
+  TO service_role
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Orgs updatable by admins" ON orgs;
+CREATE POLICY "Orgs updatable by admins"
+  ON orgs FOR UPDATE
+  TO authenticated
+  USING (
+    id = get_current_org_id() AND
+    EXISTS (
+      SELECT 1 FROM staff s
+      WHERE s.auth_user_id = auth.uid()
+      AND s.role = 'ADMIN'
+    )
+  );
 ALTER TABLE staff ENABLE ROW LEVEL SECURITY;
 ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shipments ENABLE ROW LEVEL SECURITY;

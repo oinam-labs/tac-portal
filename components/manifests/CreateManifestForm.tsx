@@ -86,6 +86,7 @@ export const CreateManifestForm: React.FC = () => {
             navigate('/manifests');
         } catch (e) {
             console.error(e);
+            toast.error('Failed to create manifest. Please try again.');
         }
     };
 
@@ -121,6 +122,7 @@ export const CreateManifestForm: React.FC = () => {
                             <select {...register('toHub')} className="w-full bg-slate-50 dark:bg-black/20 border border-cyber-border rounded px-3 py-2 text-sm">
                                 {Object.values(HUBS).map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
                             </select>
+                            {errors.toHub && <span className="text-red-500 text-xs">{errors.toHub.message}</span>}
                         </div>
                     </div>
 

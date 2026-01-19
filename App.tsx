@@ -63,9 +63,10 @@ const Login: React.FC = () => {
     }, [isAuthenticated, user, navigate, legacyLogin]);
 
     // Clear error when inputs change
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- clearError is stable from Zustand
     useEffect(() => {
         if (error) clearError();
-    }, [email, password]);
+    }, [email, password, error]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();

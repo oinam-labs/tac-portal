@@ -163,8 +163,9 @@ export function useDeleteCustomer() {
 
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['customer', id] });
       toast.success('Customer deleted successfully');
     },
     onError: (error) => {

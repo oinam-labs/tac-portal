@@ -253,9 +253,9 @@ export function useUpdateManifestStatus() {
 
             if (error) throw error;
         },
-        onSuccess: () => {
+        onSuccess: (_data, { id }) => {
             queryClient.invalidateQueries({ queryKey: ['manifests'] });
-            queryClient.invalidateQueries({ queryKey: ['manifest'] });
+            queryClient.invalidateQueries({ queryKey: ['manifest', id] });
         },
     });
 }
