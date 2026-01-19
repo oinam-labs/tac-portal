@@ -11,7 +11,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { Check, ChevronRight, ChevronDown, Plus, Search, User, MapPin, Box, Calculator, Ruler, Scale, CheckCircle, Loader2, RotateCcw } from "lucide-react";
+import { Check, ChevronRight, ChevronDown, Plus, Search, User, MapPin, Box, Calculator, Ruler, Scale, CheckCircle, Loader2, RotateCcw, Plane, Truck, Printer } from "lucide-react";
 import { formatCurrency, calculateFreight } from "@/lib/utils";
 import { validateInvoice, validateDiscount } from "@/lib/validation/invoice-validator";
 import { PAYMENT_MODES, POPULAR_CITIES, CONTENT_TYPES } from "@/lib/constants";
@@ -20,6 +20,8 @@ import { useShipmentStore } from "@/store/shipmentStore";
 import { db } from "@/lib/mock-db";
 import { Shipment, Customer } from "@/types";
 import { TrackingDialog } from "@/components/landing-new/tracking-dialog";
+import { LabelPreviewDialog } from "@/components/domain/LabelPreviewDialog";
+import { generateLabelFromFormData } from "@/lib/utils/label-utils";
 
 // --- SCHEMA (Same as original) ---
 const schema = z.object({
@@ -194,8 +196,13 @@ const CustomerSearch: React.FC<{
                                     {c.preferences && (
                                         <div className="flex gap-1 mt-1">
                                             {c.preferences.preferredTransportMode && (
-                                                <span className="text-[8px] px-1 py-0.5 rounded bg-muted text-muted-foreground">
-                                                    {c.preferences.preferredTransportMode === 'AIR' ? '✈️' : '🚚'} {c.preferences.preferredTransportMode}
+                                                <span className="text-[8px] px-1 py-0.5 rounded bg-muted text-muted-foreground flex items-center gap-1">
+                                                    {c.preferences.preferredTransportMode === 'AIR' ? (
+                                                        <Plane className="w-2.5 h-2.5" />
+                                                    ) : (
+                                                        <Truck className="w-2.5 h-2.5" />
+                                                    )}
+                                                    {c.preferences.preferredTransportMode}
                                                 </span>
                                             )}
                                             {c.preferences.preferredPaymentMode && (
@@ -240,6 +247,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_consigneeCityMode, setConsigneeCityMode] = useState<'SELECT' | 'INPUT'>('SELECT');
     const [contentMode, setContentMode] = useState<'SELECT' | 'INPUT'>('SELECT');
+    const [showLabelPreview, setShowLabelPreview] = useState(false);
 
     const form = useForm<FormData>({
         resolver: zodResolver(schema),
@@ -526,6 +534,34 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                 invoiceNumber: String(data.invoiceNumber),
                 financials,
                 paymentMode: String(data.paymentMode) as any,
+                // Pass shipment data for implicit shipment creation
+                transportMode: data.transportMode,
+                totalWeight: {
+                    dead: safeNum(data.actualWeight),
+                    volumetric: (safeNum(data.dimL) * safeNum(data.dimB) * safeNum(data.dimH) * safeNum(data.pieces)) / 5000,
+                    chargeable: safeNum(data.chargedWeight)
+                },
+                totalPackageCount: safeNum(data.pieces),
+                contentsDescription: data.contents,
+                consignor: {
+                    name: data.consignorName,
+                    phone: data.consignorPhone,
+                    address: data.consignorAddress,
+                    city: data.consignorCity,
+                    state: data.consignorState,
+                    zip: data.consignorZip,
+                    gstin: data.consignorGstin
+                },
+                consignee: {
+                    name: data.consigneeName,
+                    phone: data.consigneePhone,
+                    address: data.consigneeAddress,
+                    city: data.consigneeCity,
+                    state: data.consigneeState,
+                    zip: data.consigneeZip,
+                    gstin: data.consigneeGstin
+                },
+                declaredValue: safeNum(data.declaredValue)
             } as any);
 
             // Clear draft after success
@@ -631,10 +667,19 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                             </div>
                             <div className="space-y-2">
                                 <Label>Transport Mode</Label>
-                                <select {...form.register('transportMode')} className="w-full h-10 px-3 bg-background border border-input rounded-md text-sm text-foreground focus:ring-1 focus:ring-primary outline-none">
-                                    <option value="TRUCK">🚚 Surface / Truck</option>
-                                    <option value="AIR">✈️ Air Cargo</option>
-                                </select>
+                                <div className="relative">
+                                    <select {...form.register('transportMode')} className="w-full h-10 pl-10 pr-3 bg-background border border-input rounded-md text-sm text-foreground focus:ring-1 focus:ring-primary outline-none appearance-none">
+                                        <option value="TRUCK">Surface / Truck</option>
+                                        <option value="AIR">Air Cargo</option>
+                                    </select>
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                        {formValues.transportMode === 'AIR' ? (
+                                            <Plane className="w-4 h-4 text-foreground" />
+                                        ) : (
+                                            <Truck className="w-4 h-4 text-foreground" />
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <Label>Payment Mode</Label>
@@ -836,48 +881,67 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                             </div>
                         </Card>
 
-                        {/* Summary Panel */}
-                        <div className="bg-muted/40 p-6 rounded-xl flex justify-between items-center border border-border">
-                            <div className="space-y-2">
-                                <div className="text-base text-muted-foreground">Subtotal: <span className="font-semibold text-foreground">{formatCurrency(subtotal)}</span></div>
+                        {/* Summary Panel - Enhanced */}
+                        <div className="bg-gradient-to-br from-muted/60 to-muted/30 p-6 rounded-xl border border-border shadow-sm">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Left: Breakdown */}
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center py-2 border-b border-border/50">
+                                        <span className="text-sm text-muted-foreground">Subtotal</span>
+                                        <span className="font-semibold text-foreground">{formatCurrency(subtotal)}</span>
+                                    </div>
 
-                                <div className="flex items-center gap-3">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            {...form.register('gstApplicable')}
-                                            className="w-4 h-4 rounded border-input text-primary focus:ring-1 focus:ring-primary"
+                                    <div className="flex justify-between items-center py-2">
+                                        <div className="flex items-center gap-3">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    {...form.register('gstApplicable')}
+                                                    className="w-4 h-4 rounded border-input text-primary focus:ring-1 focus:ring-primary"
+                                                />
+                                                <span className="text-sm font-medium text-foreground">GST</span>
+                                            </label>
+                                            {formValues.gstApplicable && (
+                                                <div className="flex items-center gap-1">
+                                                    <Input
+                                                        type="number"
+                                                        {...form.register('gstRate')}
+                                                        className="w-14 h-7 text-center text-xs"
+                                                        min="0"
+                                                        max="100"
+                                                    />
+                                                    <span className="text-xs text-muted-foreground">%</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <span className="font-semibold text-foreground">{formatCurrency(tax)}</span>
+                                    </div>
+
+                                    <div className="flex justify-between items-center py-2 border-t border-border/50">
+                                        <span className="text-sm text-muted-foreground">Advance Paid</span>
+                                        <Input
+                                            placeholder="₹0"
+                                            type="number"
+                                            {...form.register('advancePaid')}
+                                            className="w-28 text-right h-8 text-sm"
                                         />
-                                        <span className="text-sm font-medium text-foreground">Apply GST</span>
-                                    </label>
-                                    {formValues.gstApplicable && (
-                                        <div className="flex items-center gap-1">
-                                            <Input
-                                                type="number"
-                                                {...form.register('gstRate')}
-                                                className="w-16 h-8 text-center text-sm"
-                                                min="0"
-                                                max="100"
-                                            />
-                                            <span className="text-sm text-muted-foreground">%</span>
+                                    </div>
+
+                                    {balance > 0 && balance !== total && (
+                                        <div className="flex justify-between items-center py-2 bg-amber-500/10 px-3 rounded-lg border border-amber-500/20">
+                                            <span className="text-sm font-medium text-amber-600">Balance Due</span>
+                                            <span className="font-bold text-amber-600">{formatCurrency(balance)}</span>
                                         </div>
                                     )}
-                                    {formValues.gstApplicable && (
-                                        <span className="text-sm text-muted-foreground">= <span className="font-semibold text-foreground">{formatCurrency(tax)}</span></span>
-                                    )}
                                 </div>
-                            </div>
-                            <div className="text-right space-y-2">
-                                <div className="text-xs uppercase text-muted-foreground tracking-wide">Total Payable</div>
-                                <div className="text-4xl font-bold tracking-tight">{formatCurrency(total)}</div>
-                                <div className="flex gap-3 items-center justify-end pt-2">
-                                    <span className="text-sm text-muted-foreground">Advance:</span>
-                                    <Input
-                                        placeholder="₹0"
-                                        type="number"
-                                        {...form.register('advancePaid')}
-                                        className="w-28 text-right h-10"
-                                    />
+
+                                {/* Right: Grand Total */}
+                                <div className="flex flex-col items-end justify-center bg-primary/5 rounded-xl p-6 border border-primary/20">
+                                    <div className="text-xs uppercase text-primary/70 tracking-wider font-bold mb-1">Grand Total</div>
+                                    <div className="text-4xl font-black text-primary tracking-tight">{formatCurrency(total)}</div>
+                                    <div className="text-xs text-muted-foreground mt-2">
+                                        {formValues.gstApplicable ? 'Inclusive of GST' : 'GST not applicable'}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -949,24 +1013,44 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                                 {currentStep === 0 ? 'Cancel' : 'Back'}
                             </Button>
 
-                            <Button
-                                type="button"
-                                onClick={nextStep}
-                                disabled={isLoading}
-                                className="min-w-[120px]"
-                            >
-                                {isLoading ? (
-                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                ) : currentStep === steps.length - 1 ? (
-                                    <>Confirm & Book <Check className="w-4 h-4 ml-2" /></>
-                                ) : (
-                                    <>Continue <ChevronRight className="w-4 h-4 ml-2" /></>
+                            <div className="flex gap-2">
+                                {currentStep === steps.length - 1 && (
+                                    <Button
+                                        variant="outline"
+                                        type="button"
+                                        onClick={() => setShowLabelPreview(true)}
+                                        disabled={isLoading}
+                                    >
+                                        <Printer className="w-4 h-4 mr-2" />
+                                        Preview Label
+                                    </Button>
                                 )}
-                            </Button>
+                                <Button
+                                    type="button"
+                                    onClick={nextStep}
+                                    disabled={isLoading}
+                                    className="min-w-[120px]"
+                                >
+                                    {isLoading ? (
+                                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                    ) : currentStep === steps.length - 1 ? (
+                                        <>Confirm & Book <Check className="w-4 h-4 ml-2" /></>
+                                    ) : (
+                                        <>Continue <ChevronRight className="w-4 h-4 ml-2" /></>
+                                    )}
+                                </Button>
+                            </div>
                         </CardFooter>
                     </Card>
                 </div>
             </MotionConfig>
+
+            {/* Label Preview Dialog */}
+            <LabelPreviewDialog
+                open={showLabelPreview}
+                onOpenChange={setShowLabelPreview}
+                shipmentData={generateLabelFromFormData(formValues)}
+            />
         </Form>
     );
 }

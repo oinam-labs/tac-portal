@@ -46,7 +46,7 @@ export function useTrackingEvents(awbNumber: string | null) {
   useEffect(() => {
     if (!awbNumber) return;
 
-    const subscription = supabase
+    const channel = supabase
       .channel(`tracking:${awbNumber}`)
       .on(
         'postgres_changes',
@@ -64,7 +64,8 @@ export function useTrackingEvents(awbNumber: string | null) {
       .subscribe();
 
     return () => {
-      subscription.unsubscribe();
+      // Use removeChannel for proper cleanup - prevents subscription churn and UI blocking
+      supabase.removeChannel(channel);
     };
   }, [awbNumber, queryClient]);
 

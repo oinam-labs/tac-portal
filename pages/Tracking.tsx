@@ -5,40 +5,76 @@ import { TrackingTimeline } from '../components/domain/TrackingTimeline';
 import { StatusBadge } from '../components/domain/StatusBadge';
 import { ShipmentCard } from '../components/domain/ShipmentCard';
 import { Search, MapPin, Truck, Package, Plane } from 'lucide-react';
-import { db } from '../lib/mock-db';
+import { useShipmentByAWB } from '../hooks/useShipments';
+import { useTrackingEvents } from '../hooks/useTrackingEvents';
+import { useRealtimeTracking } from '../hooks/useRealtime';
 import { Shipment, TrackingEvent } from '../types';
 import { HUBS } from '../lib/constants';
 
 export const Tracking: React.FC = () => {
     const [searchParams] = useSearchParams();
     const [trackId, setTrackId] = useState('');
-    const [result, setResult] = useState<{ shipment: Shipment, events: TrackingEvent[] } | null>(null);
+    const [searchAwb, setSearchAwb] = useState<string | null>(null);
     const [error, setError] = useState('');
 
-    const performSearch = (awb: string) => {
-        setError('');
-        setResult(null);
+    // Supabase queries
+    const { data: shipmentData, isLoading: shipmentLoading, error: shipmentError } = useShipmentByAWB(searchAwb);
+    const { data: eventsData, isLoading: eventsLoading } = useTrackingEvents(searchAwb);
 
-        const shipment = db.getShipmentByAWB(awb);
-        if (shipment) {
-            const events = db.getEvents(shipment.id);
-            setResult({ shipment, events });
-        } else {
-            setError('Shipment not found. Please check the AWB.');
+    // Enable realtime updates for this AWB
+    useRealtimeTracking(searchAwb ?? undefined);
+
+    // Map Supabase data to legacy format for existing components
+    const result = shipmentData ? {
+        shipment: {
+            id: shipmentData.id,
+            awb: shipmentData.awb_number,
+            status: shipmentData.status,
+            mode: shipmentData.mode,
+            originHub: shipmentData.origin_hub?.code || 'ORIGIN',
+            destinationHub: shipmentData.destination_hub?.code || 'DEST',
+            eta: 'TBD',
+            consigneeName: shipmentData.consignee_name,
+            consigneePhone: shipmentData.consignee_phone,
+            weight: shipmentData.total_weight,
+            pieces: shipmentData.package_count,
+        } as unknown as Shipment,
+        events: (eventsData || []).map(e => ({
+            id: e.id,
+            shipmentId: e.shipment_id,
+            awb: shipmentData?.awb_number || '',
+            timestamp: e.event_time || e.created_at,
+            status: e.event_code,
+            eventCode: e.event_code,
+            location: (e as any).hub?.name || (e as any).location || '',
+            description: (e as any).notes || `Status: ${e.event_code}`,
+            actorId: (e as any).actor_staff_id || '',
+        })) as unknown as TrackingEvent[]
+    } : null;
+
+    const handleTrack = () => {
+        if (trackId.trim()) {
+            setError('');
+            setSearchAwb(trackId.trim().toUpperCase());
         }
     };
 
-    const handleTrack = () => {
-        performSearch(trackId);
-    };
+    useEffect(() => {
+        if (shipmentError) {
+            setError('Shipment not found. Please check the AWB.');
+        }
+    }, [shipmentError]);
 
     useEffect(() => {
         const awbParam = searchParams.get('awb');
         if (awbParam) {
             setTrackId(awbParam);
-            performSearch(awbParam);
+            setSearchAwb(awbParam.toUpperCase());
         }
     }, [searchParams]);
+
+    const isLoading = shipmentLoading || eventsLoading;
+    void isLoading; // Used in UI below
 
     return (
         <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">

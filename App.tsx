@@ -1,18 +1,21 @@
 
-import React, { useEffect, Suspense, lazy } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, Suspense, lazy, useState } from 'react';
+import { HashRouter as Router, Routes, Route, Navigate, useLocation, useNavigate, Link } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from 'sonner';
+import { Toaster, toast } from 'sonner';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { useStore } from './store';
-import { User, UserRole } from './types';
+import { useAuthStore } from './store/authStore';
+import { UserRole, HubLocation } from './types';
 import { Button, Card, Input } from './components/ui/CyberComponents';
 import { CommandPalette } from './components/domain/CommandPalette';
 import { queryClient } from './lib/query-client';
 import { ArrowLeft } from 'lucide-react';
 import { PageSkeleton } from './components/ui/skeleton';
 import { ErrorBoundary } from './components/ui/error-boundary';
+import { PageTransition } from './components/ui/page-transition';
+import { SentryErrorBoundary, setUserContext, addBreadcrumb } from './lib/sentry';
 
 // Lazy Load Pages
 const Landing = lazy(() => import('./pages/Landing').then(module => ({ default: module.Landing })));
@@ -22,6 +25,7 @@ const Finance = lazy(() => import('./pages/Finance').then(module => ({ default: 
 const Analytics = lazy(() => import('./pages/Analytics').then(module => ({ default: module.Analytics })));
 const Tracking = lazy(() => import('./pages/Tracking').then(module => ({ default: module.Tracking })));
 const Manifests = lazy(() => import('./pages/Manifests').then(module => ({ default: module.Manifests })));
+const CreateManifestPage = lazy(() => import('./app/(protected)/manifests/create/page').then(module => ({ default: module.default })));
 const Scanning = lazy(() => import('./pages/Scanning').then(module => ({ default: module.Scanning })));
 const Inventory = lazy(() => import('./pages/Inventory').then(module => ({ default: module.Inventory })));
 const Exceptions = lazy(() => import('./pages/Exceptions').then(module => ({ default: module.Exceptions })));
@@ -30,33 +34,66 @@ const Management = lazy(() => import('./pages/Management').then(module => ({ def
 const Settings = lazy(() => import('./pages/Settings').then(module => ({ default: module.Settings })));
 const PublicTracking = lazy(() => import('./pages/PublicTracking').then(module => ({ default: module.PublicTracking })));
 const PrintLabel = lazy(() => import('./pages/PrintLabel').then(module => ({ default: module.PrintLabel })));
+const Notifications = lazy(() => import('./pages/Notifications').then(module => ({ default: module.Notifications })));
+const DevUIKit = lazy(() => import('./pages/DevUIKit').then(module => ({ default: module.DevUIKit })));
 
-// Simple Login Page Component
+// Login Page Component with Supabase Auth
 const Login: React.FC = () => {
-    const { login, isAuthenticated } = useStore();
+    const { signIn, isAuthenticated, isLoading, error, clearError, user } = useAuthStore();
+    const { login: legacyLogin } = useStore();
     const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
     // Redirect if already authenticated
     useEffect(() => {
-        if (isAuthenticated) {
+        if (isAuthenticated && user) {
+            // Sync with legacy store for backward compatibility
+            legacyLogin({
+                id: user.id,
+                email: user.email,
+                name: user.fullName,
+                role: user.role,
+                assignedHub: (user.hubCode as HubLocation) ?? undefined,
+                active: user.isActive,
+                lastLogin: new Date().toISOString()
+            });
             navigate('/dashboard', { replace: true });
         }
-    }, [isAuthenticated, navigate]);
+    }, [isAuthenticated, user, navigate, legacyLogin]);
 
-    const handleLogin = (e: React.FormEvent) => {
+    // Clear error when inputs change
+    useEffect(() => {
+        if (error) clearError();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- only trigger on input changes, not on error
+    }, [email, password]);
+
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Mock login
-        const mockUser: User = {
-            id: 'u1',
-            email: 'admin@taccargo.com',
-            name: 'Admin User',
-            role: 'ADMIN',
-            assignedHub: 'IMPHAL',
-            active: true,
-            lastLogin: new Date().toISOString()
-        };
-        login(mockUser);
-        navigate('/dashboard');
+
+        if (!email || !password) {
+            toast.error('Please enter email and password');
+            return;
+        }
+
+        const result = await signIn(email, password);
+
+        if (result.success) {
+            const currentUser = useAuthStore.getState().user;
+            if (currentUser) {
+                // Set Sentry user context
+                setUserContext({
+                    id: currentUser.id,
+                    email: currentUser.email,
+                    username: currentUser.fullName,
+                    role: currentUser.role,
+                });
+                addBreadcrumb('User logged in', 'auth', 'info');
+                toast.success(`Welcome back, ${currentUser.fullName}!`);
+            }
+        } else {
+            toast.error(result.error || 'Login failed');
+        }
     };
 
     return (
@@ -85,42 +122,105 @@ const Login: React.FC = () => {
                     <p className="text-slate-500 dark:text-slate-400 mt-2">Secure Logistics Terminal</p>
                 </div>
 
+                {error && (
+                    <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+                        {error}
+                    </div>
+                )}
+
                 <form onSubmit={handleLogin} className="space-y-4">
                     <div>
-                        <label className="block text-xs font-mono text-cyber-neon mb-1 uppercase">Operator ID</label>
-                        <Input type="email" defaultValue="admin@taccargo.com" placeholder="Enter ID" />
+                        <label className="block text-xs font-mono text-cyber-neon mb-1 uppercase">Email</label>
+                        <Input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Enter your email"
+                            disabled={isLoading}
+                            autoComplete="email"
+                        />
                     </div>
                     <div>
-                        <label className="block text-xs font-mono text-cyber-neon mb-1 uppercase">Passkey</label>
-                        <Input type="password" defaultValue="password" placeholder="Enter Passkey" />
+                        <label className="block text-xs font-mono text-cyber-neon mb-1 uppercase">Password</label>
+                        <Input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter your password"
+                            disabled={isLoading}
+                            autoComplete="current-password"
+                        />
                     </div>
-                    <Button className="w-full mt-4" size="lg">Initialize Session</Button>
+                    <Button
+                        type="submit"
+                        className="w-full mt-4"
+                        size="lg"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? 'Signing in...' : 'Sign In'}
+                    </Button>
                 </form>
 
                 <div className="mt-6 text-center text-xs text-slate-500 font-mono">
                     <button onClick={() => navigate('/')} className="hover:text-cyber-neon transition-colors">Return to Home</button>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-slate-700/50 text-center text-xs text-slate-500">
+                    <p>Contact your administrator for account access</p>
                 </div>
             </Card>
         </div>
     );
 };
 
-// Protected Route Wrapper with RBAC
+// Protected Route Wrapper with RBAC using new Auth Store
 const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: UserRole[] }> = ({ children, allowedRoles }) => {
-    const { isAuthenticated, user } = useStore();
+    const { isAuthenticated, user, isLoading } = useAuthStore();
     const location = useLocation();
+
+    // Show loading while auth is initializing
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-cyber-bg">
+                <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-cyber-neon border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-slate-400">Verifying credentials...</p>
+                </div>
+            </div>
+        );
+    }
 
     if (!isAuthenticated || !user) {
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    if (allowedRoles && !allowedRoles.includes(user.role)) {
+    // Check if user has required role
+    const hasAccess = (() => {
+        // No role restriction = everyone can access
+        if (!allowedRoles || allowedRoles.length === 0) return true;
+
+        // ADMIN and MANAGER have access to everything
+        if (user.role === 'ADMIN' || user.role === 'MANAGER') return true;
+
+        // Direct role match
+        if (allowedRoles.includes(user.role)) return true;
+
+        // Handle legacy role name mappings
+        if (allowedRoles.includes('FINANCE_STAFF') && user.role === 'INVOICE') return true;
+        if (allowedRoles.includes('OPS_STAFF') && user.role === 'OPS') return true;
+        if (allowedRoles.includes('WAREHOUSE_STAFF') &&
+            (user.role === 'WAREHOUSE_IMPHAL' || user.role === 'WAREHOUSE_DELHI')) return true;
+
+        return false;
+    })();
+
+    if (!hasAccess) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-cyber-bg text-center p-4">
                 <div>
                     <h1 className="text-4xl font-bold text-red-500 mb-2">403 Forbidden</h1>
                     <p className="text-slate-400 mb-4">Your clearance level ({user.role}) is insufficient for this sector.</p>
-                    <a href="#/dashboard" className="text-cyber-neon hover:underline">Return to Dashboard</a>
+                    <Link to="/dashboard" className="text-cyber-neon hover:underline">Return to Dashboard</Link>
                 </div>
             </div>
         );
@@ -150,6 +250,12 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
 const App: React.FC = () => {
     const { theme } = useStore();
+    const { initialize } = useAuthStore();
+
+    // Initialize auth on app startup
+    useEffect(() => {
+        initialize();
+    }, [initialize]);
 
     useEffect(() => {
         console.log('[Theme] Switching to:', theme);
@@ -165,53 +271,70 @@ const App: React.FC = () => {
 
     return (
         <QueryClientProvider client={queryClient}>
-            <Router>
+            <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <div className="min-h-screen">
-                    <Suspense fallback={
-                        <div className="min-h-screen flex items-center justify-center bg-cyber-bg">
-                            <div className="w-full max-w-7xl p-6">
-                                <PageSkeleton />
-                            </div>
+                    <SentryErrorBoundary fallback={({ error, resetError }) => (
+                        <div className="min-h-screen flex items-center justify-center bg-cyber-bg p-4">
+                            <Card className="max-w-lg p-8 text-center">
+                                <h1 className="text-2xl font-bold text-red-500 mb-4">Something went wrong</h1>
+                                <p className="text-slate-300 mb-6">{error instanceof Error ? error.message : 'An unexpected error occurred'}</p>
+                                <Button onClick={resetError}>Try Again</Button>
+                            </Card>
                         </div>
-                    }>
-                        <ErrorBoundary>
-                            <Routes>
-                                {/* Public Landing Page */}
-                                <Route path="/" element={<Landing />} />
+                    )}>
+                        <Suspense fallback={
+                            <div className="min-h-screen flex items-center justify-center bg-cyber-bg">
+                                <div className="w-full max-w-7xl p-6">
+                                    <PageSkeleton />
+                                </div>
+                            </div>
+                        }>
+                            <ErrorBoundary>
+                                <PageTransition>
+                                    <Routes>
+                                        {/* Public Landing Page */}
+                                        <Route path="/" element={<Landing />} />
 
-                                {/* Public Tracking Page */}
-                                <Route path="/track" element={<PublicTracking />} />
-                                <Route path="/track/:awb" element={<PublicTracking />} />
+                                        {/* Public Tracking Page */}
+                                        <Route path="/track" element={<PublicTracking />} />
+                                        <Route path="/track/:awb" element={<PublicTracking />} />
 
-                                <Route path="/login" element={<Login />} />
+                                        <Route path="/login" element={<Login />} />
 
-                                {/* Dashboard Routes (Protected) */}
-                                <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />
-                                <Route path="/analytics" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF']}><DashboardLayout><Analytics /></DashboardLayout></ProtectedRoute>} />
+                                        {/* Dashboard Routes (Protected) */}
+                                        <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />
+                                        <Route path="/analytics" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF']}><DashboardLayout><Analytics /></DashboardLayout></ProtectedRoute>} />
 
-                                {/* Operations Routes */}
-                                <Route path="/shipments" element={<ProtectedRoute><DashboardLayout><Shipments /></DashboardLayout></ProtectedRoute>} />
-                                <Route path="/tracking" element={<ProtectedRoute><DashboardLayout><Tracking /></DashboardLayout></ProtectedRoute>} />
-                                <Route path="/manifests" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF']}><DashboardLayout><Manifests /></DashboardLayout></ProtectedRoute>} />
-                                <Route path="/scanning" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}><DashboardLayout><Scanning /></DashboardLayout></ProtectedRoute>} />
-                                <Route path="/inventory" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}><DashboardLayout><Inventory /></DashboardLayout></ProtectedRoute>} />
-                                <Route path="/exceptions" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF', 'WAREHOUSE_STAFF']}><DashboardLayout><Exceptions /></DashboardLayout></ProtectedRoute>} />
+                                        {/* Operations Routes */}
+                                        <Route path="/shipments" element={<ProtectedRoute><DashboardLayout><Shipments /></DashboardLayout></ProtectedRoute>} />
+                                        <Route path="/tracking" element={<ProtectedRoute><DashboardLayout><Tracking /></DashboardLayout></ProtectedRoute>} />
+                                        <Route path="/manifests/create" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF']}><CreateManifestPage /></ProtectedRoute>} />
+                                        <Route path="/manifests" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF']}><DashboardLayout><Manifests /></DashboardLayout></ProtectedRoute>} />
+                                        <Route path="/scanning" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}><DashboardLayout><Scanning /></DashboardLayout></ProtectedRoute>} />
+                                        <Route path="/inventory" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}><DashboardLayout><Inventory /></DashboardLayout></ProtectedRoute>} />
+                                        <Route path="/exceptions" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF', 'WAREHOUSE_STAFF']}><DashboardLayout><Exceptions /></DashboardLayout></ProtectedRoute>} />
 
-                                {/* Business Routes */}
-                                <Route path="/finance" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF']}><DashboardLayout><Finance /></DashboardLayout></ProtectedRoute>} />
-                                <Route path="/customers" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF', 'OPS_STAFF']}><DashboardLayout><Customers /></DashboardLayout></ProtectedRoute>} />
-                                <Route path="/management" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}><DashboardLayout><Management /></DashboardLayout></ProtectedRoute>} />
+                                        {/* Business Routes */}
+                                        <Route path="/finance" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF']}><DashboardLayout><Finance /></DashboardLayout></ProtectedRoute>} />
+                                        <Route path="/customers" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF', 'OPS_STAFF']}><DashboardLayout><Customers /></DashboardLayout></ProtectedRoute>} />
+                                        <Route path="/management" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}><DashboardLayout><Management /></DashboardLayout></ProtectedRoute>} />
 
-                                {/* System Routes */}
-                                <Route path="/settings" element={<ProtectedRoute><DashboardLayout><Settings /></DashboardLayout></ProtectedRoute>} />
-                                <Route path="/print/label/:awb" element={<ProtectedRoute><PrintLabel /></ProtectedRoute>} />
+                                        {/* System Routes */}
+                                        <Route path="/settings" element={<ProtectedRoute><DashboardLayout><Settings /></DashboardLayout></ProtectedRoute>} />
+                                        <Route path="/notifications" element={<ProtectedRoute><DashboardLayout><Notifications /></DashboardLayout></ProtectedRoute>} />
+                                        <Route path="/print/label/:awb" element={<ProtectedRoute><PrintLabel /></ProtectedRoute>} />
 
-                                {/* Catch all */}
-                                <Route path="*" element={<Navigate to="/" replace />} />
-                            </Routes>
-                        </ErrorBoundary>
-                    </Suspense>
-                    <Toaster position="top-right" richColors />
+                                        {/* Dev Routes (ADMIN only) */}
+                                        <Route path="/dev/ui-kit" element={<ProtectedRoute allowedRoles={['ADMIN']}><DevUIKit /></ProtectedRoute>} />
+
+                                        {/* Catch all */}
+                                        <Route path="*" element={<Navigate to="/" replace />} />
+                                    </Routes>
+                                </PageTransition>
+                            </ErrorBoundary>
+                        </Suspense>
+                        <Toaster position="top-right" richColors />
+                    </SentryErrorBoundary>
                 </div>
             </Router>
         </QueryClientProvider>

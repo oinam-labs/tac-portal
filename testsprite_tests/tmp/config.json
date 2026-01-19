@@ -1,0 +1,18 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "loginUser": "tapancargo@gmail.com",
+  "loginPassword": "Test@1498",
+  "executionArgs": {
+    "projectName": "tac-portal",
+    "projectPath": "c:\\tac-portal",
+    "testIds": [],
+    "additionalInstruction": "Test with admin user credentials: email tapancargo@gmail.com and password Test@1498. Focus on testing all major features including authentication, dashboard, shipments, manifests, scanning, finance, and customer management. Ensure full accessibility testing as ADMIN role.",
+    "envs": {
+      "API_KEY": "sk-user-Pdyvy-cm9OFxKhzOIM_lwUp4FSmuPIUGfAzTAIrmVV8EEmX2MYRLuS919u5DE5pgtuSL29uewkYcJ3aNQp9jDPcS5h9h2Zexxr6qTWgpgEvMJ1Lg9kbT7e6G5o3LBLKwL7Y"
+    }
+  },
+  "proxy": "http://ec60d23d-4a8c-415d-a76b-5e5c134cfc45:qB8tccseVq3HzvfnhIPPsXCQppVsI43i@tun.testsprite.com:8080"
+}

@@ -2,6 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './globals.css';
 import App from './App';
+import { initSentry } from './lib/sentry';
+
+// Initialize Sentry as early as possible
+initSentry();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

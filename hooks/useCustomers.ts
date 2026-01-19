@@ -1,9 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
+import { getOrCreateDefaultOrg } from '../lib/org-helper';
 
 // Type helper to work around Supabase client type inference issues
 const db = supabase as any;
+
+/**
+ * Query key factory for customers.
+ * Provides consistent, type-safe query keys for caching.
+ */
+export const customerKeys = {
+  all: ['customers'] as const,
+  lists: () => [...customerKeys.all, 'list'] as const,
+  list: (filters?: { search?: string; limit?: number }) => [...customerKeys.lists(), filters] as const,
+  details: () => [...customerKeys.all, 'detail'] as const,
+  detail: (id: string) => [...customerKeys.details(), id] as const,
+};
 
 export interface Customer {
   id: string;
@@ -19,11 +32,15 @@ export interface Customer {
   credit_limit: number;
   created_at: string;
   updated_at: string;
+  // Extended fields for CRUD display
+  companyName?: string;
+  tier?: 'STANDARD' | 'PRIORITY' | 'ENTERPRISE';
+  activeContracts?: number;
 }
 
 export function useCustomers(options?: { search?: string; limit?: number }) {
   return useQuery({
-    queryKey: ['customers', options],
+    queryKey: customerKeys.list(options),
     queryFn: async () => {
       let query = supabase
         .from('customers')
@@ -48,7 +65,7 @@ export function useCustomers(options?: { search?: string; limit?: number }) {
 
 export function useCustomer(id: string | null) {
   return useQuery({
-    queryKey: ['customer', id],
+    queryKey: customerKeys.detail(id ?? ''),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('customers')
@@ -78,14 +95,13 @@ export function useCreateCustomer() {
       billing_address?: any;
       credit_limit?: number;
     }) => {
-      const { data: org } = await db.from('orgs').select('id').single();
-      if (!org) throw new Error('No organization found');
+      const orgId = await getOrCreateDefaultOrg();
 
       const { data, error } = await db
         .from('customers')
         .insert({
           ...customer,
-          org_id: org.id,
+          org_id: orgId,
         })
         .select()
         .single();
@@ -94,7 +110,7 @@ export function useCreateCustomer() {
       return data as Customer;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: customerKeys.all });
       toast.success(`Customer ${data.name} created successfully`);
     },
     onError: (error) => {
@@ -119,8 +135,8 @@ export function useUpdateCustomer() {
       return result as Customer;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
-      queryClient.invalidateQueries({ queryKey: ['customer', data.id] });
+      queryClient.invalidateQueries({ queryKey: customerKeys.all });
+      queryClient.invalidateQueries({ queryKey: customerKeys.detail(data.id) });
       toast.success(`Customer ${data.name} updated successfully`);
     },
     onError: (error) => {
@@ -128,3 +144,33 @@ export function useUpdateCustomer() {
     },
   });
 }
+
+/**
+ * Hook to delete a customer (soft delete via deleted_at).
+ */
+export function useDeleteCustomer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await db
+        .from('customers')
+        .update({
+          deleted_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: customerKeys.all });
+      queryClient.invalidateQueries({ queryKey: customerKeys.detail(id) });
+      toast.success('Customer deleted successfully');
+    },
+    onError: (error) => {
+      toast.error(`Failed to delete customer: ${error.message}`);
+    },
+  });
+}
+

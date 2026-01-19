@@ -1,0 +1,381 @@
+/**
+ * Manifest Service
+ * All manifest CRUD and workflow operations
+ */
+
+import { supabase } from '@/lib/supabase';
+import { mapSupabaseError, ValidationError } from '@/lib/errors';
+import { orgService } from './orgService';
+import type { Database } from '@/lib/database.types';
+
+type Manifest = Database['public']['Tables']['manifests']['Row'];
+type ManifestInsert = Database['public']['Tables']['manifests']['Insert'];
+type ManifestItem = Database['public']['Tables']['manifest_items']['Row'];
+
+export interface ManifestWithRelations extends Manifest {
+    from_hub?: { id: string; code: string; name: string };
+    to_hub?: { id: string; code: string; name: string };
+    creator?: { id: string; full_name: string };
+}
+
+export interface ManifestItemWithShipment extends ManifestItem {
+    shipment?: {
+        id: string;
+        awb_number: string;
+        consignee_name: string;
+        total_weight: number;
+        package_count: number;
+    };
+}
+
+export interface ManifestFilters {
+    status?: string;
+    fromHubId?: string;
+    toHubId?: string;
+    type?: 'AIR' | 'TRUCK';
+    limit?: number;
+}
+
+export const manifestService = {
+    async list(filters?: ManifestFilters): Promise<ManifestWithRelations[]> {
+        const orgId = orgService.getCurrentOrgId();
+
+        let query = supabase
+            .from('manifests')
+            .select(`
+        *,
+        from_hub:hubs!manifests_from_hub_id_fkey(id, code, name),
+        to_hub:hubs!manifests_to_hub_id_fkey(id, code, name),
+        creator:staff!manifests_created_by_staff_id_fkey(id, full_name)
+      `)
+            .eq('org_id', orgId)
+            .is('deleted_at', null)
+            .order('created_at', { ascending: false });
+
+        if (filters?.status) {
+            query = query.eq('status', filters.status);
+        }
+        if (filters?.fromHubId) {
+            query = query.eq('from_hub_id', filters.fromHubId);
+        }
+        if (filters?.toHubId) {
+            query = query.eq('to_hub_id', filters.toHubId);
+        }
+        if (filters?.type) {
+            query = query.eq('type', filters.type);
+        }
+        if (filters?.limit) {
+            query = query.limit(filters.limit);
+        }
+
+        const { data, error } = await query;
+        if (error) throw mapSupabaseError(error);
+        return (data ?? []) as unknown as ManifestWithRelations[];
+    },
+
+    async getById(id: string): Promise<ManifestWithRelations> {
+        const orgId = orgService.getCurrentOrgId();
+
+        const { data, error } = await supabase
+            .from('manifests')
+            .select(`
+        *,
+        from_hub:hubs!manifests_from_hub_id_fkey(id, code, name),
+        to_hub:hubs!manifests_to_hub_id_fkey(id, code, name),
+        creator:staff!manifests_created_by_staff_id_fkey(id, full_name)
+      `)
+            .eq('id', id)
+            .eq('org_id', orgId)
+            .single();
+
+        if (error) throw mapSupabaseError(error);
+        return data as unknown as ManifestWithRelations;
+    },
+
+    async getByManifestNo(manifestNo: string): Promise<ManifestWithRelations | null> {
+        const orgId = orgService.getCurrentOrgId();
+
+        const { data, error } = await supabase
+            .from('manifests')
+            .select(`
+        *,
+        from_hub:hubs!manifests_from_hub_id_fkey(id, code, name),
+        to_hub:hubs!manifests_to_hub_id_fkey(id, code, name),
+        creator:staff!manifests_created_by_staff_id_fkey(id, full_name)
+      `)
+            .eq('manifest_no', manifestNo)
+            .eq('org_id', orgId)
+            .maybeSingle();
+
+        if (error) throw mapSupabaseError(error);
+        return data as unknown as ManifestWithRelations | null;
+    },
+
+    async create(manifest: Omit<ManifestInsert, 'org_id' | 'manifest_no'>): Promise<Manifest> {
+        const orgId = orgService.getCurrentOrgId();
+
+        // Generate manifest number
+        const manifestNo = `MNF-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
+
+        const { data, error } = await (supabase
+            .from('manifests') as any)
+            .insert({
+                ...manifest,
+                org_id: orgId,
+                manifest_no: manifestNo,
+            })
+            .select()
+            .single();
+
+        if (error) throw mapSupabaseError(error);
+        return data as Manifest;
+    },
+
+    async getItems(manifestId: string): Promise<ManifestItemWithShipment[]> {
+        const orgId = orgService.getCurrentOrgId();
+
+        const { data, error } = await supabase
+            .from('manifest_items')
+            .select(`
+        *,
+        shipment:shipments(id, awb_number, consignee_name, total_weight, package_count)
+      `)
+            .eq('manifest_id', manifestId)
+            .eq('org_id', orgId);
+
+        if (error) throw mapSupabaseError(error);
+        return (data ?? []) as unknown as ManifestItemWithShipment[];
+    },
+
+    async addShipment(
+        manifestId: string,
+        shipmentId: string,
+        staffId: string
+    ): Promise<ManifestItem> {
+        const orgId = orgService.getCurrentOrgId();
+
+        // Validate manifest is open
+        const manifest = await this.getById(manifestId);
+        if (manifest.status !== 'OPEN') {
+            throw new ValidationError('Cannot add shipments to a closed manifest');
+        }
+
+        // Check for duplicate
+        const { data: existing } = await supabase
+            .from('manifest_items')
+            .select('id')
+            .eq('manifest_id', manifestId)
+            .eq('shipment_id', shipmentId)
+            .maybeSingle();
+
+        if (existing) {
+            throw new ValidationError('Shipment already added to manifest');
+        }
+
+        // Add item
+        const { data, error } = await (supabase
+            .from('manifest_items') as any)
+            .insert({
+                org_id: orgId,
+                manifest_id: manifestId,
+                shipment_id: shipmentId,
+                scanned_by_staff_id: staffId,
+                scanned_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
+
+        if (error) throw mapSupabaseError(error);
+
+        // Update manifest totals
+        await this.updateTotals(manifestId);
+
+        // Update shipment status
+        await (supabase
+            .from('shipments') as any)
+            .update({
+                manifest_id: manifestId,
+                status: 'LOADED_FOR_LINEHAUL',
+                updated_at: new Date().toISOString(),
+            })
+            .eq('id', shipmentId);
+
+        return data as ManifestItem;
+    },
+
+    async removeShipment(manifestId: string, shipmentId: string): Promise<void> {
+        const orgId = orgService.getCurrentOrgId();
+
+        // Validate manifest is open
+        const manifest = await this.getById(manifestId);
+        if (manifest.status !== 'OPEN') {
+            throw new ValidationError('Cannot remove shipments from a closed manifest');
+        }
+
+        const { error } = await supabase
+            .from('manifest_items')
+            .delete()
+            .eq('manifest_id', manifestId)
+            .eq('shipment_id', shipmentId)
+            .eq('org_id', orgId);
+
+        if (error) throw mapSupabaseError(error);
+
+        // Update manifest totals
+        await this.updateTotals(manifestId);
+
+        // Update shipment
+        await (supabase
+            .from('shipments') as any)
+            .update({
+                manifest_id: null,
+                status: 'RECEIVED',
+                updated_at: new Date().toISOString(),
+            })
+            .eq('id', shipmentId);
+    },
+
+    async updateTotals(manifestId: string): Promise<void> {
+        const items = await this.getItems(manifestId);
+
+        const totals = items.reduce(
+            (acc, item) => ({
+                shipments: acc.shipments + 1,
+                packages: acc.packages + (item.shipment?.package_count ?? 0),
+                weight: acc.weight + (item.shipment?.total_weight ?? 0),
+            }),
+            { shipments: 0, packages: 0, weight: 0 }
+        );
+
+        await (supabase
+            .from('manifests') as any)
+            .update({
+                total_shipments: totals.shipments,
+                total_packages: totals.packages,
+                total_weight: totals.weight,
+                updated_at: new Date().toISOString(),
+            })
+            .eq('id', manifestId);
+    },
+
+    async close(manifestId: string): Promise<Manifest> {
+        const orgId = orgService.getCurrentOrgId();
+
+        const { data, error } = await (supabase
+            .from('manifests') as any)
+            .update({
+                status: 'CLOSED',
+                closed_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            })
+            .eq('id', manifestId)
+            .eq('org_id', orgId)
+            .select()
+            .single();
+
+        if (error) throw mapSupabaseError(error);
+        return data as Manifest;
+    },
+
+    async depart(manifestId: string): Promise<Manifest> {
+        const orgId = orgService.getCurrentOrgId();
+
+        const { data, error } = await (supabase
+            .from('manifests') as any)
+            .update({
+                status: 'DEPARTED',
+                departed_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            })
+            .eq('id', manifestId)
+            .eq('org_id', orgId)
+            .select()
+            .single();
+
+        if (error) throw mapSupabaseError(error);
+
+        const manifestData = data as Manifest & { from_hub_id: string; manifest_no: string };
+
+        // Update all shipments to IN_TRANSIT
+        const items = await this.getItems(manifestId);
+        for (const item of items) {
+            await (supabase
+                .from('shipments') as any)
+                .update({
+                    status: 'IN_TRANSIT',
+                    updated_at: new Date().toISOString(),
+                })
+                .eq('id', item.shipment_id);
+
+            // Create tracking event
+            await (supabase.from('tracking_events') as any).insert({
+                org_id: orgId,
+                shipment_id: item.shipment_id,
+                awb_number: item.shipment?.awb_number ?? '',
+                event_code: 'DEPARTED',
+                hub_id: manifestData.from_hub_id,
+                source: 'SYSTEM',
+                meta: { manifest_no: manifestData.manifest_no },
+            });
+        }
+
+        return manifestData;
+    },
+
+    async arrive(manifestId: string): Promise<Manifest> {
+        const orgId = orgService.getCurrentOrgId();
+
+        const { data, error } = await (supabase
+            .from('manifests') as any)
+            .update({
+                status: 'ARRIVED',
+                arrived_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            })
+            .eq('id', manifestId)
+            .eq('org_id', orgId)
+            .select()
+            .single();
+
+        if (error) throw mapSupabaseError(error);
+
+        const manifestData = data as Manifest & { to_hub_id: string; manifest_no: string };
+
+        // Update all shipments to RECEIVED_AT_DEST
+        const items = await this.getItems(manifestId);
+        for (const item of items) {
+            await (supabase
+                .from('shipments') as any)
+                .update({
+                    status: 'RECEIVED_AT_DEST',
+                    updated_at: new Date().toISOString(),
+                })
+                .eq('id', item.shipment_id);
+
+            // Create tracking event
+            await (supabase.from('tracking_events') as any).insert({
+                org_id: orgId,
+                shipment_id: item.shipment_id,
+                awb_number: item.shipment?.awb_number ?? '',
+                event_code: 'ARRIVED',
+                hub_id: manifestData.to_hub_id,
+                source: 'SYSTEM',
+                meta: { manifest_no: manifestData.manifest_no },
+            });
+        }
+
+        return manifestData;
+    },
+
+    async delete(id: string): Promise<void> {
+        const orgId = orgService.getCurrentOrgId();
+
+        const { error } = await (supabase
+            .from('manifests') as any)
+            .update({ deleted_at: new Date().toISOString() })
+            .eq('id', id)
+            .eq('org_id', orgId);
+
+        if (error) throw mapSupabaseError(error);
+    },
+};

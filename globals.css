@@ -196,6 +196,7 @@
 
 /* Reduced Motion - Respect user preferences */
 @media (prefers-reduced-motion: reduce) {
+
     *,
     *::before,
     *::after {
@@ -243,7 +244,7 @@
         --border: oklch(0.5 0 0);
         --ring: oklch(0.4 0.2 288);
     }
-    
+
     .dark {
         --border: oklch(0.7 0 0);
         --ring: oklch(0.8 0.2 288);
@@ -262,8 +263,96 @@
         background: white;
         color: black;
     }
-    
+
     .no-print {
         display: none !important;
+    }
+}
+
+/* Tiptap Rich Text Editor Styles */
+.tiptap {
+    outline: none;
+
+    p {
+        @apply my-2 first:mt-0 last:mb-0;
+    }
+
+    h1 {
+        @apply text-2xl font-bold mt-6 mb-3 first:mt-0;
+    }
+
+    h2 {
+        @apply text-xl font-semibold mt-5 mb-2 first:mt-0;
+    }
+
+    h3 {
+        @apply text-lg font-semibold mt-4 mb-2 first:mt-0;
+    }
+
+    ul {
+        @apply list-disc pl-6 my-2;
+    }
+
+    ol {
+        @apply list-decimal pl-6 my-2;
+    }
+
+    li {
+        @apply my-1;
+    }
+
+    blockquote {
+        @apply border-l-4 border-primary/50 pl-4 italic text-muted-foreground my-3;
+    }
+
+    code {
+        @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
+    }
+
+    pre {
+        @apply bg-muted p-3 rounded-md my-3 overflow-x-auto;
+
+        code {
+            @apply bg-transparent p-0;
+        }
+    }
+
+    hr {
+        @apply my-4 border-border;
+    }
+
+    a {
+        @apply text-primary underline underline-offset-2 hover:text-primary/80;
+    }
+
+    img {
+        @apply max-w-full h-auto rounded-md my-2;
+    }
+
+    mark {
+        @apply bg-yellow-200 dark:bg-yellow-800 px-0.5 rounded;
+    }
+
+    /* Task list styles */
+    ul[data-type="taskList"] {
+        @apply list-none pl-0;
+
+        li {
+            @apply flex gap-2 items-start;
+
+            >label {
+                @apply mt-1;
+            }
+
+            >div {
+                @apply flex-1;
+            }
+        }
+    }
+
+    /* Placeholder styles */
+    .is-editor-empty:first-child::before {
+        content: attr(data-placeholder);
+        @apply text-muted-foreground pointer-events-none float-left h-0;
     }
 }

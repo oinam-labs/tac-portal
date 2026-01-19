@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TAC Shipping Label</title>
+
+  <style>
+    /* =========================================================
+       TAC SHIPPING - LOGISTICS LABEL (Single File)
+       - Clean layout hierarchy
+       - Print-friendly
+       - Strong contrast
+    ========================================================= */
+
+    :root {
+      --ink: #111;
+      --paper: #fff;
+      --border: #111;
+
+      --b1: 2px solid var(--border);
+      --b2: 3px solid var(--border);
+
+      --pad: 16px;
+      --pad-lg: 18px;
+
+      --upper: uppercase;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f3f3f3;
+      color: var(--ink);
+    }
+
+    /* Label container */
+    .label {
+      width: 740px;
+      max-width: 100%;
+      min-height: 1050px;
+      margin: 0 auto;
+      background: var(--paper);
+      border: var(--b2);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Section borders */
+    .section {
+      border-bottom: var(--b1);
+    }
+
+    .section:last-child {
+      border-bottom: 0;
+    }
+
+    /* Grid helpers */
+    .grid {
+      display: grid;
+      width: 100%;
+    }
+
+    .split-2 {
+      grid-template-columns: 2fr 1fr;
+    }
+
+    .cols-3 {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    /* Typography helpers */
+    .kicker {
+      margin: 0 0 10px 0;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: var(--upper);
+    }
+
+    /* =========================================================
+       HEADER
+    ========================================================= */
+    .header {
+      min-height: 220px;
+    }
+
+    .header-left {
+      padding: var(--pad-lg);
+      border-right: var(--b1);
+    }
+
+    .service-name {
+      margin: 0 0 14px 0;
+      font-weight: 900;
+      font-size: 20px;
+      letter-spacing: 2px;
+      text-transform: var(--upper);
+    }
+
+    .barcode-wrap {
+      border: var(--b1);
+      padding: 12px;
+      margin-bottom: 14px;
+      height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Print-safe CSS barcode */
+    .barcode {
+      width: 100%;
+      height: 56px;
+      background:
+        repeating-linear-gradient(90deg,
+          #111 0px, #111 3px,
+          transparent 3px, transparent 6px,
+          #111 6px, #111 7px,
+          transparent 7px, transparent 10px,
+          #111 10px, #111 14px,
+          transparent 14px, transparent 16px);
+    }
+
+    .tracking {
+      margin: 0;
+      font-size: 44px;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+
+    .header-right {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      min-height: 220px;
+    }
+
+    .header-right-top {
+      display: grid;
+      grid-template-rows: 1fr 92px;
+    }
+
+    .icon-box {
+      border-bottom: var(--b1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .icon-box svg {
+      width: 92px;
+      height: 92px;
+      color: #111;
+      /* SVG uses currentColor */
+    }
+
+    .meta-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 92px;
+    }
+
+    .meta {
+      border-right: var(--b1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      text-transform: var(--upper);
+      font-weight: 900;
+    }
+
+    .meta:last-child {
+      border-right: 0;
+    }
+
+    .weight {
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .weight strong {
+      font-size: 30px;
+      line-height: 1;
+    }
+
+    .weight span {
+      font-size: 16px;
+      font-weight: 900;
+      text-transform: lowercase;
+    }
+
+    .meta-code {
+      font-size: 28px;
+      letter-spacing: 1px;
+    }
+
+    .paybar {
+      border-top: var(--b1);
+      text-align: center;
+      font-weight: 900;
+      letter-spacing: 2px;
+      font-size: 22px;
+      text-transform: var(--upper);
+      padding: 10px 0;
+    }
+
+    /* =========================================================
+       SHIP TO
+    ========================================================= */
+    .shipto {
+      padding: var(--pad-lg);
+    }
+
+    .recipient {
+      margin: 0 0 10px 0;
+      font-size: 62px;
+      font-weight: 900;
+      line-height: 0.95;
+      text-transform: var(--upper);
+    }
+
+    .address {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    /* =========================================================
+       HUB CODES (3 columns)
+    ========================================================= */
+    .hub {
+      min-height: 182px;
+    }
+
+    .hub>.cell {
+      padding: var(--pad);
+      border-right: var(--b1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .hub>.cell:last-child {
+      border-right: 0;
+    }
+
+    .hub-code {
+      margin: 0;
+      font-size: 72px;
+      font-weight: 900;
+      text-transform: var(--upper);
+      line-height: 1;
+      letter-spacing: 1px;
+    }
+
+    /* =========================================================
+       DATES (3 columns)
+    ========================================================= */
+    .dates {
+      min-height: 98px;
+    }
+
+    .dates>.cell {
+      padding: 14px var(--pad);
+      border-right: var(--b1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .dates>.cell:last-child {
+      border-right: 0;
+    }
+
+    .value {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .gst {
+      font-family: var(--mono);
+      font-size: 18px;
+      letter-spacing: 0.4px;
+    }
+
+    /* =========================================================
+       ROUTING + SERVICE
+    ========================================================= */
+    .route {
+      min-height: 128px;
+    }
+
+    .route-left {
+      padding: var(--pad);
+      border-right: var(--b1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .route-value {
+      margin: 0;
+      font-size: 56px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: var(--upper);
+    }
+
+    .route-right {
+      padding: var(--pad);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .service-box {
+      border: var(--b1);
+      padding: 14px 14px;
+      text-align: center;
+      font-weight: 900;
+      font-size: 30px;
+      width: min(180px, 100%);
+    }
+
+    /* =========================================================
+       BRAND FOOTER
+    ========================================================= */
+    .brand {
+      min-height: 110px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-top: auto;
+    }
+
+    .brand-badge {
+      width: 58px;
+      height: 58px;
+      border: var(--b2);
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .brand-name {
+      margin: 0;
+      font-size: 44px;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+
+    .brand-line {
+      height: 4px;
+      width: 260px;
+      background: var(--ink);
+      margin-top: 6px;
+    }
+
+    /* =========================================================
+       PRINT MODE
+    ========================================================= */
+    @media print {
+      body {
+        padding: 0;
+        background: #fff;
+      }
+
+      .label {
+        width: 100%;
+        border: 2px solid #000;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="label" aria-label="TAC Shipping logistics label">
+
+    <!-- HEADER -->
+    <section class="section grid split-2 header">
+
+      <!-- LEFT -->
+      <div class="header-left">
+        <p class="service-name">STANDARD EXPRESS</p>
+
+        <div class="barcode-wrap" aria-label="Barcode">
+          <div class="barcode"></div>
+        </div>
+
+        <p class="tracking">TAC85931083</p>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="header-right">
+
+        <div class="header-right-top">
+          <!-- PLANE ICON -->
+          <div class="icon-box" aria-label="Plane icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 576 512">
+              <path fill="currentColor"
+                d="M480 192H365.71L260.61 8.06A16.014 16.014 0 0 0 246.71 0h-65.5c-10.63 0-18.3 10.17-15.38 20.39L214.86 192H112l-43.2-57.6c-3.02-4.03-7.77-6.4-12.8-6.4H16.01C5.6 128-2.04 137.78.49 147.88L32 256L.49 364.12C-2.04 374.22 5.6 384 16.01 384H56c5.04 0 9.78-2.37 12.8-6.4L112 320h102.86l-49.03 171.6c-2.92 10.22 4.75 20.4 15.38 20.4h65.5c5.74 0 11.04-3.08 13.89-8.06L365.71 320H480c35.35 0 96-28.65 96-64s-60.65-64-96-64z" />
+            </svg>
+          </div>
+
+          <!-- WEIGHT + CODE -->
+          <div class="meta-row">
+            <div class="meta weight" aria-label="Package weight">
+              <strong>151.42</strong>
+              <span>kg</span>
+            </div>
+
+            <div class="meta meta-code" aria-label="Service code">STD</div>
+          </div>
+        </div>
+
+        <!-- PAYMENT -->
+        <div class="paybar">TO PAY</div>
+
+      </div>
+    </section>
+
+    <!-- SHIP TO -->
+    <section class="section shipto">
+      <p class="kicker">SHIP TO</p>
+      <h1 class="recipient">LARRY G</h1>
+
+      <p class="address">
+        122 Dragon St<br />
+        Imphal<br />
+        Imphal Hub
+      </p>
+    </section>
+
+    <!-- HUB INFO -->
+    <section class="section grid cols-3 hub">
+      <div class="cell">
+        <p class="kicker">DELIVERY STATION</p>
+        <p class="hub-code">IMF</p>
+      </div>
+
+      <div class="cell">
+        <p class="kicker">ORIGIN SORT</p>
+        <p class="hub-code">DEL</p>
+      </div>
+
+      <div class="cell">
+        <p class="kicker">DEST SORT</p>
+        <p class="hub-code">IMF</p>
+      </div>
+    </section>
+
+    <!-- DATES -->
+    <section class="section grid cols-3 dates">
+      <div class="cell">
+        <p class="kicker">SHIP DATE</p>
+        <p class="value">18 Jan 2026</p>
+      </div>
+
+      <div class="cell">
+        <p class="kicker">GST NUMBER</p>
+        <p class="value gst">07AAMFT6165B1Z3</p>
+      </div>
+
+      <div class="cell">
+        <p class="kicker">INVOICE DATE</p>
+        <p class="value">18 Jan 2026</p>
+      </div>
+    </section>
+
+    <!-- ROUTING -->
+    <section class="section grid split-2 route">
+      <div class="route-left">
+        <p class="kicker">ROUTING</p>
+        <p class="route-value">DEL → IMF</p>
+      </div>
+
+      <div class="route-right">
+        <p class="kicker">SERVICE LEVEL</p>
+        <div class="service-box">S-01</div>
+      </div>
+    </section>
+
+    <!-- BRAND -->
+    <footer class="brand" aria-label="Branding footer">
+      <div class="brand-badge" aria-hidden="true">T</div>
+
+      <div>
+        <p class="brand-name">TAC Shipping</p>
+        <div class="brand-line"></div>
+      </div>
+    </footer>
+
+  </main>
+
+</body>
+
+</html>

@@ -39,3 +39,18 @@ export {
   SelectTrigger,
   SelectValue,
 } from './select'
+export {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from './tooltip'
+export {
+  RichTextEditor,
+  RichTextViewer,
+  type RichTextEditorRef,
+  type RichTextEditorProps,
+} from './rich-text-editor'
+export { Separator } from './separator'
+export { ScrollArea, ScrollBar } from './scroll-area'
+export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs'

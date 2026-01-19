@@ -29,14 +29,14 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     size?: 'sm' | 'md' | 'lg';
 }
 
-export const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', size = 'md', className = '', ...props }) => {
-    const base = "font-sans font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-cyber-accent/50 disabled:opacity-50 disabled:cursor-not-allowed";
-    
+export const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', size = 'md', className = '', disabled, ...props }) => {
+    const base = "font-sans font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-cyber-accent/50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95";
+
     const variants = {
-        primary: "bg-cyber-accent/10 hover:bg-cyber-accent/20 text-cyber-accentHover dark:text-cyber-neon border border-cyber-neon/50 shadow-[0_0_15px_rgba(34,211,238,0.15)] hover:shadow-[0_0_20px_rgba(34,211,238,0.3)]",
-        secondary: "bg-cyber-surface hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-cyber-border",
-        ghost: "bg-transparent hover:bg-cyber-accent/5 text-slate-500 hover:text-cyber-accentHover dark:text-slate-400 dark:hover:text-cyber-neon",
-        danger: "bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/50",
+        primary: "bg-cyber-accent/10 hover:bg-cyber-accent/20 active:bg-cyber-accent/30 text-cyber-accentHover dark:text-cyber-neon border border-cyber-neon/50 shadow-[0_0_15px_rgba(34,211,238,0.15)] hover:shadow-[0_0_20px_rgba(34,211,238,0.3)]",
+        secondary: "bg-cyber-surface hover:bg-slate-100 active:bg-slate-200 dark:hover:bg-slate-800 dark:active:bg-slate-700 text-slate-600 dark:text-slate-300 border border-cyber-border",
+        ghost: "bg-transparent hover:bg-cyber-accent/5 active:bg-cyber-accent/10 text-slate-500 hover:text-cyber-accentHover dark:text-slate-400 dark:hover:text-cyber-neon",
+        danger: "bg-red-500/10 hover:bg-red-500/20 active:bg-red-500/30 text-red-600 dark:text-red-400 border border-red-500/50",
     };
 
     const sizes = {
@@ -46,7 +46,11 @@ export const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', s
     };
 
     return (
-        <button className={`${base} ${variants[variant]} ${sizes[size]} ${className}`} {...props}>
+        <button
+            className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}
+            disabled={disabled}
+            {...props}
+        >
             {children}
         </button>
     );
@@ -55,7 +59,7 @@ export const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', s
 // Input
 export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
     ({ className = '', ...props }, ref) => (
-        <input 
+        <input
             ref={ref}
             className={`bg-white/50 dark:bg-cyber-surface/50 border border-cyber-border text-slate-900 dark:text-slate-100 rounded-lg px-4 py-2 focus:border-cyber-neon focus:ring-1 focus:ring-cyber-neon focus:outline-none placeholder-slate-500 dark:placeholder-slate-600 transition-all w-full ${className}`}
             {...props}
@@ -71,10 +75,11 @@ export const Table: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     </div>
 );
 
-export const Th: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <th className="p-4 text-xs font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-cyber-border">{children}</th>
+
+export const Th: React.FC<React.ThHTMLAttributes<HTMLTableCellElement>> = ({ children, className = '', ...props }) => (
+    <th className={`p-4 text-xs font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-cyber-border ${className}`} {...props}>{children}</th>
 );
 
-export const Td: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-    <td className={`p-4 border-b border-cyber-border/50 text-sm text-slate-700 dark:text-slate-300 ${className}`}>{children}</td>
+export const Td: React.FC<React.TdHTMLAttributes<HTMLTableCellElement>> = ({ children, className = '', ...props }) => (
+    <td className={`p-4 border-b border-cyber-border/50 text-sm text-slate-700 dark:text-slate-300 ${className}`} {...props}>{children}</td>
 );

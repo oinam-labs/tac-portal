@@ -17,6 +17,7 @@ import {
     MapPin
 } from 'lucide-react';
 import { useStore } from '../../store';
+import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types';
 import { HUBS } from '../../lib/constants';
 
@@ -54,7 +55,7 @@ const NAV_GROUPS: NavGroupDef[] = [
     {
         title: "Business",
         items: [
-            { label: 'Finance', icon: CreditCard, path: '/finance', roles: ['ADMIN', 'MANAGER', 'FINANCE_STAFF'] },
+            { label: 'Invoices', icon: CreditCard, path: '/finance', roles: ['ADMIN', 'MANAGER', 'FINANCE_STAFF'] },
             { label: 'Customers', icon: Users, path: '/customers', roles: ['ADMIN', 'MANAGER', 'FINANCE_STAFF', 'OPS_STAFF'] },
             { label: 'Management', icon: Briefcase, path: '/management', roles: ['ADMIN', 'MANAGER'] },
         ]
@@ -68,14 +69,23 @@ const NAV_GROUPS: NavGroupDef[] = [
 ];
 
 export const Sidebar: React.FC = () => {
-    const { logout, sidebarCollapsed, user } = useStore();
+    const { sidebarCollapsed, user, logout: legacyLogout } = useStore();
+    const { signOut } = useAuthStore();
 
     const hasAccess = (allowedRoles?: UserRole[]) => {
         if (!allowedRoles) return true;
-        return user && allowedRoles.includes(user.role);
+        if (!user) return false;
+        // ADMIN and MANAGER have access to everything
+        if (user.role === 'ADMIN' || user.role === 'MANAGER') return true;
+        return allowedRoles.includes(user.role);
     };
 
-    const userHub = user?.assignedHub ? HUBS[user.assignedHub].name : 'Global HQ';
+    // Safe hub name lookup with fallback
+    const userHub = (() => {
+        if (!user?.assignedHub) return 'Global HQ';
+        const hub = HUBS[user.assignedHub as keyof typeof HUBS];
+        return hub?.name || user.assignedHub || 'Global HQ';
+    })();
 
     return (
         <aside className={`fixed left-0 top-0 h-full bg-cyber-surface/95 border-r border-cyber-border backdrop-blur-xl transition-all duration-300 z-50 flex flex-col ${sidebarCollapsed ? 'w-20' : 'w-64'}`}>
@@ -143,7 +153,10 @@ export const Sidebar: React.FC = () => {
                     </div>
                 )}
                 <button
-                    onClick={logout}
+                    onClick={async () => {
+                        await signOut();
+                        legacyLogout();
+                    }}
                     className={`flex items-center w-full px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
                 >
                     <LogOut className="w-5 h-5" />

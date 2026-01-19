@@ -87,9 +87,9 @@ export function PublicTracking() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-background via-card to-background dark">
       {/* Header */}
-      <header className="border-b border-slate-700 bg-slate-900/80 backdrop-blur-sm">
+      <header className="border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
@@ -97,7 +97,7 @@ export function PublicTracking() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-white">TAC Cargo</h1>
-              <p className="text-xs text-slate-400">Track Your Shipment</p>
+              <p className="text-xs text-muted-foreground">Track Your Shipment</p>
             </div>
           </div>
         </div>
@@ -105,15 +105,15 @@ export function PublicTracking() {
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Search Form */}
-        <Card className="p-6 mb-8 bg-slate-800/50 border-slate-700">
+        <Card className="p-6 mb-8 bg-card/50 border-border">
           <form onSubmit={handleSearch} className="flex gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
                 value={searchAwb}
                 onChange={(e) => setSearchAwb(e.target.value)}
                 placeholder="Enter AWB Number (e.g., TAC2026000001)"
-                className="pl-10 bg-slate-900 border-slate-600 text-white"
+                className="pl-10 bg-background border-border text-foreground"
               />
             </div>
             <Button type="submit" className="bg-cyan-600 hover:bg-cyan-700">
@@ -124,21 +124,21 @@ export function PublicTracking() {
 
         {/* Loading State */}
         {isLoading && (
-          <Card className="p-8 text-center bg-slate-800/50 border-slate-700">
-            <div className="animate-spin w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-slate-400">Loading tracking information...</p>
+          <Card className="p-8 text-center bg-card/50 border-border">
+            <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading tracking information...</p>
           </Card>
         )}
 
         {/* Error State */}
         {error && (
-          <Card className="p-8 text-center bg-slate-800/50 border-slate-700">
-            <Package className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">Shipment Not Found</h3>
-            <p className="text-slate-400">
-              We couldn't find a shipment with AWB: <span className="font-mono text-cyan-400">{awb}</span>
+          <Card className="p-8 text-center bg-card/50 border-border">
+            <Package className="w-12 h-12 text-destructive mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">Shipment Not Found</h3>
+            <p className="text-muted-foreground">
+              We couldn't find a shipment with AWB: <span className="font-mono text-primary">{awb}</span>
             </p>
-            <p className="text-sm text-slate-500 mt-2">
+            <p className="text-sm text-muted-foreground/70 mt-2">
               Please check the AWB number and try again.
             </p>
           </Card>
@@ -146,10 +146,10 @@ export function PublicTracking() {
 
         {/* No AWB State */}
         {!awb && !isLoading && (
-          <Card className="p-8 text-center bg-slate-800/50 border-slate-700">
-            <Search className="w-12 h-12 text-slate-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">Track Your Shipment</h3>
-            <p className="text-slate-400">
+          <Card className="p-8 text-center bg-card/50 border-border">
+            <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">Track Your Shipment</h3>
+            <p className="text-muted-foreground">
               Enter your AWB number above to track your shipment in real-time.
             </p>
           </Card>

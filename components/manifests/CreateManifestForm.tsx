@@ -1,194 +1,249 @@
-import React, { useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button, Input } from '../ui/CyberComponents';
-import { HUBS, SHIPMENT_MODES } from '../../lib/constants';
-import { useManifestStore } from '../../store/manifestStore';
-import { Truck, Plane, CheckSquare, Square } from 'lucide-react';
+import { Button, Input, Card, Table, Th, Td } from '../ui/CyberComponents';
+import { Checkbox } from '../ui/checkbox';
+import { useAvailableShipments, useCreateManifest } from '../../hooks/useManifests';
+import { HUBS } from '../../lib/constants';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Truck, Plane, Package, Save } from 'lucide-react';
+import { toast } from 'sonner';
 
 const schema = z.object({
-    originHub: z.enum(['IMPHAL', 'NEW_DELHI']),
-    destinationHub: z.enum(['IMPHAL', 'NEW_DELHI']),
+    fromHub: z.enum(['IMPHAL', 'NEW_DELHI']),
+    toHub: z.enum(['IMPHAL', 'NEW_DELHI']),
     type: z.enum(['AIR', 'TRUCK']),
-    driverName: z.string().optional(),
-    vehicleId: z.string().optional(),
-    carrier: z.string().optional(),
-    flightNumber: z.string().optional(),
-    selectedShipments: z.array(z.string())
-}).refine(data => data.originHub !== data.destinationHub, {
+    vehicleInfo: z.string().min(1, "Vehicle/Flight No is required"),
+    driver: z.string().optional(),
+}).refine(data => data.fromHub !== data.toHub, {
     message: "Origin and Destination cannot be the same",
-    path: ["destinationHub"]
+    path: ["toHub"]
 });
 
 type FormData = z.infer<typeof schema>;
 
-interface Props {
-    onSuccess: () => void;
-    onCancel: () => void;
-}
+export const CreateManifestForm: React.FC = () => {
+    const navigate = useNavigate();
+    const createManifest = useCreateManifest();
 
-export const CreateManifestForm: React.FC<Props> = ({ onSuccess, onCancel }) => {
-    const { createManifest, addShipmentsToManifest, fetchAvailableShipments, availableShipments, isLoading } = useManifestStore();
+    // Use centralized hub UUIDs from constants
+    const getHubUuid = (hubId: string) => HUBS[hubId as keyof typeof HUBS]?.uuid;
 
-    const { register, handleSubmit, watch, setValue } = useForm<FormData>({
+    const { register, watch, handleSubmit, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema),
         defaultValues: {
-            originHub: 'IMPHAL',
-            destinationHub: 'NEW_DELHI',
-            type: 'TRUCK',
-            selectedShipments: []
+            fromHub: 'IMPHAL',
+            toHub: 'NEW_DELHI',
+            type: 'AIR'
         }
     });
 
-    const origin = watch('originHub');
-    const dest = watch('destinationHub');
+    const fromHub = watch('fromHub');
+    const toHub = watch('toHub');
     const type = watch('type');
-    const selected = watch('selectedShipments');
 
-    useEffect(() => {
-        fetchAvailableShipments(origin, dest);
-        setValue('selectedShipments', []); // Reset selection on route change
-    }, [origin, dest]);
+    // Fetch available shipments for this route
+    const { data: shipments, isLoading: loadingShipments } = useAvailableShipments(getHubUuid(fromHub) ?? '', getHubUuid(toHub) ?? '');
+    const [selectedShipmentIds, setSelectedShipmentIds] = useState<string[]>([]);
 
-    const toggleSelection = (id: string) => {
-        const current = selected || [];
-        if (current.includes(id)) {
-            setValue('selectedShipments', current.filter(i => i !== id));
+    const toggleShipment = (id: string) => {
+        setSelectedShipmentIds(prev =>
+            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+        );
+    };
+
+    const selectAll = (checked: boolean) => {
+        if (checked && shipments) {
+            setSelectedShipmentIds(shipments.map(s => s.id));
         } else {
-            setValue('selectedShipments', [...current, id]);
+            setSelectedShipmentIds([]);
         }
     };
 
     const onSubmit = async (data: FormData) => {
-        // 1. Create Manifest
-        const vehicleMeta = data.type === 'TRUCK'
-            ? { driverName: data.driverName, vehicleId: data.vehicleId }
-            : { carrier: data.carrier, flightNumber: data.flightNumber };
-
-        await createManifest({
-            originHub: data.originHub,
-            destinationHub: data.destinationHub,
-            type: data.type,
-            vehicleMeta
-        });
-
-        // 2. Add Shipments (Wait for store refresh or grab ID - in mock we grab latest from DB or rely on internal logic. 
-        // For simplicity in this mock, createManifest pushes to top of list, so we grab [0]. 
-        // In real app, createManifest returns the ID.)
-
-        // However, in our mock store, we don't get ID back easily without refactor. 
-        // Let's assume we can fetch the latest one created matching ref. 
-        // Or better, let's just make createManifest handle shipmentIds if we passed them.
-
-        // Refactor: We'll do it in two steps by finding the latest one created.
-        // A robust way in a mock:
-        // We will assume the store's "manifests[0]" is the new one after creation.
-
-        const latestManifest = useManifestStore.getState().manifests[0];
-        if (data.selectedShipments.length > 0 && latestManifest) {
-            await addShipmentsToManifest(latestManifest.id, data.selectedShipments);
+        if (selectedShipmentIds.length === 0) {
+            toast.error("Please select at least one shipment to manifest");
+            return;
         }
 
-        onSuccess();
+        try {
+            await createManifest.mutateAsync({
+                from_hub_id: getHubUuid(data.fromHub) ?? '',
+                to_hub_id: getHubUuid(data.toHub) ?? '',
+                type: data.type,
+                vehicle_meta: {
+                    identifier: data.vehicleInfo,
+                    driver: data.driver,
+                    notes: `Autogenerated`
+                },
+                shipment_ids: selectedShipmentIds
+            });
+            navigate('/manifests');
+        } catch (e) {
+            console.error(e);
+            toast.error('Failed to create manifest. Please try again.');
+        }
     };
+
+    const totalSelectedWeight = shipments
+        ?.filter(s => selectedShipmentIds.includes(s.id))
+        .reduce((sum, s) => sum + s.total_weight, 0) || 0;
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-xs font-mono text-slate-500 mb-1">ORIGIN</label>
-                    <select {...register('originHub')} className="w-full bg-white/50 dark:bg-cyber-surface/50 border border-cyber-border rounded-lg px-4 py-2">
-                        {Object.values(HUBS).map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-xs font-mono text-slate-500 mb-1">DESTINATION</label>
-                    <select {...register('destinationHub')} className="w-full bg-white/50 dark:bg-cyber-surface/50 border border-cyber-border rounded-lg px-4 py-2">
-                        {Object.values(HUBS).map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
-                    </select>
-                </div>
-            </div>
-
-            <div>
-                <label className="block text-xs font-mono text-slate-500 mb-1">TRANSPORT MODE</label>
-                <div className="grid grid-cols-2 gap-2">
-                    {SHIPMENT_MODES.map(mode => (
-                        <label key={mode.id} className={`cursor-pointer border rounded-lg p-2 flex flex-col items-center justify-center text-xs transition-all ${type === mode.id ? 'bg-cyber-accent/10 border-cyber-neon text-cyber-neon' : 'border-cyber-border'}`}>
-                            <input type="radio" value={mode.id} {...register('type')} className="hidden" />
-                            {mode.id === 'AIR' ? <Plane className="w-4 h-4 mb-1" /> : <Truck className="w-4 h-4 mb-1" />}
-                            {mode.label}
-                        </label>
-                    ))}
-                </div>
-            </div>
-
-            {type === 'TRUCK' ? (
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-xs font-mono text-slate-500 mb-1">DRIVER NAME</label>
-                        <Input {...register('driverName')} placeholder="e.g. John Doe" />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-mono text-slate-500 mb-1">VEHICLE ID</label>
-                        <Input {...register('vehicleId')} placeholder="e.g. WB-02-1234" />
-                    </div>
-                </div>
-            ) : (
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-xs font-mono text-slate-500 mb-1">CARRIER</label>
-                        <Input {...register('carrier')} placeholder="e.g. Air India" />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-mono text-slate-500 mb-1">FLIGHT NO</label>
-                        <Input {...register('flightNumber')} placeholder="e.g. AI-882" />
-                    </div>
-                </div>
-            )}
-
-            <div className="border rounded-lg border-cyber-border overflow-hidden">
-                <div className="bg-slate-100 dark:bg-white/5 p-2 text-xs font-bold border-b border-cyber-border flex justify-between">
-                    <span>AVAILABLE SHIPMENTS FOR ROUTE</span>
-                    <span>{selected.length} Selected</span>
-                </div>
-                <div className="max-h-48 overflow-y-auto">
-                    {availableShipments.length === 0 ? (
-                        <div className="p-4 text-center text-slate-500 text-sm">No eligible shipments found for this route.</div>
-                    ) : (
-                        <table className="w-full text-left text-sm">
-                            <thead>
-                                <tr className="text-xs text-slate-500 border-b border-cyber-border/50">
-                                    <th className="p-2 w-10"></th>
-                                    <th className="p-2">AWB</th>
-                                    <th className="p-2">Weight</th>
-                                    <th className="p-2">Svc</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {availableShipments.map(s => (
-                                    <tr key={s.id} onClick={() => toggleSelection(s.id)} className="hover:bg-cyber-accent/5 cursor-pointer border-b border-cyber-border/30 last:border-0">
-                                        <td className="p-2 text-center">
-                                            {selected.includes(s.id)
-                                                ? <CheckSquare className="w-4 h-4 text-cyber-neon" />
-                                                : <Square className="w-4 h-4 text-slate-400" />}
-                                        </td>
-                                        <td className="p-2 font-mono">{s.awb}</td>
-                                        <td className="p-2">{s.totalWeight.chargeable}kg</td>
-                                        <td className="p-2 text-xs">{s.serviceLevel.substring(0, 3)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
-                </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-2">
-                <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-                <Button type="submit" disabled={isLoading}>
-                    {isLoading ? 'Creating...' : 'Create Manifest'}
+            <div className="flex items-center gap-4 mb-6">
+                <Button variant="ghost" onClick={() => navigate('/manifests')} type="button">
+                    <ArrowLeft className="w-5 h-5" />
                 </Button>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-cyber-neon to-purple-400 bg-clip-text text-transparent">
+                    Create Manifest
+                </h2>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left: Settings */}
+                <Card className="p-6 space-y-4 h-fit border border-cyber-border bg-white dark:bg-cyber-surface">
+                    <h3 className="text-sm font-bold text-slate-500 uppercase">Route Settings</h3>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-xs text-slate-400 mb-1 block">ORIGIN</label>
+                            <select {...register('fromHub')} className="w-full bg-slate-50 dark:bg-black/20 border border-cyber-border rounded px-3 py-2 text-sm">
+                                {Object.values(HUBS).map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-xs text-slate-400 mb-1 block">DESTINATION</label>
+                            <select {...register('toHub')} className="w-full bg-slate-50 dark:bg-black/20 border border-cyber-border rounded px-3 py-2 text-sm">
+                                {Object.values(HUBS).map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
+                            </select>
+                            {errors.toHub && <span className="text-red-500 text-xs">{errors.toHub.message}</span>}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="text-xs text-slate-400 mb-1 block">TYPE</label>
+                        <div className="grid grid-cols-2 gap-3">
+                            <label className={`
+                                border rounded-lg p-3 flex flex-col items-center cursor-pointer transition-all
+                                ${type === 'AIR' ? 'border-cyber-neon text-cyber-neon bg-cyber-neon/5' : 'border-cyber-border opacity-60'}
+                            `}>
+                                <input type="radio" value="AIR" {...register('type')} className="hidden" />
+                                <Plane className="w-5 h-5 mb-1" />
+                                <span className="text-xs">AIR</span>
+                            </label>
+                            <label className={`
+                                border rounded-lg p-3 flex flex-col items-center cursor-pointer transition-all
+                                ${type === 'TRUCK' ? 'border-purple-500 text-purple-500 bg-purple-500/5' : 'border-cyber-border opacity-60'}
+                            `}>
+                                <input type="radio" value="TRUCK" {...register('type')} className="hidden" />
+                                <Truck className="w-5 h-5 mb-1" />
+                                <span className="text-xs">TRUCK</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        <div>
+                            <label className="text-xs text-slate-400 mb-1 block">{type === 'AIR' ? 'FLIGHT NO' : 'VEHICLE NO'}</label>
+                            <Input {...register('vehicleInfo')} placeholder={type === 'AIR' ? 'Eg. 6E 6055' : 'Eg. MN01 AA 1234'} />
+                            {errors.vehicleInfo && <span className="text-red-500 text-xs">{errors.vehicleInfo.message}</span>}
+                        </div>
+                        {type === 'TRUCK' && (
+                            <div>
+                                <label className="text-xs text-slate-400 mb-1 block">DRIVER NAME</label>
+                                <Input {...register('driver')} placeholder="Driver Name" />
+                            </div>
+                        )}
+                    </div>
+                </Card>
+
+                {/* Right: Shipment Selection */}
+                <div className="lg:col-span-2 space-y-4">
+                    <Card className="p-0 border border-cyber-border overflow-hidden bg-white dark:bg-cyber-surface">
+                        <div className="p-4 border-b border-cyber-border flex justify-between items-center bg-slate-50 dark:bg-white/5">
+                            <div>
+                                <h3 className="font-bold flex items-center gap-2">
+                                    <Package className="w-4 h-4 text-cyber-neon" />
+                                    Available Shipments
+                                </h3>
+                                <p className="text-xs text-slate-500">
+                                    {shipments?.length || 0} items waiting at {fromHub}
+                                </p>
+                            </div>
+
+                            {selectedShipmentIds.length > 0 && (
+                                <div className="text-right">
+                                    <div className="text-xs text-cyber-neon font-mono font-bold">
+                                        {selectedShipmentIds.length} SELECTED
+                                    </div>
+                                    <div className="text-[10px] text-slate-400">
+                                        {totalSelectedWeight.toFixed(1)} kg Total
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="max-h-[500px] overflow-y-auto">
+                            <Table>
+                                <thead>
+                                    <tr>
+                                        <Th>
+                                            <Checkbox
+                                                checked={shipments && shipments.length > 0 && selectedShipmentIds.length === shipments.length}
+                                                onCheckedChange={(checked) => selectAll((checked as boolean))}
+                                            />
+                                        </Th>
+                                        <Th>AWB</Th>
+                                        <Th>PKG</Th>
+                                        <Th>WEIGHT</Th>
+                                        <Th>SERVICE</Th>
+                                        <Th>DATE</Th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {loadingShipments && <tr><Td colSpan={6} className="text-center py-10">Loading...</Td></tr>}
+
+                                    {!loadingShipments && shipments?.length === 0 && (
+                                        <tr><Td colSpan={6} className="text-center py-10 text-slate-500">No shipments found for this route</Td></tr>
+                                    )}
+
+                                    {shipments?.map(s => (
+                                        <tr key={s.id} onClick={() => toggleShipment(s.id)} className="cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5">
+                                            <Td onClick={e => e.stopPropagation()}>
+                                                <Checkbox checked={selectedShipmentIds.includes(s.id)} onCheckedChange={() => toggleShipment(s.id)} />
+                                            </Td>
+                                            <Td className="font-mono font-bold">{s.awb_number}</Td>
+                                            <Td>{s.package_count}</Td>
+                                            <Td>{s.total_weight} kg</Td>
+                                            <Td>
+                                                <span className={`text-[10px] px-2 py-0.5 rounded ${s.service_level === 'EXPRESS' ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                                                    {s.service_level}
+                                                </span>
+                                            </Td>
+                                            <Td className="text-right text-xs text-slate-400">
+                                                {new Date(s.created_at).toLocaleDateString()}
+                                            </Td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </Table>
+                        </div>
+                    </Card>
+
+                    <div className="flex justify-end pt-4">
+                        <Button type="submit" size="lg" disabled={createManifest.isPending || selectedShipmentIds.length === 0}>
+                            {createManifest.isPending ? 'Processing...' : (
+                                <>
+                                    <Save className="w-4 h-4 mr-2" />
+                                    Generate Manifest ({selectedShipmentIds.length})
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                </div>
             </div>
         </form>
     );

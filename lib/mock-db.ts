@@ -357,24 +357,52 @@ class MockDB {
 
         if (!shipment) {
             // Implicit Shipment Creation for Walk-In Invoices
+            // Use data from invoice if available, otherwise use defaults
+            const invoiceData = invoice as any;
+
+            // Determine origin/destination from consignor/consignee cities
+            const originCity = invoiceData.consignor?.city?.toUpperCase() || 'NEW DELHI';
+            const destCity = invoiceData.consignee?.city?.toUpperCase() || 'IMPHAL';
+
+            // Map city to hub (only valid HubLocation values: IMPHAL, NEW_DELHI)
+            const cityToHub: Record<string, HubLocation> = {
+                'NEW DELHI': 'NEW_DELHI',
+                'DELHI': 'NEW_DELHI',
+                'IMPHAL': 'IMPHAL'
+            };
+
+            // Default: Origin is NEW_DELHI, Destination based on city or IMPHAL
+            const originHub: HubLocation = cityToHub[originCity] || 'NEW_DELHI';
+            const destHub: HubLocation = cityToHub[destCity] || 'IMPHAL';
+
+            // Use transport mode from invoice data (TRUCK/AIR)
+            const mode = invoiceData.transportMode || 'TRUCK';
+
+            // Use weight from invoice data
+            const totalWeight = invoiceData.totalWeight || { dead: 1, volumetric: 1, chargeable: 1 };
+
             shipment = {
                 id: invoice.shipmentId,
                 awb: invoice.awb,
                 customerId: invoice.customerId,
                 customerName: invoice.customerName,
-                originHub: 'NEW_DELHI', // Default
-                destinationHub: 'IMPHAL', // Default
-                mode: 'AIR',
+                originHub: originHub,
+                destinationHub: destHub,
+                mode: mode,
                 serviceLevel: 'STANDARD',
-                totalPackageCount: 1,
-                totalWeight: { dead: 1, volumetric: 1, chargeable: 1 },
+                totalPackageCount: invoiceData.totalPackageCount || 1,
+                totalWeight: totalWeight,
                 status: 'CREATED',
                 paymentMode: invoice.paymentMode,
                 invoiceId: invoice.id,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 eta: 'TBD',
-                lastUpdate: 'Created via Invoice'
+                lastUpdate: 'Created via Invoice',
+                contentsDescription: invoiceData.contentsDescription || 'General Cargo',
+                consignor: invoiceData.consignor,
+                consignee: invoiceData.consignee,
+                declaredValue: invoiceData.declaredValue || 0
             };
             this.shipments = [shipment, ...this.shipments];
         } else {

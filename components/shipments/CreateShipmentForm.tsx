@@ -5,8 +5,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button, Input } from '../ui/CyberComponents';
 import { HUBS, SHIPMENT_MODES, SERVICE_LEVELS } from '../../lib/constants';
-import { useShipmentStore } from '../../store/shipmentStore';
+
 import { Package, Truck, Plane, Zap, Clock } from 'lucide-react';
+import { useCustomers } from '@/hooks/useCustomers';
+import { useCreateShipment } from '@/hooks/useShipments';
 
 const schema = z.object({
     customerId: z.string().min(1, "Customer is required"),
@@ -32,7 +34,14 @@ interface Props {
 }
 
 export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => {
-    const { customers, createShipment, isLoading } = useShipmentStore();
+    const { data: customers = [] } = useCustomers();
+    const createShipmentMutation = useCreateShipment();
+
+    // Map Hub Codes to UUIDs (Hardcoded for verification, ideally fetched)
+    const HUB_IDS: Record<string, string> = {
+        'IMPHAL': '66034243-08db-4ebb-b43c-47afa72f4a05',
+        'NEW_DELHI': '82a76ce0-1e2d-40ab-9e9b-21c5f5cb2144'
+    };
 
     const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema),
@@ -52,28 +61,30 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
 
     const onSubmit = async (data: FormData) => {
         // Volumetric Calculation (Standard L*W*H / 5000 for Air)
-        const divisor = data.mode === 'AIR' ? 5000 : 4000; // Mock standard
+        const divisor = data.mode === 'AIR' ? 5000 : 4000;
         const volWeight = (data.dimL * data.dimW * data.dimH) / divisor;
         const chargeable = Math.max(data.weightDead, volWeight);
 
-        const customer = customers.find(c => c.id === data.customerId);
+        try {
+            await createShipmentMutation.mutateAsync({
+                customer_id: data.customerId,
+                origin_hub_id: HUB_IDS[data.originHub],
+                destination_hub_id: HUB_IDS[data.destinationHub],
+                mode: data.mode,
+                service_level: data.serviceLevel,
+                package_count: data.packageCount,
+                total_weight: parseFloat(chargeable.toFixed(2)),
+                // Required DB fields not in form yet:
+                consignee_name: 'Walk-in Customer',
+                consignee_phone: '9999999999',
+                consignee_address: { line1: 'TBD', city: 'TBD' },
+                special_instructions: `Dims: ${data.dimL}x${data.dimW}x${data.dimH}`
+            });
 
-        await createShipment({
-            customerId: data.customerId,
-            customerName: customer?.companyName || customer?.name || 'Unknown',
-            originHub: data.originHub,
-            destinationHub: data.destinationHub,
-            mode: data.mode,
-            serviceLevel: data.serviceLevel,
-            totalPackageCount: data.packageCount,
-            totalWeight: {
-                dead: data.weightDead,
-                volumetric: parseFloat(volWeight.toFixed(2)),
-                chargeable: parseFloat(chargeable.toFixed(2))
-            }
-        }, []);
-
-        onSuccess();
+            onSuccess();
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     return (
@@ -185,8 +196,8 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
 
             <div className="flex justify-end gap-3 pt-4 border-t border-cyber-border">
                 <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-                <Button type="submit" disabled={isLoading}>
-                    {isLoading ? 'Creating...' : 'Create Shipment'}
+                <Button type="submit" disabled={createShipmentMutation.isPending}>
+                    {createShipmentMutation.isPending ? 'Creating...' : 'Create Shipment'}
                 </Button>
             </div>
         </form>

@@ -1,123 +1,195 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Card, Button, Input } from '../components/ui/CyberComponents';
 import { BarcodeScanner } from '../components/scanning/BarcodeScanner';
 import { ScanLine, Box, Check, X, Truck, AlertTriangle, Camera, Keyboard } from 'lucide-react';
-import { db } from '../lib/mock-db';
-import { ShipmentStatus, Manifest } from '../types';
-import { isValidTransition } from '../lib/utils';
+import { parseScanInput } from '../lib/scanParser';
+import { useScanQueue } from '../store/scanQueueStore';
+import { useUpdateShipmentStatus } from '../hooks/useShipments';
+import { supabase } from '../lib/supabase';
+import { playSuccessFeedback, playErrorFeedback, playWarningFeedback, playManifestActivatedFeedback } from '../lib/feedback';
 
 type ScanMode = 'RECEIVE' | 'DELIVER' | 'LOAD_MANIFEST' | 'VERIFY_MANIFEST';
+
+interface ActiveManifest {
+    id: string;
+    manifest_no: string;
+    from_hub_id: string;
+    to_hub_id: string;
+    status: string;
+}
 
 export const Scanning: React.FC = () => {
     const [scannedItems, setScannedItems] = useState<{ code: string; status: 'SUCCESS' | 'ERROR'; msg: string; timestamp: string }[]>([]);
     const [currentCode, setCurrentCode] = useState('');
     const [scanMode, setScanMode] = useState<ScanMode>('RECEIVE');
-    const [activeManifest, setActiveManifest] = useState<Manifest | null>(null);
+    const [activeManifest, setActiveManifest] = useState<ActiveManifest | null>(null);
     const [useCameraScanner, setUseCameraScanner] = useState(true);
     const [scanCount, setScanCount] = useState({ success: 0, error: 0 });
 
-    const processScan = (code: string) => {
+    // Offline queue
+    const { addScan, pendingScans, isOnline, syncPending } = useScanQueue();
+
+    // Mutations
+    const updateStatus = useUpdateShipmentStatus();
+
+    // Sync pending scans when online
+    useEffect(() => {
+        if (isOnline && pendingScans.length > 0) {
+            syncPending();
+        }
+    }, [isOnline, pendingScans.length]);
+
+    const addScanResult = useCallback((code: string, status: 'SUCCESS' | 'ERROR', msg: string, feedbackType?: 'manifest' | 'duplicate') => {
         const timestamp = new Date().toLocaleTimeString();
-        // Handle Manifest Context First
-        if ((scanMode === 'LOAD_MANIFEST' || scanMode === 'VERIFY_MANIFEST') && !activeManifest) {
-            const manifest = db.getManifestByRef(code);
-            if (manifest) {
-                if (scanMode === 'LOAD_MANIFEST' && manifest.status !== 'OPEN') {
-                    setScannedItems(prev => [{ code, status: 'ERROR', msg: `Manifest is ${manifest.status}, cannot load.`, timestamp }, ...prev]);
-                } else if (scanMode === 'VERIFY_MANIFEST' && manifest.status !== 'DEPARTED') {
-                    setScannedItems(prev => [{ code, status: 'ERROR', msg: `Manifest is ${manifest.status}, cannot verify arrival.`, timestamp }, ...prev]);
-                } else {
-                    setActiveManifest(manifest);
-                    const action = scanMode === 'LOAD_MANIFEST' ? 'load packages' : 'verify arrival';
-                    setScannedItems(prev => [{ code, status: 'SUCCESS', msg: `Manifest ${manifest.reference} Active. Ready to ${action}.`, timestamp }, ...prev]);
+        setScannedItems(prev => [{ code, status, msg, timestamp }, ...prev]);
+        setScanCount(prev => ({
+            success: status === 'SUCCESS' ? prev.success + 1 : prev.success,
+            error: status === 'ERROR' ? prev.error + 1 : prev.error
+        }));
+
+        // Play audio/haptic feedback
+        if (feedbackType === 'manifest') {
+            playManifestActivatedFeedback();
+        } else if (feedbackType === 'duplicate') {
+            playWarningFeedback();
+        } else if (status === 'SUCCESS') {
+            playSuccessFeedback();
+        } else {
+            playErrorFeedback();
+        }
+    }, []);
+
+    const processScan = async (code: string) => {
+        // Parse scan input using the scan parser
+        let scanResult;
+        try {
+            scanResult = parseScanInput(code);
+        } catch (e) {
+            addScanResult(code, 'ERROR', e instanceof Error ? e.message : 'Invalid scan format');
+            return;
+        }
+
+        // Handle Manifest scans
+        if (scanResult.type === 'manifest') {
+            if (!activeManifest) {
+                // Try to load manifest
+                const { data: manifest, error } = await (supabase
+                    .from('manifests') as any)
+                    .select('id, manifest_no, from_hub_id, to_hub_id, status')
+                    .or(`id.eq.${scanResult.manifestId},manifest_no.eq.${scanResult.manifestNo}`)
+                    .single();
+
+                if (error || !manifest) {
+                    addScanResult(code, 'ERROR', 'Manifest not found');
+                    return;
                 }
-            } else {
-                setScannedItems(prev => [{ code, status: 'ERROR', msg: 'Manifest not found', timestamp }, ...prev]);
+
+                const m = manifest as ActiveManifest;
+                if (scanMode === 'LOAD_MANIFEST' && m.status !== 'OPEN') {
+                    addScanResult(code, 'ERROR', `Manifest is ${m.status}, cannot load.`);
+                    return;
+                }
+
+                if (scanMode === 'VERIFY_MANIFEST' && m.status !== 'DEPARTED') {
+                    addScanResult(code, 'ERROR', `Manifest is ${m.status}, cannot verify.`);
+                    return;
+                }
+
+                setActiveManifest(m);
+                const action = scanMode === 'LOAD_MANIFEST' ? 'load packages' : 'verify arrival';
+                addScanResult(m.manifest_no, 'SUCCESS', `Manifest active. Ready to ${action}.`, 'manifest');
             }
             return;
         }
 
-        // Process Shipment Scan
-        let awb = code;
+        // Handle Shipment scans
+        const awb = scanResult.awb;
+        if (!awb) {
+            addScanResult(code, 'ERROR', 'No AWB found in scan');
+            return;
+        }
 
-        // Try to parse JSON payload
-        try {
-            const payload = JSON.parse(code);
-            // Check for Enterprise Payload format: { v: 1, awb: "...", ... }
-            if (payload.awb) {
-                awb = payload.awb;
-            }
-        } catch (e) { /* Raw string fallback */ }
+        // If offline, queue the scan
+        if (!isOnline) {
+            addScan({
+                awb,
+                mode: scanMode,
+                manifestId: activeManifest?.id,
+            });
+            addScanResult(awb, 'SUCCESS', 'Queued for sync (offline)');
+            return;
+        }
 
-        const shipment = db.getShipmentByAWB(awb);
+        // Fetch shipment from Supabase
+        const { data: shipmentData, error: shipmentError } = await (supabase
+            .from('shipments') as any)
+            .select('id, awb_number, status, origin_hub_id, destination_hub_id')
+            .eq('awb_number', awb)
+            .single();
 
-        if (!shipment) {
+        if (shipmentError || !shipmentData) {
             addScanResult(awb, 'ERROR', 'Shipment not found in system.');
             return;
         }
 
+        const shipment = shipmentData as { id: string; awb_number: string; status: string; origin_hub_id: string; destination_hub_id: string };
+
         try {
             if (scanMode === 'RECEIVE') {
-                let newStatus: ShipmentStatus | null = null;
-                let desc = '';
-
-                if (isValidTransition(shipment.status, 'RECEIVED_AT_ORIGIN_HUB')) {
-                    newStatus = 'RECEIVED_AT_ORIGIN_HUB';
-                    desc = `Received at ${shipment.originHub}`;
-                } else if (isValidTransition(shipment.status, 'RECEIVED_AT_DEST_HUB')) {
-                    newStatus = 'RECEIVED_AT_DEST_HUB';
-                    desc = `Received at ${shipment.destinationHub}`;
-                } else {
-                    throw new Error(`Invalid transition from ${shipment.status} (Likely already processed or wrong hub)`);
-                }
-
-                db.updateShipmentStatus(shipment.id, newStatus, desc);
-                addScanResult(awb, 'SUCCESS', desc);
+                const newStatus = shipment.status === 'CREATED' ? 'RECEIVED' : 'RECEIVED_AT_DEST';
+                await updateStatus.mutateAsync({ id: shipment.id, status: newStatus as any });
+                addScanResult(awb, 'SUCCESS', `Status updated to ${newStatus}`);
 
             } else if (scanMode === 'LOAD_MANIFEST') {
                 if (!activeManifest) throw new Error("No Active Manifest.");
 
-                if (shipment.originHub !== activeManifest.originHub || shipment.destinationHub !== activeManifest.destinationHub) {
-                    throw new Error(`Route Mismatch. Shipment: ${shipment.originHub}->${shipment.destinationHub}`);
-                }
+                // Add to manifest
+                const orgResult = await (supabase.from('orgs') as any).select('id').single();
+                const { error: addError } = await (supabase
+                    .from('manifest_items') as any)
+                    .insert({
+                        org_id: orgResult.data?.id,
+                        manifest_id: activeManifest.id,
+                        shipment_id: shipment.id,
+                        scanned_at: new Date().toISOString(),
+                    });
 
-                if (!isValidTransition(shipment.status, 'LOADED_FOR_LINEHAUL')) {
-                    throw new Error(`Cannot Load. Status is ${shipment.status}`);
-                }
+                if (addError) throw new Error(addError.message);
 
-                try {
-                    db.addShipmentToManifest(activeManifest.id, shipment.id);
-                    addScanResult(awb, 'SUCCESS', `Loaded to ${activeManifest.reference}`);
-                } catch (e: unknown) {
-                    const errorMessage = e instanceof Error ? e.message : 'Unknown error';
-                    throw new Error(errorMessage);
-                }
+                // Update shipment status
+                await updateStatus.mutateAsync({ id: shipment.id, status: 'LOADED_FOR_LINEHAUL' as any });
+                addScanResult(awb, 'SUCCESS', `Loaded to ${activeManifest.manifest_no}`);
 
             } else if (scanMode === 'VERIFY_MANIFEST') {
                 if (!activeManifest) throw new Error("No Active Manifest.");
 
-                if (activeManifest.shipmentIds.includes(shipment.id)) {
-                    db.updateShipmentStatus(shipment.id, 'RECEIVED_AT_DEST_HUB', `Verified arrival via ${activeManifest.reference}`);
+                // Check if shipment is in manifest
+                const { data: item } = await (supabase
+                    .from('manifest_items') as any)
+                    .select('id')
+                    .eq('manifest_id', activeManifest.id)
+                    .eq('shipment_id', shipment.id)
+                    .single();
+
+                if (item) {
+                    await updateStatus.mutateAsync({ id: shipment.id, status: 'RECEIVED_AT_DEST' as any });
                     addScanResult(awb, 'SUCCESS', 'Verified & Received');
                 } else {
-                    db.addException({
-                        id: `EX-${Date.now()}`,
-                        shipmentId: shipment.id,
-                        awb: shipment.awb,
-                        type: 'MISROUTED',
+                    // Create exception
+                    const orgResult = await (supabase.from('orgs') as any).select('id').single();
+                    await (supabase.from('exceptions') as any).insert({
+                        org_id: orgResult.data?.id,
+                        shipment_id: shipment.id,
+                        type: 'MISROUTE',
                         severity: 'HIGH',
-                        description: `Scanned with Manifest ${activeManifest.reference} but not listed in it.`,
+                        description: `Scanned with Manifest ${activeManifest.manifest_no} but not listed.`,
                         status: 'OPEN',
-                        reportedAt: new Date().toISOString()
                     });
-                    addScanResult(awb, 'ERROR', 'EXCEPTION: Shipment not in Manifest! Alert raised.');
+                    addScanResult(awb, 'ERROR', 'EXCEPTION: Shipment not in Manifest!');
                 }
 
             } else if (scanMode === 'DELIVER') {
-                if (!isValidTransition(shipment.status, 'DELIVERED')) {
-                    throw new Error(`Cannot deliver. Current: ${shipment.status}`);
-                }
-                db.updateShipmentStatus(shipment.id, 'DELIVERED', 'Delivered to Consignee');
+                await updateStatus.mutateAsync({ id: shipment.id, status: 'DELIVERED' as any });
                 addScanResult(awb, 'SUCCESS', 'Marked as Delivered');
             }
         } catch (err: unknown) {
@@ -126,18 +198,9 @@ export const Scanning: React.FC = () => {
         }
     };
 
-    const addScanResult = useCallback((code: string, status: 'SUCCESS' | 'ERROR', msg: string) => {
-        const timestamp = new Date().toLocaleTimeString();
-        setScannedItems(prev => [{ code, status, msg, timestamp }, ...prev]);
-        setScanCount(prev => ({
-            success: status === 'SUCCESS' ? prev.success + 1 : prev.success,
-            error: status === 'ERROR' ? prev.error + 1 : prev.error
-        }));
-    }, []);
-
     const handleCameraScan = useCallback((result: string) => {
         processScan(result);
-    }, [scanMode, activeManifest]);
+    }, [scanMode, activeManifest, isOnline]);
 
     const handleScanSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -193,10 +256,10 @@ export const Scanning: React.FC = () => {
                         <Truck className={scanMode === 'LOAD_MANIFEST' ? "text-purple-400" : "text-blue-400"} />
                         <div>
                             <div className="text-sm font-bold text-white">
-                                {scanMode === 'LOAD_MANIFEST' ? 'Loading' : 'Verifying Arrival'}: {activeManifest.reference}
+                                {scanMode === 'LOAD_MANIFEST' ? 'Loading' : 'Verifying Arrival'}: {activeManifest.manifest_no}
                             </div>
                             <div className={`text-xs ${scanMode === 'LOAD_MANIFEST' ? 'text-purple-300' : 'text-blue-300'}`}>
-                                {activeManifest.originHub} → {activeManifest.destinationHub}
+                                {activeManifest.from_hub_id} → {activeManifest.to_hub_id}
                             </div>
                         </div>
                     </div>

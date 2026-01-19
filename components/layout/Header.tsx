@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { Menu, Bell, Search } from 'lucide-react';
+import { Menu, Search } from 'lucide-react';
 import { useStore } from '../../store';
 import { Input } from '../ui/CyberComponents';
 import { AnimatedThemeToggler } from '../ui/animated-theme-toggler';
+import { NotificationBell } from '../domain/NotificationBell';
 
 export const Header: React.FC = () => {
     const { toggleSidebar } = useStore();
@@ -32,10 +33,7 @@ export const Header: React.FC = () => {
                     duration={500}
                 />
 
-                <button className="relative p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-cyber-neon transition-colors">
-                    <Bell className="w-5 h-5" />
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-cyber-purple rounded-full shadow-neon-purple"></span>
-                </button>
+                <NotificationBell />
             </div>
         </header>
     );
