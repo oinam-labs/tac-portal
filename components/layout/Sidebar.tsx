@@ -72,10 +72,18 @@ export const Sidebar: React.FC = () => {
 
     const hasAccess = (allowedRoles?: UserRole[]) => {
         if (!allowedRoles) return true;
-        return user && allowedRoles.includes(user.role);
+        if (!user) return false;
+        // ADMIN and MANAGER have access to everything
+        if (user.role === 'ADMIN' || user.role === 'MANAGER') return true;
+        return allowedRoles.includes(user.role);
     };
 
-    const userHub = user?.assignedHub ? HUBS[user.assignedHub].name : 'Global HQ';
+    // Safe hub name lookup with fallback
+    const userHub = (() => {
+        if (!user?.assignedHub) return 'Global HQ';
+        const hub = HUBS[user.assignedHub as keyof typeof HUBS];
+        return hub?.name || user.assignedHub || 'Global HQ';
+    })();
 
     return (
         <aside className={`fixed left-0 top-0 h-full bg-cyber-surface/95 border-r border-cyber-border backdrop-blur-xl transition-all duration-300 z-50 flex flex-col ${sidebarCollapsed ? 'w-20' : 'w-64'}`}>
