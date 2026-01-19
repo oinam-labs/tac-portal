@@ -23,7 +23,7 @@ export const ManifestDetails: React.FC = () => {
 
     if (isLoading || !manifest) return <div className="p-10 text-center">Loading...</div>;
 
-    const handleUpdateStatus = async (status: string) => {
+    const handleUpdateStatus = async (status: 'OPEN' | 'CLOSED' | 'DEPARTED' | 'ARRIVED') => {
         try {
             await updateStatus.mutateAsync({ id: manifest.id, status });
         } catch (e) {

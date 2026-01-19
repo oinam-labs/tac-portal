@@ -1,13 +1,13 @@
 
 import React, { useEffect, Suspense, lazy, useState } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate, useLocation, useNavigate, Link } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster, toast } from 'sonner';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { useStore } from './store';
 import { useAuthStore } from './store/authStore';
-import { UserRole } from './types';
+import { UserRole, HubLocation } from './types';
 import { Button, Card, Input } from './components/ui/CyberComponents';
 import { CommandPalette } from './components/domain/CommandPalette';
 import { queryClient } from './lib/query-client';
@@ -54,7 +54,7 @@ const Login: React.FC = () => {
                 email: user.email,
                 name: user.fullName,
                 role: user.role,
-                assignedHub: user.hubCode as any,
+                assignedHub: (user.hubCode as HubLocation) ?? undefined,
                 active: user.isActive,
                 lastLogin: new Date().toISOString()
             });
@@ -205,9 +205,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: UserR
         if (allowedRoles.includes(user.role)) return true;
 
         // Handle legacy role name mappings
-        if (allowedRoles.includes('FINANCE_STAFF' as UserRole) && user.role === 'INVOICE') return true;
-        if (allowedRoles.includes('OPS_STAFF' as UserRole) && user.role === 'OPS') return true;
-        if (allowedRoles.includes('WAREHOUSE_STAFF' as UserRole) &&
+        if (allowedRoles.includes('FINANCE_STAFF') && user.role === 'INVOICE') return true;
+        if (allowedRoles.includes('OPS_STAFF') && user.role === 'OPS') return true;
+        if (allowedRoles.includes('WAREHOUSE_STAFF') &&
             (user.role === 'WAREHOUSE_IMPHAL' || user.role === 'WAREHOUSE_DELHI')) return true;
 
         return false;
@@ -219,7 +219,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: UserR
                 <div>
                     <h1 className="text-4xl font-bold text-red-500 mb-2">403 Forbidden</h1>
                     <p className="text-slate-400 mb-4">Your clearance level ({user.role}) is insufficient for this sector.</p>
-                    <a href="#/dashboard" className="text-cyber-neon hover:underline">Return to Dashboard</a>
+                    <Link to="/dashboard" className="text-cyber-neon hover:underline">Return to Dashboard</Link>
                 </div>
             </div>
         );

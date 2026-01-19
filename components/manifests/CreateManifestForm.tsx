@@ -28,11 +28,8 @@ export const CreateManifestForm: React.FC = () => {
     const navigate = useNavigate();
     const createManifest = useCreateManifest();
 
-    // Hardcoded IDs for demo - same as in CreateShipmentForm
-    const HUB_IDS: Record<string, string> = {
-        'IMPHAL': '66034243-08db-4ebb-b43c-47afa72f4a05',
-        'NEW_DELHI': '82a76ce0-1e2d-40ab-9e9b-21c5f5cb2144'
-    };
+    // Use centralized hub UUIDs from constants
+    const getHubUuid = (hubId: string) => HUBS[hubId as keyof typeof HUBS]?.uuid;
 
     const { register, watch, handleSubmit, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema),
@@ -48,7 +45,7 @@ export const CreateManifestForm: React.FC = () => {
     const type = watch('type');
 
     // Fetch available shipments for this route
-    const { data: shipments, isLoading: loadingShipments } = useAvailableShipments(HUB_IDS[fromHub], HUB_IDS[toHub]);
+    const { data: shipments, isLoading: loadingShipments } = useAvailableShipments(getHubUuid(fromHub) ?? '', getHubUuid(toHub) ?? '');
     const [selectedShipmentIds, setSelectedShipmentIds] = useState<string[]>([]);
 
     const toggleShipment = (id: string) => {
@@ -73,8 +70,8 @@ export const CreateManifestForm: React.FC = () => {
 
         try {
             await createManifest.mutateAsync({
-                from_hub_id: HUB_IDS[data.fromHub],
-                to_hub_id: HUB_IDS[data.toHub],
+                from_hub_id: getHubUuid(data.fromHub) ?? '',
+                to_hub_id: getHubUuid(data.toHub) ?? '',
                 type: data.type,
                 vehicle_meta: {
                     identifier: data.vehicleInfo,

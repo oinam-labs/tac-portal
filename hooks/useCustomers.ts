@@ -40,7 +40,7 @@ export interface Customer {
 
 export function useCustomers(options?: { search?: string; limit?: number }) {
   return useQuery({
-    queryKey: ['customers', options],
+    queryKey: customerKeys.list(options),
     queryFn: async () => {
       let query = supabase
         .from('customers')
@@ -65,7 +65,7 @@ export function useCustomers(options?: { search?: string; limit?: number }) {
 
 export function useCustomer(id: string | null) {
   return useQuery({
-    queryKey: ['customer', id],
+    queryKey: customerKeys.detail(id ?? ''),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('customers')
@@ -110,7 +110,7 @@ export function useCreateCustomer() {
       return data as Customer;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: customerKeys.all });
       toast.success(`Customer ${data.name} created successfully`);
     },
     onError: (error) => {
@@ -135,8 +135,8 @@ export function useUpdateCustomer() {
       return result as Customer;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
-      queryClient.invalidateQueries({ queryKey: ['customer', data.id] });
+      queryClient.invalidateQueries({ queryKey: customerKeys.all });
+      queryClient.invalidateQueries({ queryKey: customerKeys.detail(data.id) });
       toast.success(`Customer ${data.name} updated successfully`);
     },
     onError: (error) => {
@@ -164,8 +164,8 @@ export function useDeleteCustomer() {
       if (error) throw error;
     },
     onSuccess: (_data, id) => {
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
-      queryClient.invalidateQueries({ queryKey: ['customer', id] });
+      queryClient.invalidateQueries({ queryKey: customerKeys.all });
+      queryClient.invalidateQueries({ queryKey: customerKeys.detail(id) });
       toast.success('Customer deleted successfully');
     },
     onError: (error) => {

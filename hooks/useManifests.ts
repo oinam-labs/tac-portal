@@ -23,12 +23,25 @@ export interface ManifestItemWithRelations {
     scanned_by_staff_id?: string;
 }
 
+type ManifestListFilters = { limit?: number; status?: string };
+export type ManifestStatus = 'OPEN' | 'CLOSED' | 'DEPARTED' | 'ARRIVED';
+
+export interface AvailableShipment {
+    id: string;
+    awb_number: string;
+    package_count: number;
+    total_weight: number;
+    service_level: string;
+    created_at: string;
+}
+
 export const manifestKeys = {
     all: ['manifests'] as const,
     lists: () => [...manifestKeys.all, 'list'] as const,
-    list: (filters?: any) => [...manifestKeys.lists(), filters] as const,
+    list: (filters?: ManifestListFilters) => [...manifestKeys.lists(), filters] as const,
     details: () => [...manifestKeys.all, 'detail'] as const,
     detail: (id: string) => [...manifestKeys.details(), id] as const,
+    items: (manifestId: string) => [...manifestKeys.all, 'items', manifestId] as const,
     availableShipments: (origin: string, dest: string) => [...manifestKeys.all, 'available', origin, dest] as const,
 };
 
@@ -52,9 +65,9 @@ export interface ManifestWithRelations {
     creator?: { full_name: string };
 }
 
-export function useManifests(options?: { limit?: number; status?: string }) {
+export function useManifests(options?: ManifestListFilters) {
     return useQuery({
-        queryKey: ['manifests', options],
+        queryKey: manifestKeys.list(options),
         queryFn: async () => {
             let query = supabase
                 .from('manifests')
@@ -83,7 +96,7 @@ export function useManifests(options?: { limit?: number; status?: string }) {
 
 export function useManifest(id: string) {
     return useQuery({
-        queryKey: ['manifest', id],
+        queryKey: manifestKeys.detail(id),
         queryFn: async () => {
             const { data, error } = await supabase
                 .from('manifests')
@@ -105,7 +118,7 @@ export function useManifest(id: string) {
 
 export function useManifestItems(manifestId: string) {
     return useQuery({
-        queryKey: ['manifest-items', manifestId],
+        queryKey: manifestKeys.items(manifestId),
         queryFn: async () => {
             // Join with shipments to get details
             const { data, error } = await supabase
@@ -126,8 +139,8 @@ export function useManifestItems(manifestId: string) {
 export function useAvailableShipments(originHubId: string, destinationHubId: string) {
     return useQuery({
         queryKey: manifestKeys.availableShipments(originHubId, destinationHubId),
-        queryFn: async () => {
-            if (!originHubId || !destinationHubId) return [] as any[];
+        queryFn: async (): Promise<AvailableShipment[]> => {
+            if (!originHubId || !destinationHubId) return [];
 
             const { data, error } = await supabase
                 .from('shipments')
@@ -139,7 +152,7 @@ export function useAvailableShipments(originHubId: string, destinationHubId: str
                 .neq('status', 'DELIVERED');
 
             if (error) throw error;
-            return data;
+            return (data ?? []) as AvailableShipment[];
         },
         enabled: !!originHubId && !!destinationHubId
     });
@@ -222,13 +235,16 @@ export function useCreateManifest() {
                 if (itemsError) throw itemsError;
 
                 // Update Shipments
-                await (supabase.from('shipments') as any).update({ manifest_id: manifest.id, status: 'LOADED_FOR_LINEHAUL' }).in('id', input.shipment_ids);
+                const { error: shipmentsError } = await (supabase.from('shipments') as any)
+                    .update({ manifest_id: manifest.id, status: 'LOADED_FOR_LINEHAUL' })
+                    .in('id', input.shipment_ids);
+                if (shipmentsError) throw shipmentsError;
             }
 
             return manifest;
         },
         onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ['manifests'] });
+            queryClient.invalidateQueries({ queryKey: manifestKeys.all });
             toast.success(`Manifest ${data.manifest_no} created successfully`);
         },
         onError: (error: Error) => {
@@ -241,8 +257,8 @@ export function useUpdateManifestStatus() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ id, status }: { id: string, status: string }) => {
-            const updatePayload: any = { status, updated_at: new Date().toISOString() };
+        mutationFn: async ({ id, status }: { id: string; status: ManifestStatus }) => {
+            const updatePayload: Record<string, string> = { status, updated_at: new Date().toISOString() };
             if (status === 'DEPARTED') updatePayload.departed_at = new Date().toISOString();
             if (status === 'ARRIVED') updatePayload.arrived_at = new Date().toISOString();
             if (status === 'CLOSED') updatePayload.closed_at = new Date().toISOString();
@@ -254,8 +270,8 @@ export function useUpdateManifestStatus() {
             if (error) throw error;
         },
         onSuccess: (_data, { id }) => {
-            queryClient.invalidateQueries({ queryKey: ['manifests'] });
-            queryClient.invalidateQueries({ queryKey: ['manifest', id] });
+            queryClient.invalidateQueries({ queryKey: manifestKeys.all });
+            queryClient.invalidateQueries({ queryKey: manifestKeys.detail(id) });
         },
     });
 }

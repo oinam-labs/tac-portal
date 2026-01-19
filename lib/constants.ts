@@ -1,20 +1,22 @@
 
 import { Hub, HubLocation, ShipmentMode } from '../types';
 
-export const HUBS: Record<HubLocation, Hub> = {
+export const HUBS: Record<HubLocation, Hub & { uuid: string }> = {
     'IMPHAL': {
         id: 'IMPHAL',
         name: 'Imphal Hub',
         code: 'IMF',
         address: 'Tulihal Airport Road, Imphal, Manipur 795001',
-        sortCode: 'SUR'
+        sortCode: 'SUR',
+        uuid: '66034243-08db-4ebb-b43c-47afa72f4a05'
     },
     'NEW_DELHI': {
         id: 'NEW_DELHI',
         name: 'New Delhi Hub',
         code: 'DEL',
         address: 'Cargo Terminal 3, IGI Airport, New Delhi 110037',
-        sortCode: 'GAUA'
+        sortCode: 'GAUA',
+        uuid: '82a76ce0-1e2d-40ab-9e9b-21c5f5cb2144'
     }
 };
 
