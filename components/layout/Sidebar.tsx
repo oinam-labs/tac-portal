@@ -17,6 +17,7 @@ import {
     MapPin
 } from 'lucide-react';
 import { useStore } from '../../store';
+import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types';
 import { HUBS } from '../../lib/constants';
 
@@ -68,7 +69,8 @@ const NAV_GROUPS: NavGroupDef[] = [
 ];
 
 export const Sidebar: React.FC = () => {
-    const { logout, sidebarCollapsed, user } = useStore();
+    const { sidebarCollapsed, user, logout: legacyLogout } = useStore();
+    const { signOut } = useAuthStore();
 
     const hasAccess = (allowedRoles?: UserRole[]) => {
         if (!allowedRoles) return true;
@@ -151,7 +153,10 @@ export const Sidebar: React.FC = () => {
                     </div>
                 )}
                 <button
-                    onClick={logout}
+                    onClick={async () => {
+                        await signOut();
+                        legacyLogout();
+                    }}
                     className={`flex items-center w-full px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
                 >
                     <LogOut className="w-5 h-5" />
