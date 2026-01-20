@@ -1,48 +1,47 @@
 "use client";
 import React from "react";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
-    Search01Icon,
-    UserGroupIcon,
-    HierarchyIcon,
-    UserIcon,
-    RotateLeftIcon,
-    Settings02Icon,
-    CpuIcon,
-    CodeIcon,
-    Chart01Icon,
-    FlashIcon,
-    Link01Icon,
-    SmartPhone01Icon,
-    CloudIcon,
-    DatabaseIcon,
-    LockIcon,
-} from "@hugeicons/core-free-icons";
+    Search,
+    Users,
+    GitBranch,
+    User,
+    RotateCcw,
+    Settings,
+    Cpu,
+    Code,
+    BarChart3,
+    Zap,
+    Link,
+    Smartphone,
+    Cloud,
+    Database,
+    Lock,
+} from "lucide-react";
 import { motion, useMotionValue, useMotionTemplate } from "motion/react";
 import { cn } from "@/lib/utils";
 
 // Customizable content for TAC Portal - Tracking & Logistics Focus
 const TAG_ROWS = [
     [
-        { id: "live-tracking", icon: Search01Icon, label: "Live Tracking" },
-        { id: "route-optimization", icon: HierarchyIcon, label: "Route Optimization" },
-        { id: "express-delivery", icon: FlashIcon, label: "Express Delivery" },
-        { id: "secure-handling", icon: LockIcon, label: "Secure Handling" },
-        { id: "analytics", icon: Chart01Icon, label: "Performance Analytics" },
+        { id: "live-tracking", icon: Search, label: "Live Tracking" },
+        { id: "route-optimization", icon: GitBranch, label: "Route Optimization" },
+        { id: "express-delivery", icon: Zap, label: "Express Delivery" },
+        { id: "secure-handling", icon: Lock, label: "Secure Handling" },
+        { id: "analytics", icon: BarChart3, label: "Performance Analytics" },
     ],
     [
-        { id: "api-integration", icon: Link01Icon, label: "API Integration" },
-        { id: "mobile-app", icon: SmartPhone01Icon, label: "Mobile App Access" },
-        { id: "cloud-sync", icon: CloudIcon, label: "Cloud Sync" },
-        { id: "data-archiving", icon: DatabaseIcon, label: "Data Archiving" },
-        { id: "ai-logistics", icon: CpuIcon, label: "AI Logistics" },
+        { id: "api-integration", icon: Link, label: "API Integration" },
+        { id: "mobile-app", icon: Smartphone, label: "Mobile App Access" },
+        { id: "cloud-sync", icon: Cloud, label: "Cloud Sync" },
+        { id: "data-archiving", icon: Database, label: "Data Archiving" },
+        { id: "ai-logistics", icon: Cpu, label: "AI Logistics" },
     ],
     [
-        { id: "customer-support", icon: UserGroupIcon, label: "24/7 Support" },
-        { id: "driver-network", icon: UserIcon, label: "Driver Network" },
-        { id: "warehouse-ops", icon: Settings02Icon, label: "Warehouse Ops" },
-        { id: "status-updates", icon: RotateLeftIcon, label: "Real-time Updates" },
-        { id: "system-design", icon: CodeIcon, label: "System Design" },
+        { id: "customer-support", icon: Users, label: "24/7 Support" },
+        { id: "driver-network", icon: User, label: "Driver Network" },
+        { id: "warehouse-ops", icon: Settings, label: "Warehouse Ops" },
+        { id: "status-updates", icon: RotateCcw, label: "Real-time Updates" },
+        { id: "system-design", icon: Code, label: "System Design" },
     ],
 ];
 
@@ -99,7 +98,7 @@ const MagnifiedBento = () => {
                                             key={`${item.id}-${idx}`}
                                             className="flex gap-2 bg-background/50 backdrop-blur-sm whitespace-nowrap w-fit text-muted-foreground p-2 px-3 items-center border border-border/50 rounded-full text-xs"
                                         >
-                                            <HugeiconsIcon icon={item.icon} size={14} />
+                                            <item.icon size={14} />
                                             <span>{item.label}</span>
                                         </div>
                                     ))}
@@ -135,8 +134,7 @@ const MagnifiedBento = () => {
                                             key={`${item.id}-${idx}-reveal`}
                                             className="flex gap-2 bg-background whitespace-nowrap w-fit text-foreground p-2 px-3 items-center border border-primary/20 shadow-sm rounded-full text-xs scale-125 ml-6"
                                         >
-                                            <HugeiconsIcon
-                                                icon={item.icon}
+                                            <item.icon
                                                 size={14}
                                                 className="text-primary"
                                             />
