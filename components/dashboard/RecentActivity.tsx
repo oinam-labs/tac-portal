@@ -1,35 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, Table, Th, Td, Badge, Button } from '../ui/CyberComponents';
-import { Shipment } from '../../types';
 import { STATUS_COLORS } from '../../lib/design-tokens';
-import { HUBS } from '../../lib/constants';
-import { db } from '../../lib/mock-db';
+import { useShipments } from '../../hooks/useShipments';
 import { TableSkeleton } from '../ui/skeleton';
 
 export const RecentActivity: React.FC = () => {
-    const [recentShipments, setRecentShipments] = useState<Shipment[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    // Use Supabase hook instead of mock-db
+    const { data: shipments = [], isLoading } = useShipments();
 
-    const refreshData = () => {
-        setIsLoading(true);
-        // Simulate network delay
-        setTimeout(() => {
-            const all = db.getShipments();
-            const sorted = [...all].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-            setRecentShipments(sorted.slice(0, 5));
-            setIsLoading(false);
-        }, 300);
-    };
-
-    useEffect(() => {
-        refreshData();
-        const interval = setInterval(() => {
-            const all = db.getShipments();
-            const sorted = [...all].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-            setRecentShipments(sorted.slice(0, 5));
-        }, 5000);
-        return () => clearInterval(interval);
-    }, []);
+    // Get 5 most recent shipments
+    const recentShipments = [...shipments]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5);
 
     if (isLoading && recentShipments.length === 0) {
         return (
@@ -58,7 +40,7 @@ export const RecentActivity: React.FC = () => {
                             <Th>ID / Tracking</Th>
                             <Th>Route</Th>
                             <Th>Status</Th>
-                            <Th>ETA</Th>
+                            <Th>Date</Th>
                         </tr>
                     </thead>
                     <tbody>
@@ -68,19 +50,19 @@ export const RecentActivity: React.FC = () => {
                             recentShipments.map((shipment) => (
                                 <tr key={shipment.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                                     <Td>
-                                        <div className="font-mono font-bold text-slate-900 dark:text-white">{shipment.id}</div>
-                                        <div className="text-xs text-slate-500">{shipment.awb}</div>
+                                        <div className="font-mono font-bold text-slate-900 dark:text-white">{shipment.awb_number}</div>
+                                        <div className="text-xs text-slate-500">ID: {shipment.id.slice(0, 8)}</div>
                                     </Td>
                                     <Td>
-                                        <div className="text-slate-700 dark:text-white">{HUBS[shipment.originHub]?.name || shipment.originHub}</div>
-                                        <div className="text-xs text-slate-500">to {HUBS[shipment.destinationHub]?.name || shipment.destinationHub}</div>
+                                        <div className="text-slate-700 dark:text-white">{shipment.origin_hub?.name || 'Origin'}</div>
+                                        <div className="text-xs text-slate-500">to {shipment.destination_hub?.name || 'Destination'}</div>
                                     </Td>
                                     <Td>
                                         <Badge className={STATUS_COLORS[shipment.status as keyof typeof STATUS_COLORS] || ''}>
                                             {shipment.status.replace(/_/g, ' ')}
                                         </Badge>
                                     </Td>
-                                    <Td className="font-mono text-xs">{shipment.eta}</Td>
+                                    <Td className="font-mono text-xs">{new Date(shipment.created_at).toLocaleDateString()}</Td>
                                 </tr>
                             ))
                         )}

@@ -37,7 +37,7 @@ import { getCustomersColumns } from '@/components/customers/customers.columns';
 
 // Schema
 const customerFormSchema = z.object({
-    type: z.enum(['individual', 'business']),
+    type: z.enum(['INDIVIDUAL', 'BUSINESS']),
     name: z.string().min(2, 'Name must be at least 2 characters'),
     companyName: z.string().optional(),
     email: z.string().email('Invalid email').optional().or(z.literal('')),
@@ -51,7 +51,7 @@ const customerFormSchema = z.object({
 type CustomerFormValues = z.infer<typeof customerFormSchema>;
 
 const defaultFormValues: CustomerFormValues = {
-    type: 'business',
+    type: 'BUSINESS',
     name: '',
     companyName: '',
     email: '',
@@ -96,7 +96,7 @@ export const Customers: React.FC = () => {
     // Form default values for editing
     const formDefaultValues: CustomerFormValues = activeRow
         ? {
-            type: activeRow.type as 'individual' | 'business',
+            type: activeRow.type as 'INDIVIDUAL' | 'BUSINESS',
             name: activeRow.name,
             companyName: activeRow.companyName ?? '',
             email: activeRow.email ?? '',
@@ -213,8 +213,8 @@ export const Customers: React.FC = () => {
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value="business">Business</SelectItem>
-                                                <SelectItem value="individual">Individual</SelectItem>
+                                                <SelectItem value="BUSINESS">Business</SelectItem>
+                                                <SelectItem value="INDIVIDUAL">Individual</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -249,7 +249,7 @@ export const Customers: React.FC = () => {
                             />
                         </div>
 
-                        {form.watch('type') === 'business' && (
+                        {form.watch('type') === 'BUSINESS' && (
                             <div className="grid grid-cols-2 gap-4">
                                 <FormField
                                     control={form.control}

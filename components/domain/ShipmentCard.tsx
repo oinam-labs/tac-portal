@@ -19,15 +19,30 @@ const MODE_ICONS = {
   TRUCK: Truck,
 }
 
-const HUB_DISPLAY = {
-  IMPHAL: { code: 'IXB', name: 'Imphal' },
+// Map hub codes to display names (handles both old string format and new code format)
+const HUB_CODE_MAP: Record<string, { code: string; name: string }> = {
+  // Old string format
+  IMPHAL: { code: 'IXA', name: 'Imphal' },
   NEW_DELHI: { code: 'DEL', name: 'New Delhi' },
+  // New code format from database
+  IXA: { code: 'IXA', name: 'Imphal' },
+  DEL: { code: 'DEL', name: 'Delhi' },
+  GAU: { code: 'GAU', name: 'Guwahati' },
+  CCU: { code: 'CCU', name: 'Kolkata' },
+}
+
+const DEFAULT_HUB = { code: 'UNK', name: 'Unknown' }
+
+// Helper to resolve hub display info from various input formats
+function getHubDisplay(hub: string | undefined | null): { code: string; name: string } {
+  if (!hub) return DEFAULT_HUB
+  return HUB_CODE_MAP[hub] || { code: hub.substring(0, 3).toUpperCase(), name: hub }
 }
 
 export function ShipmentCard({ shipment, onClick, className, compact = false }: ShipmentCardProps) {
-  const ModeIcon = MODE_ICONS[shipment.mode]
-  const origin = HUB_DISPLAY[shipment.originHub]
-  const dest = HUB_DISPLAY[shipment.destinationHub]
+  const ModeIcon = MODE_ICONS[shipment.mode] || Truck
+  const origin = getHubDisplay(shipment.originHub)
+  const dest = getHubDisplay(shipment.destinationHub)
 
   if (compact) {
     return (

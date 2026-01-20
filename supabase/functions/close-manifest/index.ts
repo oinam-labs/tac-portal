@@ -34,6 +34,20 @@ interface CloseManifestResponse {
     error?: string;
 }
 
+interface ManifestShipment {
+    id: string;
+    awb_number: string;
+    package_count: number | null;
+    total_weight: number | null;
+    status: string;
+}
+
+interface ManifestItem {
+    shipment_id: string;
+    shipment: ManifestShipment | null;
+}
+
+
 Deno.serve(async (req: Request): Promise<Response> => {
     // CORS headers
     const corsHeaders = {
@@ -100,14 +114,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
             throw new Error(`Failed to fetch manifest items: ${itemsError.message}`);
         }
 
-        const shipments = (manifestItems || [])
-            .map((item: any) => item.shipment)
-            .filter(Boolean);
+        const shipments: ManifestShipment[] = (manifestItems || [])
+            .map((item: ManifestItem) => item.shipment)
+            .filter((s): s is ManifestShipment => s !== null);
 
         // 3. Calculate totals
         const totalShipments = shipments.length;
-        const totalPackages = shipments.reduce((sum: number, s: any) => sum + (s.package_count || 0), 0);
-        const totalWeight = shipments.reduce((sum: number, s: any) => sum + (s.total_weight || 0), 0);
+        const totalPackages = shipments.reduce((sum: number, s: ManifestShipment) => sum + (s.package_count || 0), 0);
+        const totalWeight = shipments.reduce((sum: number, s: ManifestShipment) => sum + (s.total_weight || 0), 0);
 
         // 4. Update manifest status to CLOSED
         const { error: updateManifestError } = await supabase
@@ -130,7 +144,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
         // 5. Update all shipments to LOADED_FOR_LINEHAUL
         let shipmentsUpdated = 0;
-        const shipmentIds = shipments.map((s: any) => s.id);
+        const shipmentIds = shipments.map((s: ManifestShipment) => s.id);
 
         if (shipmentIds.length > 0) {
             const { error: updateShipmentsError, count } = await supabase
@@ -150,7 +164,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
         // 6. Create tracking events for each shipment
         let trackingEventsCreated = 0;
-        const trackingEvents = shipments.map((s: any) => ({
+        const trackingEvents = shipments.map((s: ManifestShipment) => ({
             org_id: manifest.org_id,
             shipment_id: s.id,
             awb_number: s.awb_number,

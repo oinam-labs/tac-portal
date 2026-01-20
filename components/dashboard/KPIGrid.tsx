@@ -4,7 +4,8 @@ import { TrendingUp, TrendingDown, Box, Activity, CheckCircle, AlertTriangle, Lu
 import { Card } from '../ui/card';
 import { KPIGridSkeleton } from '../ui/skeleton';
 import { usePrevious } from '@/lib/hooks/usePrevious.ts';
-import { db } from '../../lib/mock-db';
+import { useShipments } from '@/hooks/useShipments';
+import { useExceptions } from '@/hooks/useExceptions';
 
 interface KPIData {
     label: string;
@@ -122,11 +123,14 @@ interface KPIGridProps {
 /**
  * Enhanced Dashboard KPI Grid with animated cards and loading states
  */
-export const KPIGrid: React.FC<KPIGridProps> = ({ isLoading = false }) => {
-    const kpis: KPIData[] = useMemo(() => {
-        const shipments = db.getShipments();
-        const exceptions = db.getExceptions();
+export const KPIGrid: React.FC<KPIGridProps> = ({ isLoading: externalLoading = false }) => {
+    // Use Supabase hooks instead of mock-db
+    const { data: shipments = [], isLoading: shipmentsLoading } = useShipments();
+    const { data: exceptions = [], isLoading: exceptionsLoading } = useExceptions();
 
+    const isLoading = externalLoading || shipmentsLoading || exceptionsLoading;
+
+    const kpis: KPIData[] = useMemo(() => {
         const total = shipments.length;
         const active = shipments.filter(s =>
             ['IN_TRANSIT_TO_DESTINATION', 'LOADED_FOR_LINEHAUL', 'RECEIVED_AT_ORIGIN_HUB'].includes(s.status)
@@ -172,7 +176,7 @@ export const KPIGrid: React.FC<KPIGridProps> = ({ isLoading = false }) => {
                 color: exceptionCount > 0 ? 'destructive' : 'warning'
             },
         ];
-    }, []);
+    }, [shipments, exceptions]);
 
     if (isLoading) {
         return <KPIGridSkeleton />;

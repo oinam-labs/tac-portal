@@ -21,21 +21,23 @@ export const invoiceKeys = {
 export interface InvoiceWithRelations {
     id: string;
     org_id: string;
-    invoice_number: string;
+    invoice_no: string; // DB column name (not invoice_number)
     customer_id: string;
     shipment_id: string | null;
-    awb_number: string | null;
     status: 'DRAFT' | 'ISSUED' | 'PAID' | 'CANCELLED' | 'OVERDUE';
-    payment_status: string | null;
+    issue_date: string | null;
     subtotal: number;
-    tax_amount: number;
-    total_amount: number;
+    tax: { cgst?: number; sgst?: number; igst?: number; total?: number } | null; // DB uses jsonb
+    total: number; // DB column name (not total_amount)
     due_date: string | null;
-    paid_at: string | null;
+    payment_terms: string | null;
     notes: string | null;
     line_items: any;
+    pdf_file_path: string | null;
+    label_file_path: string | null;
     created_at: string;
     updated_at: string;
+    deleted_at: string | null;
     customer?: { name: string; phone: string; email: string | null };
     shipment?: { awb_number: string };
 }
@@ -93,11 +95,12 @@ export function useInvoice(id: string | null) {
 interface CreateInvoiceInput {
     customer_id: string;
     shipment_id?: string;
-    awb_number?: string;
     subtotal: number;
-    tax_amount: number;
-    total_amount: number;
+    tax?: { cgst?: number; sgst?: number; igst?: number; total?: number }; // Matches DB jsonb
+    total: number; // DB column name
+    issue_date?: string;
     due_date?: string;
+    payment_terms?: string;
     notes?: string;
     line_items?: any;
 }
@@ -109,15 +112,24 @@ export function useCreateInvoice() {
         mutationFn: async (invoice: CreateInvoiceInput) => {
             const orgId = await getOrCreateDefaultOrg();
 
-            // Generate invoice number
-            const invoiceNumber = `INV-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+            // Generate invoice number: INV-{year}-{sequence}
+            const invoiceNo = `INV-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
 
             const { data, error } = await db
                 .from('invoices')
                 .insert({
-                    ...invoice,
                     org_id: orgId,
-                    invoice_number: invoiceNumber,
+                    invoice_no: invoiceNo, // DB column name
+                    customer_id: invoice.customer_id,
+                    shipment_id: invoice.shipment_id ?? null,
+                    subtotal: invoice.subtotal,
+                    tax: invoice.tax ?? null, // jsonb
+                    total: invoice.total, // DB column name
+                    issue_date: invoice.issue_date ?? new Date().toISOString().split('T')[0],
+                    due_date: invoice.due_date ?? null,
+                    payment_terms: invoice.payment_terms ?? null,
+                    notes: invoice.notes ?? null,
+                    line_items: invoice.line_items ?? null,
                     status: 'ISSUED',
                 })
                 .select()
@@ -128,7 +140,7 @@ export function useCreateInvoice() {
         },
         onSuccess: (data: InvoiceWithRelations) => {
             queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
-            toast.success(`Invoice ${data.invoice_number} created successfully`);
+            toast.success(`Invoice ${data.invoice_no} created successfully`);
         },
         onError: (error: Error) => {
             toast.error(`Failed to create invoice: ${error.message}`);

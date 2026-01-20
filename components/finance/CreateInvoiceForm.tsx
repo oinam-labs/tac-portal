@@ -1,9 +1,10 @@
 
 import React from 'react';
 import MultiStepCreateInvoice from './MultiStepCreateInvoice';
+import { Invoice, Shipment } from '@/types';
 
 interface Props {
-    onSuccess: () => void;
+    onSuccess: (invoice?: Invoice, shipment?: Shipment) => void;
     onCancel: () => void;
 }
 

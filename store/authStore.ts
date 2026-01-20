@@ -9,7 +9,9 @@ import { supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 import type { UserRole } from '@/types';
 
-// Type helper
+// Cast to any because generated Supabase types don't include staff table
+// TODO: Regenerate Supabase types to include all tables
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any;
 
 export interface StaffUser {

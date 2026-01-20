@@ -280,3 +280,71 @@ export function useUpdateManifestStatus() {
         },
     });
 }
+
+// Find manifest by ID or manifest_no (for scanning operations)
+export interface ManifestLookupResult {
+    id: string;
+    manifest_no: string;
+    from_hub_id: string;
+    to_hub_id: string;
+    status: ManifestStatus;
+}
+
+export function useFindManifestByCode() {
+    return useMutation({
+        mutationFn: async (code: string): Promise<ManifestLookupResult | null> => {
+            // Try to find by ID or manifest_no
+            const { data, error } = await (supabase.from('manifests') as any)
+                .select('id, manifest_no, from_hub_id, to_hub_id, status')
+                .or(`id.eq.${code},manifest_no.eq.${code}`)
+                .maybeSingle();
+
+            if (error) throw error;
+            return data as ManifestLookupResult | null;
+        },
+    });
+}
+
+// Add shipment to manifest (for LOAD_MANIFEST scan mode)
+export function useAddManifestItem() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (input: { manifest_id: string; shipment_id: string }) => {
+            const orgId = await getOrCreateDefaultOrg();
+
+            const { error } = await (supabase.from('manifest_items') as any)
+                .insert({
+                    org_id: orgId,
+                    manifest_id: input.manifest_id,
+                    shipment_id: input.shipment_id,
+                    scanned_at: new Date().toISOString(),
+                });
+
+            if (error) throw error;
+        },
+        onSuccess: (_data, { manifest_id }) => {
+            queryClient.invalidateQueries({ queryKey: manifestKeys.items(manifest_id) });
+        },
+        onError: (error: Error) => {
+            toast.error(`Failed to add shipment to manifest: ${error.message}`);
+        },
+    });
+}
+
+// Check if shipment is in manifest (for VERIFY_MANIFEST scan mode)
+export function useCheckManifestItem() {
+    return useMutation({
+        mutationFn: async (input: { manifest_id: string; shipment_id: string }): Promise<boolean> => {
+            const { data, error } = await (supabase.from('manifest_items') as any)
+                .select('id')
+                .eq('manifest_id', input.manifest_id)
+                .eq('shipment_id', input.shipment_id)
+                .maybeSingle();
+
+            if (error) throw error;
+            return !!data;
+        },
+    });
+}
+

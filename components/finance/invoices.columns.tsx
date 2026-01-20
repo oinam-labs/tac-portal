@@ -33,13 +33,13 @@ export function getInvoicesColumns(
 ): ColumnDef<InvoiceWithRelations>[] {
     return [
         {
-            accessorKey: "invoice_number",
+            accessorKey: "invoice_no",
             header: "Invoice",
             cell: ({ row }) => (
                 <div className="flex items-center gap-2">
                     <FileText className="w-4 h-4 text-cyber-accent" />
                     <span className="font-mono font-bold text-cyber-accent">
-                        {row.original.invoice_number}
+                        {row.original.invoice_no}
                     </span>
                 </div>
             ),
@@ -52,24 +52,24 @@ export function getInvoicesColumns(
                     <div className="font-medium text-slate-900 dark:text-white">
                         {row.original.customer?.name || "—"}
                     </div>
-                    {row.original.awb_number && (
+                    {row.original.shipment?.awb_number && (
                         <div className="text-xs text-slate-500 font-mono">
-                            AWB: {row.original.awb_number}
+                            AWB: {row.original.shipment.awb_number}
                         </div>
                     )}
                 </div>
             ),
         },
         {
-            accessorKey: "total_amount",
+            accessorKey: "total",
             header: "Amount",
             cell: ({ row }) => (
                 <div className="text-right">
                     <div className="font-bold text-lg">
-                        ₹{row.original.total_amount?.toLocaleString("en-IN") ?? "0"}
+                        ₹{row.original.total?.toLocaleString("en-IN") ?? "0"}
                     </div>
                     <div className="text-xs text-slate-500">
-                        Tax: ₹{row.original.tax_amount?.toLocaleString("en-IN") ?? "0"}
+                        Tax: ₹{(row.original.tax?.total ?? 0).toLocaleString("en-IN")}
                     </div>
                 </div>
             ),

@@ -37,10 +37,10 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
     const { data: customers = [] } = useCustomers();
     const createShipmentMutation = useCreateShipment();
 
-    // Map Hub Codes to UUIDs (Hardcoded for verification, ideally fetched)
+    // Map Hub Codes to UUIDs from HUBS constants
     const HUB_IDS: Record<string, string> = {
-        'IMPHAL': '66034243-08db-4ebb-b43c-47afa72f4a05',
-        'NEW_DELHI': '82a76ce0-1e2d-40ab-9e9b-21c5f5cb2144'
+        'IMPHAL': HUBS.IMPHAL.uuid,
+        'NEW_DELHI': HUBS.NEW_DELHI.uuid
     };
 
     const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({

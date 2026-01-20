@@ -25,7 +25,7 @@ export function getCustomersColumns(
             cell: ({ row }) => (
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded bg-slate-100 dark:bg-white/10 flex items-center justify-center text-cyber-accent">
-                        {row.original.type === "business" ? (
+                        {row.original.type === "BUSINESS" ? (
                             <Building className="w-4 h-4" />
                         ) : (
                             <User className="w-4 h-4" />

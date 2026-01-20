@@ -15,10 +15,10 @@ import { Check, ChevronRight, ChevronDown, Plus, Search, User, MapPin, Box, Calc
 import { formatCurrency, calculateFreight } from "@/lib/utils";
 import { validateInvoice, validateDiscount } from "@/lib/validation/invoice-validator";
 import { PAYMENT_MODES, POPULAR_CITIES, CONTENT_TYPES } from "@/lib/constants";
-import { useInvoiceStore } from "@/store/invoiceStore";
-import { useShipmentStore } from "@/store/shipmentStore";
-import { db } from "@/lib/mock-db";
-import { Shipment, Customer } from "@/types";
+import { useCreateInvoice } from "@/hooks/useInvoices";
+import { useCustomers, Customer as CustomerDB } from "@/hooks/useCustomers";
+import { supabase } from "@/lib/supabase";
+import { Shipment, Invoice, ShipmentMode, ServiceLevel } from "@/types";
 import { TrackingDialog } from "@/components/landing-new/tracking-dialog";
 import { LabelPreviewDialog } from "@/components/domain/LabelPreviewDialog";
 import { generateLabelFromFormData } from "@/lib/utils/label-utils";
@@ -105,8 +105,8 @@ const Label: React.FC<{ children: React.ReactNode, required?: boolean, error?: s
 
 // Searchable Customer Dropdown (Simplified for Multistep)
 const CustomerSearch: React.FC<{
-    customers: Customer[],
-    onSelect: (c: Customer) => void,
+    customers: CustomerDB[],
+    onSelect: (c: CustomerDB) => void,
     placeholder?: string
 }> = ({ customers, onSelect, placeholder = "Search..." }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -224,15 +224,16 @@ const CustomerSearch: React.FC<{
 
 
 interface Props {
-    onSuccess: () => void;
+    onSuccess: (invoice?: Invoice, shipment?: Shipment) => void;
     onCancel: () => void;
 }
 
 export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
     const [currentStep, setCurrentStep] = useState(0);
     const [direction, setDirection] = useState<number>(0);
-    const { createInvoice, isLoading, invoices } = useInvoiceStore();
-    const { customers, fetchCustomers, shipments } = useShipmentStore();
+    const createInvoiceMutation = useCreateInvoice();
+    const isLoading = createInvoiceMutation.isPending;
+    const { data: customers = [] } = useCustomers();
 
     // Mode State
     const [mode, setMode] = useState<'NEW_BOOKING' | 'EXISTING_SHIPMENT'>('NEW_BOOKING');
@@ -283,7 +284,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
     const { setValue, watch, trigger, getValues } = form;
     const formValues = watch();
 
-    useEffect(() => { fetchCustomers(); }, []);
+    // useCustomers hook handles data fetching automatically
 
     // Form auto-save (draft)
     useEffect(() => {
@@ -359,22 +360,12 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
     useEffect(() => {
         if (mode === 'NEW_BOOKING' && !getValues('awb')) {
             const randomAWB = `TAC${Math.floor(10000000 + Math.random() * 90000000)}`;
-
-            // Smart invoice number (sequential)
-            let invoiceNum = `INV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-            if (invoices.length > 0) {
-                const lastInv = invoices[0].invoiceNumber;
-                const match = lastInv.match(/(\d+)$/);
-                if (match) {
-                    const nextNum = (parseInt(match[1]) + 1).toString().padStart(4, '0');
-                    invoiceNum = `INV-${new Date().getFullYear()}-${nextNum}`;
-                }
-            }
+            const invoiceNum = `INV-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
 
             setValue('awb', randomAWB);
             setValue('invoiceNumber', invoiceNum);
         }
-    }, [mode, setValue, getValues, invoices]);
+    }, [mode, setValue, getValues]);
 
     // Real-time discount validation
     useEffect(() => {
@@ -395,66 +386,66 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
         }
     }, [formValues.discount, formValues.baseFreight, safeNum]);
 
-    const handleSearch = (e: React.MouseEvent) => {
+    const handleSearch = async (e: React.MouseEvent) => {
         e.preventDefault();
         setSearchError('');
-        const shipment = db.getShipmentByAWB(searchAwb);
-        if (shipment) {
-            setSelectedShipment(shipment);
-            setValue('awb', shipment.awb);
-            setValue('contents', shipment.contentsDescription || 'General Cargo');
-            setValue('pieces', shipment.totalPackageCount);
-            setValue('actualWeight', shipment.totalWeight.dead);
-            setValue('chargedWeight', shipment.totalWeight.chargeable);
-            if (shipment.customerName) setValue('consigneeName', shipment.customerName);
-            const calcs = calculateFreight(shipment.totalWeight.chargeable, shipment.mode, shipment.serviceLevel);
-            setValue('ratePerKg', calcs.ratePerKg);
-            setValue('baseFreight', calcs.baseFreight);
-            toast.success("Shipment data loaded!");
-        } else {
+
+        try {
+            const { data: shipmentData, error } = await supabase
+                .from('shipments')
+                .select('*, customer:customers(name, phone)')
+                .eq('awb_number', searchAwb.trim().toUpperCase())
+                .maybeSingle<{ id: string, awb_number: string, customer: { name: string, phone: string }, contents_description: string, package_count: number, total_weight: number, mode: string, service_level: string }>();
+
+            if (error) throw error;
+
+            if (shipmentData) {
+                // Map Supabase data to frontend format
+                const shipment: Partial<Shipment> = {
+                    id: shipmentData.id,
+                    awb: shipmentData.awb_number,
+                    customerName: shipmentData.customer?.name || 'Unknown',
+                    contentsDescription: shipmentData.contents_description || 'General Cargo',
+                    totalPackageCount: shipmentData.package_count || 1,
+                    totalWeight: {
+                        dead: shipmentData.total_weight || 0,
+                        volumetric: 0,
+                        chargeable: shipmentData.total_weight || 0
+                    },
+                    mode: (shipmentData.mode || 'TRUCK') as ShipmentMode,
+                    serviceLevel: (shipmentData.service_level || 'STANDARD') as ServiceLevel,
+                };
+
+                setSelectedShipment(shipment as Shipment);
+                setValue('awb', shipment.awb || '');
+                setValue('contents', shipment.contentsDescription || 'General Cargo');
+                setValue('pieces', shipment.totalPackageCount || 1);
+                setValue('actualWeight', shipment.totalWeight?.dead || 0);
+                setValue('chargedWeight', shipment.totalWeight?.chargeable || 0);
+                if (shipment.customerName) setValue('consigneeName', shipment.customerName);
+                const calcs = calculateFreight(shipment.totalWeight?.chargeable || 0, shipment.mode || 'TRUCK', shipment.serviceLevel || 'STANDARD');
+                setValue('ratePerKg', calcs.ratePerKg);
+                setValue('baseFreight', calcs.baseFreight);
+                toast.success("Shipment data loaded!");
+            } else {
+                setSelectedShipment(null);
+                setSearchError('Shipment not found.');
+                toast.error("Shipment not found");
+            }
+        } catch (error) {
+            console.error('Search error:', error);
             setSelectedShipment(null);
-            setSearchError('Shipment not found.');
-            toast.error("Shipment not found");
+            setSearchError('Search failed.');
+            toast.error("Failed to search shipment");
         }
     };
 
     const handleRepeatLast = () => {
-        if (!invoices || invoices.length === 0) {
-            return toast.error('No previous invoices found');
-        }
-
-        const lastInvoice = invoices[0];
-        const shipment = shipments.find(s => s.awb === lastInvoice.awb);
-
-        if (!shipment) {
-            return toast.error('Associated shipment not found');
-        }
-
-        // Pre-fill all fields from last invoice
-        setValue('consigneeName', shipment.consignee?.name || shipment.customerName || '');
-        setValue('consigneePhone', shipment.consignee?.phone || '');
-        setValue('consigneeAddress', shipment.consignee?.address || '');
-        setValue('consigneeCity', shipment.consignee?.city || 'Imphal');
-        setValue('consigneeState', shipment.consignee?.state || 'Manipur');
-        setValue('consigneeZip', shipment.consignee?.zip || '');
-        setValue('consigneeGstin', shipment.consignee?.gstin || '');
-
-        setValue('contents', shipment.contentsDescription || 'Personal Effects');
-        setValue('pieces', shipment.totalPackageCount || 1);
-        setValue('actualWeight', shipment.totalWeight.dead || 0);
-        setValue('chargedWeight', shipment.totalWeight.chargeable || 0);
-        setValue('transportMode', shipment.mode || 'TRUCK');
-        setValue('paymentMode', shipment.paymentMode || 'TO_PAY');
-        setValue('declaredValue', shipment.declaredValue || 0);
-
-        // Keep new invoice number and date
-        setValue('bookingDate', new Date().toISOString().split('T')[0]);
-
-        toast.success('Last invoice loaded! Review and update as needed.');
-        setMode('NEW_BOOKING');
+        // Feature temporarily disabled - requires fetching last invoice from Supabase
+        toast.info('Repeat last invoice feature coming soon');
     };
 
-    const fillCustomerData = (customer: Customer, type: 'CONSIGNOR' | 'CONSIGNEE') => {
+    const fillCustomerData = (customer: CustomerDB, type: 'CONSIGNOR' | 'CONSIGNEE') => {
         const prefix = type === 'CONSIGNOR' ? 'consignor' : 'consignee';
         setValue(`${prefix}Name` as any, customer.companyName || customer.name, { shouldValidate: true });
         setValue(`${prefix}Phone` as any, customer.phone, { shouldValidate: true });
@@ -467,7 +458,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                 setValue('transportMode', customer.preferences.preferredTransportMode);
             }
             if (customer.preferences.preferredPaymentMode) {
-                setValue('paymentMode', customer.preferences.preferredPaymentMode);
+                setValue('paymentMode', customer.preferences.preferredPaymentMode as any);
             }
             if (customer.preferences.gstApplicable !== undefined) {
                 setValue('gstApplicable', customer.preferences.gstApplicable);
@@ -512,7 +503,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                 customerId: customerContext?.id || 'WALK-IN', // Mock ID if not found
                 paymentMode: data.paymentMode,
                 financials: financials
-            }, customerContext);
+            }, customerContext as any);
 
             if (!validationResult.isValid) {
                 // Show all errors
@@ -526,48 +517,65 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
             }
             // VALIDATION END
 
-            await createInvoice({
-                customerId: customerContext?.id || 'WALK-IN',
-                customerName: String(data.consigneeName),
-                shipmentId: selectedShipment?.id || `SH-${Date.now()}`,
-                awb: String(data.awb),
-                invoiceNumber: String(data.invoiceNumber),
-                financials,
-                paymentMode: String(data.paymentMode) as any,
-                // Pass shipment data for implicit shipment creation
-                transportMode: data.transportMode,
-                totalWeight: {
-                    dead: safeNum(data.actualWeight),
-                    volumetric: (safeNum(data.dimL) * safeNum(data.dimB) * safeNum(data.dimH) * safeNum(data.pieces)) / 5000,
-                    chargeable: safeNum(data.chargedWeight)
+            // Create invoice in Supabase
+            const createdInvoice = await createInvoiceMutation.mutateAsync({
+                customer_id: customerContext?.id || '00000000-0000-0000-0000-000000000001', // Default customer ID
+                shipment_id: selectedShipment?.id,
+                subtotal: subtotal,
+                tax: { cgst: 0, sgst: 0, igst: tax, total: tax }, // jsonb format
+                total: total, // DB column name (not total_amount)
+                issue_date: new Date().toISOString().split('T')[0],
+                due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                payment_terms: data.paymentMode,
+                notes: `Contents: ${data.contents}`,
+                line_items: {
+                    baseFreight: financials.baseFreight,
+                    docketCharge: financials.docketCharge,
+                    pickupCharge: financials.pickupCharge,
+                    packingCharge: financials.packingCharge,
+                    fuelSurcharge: financials.fuelSurcharge,
+                    handlingFee: financials.handlingFee,
+                    insurance: financials.insurance,
+                    discount: financials.discount,
+                    consignor: {
+                        name: data.consignorName,
+                        phone: data.consignorPhone,
+                        address: data.consignorAddress,
+                        city: data.consignorCity,
+                        state: data.consignorState,
+                        zip: data.consignorZip,
+                    },
+                    consignee: {
+                        name: data.consigneeName,
+                        phone: data.consigneePhone,
+                        address: data.consigneeAddress,
+                        city: data.consigneeCity,
+                        state: data.consigneeState,
+                        zip: data.consigneeZip,
+                    },
                 },
-                totalPackageCount: safeNum(data.pieces),
-                contentsDescription: data.contents,
-                consignor: {
-                    name: data.consignorName,
-                    phone: data.consignorPhone,
-                    address: data.consignorAddress,
-                    city: data.consignorCity,
-                    state: data.consignorState,
-                    zip: data.consignorZip,
-                    gstin: data.consignorGstin
-                },
-                consignee: {
-                    name: data.consigneeName,
-                    phone: data.consigneePhone,
-                    address: data.consigneeAddress,
-                    city: data.consigneeCity,
-                    state: data.consigneeState,
-                    zip: data.consigneeZip,
-                    gstin: data.consigneeGstin
-                },
-                declaredValue: safeNum(data.declaredValue)
-            } as any);
+            });
 
             // Clear draft after success
             localStorage.removeItem('invoice_draft');
-            toast.success("Invoice created successfully!");
-            onSuccess();
+
+            // Build invoice object for success dialog
+            const invoiceForDialog: Invoice = {
+                id: createdInvoice.id,
+                invoiceNumber: createdInvoice.invoice_no, // Use DB column name
+                customerId: createdInvoice.customer_id,
+                customerName: data.consigneeName,
+                shipmentId: createdInvoice.shipment_id || '',
+                awb: data.awb,
+                status: createdInvoice.status as any,
+                createdAt: createdInvoice.created_at,
+                dueDate: createdInvoice.due_date || '',
+                paymentMode: data.paymentMode,
+                financials: financials as any,
+            };
+
+            // Pass invoice to parent for success dialog
+            onSuccess(invoiceForDialog, selectedShipment || undefined);
         } catch (error) {
             console.error("Submission error:", error);
             toast.error("Failed to create invoice.");

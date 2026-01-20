@@ -90,6 +90,15 @@ export const queryKeys = {
         details: () => [...queryKeys.staff.all, 'detail'] as const,
         detail: (id: string) => [...queryKeys.staff.details(), id] as const,
     },
+
+    // Dashboard Stats
+    dashboard: {
+        all: ['dashboard'] as const,
+        kpis: () => [...queryKeys.dashboard.all, 'kpis'] as const,
+        recentActivity: () => [...queryKeys.dashboard.all, 'recent-activity'] as const,
+        charts: (dateRange?: { start: string; end: string }) =>
+            [...queryKeys.dashboard.all, 'charts', dateRange] as const,
+    },
 } as const;
 
 /**

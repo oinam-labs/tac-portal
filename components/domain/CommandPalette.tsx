@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useShipmentStore } from '@/store/shipmentStore'
+import { useShipments } from '@/hooks/useShipments'
 import {
   Command,
   CommandEmpty,
@@ -47,7 +47,7 @@ const QUICK_ACTIONS = [
 export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPaletteProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const navigate = useNavigate()
-  const { shipments } = useShipmentStore()
+  const { data: shipments = [] } = useShipments()
 
   const open = controlledOpen ?? internalOpen
   const setOpen = onOpenChange ?? setInternalOpen
@@ -118,13 +118,13 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
                 {recentShipments.map((shipment) => (
                   <CommandItem
                     key={shipment.id}
-                    value={shipment.awb}
-                    onSelect={() => handleSelect(shipment.awb)}
+                    value={shipment.awb_number}
+                    onSelect={() => handleSelect(shipment.awb_number)}
                   >
                     <Package className="mr-2 h-4 w-4 text-cyber-accent" />
-                    <span className="font-mono">{shipment.awb}</span>
+                    <span className="font-mono">{shipment.awb_number}</span>
                     <span className="ml-2 text-slate-500 text-sm">
-                      {shipment.customerName}
+                      {shipment.customer?.name || 'Unknown Customer'}
                     </span>
                     <CommandShortcut>
                       <Clock className="h-3 w-3" />

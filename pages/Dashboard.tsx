@@ -8,7 +8,7 @@ import { RecentActivity } from '../components/dashboard/RecentActivity';
 
 import { ErrorBoundary, InlineError } from '../components/ui/error-boundary';
 import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '../lib/query-keys';
+import { queryKeys } from '../lib/queryKeys';
 import { useRealtimeShipments, useRealtimeExceptions } from '../hooks/useRealtime';
 import { SentryTestButton } from '../components/dev/SentryTestButton';
 

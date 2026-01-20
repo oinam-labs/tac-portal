@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Shipment } from '../../types';
-import { useShipmentStore } from '../../store/shipmentStore';
+import { useTrackingEvents } from '../../hooks/useTrackingEvents';
 import { useAuthStore } from '../../store/authStore';
 import { Button, Card, Badge } from '../ui/CyberComponents';
 import { STATUS_COLORS } from '../../lib/design-tokens';
@@ -15,12 +15,9 @@ interface Props {
 }
 
 export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
-    const { fetchShipmentEvents, currentShipmentEvents } = useShipmentStore();
+    // Use Supabase hook for tracking events (queries by AWB number)
+    const { data: trackingEvents = [] } = useTrackingEvents(shipment.awb);
     const { user } = useAuthStore();
-
-    useEffect(() => {
-        fetchShipmentEvents(shipment.id);
-    }, [shipment.id]);
 
     const handlePrintLabel = () => {
         try {
@@ -133,17 +130,17 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
                     <Clock className="w-4 h-4" /> Tracking History
                 </h3>
                 <div className="space-y-6 pl-2">
-                    {currentShipmentEvents.map((evt, idx) => (
+                    {trackingEvents.map((evt, idx) => (
                         <div key={evt.id} className="relative pl-6 border-l border-cyber-border last:border-0 pb-1">
                             <div className={`absolute left-[-5px] top-0 w-2.5 h-2.5 rounded-full ${idx === 0 ? 'bg-cyber-neon shadow-neon' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
-                            <div className="text-sm font-bold text-slate-900 dark:text-white">{evt.eventCode.replace(/_/g, ' ')}</div>
-                            <div className="text-sm text-slate-600 dark:text-slate-300">{evt.description}</div>
+                            <div className="text-sm font-bold text-slate-900 dark:text-white">{evt.event_code.replace(/_/g, ' ')}</div>
+                            <div className="text-sm text-slate-600 dark:text-slate-300">{evt.meta?.description || 'Event recorded'}</div>
                             <div className="text-xs text-slate-500 mt-1">
-                                {new Date(evt.timestamp).toLocaleString()} • {evt.hubId || 'Transit'}
+                                {new Date(evt.event_time).toLocaleString()} • {evt.hub?.name || 'Transit'}
                             </div>
                         </div>
                     ))}
-                    {currentShipmentEvents.length === 0 && (
+                    {trackingEvents.length === 0 && (
                         <div className="text-sm text-slate-500">No events recorded.</div>
                     )}
                 </div>

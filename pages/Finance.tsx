@@ -135,8 +135,12 @@ Thank you for choosing TAC Cargo.`;
         }
     };
 
-    const onInvoiceCreated = () => {
+    const onInvoiceCreated = (invoice?: Invoice, shipment?: Shipment) => {
         setIsCreateOpen(false);
+        // Show success dialog if invoice was created
+        if (invoice) {
+            setSuccessData({ invoice, shipment });
+        }
         // React Query will auto-refetch
     };
 
@@ -155,11 +159,11 @@ Thank you for choosing TAC Cargo.`;
                 onDownload: (row) => {
                     const inv: Invoice = {
                         id: row.id,
-                        invoiceNumber: row.invoice_number,
+                        invoiceNumber: row.invoice_no, // DB column name
                         customerId: row.customer_id,
                         customerName: row.customer?.name || 'Unknown',
                         shipmentId: row.shipment_id || '',
-                        awb: row.awb_number || '',
+                        awb: row.shipment?.awb_number || '', // Get from shipment relation
                         status: row.status,
                         createdAt: row.created_at,
                         dueDate: row.due_date || '',
@@ -173,11 +177,11 @@ Thank you for choosing TAC Cargo.`;
                             fuelSurcharge: 0,
                             handlingFee: 0,
                             insurance: 0,
-                            tax: { cgst: 0, sgst: 0, igst: 0, total: row.tax_amount },
+                            tax: { cgst: 0, sgst: 0, igst: 0, total: row.tax?.total ?? 0 },
                             discount: 0,
-                            totalAmount: row.total_amount,
+                            totalAmount: row.total, // DB column name
                             advancePaid: 0,
-                            balance: row.total_amount,
+                            balance: row.total, // DB column name
                         },
                     };
                     handleDownloadInvoice(inv);
@@ -187,11 +191,11 @@ Thank you for choosing TAC Cargo.`;
                 onDelete: (row) => {
                     const inv: Invoice = {
                         id: row.id,
-                        invoiceNumber: row.invoice_number,
+                        invoiceNumber: row.invoice_no, // DB column name
                         customerId: row.customer_id,
                         customerName: row.customer?.name || 'Unknown',
                         shipmentId: row.shipment_id || '',
-                        awb: row.awb_number || '',
+                        awb: row.shipment?.awb_number || '', // Get from shipment relation
                         status: row.status,
                         createdAt: row.created_at,
                         dueDate: row.due_date || '',
@@ -205,11 +209,11 @@ Thank you for choosing TAC Cargo.`;
                             fuelSurcharge: 0,
                             handlingFee: 0,
                             insurance: 0,
-                            tax: { cgst: 0, sgst: 0, igst: 0, total: row.tax_amount },
+                            tax: { cgst: 0, sgst: 0, igst: 0, total: row.tax?.total ?? 0 },
                             discount: 0,
-                            totalAmount: row.total_amount,
+                            totalAmount: row.total, // DB column name
                             advancePaid: 0,
-                            balance: row.total_amount,
+                            balance: row.total, // DB column name
                         },
                     };
                     setRowToDelete(inv);
@@ -222,10 +226,10 @@ Thank you for choosing TAC Cargo.`;
     // Use Supabase data directly - already in correct format
     const tableData = invoicesData;
 
-    // Stats from Supabase data
-    const totalRevenue = invoicesData.reduce((acc: number, inv) => acc + (inv.status === 'PAID' ? (inv.total_amount || 0) : 0), 0);
-    const pendingAmount = invoicesData.reduce((acc: number, inv) => acc + (inv.status === 'ISSUED' ? (inv.total_amount || 0) : 0), 0);
-    const overdueAmount = invoicesData.reduce((acc: number, inv) => acc + (inv.status === 'OVERDUE' ? (inv.total_amount || 0) : 0), 0);
+    // Stats from Supabase data - use correct DB column names
+    const totalRevenue = invoicesData.reduce((acc: number, inv) => acc + (inv.status === 'PAID' ? (inv.total || 0) : 0), 0);
+    const pendingAmount = invoicesData.reduce((acc: number, inv) => acc + (inv.status === 'ISSUED' ? (inv.total || 0) : 0), 0);
+    const overdueAmount = invoicesData.reduce((acc: number, inv) => acc + (inv.status === 'OVERDUE' ? (inv.total || 0) : 0), 0);
 
     return (
         <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
@@ -278,7 +282,7 @@ Thank you for choosing TAC Cargo.`;
             <CrudTable
                 columns={columns}
                 data={tableData}
-                searchKey="invoice_number"
+                searchKey="invoice_no"
                 searchPlaceholder="Search invoices..."
                 isLoading={false}
                 emptyMessage="No invoices found. Create your first invoice to get started."
