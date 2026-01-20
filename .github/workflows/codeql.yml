@@ -43,7 +43,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       # Build step helps CodeQL understand the codebase better
       - name: Build
