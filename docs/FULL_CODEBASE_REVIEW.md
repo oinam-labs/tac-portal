@@ -9,6 +9,7 @@
 **TAC Portal** is an enterprise-grade logistics management platform for cargo operations between Imphal and New Delhi hubs.
 
 ### Tech Stack
+
 | Category | Technologies |
 |----------|-------------|
 | **Frontend** | React 19.1, TypeScript 5.8, Vite 6.2 |
@@ -26,7 +27,8 @@
 ## 🗂️ Codebase Structure
 
 ### Pages (18 files)
-```
+
+```text
 pages/
 ├── Analytics.tsx          # Business analytics dashboard
 ├── Customers.tsx          # Customer management
@@ -49,7 +51,8 @@ pages/
 ```
 
 ### Components (106+ files)
-```
+
+```text
 components/
 ├── auth/           # Authentication components
 ├── crud/           # CRUD operations (5 files)
@@ -70,7 +73,8 @@ components/
 ```
 
 ### Custom Hooks (13 files)
-```
+
+```text
 hooks/
 ├── useAuditLogs.ts        # Audit logging
 ├── useCloseManifest.ts    # Manifest closing logic
@@ -87,7 +91,8 @@ hooks/
 ```
 
 ### State Management (6 stores)
-```
+
+```text
 store/
 ├── auditStore.ts          # Audit trail state
 ├── authStore.ts           # Authentication state
@@ -98,10 +103,11 @@ store/
 ```
 
 ### Service Layer (lib/)
-```
+
+```text
 lib/
 ├── constants.ts           # App constants
-├── database.types.ts      # Supabase types
+├── database.types.ts      # Supabase-generated types
 ├── design-tokens.ts       # Design system tokens
 ├── email.ts               # Email utilities
 ├── errors.ts              # Error handling
@@ -223,7 +229,7 @@ lib/
 
 ### Core Types
 - `types.ts` - Application types
-- `lib/database.types.ts` - Supabase generated types
+- `lib/database.types.ts` - Supabase-generated types
 
 ### State Management
 - `store/authStore.ts` - Auth state (11KB)
@@ -269,4 +275,4 @@ lib/
 
 ---
 
-*Review requested: January 20, 2026*
+Review requested: January 20, 2026
