@@ -10,7 +10,7 @@ export const QuickActions: React.FC = () => {
         {
             label: 'New Shipment',
             icon: Plus,
-            color: 'text-cyber-neon',
+            color: 'text-primary',
             onClick: () => navigate('/shipments?new=true'),
             shortcut: 'N'
         },
@@ -43,15 +43,15 @@ export const QuickActions: React.FC = () => {
         <Card className="mb-6">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Quick Actions</h3>
-                    <p className="text-xs text-slate-500">Common tasks for your role</p>
+                    <h3 className="text-lg font-bold text-foreground">Quick Actions</h3>
+                    <p className="text-xs text-muted-foreground">Common tasks for your role</p>
                 </div>
                 <div className="flex flex-wrap gap-3">
                     {actions.map((action) => (
                         <Button
                             key={action.label}
                             variant="secondary"
-                            className="bg-slate-100 dark:bg-white/5 border border-transparent hover:border-cyber-accent/50 transition-all group"
+                            className="bg-muted border border-transparent hover:border-cyber-accent/50 transition-all group"
                             onClick={action.onClick}
                         >
                             <action.icon className={`w-4 h-4 mr-2 ${action.color} group-hover:animate-pulse`} />

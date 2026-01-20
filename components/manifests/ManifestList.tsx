@@ -4,12 +4,13 @@ import { Button, Card, Table, Th, Td } from '../ui/CyberComponents';
 import { FileText, Plane, Truck, ArrowRight, Loader } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { format } from 'date-fns';
+import { StatusBadge } from '../domain/StatusBadge';
 
 export const ManifestList: React.FC = () => {
     const { data: manifests, isLoading, error } = useManifests();
     const navigate = useNavigate();
 
-    if (isLoading) return <div className="p-10 flex justify-center"><Loader className="animate-spin text-cyber-neon" /></div>;
+    if (isLoading) return <div className="p-10 flex justify-center"><Loader className="animate-spin text-primary" /></div>;
     if (error) return <div className="text-red-500">Error loading manifests</div>;
 
     return (
@@ -19,7 +20,7 @@ export const ManifestList: React.FC = () => {
                     <h2 className="text-xl font-bold bg-gradient-to-r from-cyber-neon to-purple-400 bg-clip-text text-transparent">
                         Linehaul Manifests
                     </h2>
-                    <p className="text-xs text-slate-500">Manage hub-to-hub transport</p>
+                    <p className="text-xs text-muted-foreground">Manage hub-to-hub transport</p>
                 </div>
                 <Button onClick={() => navigate('/manifests/create')}>
                     <FileText className="w-4 h-4 mr-2" />
@@ -44,9 +45,9 @@ export const ManifestList: React.FC = () => {
                         {manifests?.map((manifest) => (
                             <tr
                                 key={manifest.id}
-                                className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                                className="group hover:bg-muted transition-colors"
                             >
-                                <Td className="font-mono text-cyber-neon font-bold">
+                                <Td className="font-mono text-primary font-bold">
                                     <Link to={`/manifests/${manifest.id}`} className="hover:underline block w-full h-full">
                                         {manifest.manifest_no}
                                     </Link>
@@ -54,7 +55,7 @@ export const ManifestList: React.FC = () => {
                                 <Td>
                                     <div className="flex items-center gap-2 text-xs">
                                         <span className="font-bold">{manifest.from_hub?.code}</span>
-                                        <ArrowRight className="w-3 h-3 text-slate-400" />
+                                        <ArrowRight className="w-3 h-3 text-muted-foreground" />
                                         <span className="font-bold">{manifest.to_hub?.code}</span>
                                     </div>
                                 </Td>
@@ -70,22 +71,22 @@ export const ManifestList: React.FC = () => {
                                 <Td className="text-right">
                                     <div className="text-xs">
                                         <div>{manifest.total_shipments} Shipments</div>
-                                        <div className="text-slate-400">{manifest.total_weight} kg</div>
+                                        <div className="text-muted-foreground">{manifest.total_weight} kg</div>
                                     </div>
                                 </Td>
-                                <Td className="text-right text-xs text-slate-500">
+                                <Td className="text-right text-xs text-muted-foreground">
                                     {format(new Date(manifest.created_at), 'dd MMM HH:mm')}
                                 </Td>
                                 <Td className="text-right">
-                                    <Link to={`/manifests/${manifest.id}`} className="inline-flex items-center justify-center p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                                        <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-cyber-neon transition-colors" />
+                                    <Link to={`/manifests/${manifest.id}`} className="inline-flex items-center justify-center p-2 rounded-md hover:bg-muted transition-colors">
+                                        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                                     </Link>
                                 </Td>
                             </tr>
                         ))}
                         {(!manifests || manifests.length === 0) && (
                             <tr>
-                                <Td className="text-center py-8 text-slate-500">
+                                <Td className="text-center py-8 text-muted-foreground">
                                     No manifests found (ColSpan not supported in Td wrapper properly, checked manually)
                                 </Td>
                             </tr>
@@ -94,19 +95,5 @@ export const ManifestList: React.FC = () => {
                 </Table>
             </div>
         </Card>
-    );
-};
-
-const StatusBadge = ({ status }: { status: string }) => {
-    const styles: Record<string, string> = {
-        OPEN: 'border-blue-500 text-blue-500 bg-blue-500/10',
-        CLOSED: 'border-yellow-500 text-yellow-500 bg-yellow-500/10',
-        DEPARTED: 'border-purple-500 text-purple-500 bg-purple-500/10',
-        ARRIVED: 'border-green-500 text-green-500 bg-green-500/10',
-    };
-    return (
-        <span className={`text-[10px] uppercase px-2 py-0.5 rounded border ${styles[status] || 'border-slate-500 text-slate-500'}`}>
-            {status}
-        </span>
     );
 };

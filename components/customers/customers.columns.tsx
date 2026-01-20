@@ -24,18 +24,18 @@ export function getCustomersColumns(
             header: "Customer",
             cell: ({ row }) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded bg-slate-100 dark:bg-white/10 flex items-center justify-center text-cyber-accent">
-                        {row.original.type === "business" ? (
+                    <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-cyber-accent">
+                        {row.original.type === "BUSINESS" ? (
                             <Building className="w-4 h-4" />
                         ) : (
                             <User className="w-4 h-4" />
                         )}
                     </div>
                     <div>
-                        <div className="font-medium text-slate-900 dark:text-white">
+                        <div className="font-medium text-foreground">
                             {row.original.companyName || row.original.name}
                         </div>
-                        <div className="text-xs text-slate-500 font-mono">
+                        <div className="text-xs text-muted-foreground font-mono">
                             {row.original.customer_code}
                         </div>
                     </div>
@@ -47,21 +47,21 @@ export function getCustomersColumns(
             header: "Contact Info",
             cell: ({ row }) => (
                 <div>
-                    <div className="text-sm text-slate-700 dark:text-slate-300">
+                    <div className="text-sm text-muted-foreground">
                         {row.original.name}
                     </div>
                     <div className="flex gap-3 mt-1 text-xs">
                         {row.original.email && (
                             <a
                                 href={`mailto:${row.original.email}`}
-                                className="text-slate-500 hover:text-cyber-accent flex items-center gap-1"
+                                className="text-muted-foreground hover:text-cyber-accent flex items-center gap-1"
                             >
                                 <Mail className="w-3 h-3" /> {row.original.email}
                             </a>
                         )}
                         <a
                             href={`tel:${row.original.phone}`}
-                            className="text-slate-500 hover:text-cyber-accent flex items-center gap-1"
+                            className="text-muted-foreground hover:text-cyber-accent flex items-center gap-1"
                         >
                             <Phone className="w-3 h-3" /> {row.original.phone}
                         </a>
@@ -96,11 +96,11 @@ export function getCustomersColumns(
             cell: ({ row }) =>
                 row.original.gstin ? (
                     <div className="font-mono text-xs flex items-center gap-1">
-                        <FileText className="w-3 h-3 text-slate-400" />
+                        <FileText className="w-3 h-3 text-muted-foreground" />
                         {row.original.gstin}
                     </div>
                 ) : (
-                    <span className="text-slate-400">—</span>
+                    <span className="text-muted-foreground">—</span>
                 ),
         },
         {

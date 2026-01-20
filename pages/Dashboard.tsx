@@ -8,7 +8,7 @@ import { RecentActivity } from '../components/dashboard/RecentActivity';
 
 import { ErrorBoundary, InlineError } from '../components/ui/error-boundary';
 import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '../lib/query-keys';
+import { queryKeys } from '../lib/queryKeys';
 import { useRealtimeShipments, useRealtimeExceptions } from '../hooks/useRealtime';
 import { SentryTestButton } from '../components/dev/SentryTestButton';
 
@@ -31,8 +31,8 @@ export const Dashboard: React.FC = () => {
         <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Mission Control</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Real-time logistics overview and operations.</p>
+                    <h1 className="text-3xl font-bold text-foreground tracking-tight">Mission Control</h1>
+                    <p className="text-muted-foreground mt-1">Real-time logistics overview and operations.</p>
                 </div>
                 <div className="flex gap-3">
                     <Button variant="ghost" onClick={refreshData}><RefreshCw className="w-4 h-4 mr-2" /> Refresh</Button>

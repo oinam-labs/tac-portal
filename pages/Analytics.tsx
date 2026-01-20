@@ -3,7 +3,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { KPICard } from '../components/domain/KPICard';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { useStore } from '../store';
-import { db } from '../lib/mock-db';
+import { useShipments } from '../hooks/useShipments';
+import { useExceptions } from '../hooks/useExceptions';
 import { format, subMonths, isSameMonth } from 'date-fns';
 import { Package, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
 
@@ -20,11 +21,12 @@ export const Analytics: React.FC = () => {
     const { theme } = useStore();
     const isDark = theme === 'dark';
 
+    // Use Supabase hooks instead of mock-db
+    const { data: shipments = [] } = useShipments();
+    const { data: exceptions = [] } = useExceptions();
+
     // Calculate Dynamic Data
     const { volumeData, efficiencyData } = useMemo(() => {
-        const shipments = db.getShipments();
-        const exceptions = db.getExceptions();
-
         // 1. Volume Data (Last 6 Months)
         const last6Months = Array.from({ length: 6 }).map((_, i) => {
             const d = subMonths(new Date(), 5 - i);
@@ -32,9 +34,9 @@ export const Analytics: React.FC = () => {
         });
 
         const vData = last6Months.map(month => {
-            const monthShipments = shipments.filter(s => isSameMonth(new Date(s.createdAt), month.date));
+            const monthShipments = shipments.filter(s => isSameMonth(new Date(s.created_at), month.date));
             const outbound = monthShipments.length * 100 + Math.floor(Math.random() * 50);
-            const inbound = monthShipments.filter(s => ['DELIVERED', 'RECEIVED_AT_DEST'].includes(s.status)).length * 100 + Math.floor(Math.random() * 50);
+            const inbound = monthShipments.filter(s => ['DELIVERED', 'RECEIVED_AT_DEST_HUB'].includes(s.status)).length * 100 + Math.floor(Math.random() * 50);
 
             return {
                 month: month.label,
@@ -48,7 +50,9 @@ export const Analytics: React.FC = () => {
         const delivered = shipments.filter(s => s.status === 'DELIVERED').length;
         const delayed = shipments.filter(s => {
             if (s.status === 'DELIVERED') return false;
-            return new Date(s.eta) < new Date();
+            // Check if shipment is overdue (created more than 7 days ago and not delivered)
+            const createdDate = new Date(s.created_at);
+            return new Date().getTime() - createdDate.getTime() > 7 * 24 * 60 * 60 * 1000;
         }).length;
         const withException = exceptions.length;
 
@@ -60,7 +64,7 @@ export const Analytics: React.FC = () => {
         ];
 
         return { volumeData: vData, efficiencyData: eData };
-    }, []);
+    }, [shipments, exceptions]);
 
     // Tooltip styles
     const tooltipStyle = {
@@ -72,7 +76,7 @@ export const Analytics: React.FC = () => {
 
     return (
         <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Operations Analytics</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-6">Operations Analytics</h1>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Area Chart with Legend - Shipment Volume (In/Out) */}
@@ -114,10 +118,10 @@ export const Analytics: React.FC = () => {
                     <CardFooter>
                         <div className="flex w-full items-start gap-2 text-sm">
                             <div className="grid gap-2">
-                                <div className="flex items-center gap-2 leading-none font-medium text-slate-900 dark:text-white">
+                                <div className="flex items-center gap-2 leading-none font-medium text-foreground">
                                     Trending up by 5.2% this month <TrendingUp className="h-4 w-4 text-cyber-success" />
                                 </div>
-                                <div className="flex items-center gap-2 leading-none text-slate-500 dark:text-slate-400">
+                                <div className="flex items-center gap-2 leading-none text-muted-foreground">
                                     {format(subMonths(new Date(), 5), 'MMMM')} - {format(new Date(), 'MMMM yyyy')}
                                 </div>
                             </div>
@@ -148,10 +152,10 @@ export const Analytics: React.FC = () => {
                         </div>
                     </CardContent>
                     <CardFooter className="flex-col items-start gap-2 text-sm">
-                        <div className="flex gap-2 leading-none font-medium text-slate-900 dark:text-white">
+                        <div className="flex gap-2 leading-none font-medium text-foreground">
                             Delivery rate up by 8.1% <TrendingUp className="h-4 w-4 text-cyber-success" />
                         </div>
-                        <div className="leading-none text-slate-500 dark:text-slate-400">
+                        <div className="leading-none text-muted-foreground">
                             Comparing to previous period
                         </div>
                     </CardFooter>

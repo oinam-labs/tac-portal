@@ -1,3 +1,4 @@
+// @ts-nocheck - Deno Edge Function (different runtime than Node.js TypeScript)
 /**
  * Supabase Edge Function: Send Email via Resend
  * Deploy: supabase functions deploy send-email

@@ -4,7 +4,8 @@ import { TrendingUp, TrendingDown, Box, Activity, CheckCircle, AlertTriangle, Lu
 import { Card } from '../ui/card';
 import { KPIGridSkeleton } from '../ui/skeleton';
 import { usePrevious } from '@/lib/hooks/usePrevious.ts';
-import { db } from '../../lib/mock-db';
+import { useShipments } from '@/hooks/useShipments';
+import { useExceptions } from '@/hooks/useExceptions';
 
 interface KPIData {
     label: string;
@@ -58,22 +59,22 @@ const KPICard = React.memo(({ kpi, index }: KPICardProps) => {
                 ease: [0.25, 0.1, 0.25, 1]
             }}
         >
-            <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300 border-border/50 hover:border-border">
+            <Card className="relative overflow-hidden group hover:shadow-md transition-all duration-300 border-border/50 hover:border-primary/20 bg-card/50 backdrop-blur-sm">
                 {/* Background Icon */}
-                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
-                    <kpi.icon className="w-20 h-20" />
+                <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity pointer-events-none">
+                    <kpi.icon className="w-24 h-24" />
                 </div>
 
                 {/* Content */}
                 <div className="p-6 relative">
                     <div className="flex justify-between items-start mb-4">
                         {/* Icon Badge */}
-                        <div className={`p-2.5 rounded-lg border ${colorMap[kpi.color]}`}>
+                        <div className={`p-2.5 rounded-lg border shadow-sm ${colorMap[kpi.color]}`}>
                             <kpi.icon className="w-5 h-5" />
                         </div>
 
                         {/* Trend Badge */}
-                        <div className={`flex items-center text-xs font-semibold px-2.5 py-1 rounded-full ${effectiveTrendColor}`}>
+                        <div className={`flex items-center text-xs font-semibold px-2.5 py-1 rounded-full border ${effectiveTrendColor ? effectiveTrendColor.replace('bg-', 'bg-opacity-10 border-') : ''}`}>
                             {kpi.trendDirection === 'up' && <TrendingUp className="w-3.5 h-3.5 mr-1" />}
                             {kpi.trendDirection === 'down' && <TrendingDown className="w-3.5 h-3.5 mr-1" />}
                             {kpi.trend > 0 ? '+' : ''}{kpi.trend}%
@@ -98,12 +99,12 @@ const KPICard = React.memo(({ kpi, index }: KPICardProps) => {
                         {kpi.label}
                     </div>
 
-                    {/* Sparkline placeholder - can be enhanced with real data */}
-                    <div className="mt-4 flex items-end gap-0.5 h-8 opacity-40">
+                    {/* Sparkline placeholder - enhanced styling */}
+                    <div className="mt-5 flex items-end gap-1 h-10 opacity-60 mask-image-gradient-to-t">
                         {[40, 65, 45, 80, 55, 70, 85, 60, 75, 90].map((height, i) => (
                             <div
                                 key={i}
-                                className={`flex-1 rounded-sm ${kpi.color === 'destructive' ? 'bg-red-500' : 'bg-primary'}`}
+                                className={`flex-1 rounded-t-sm transition-all duration-500 group-hover:bg-primary ${kpi.color === 'destructive' ? 'bg-destructive/50' : 'bg-primary/30'}`}
                                 style={{ height: `${height}%` }}
                             />
                         ))}
@@ -122,11 +123,14 @@ interface KPIGridProps {
 /**
  * Enhanced Dashboard KPI Grid with animated cards and loading states
  */
-export const KPIGrid: React.FC<KPIGridProps> = ({ isLoading = false }) => {
-    const kpis: KPIData[] = useMemo(() => {
-        const shipments = db.getShipments();
-        const exceptions = db.getExceptions();
+export const KPIGrid: React.FC<KPIGridProps> = ({ isLoading: externalLoading = false }) => {
+    // Use Supabase hooks instead of mock-db
+    const { data: shipments = [], isLoading: shipmentsLoading } = useShipments();
+    const { data: exceptions = [], isLoading: exceptionsLoading } = useExceptions();
 
+    const isLoading = externalLoading || shipmentsLoading || exceptionsLoading;
+
+    const kpis: KPIData[] = useMemo(() => {
         const total = shipments.length;
         const active = shipments.filter(s =>
             ['IN_TRANSIT_TO_DESTINATION', 'LOADED_FOR_LINEHAUL', 'RECEIVED_AT_ORIGIN_HUB'].includes(s.status)
@@ -172,7 +176,7 @@ export const KPIGrid: React.FC<KPIGridProps> = ({ isLoading = false }) => {
                 color: exceptionCount > 0 ? 'destructive' : 'warning'
             },
         ];
-    }, []);
+    }, [shipments, exceptions]);
 
     if (isLoading) {
         return <KPIGridSkeleton />;

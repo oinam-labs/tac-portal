@@ -12,19 +12,19 @@ interface KPICardProps {
   subtitle?: string
 }
 
-export function KPICard({ 
-  title, 
-  value, 
-  change, 
-  trend = 'neutral', 
+export function KPICard({
+  title,
+  value,
+  change,
+  trend = 'neutral',
   icon,
   className,
   subtitle
 }: KPICardProps) {
   const trendColor = {
-    up: 'text-emerald-400',
-    down: 'text-red-400',
-    neutral: 'text-slate-400'
+    up: 'text-[oklch(var(--status-delivered-fg))]',
+    down: 'text-[oklch(var(--status-exception-fg))]',
+    neutral: 'text-muted-foreground'
   }[trend]
 
   const TrendIcon = {
@@ -40,20 +40,20 @@ export function KPICard({
     )}>
       {/* Gradient accent */}
       <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-cyber-accent/10 to-transparent rounded-bl-full" />
-      
+
       <div className="flex items-start justify-between relative z-10">
         <div className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             {title}
           </p>
-          <p className="text-3xl font-bold text-white tracking-tight">
+          <p className="text-3xl font-bold text-foreground tracking-tight">
             {value}
           </p>
           {subtitle && (
-            <p className="text-xs text-slate-500">{subtitle}</p>
+            <p className="text-xs text-muted-foreground">{subtitle}</p>
           )}
         </div>
-        
+
         {icon && (
           <div className="p-3 rounded-lg bg-cyber-accent/10 text-cyber-accent">
             {icon}
@@ -67,7 +67,7 @@ export function KPICard({
           <span className="font-medium">
             {change > 0 ? '+' : ''}{change}%
           </span>
-          <span className="text-slate-500 text-xs ml-1">vs last period</span>
+          <span className="text-muted-foreground text-xs ml-1">vs last period</span>
         </div>
       )}
     </div>

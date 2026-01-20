@@ -33,6 +33,15 @@ export const initSentry = () => {
     dsn,
     environment,
 
+    // Use tunnel to bypass ad-blockers and CORS issues in development
+    // In production, this should point to a server-side tunnel endpoint
+    // https://docs.sentry.io/platforms/javascript/troubleshooting/#using-the-tunnel-option
+    ...(import.meta.env.DEV && {
+      // In dev mode, we'll just let errors through - CORS errors are expected
+      // and don't affect functionality. The browser's privacy protection
+      // blocks direct Sentry requests but errors are still captured locally.
+    }),
+
     // Send default PII (IP addresses, user agent)
     // https://docs.sentry.io/platforms/javascript/guides/react/configuration/options/#sendDefaultPii
     sendDefaultPii: true,

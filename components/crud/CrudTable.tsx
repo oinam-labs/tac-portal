@@ -80,7 +80,7 @@ export function CrudTable<TData>({
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 {searchKey && (
                     <div className="relative flex-1 max-w-sm">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
                             placeholder={searchPlaceholder}
                             value={globalFilter ?? ""}
@@ -93,22 +93,22 @@ export function CrudTable<TData>({
             </div>
 
             {/* Table */}
-            <div className="rounded-lg border border-white/10 overflow-hidden">
+            <div className="rounded-lg border border-border overflow-hidden bg-card text-card-foreground">
                 <table className="w-full">
-                    <thead className="bg-cyber-surface/50">
+                    <thead className="bg-muted/50">
                         {table.getHeaderGroups().map((headerGroup) => (
-                            <tr key={headerGroup.id}>
+                            <tr key={headerGroup.id} className="border-b border-border">
                                 {headerGroup.headers.map((header) => (
                                     <th
                                         key={header.id}
-                                        className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400"
+                                        className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground"
                                     >
                                         {header.isPlaceholder ? null : (
                                             <div
                                                 className={cn(
                                                     "flex items-center gap-1",
                                                     header.column.getCanSort() &&
-                                                    "cursor-pointer select-none hover:text-cyber-accent"
+                                                    "cursor-pointer select-none hover:text-foreground"
                                                 )}
                                                 onClick={header.column.getToggleSortingHandler()}
                                             >
@@ -126,15 +126,15 @@ export function CrudTable<TData>({
                             </tr>
                         ))}
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-border">
                         {isLoading ? (
                             <tr>
                                 <td
                                     colSpan={columns.length}
-                                    className="h-24 text-center text-slate-500"
+                                    className="h-24 text-center text-muted-foreground"
                                 >
                                     <div className="flex items-center justify-center gap-2">
-                                        <div className="w-4 h-4 border-2 border-cyber-accent border-t-transparent rounded-full animate-spin" />
+                                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                                         Loading...
                                     </div>
                                 </td>
@@ -143,10 +143,10 @@ export function CrudTable<TData>({
                             table.getRowModel().rows.map((row) => (
                                 <tr
                                     key={row.id}
-                                    className="hover:bg-white/5 transition-colors"
+                                    className="hover:bg-muted/50 transition-colors"
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <td key={cell.id} className="px-4 py-3 text-sm text-slate-300">
+                                        <td key={cell.id} className="px-4 py-3 text-sm text-foreground">
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </td>
                                     ))}
@@ -156,7 +156,7 @@ export function CrudTable<TData>({
                             <tr>
                                 <td
                                     colSpan={columns.length}
-                                    className="h-24 text-center text-slate-500"
+                                    className="h-24 text-center text-muted-foreground"
                                 >
                                     {emptyMessage}
                                 </td>
@@ -169,7 +169,7 @@ export function CrudTable<TData>({
             {/* Pagination */}
             {data.length > pageSize && (
                 <div className="flex items-center justify-between">
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-muted-foreground">
                         Showing{" "}
                         {table.getState().pagination.pageIndex *
                             table.getState().pagination.pageSize +
@@ -199,7 +199,7 @@ export function CrudTable<TData>({
                         >
                             <ChevronLeft className="w-4 h-4" />
                         </Button>
-                        <span className="text-sm text-slate-400 px-2">
+                        <span className="text-sm text-muted-foreground px-2">
                             Page {table.getState().pagination.pageIndex + 1} of{" "}
                             {table.getPageCount()}
                         </span>

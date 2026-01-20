@@ -7,17 +7,21 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-transparent bg-cyber-accent/20 text-cyber-accent",
-        secondary: "border-transparent bg-slate-700 text-slate-300",
-        destructive: "border-transparent bg-red-500/20 text-red-400",
-        success: "border-transparent bg-emerald-500/20 text-emerald-400",
-        warning: "border-transparent bg-amber-500/20 text-amber-400",
-        outline: "border-cyber-accent/30 text-cyber-accent",
-        // Status-specific variants
-        created: "border-transparent bg-blue-500/20 text-blue-400",
-        transit: "border-transparent bg-cyan-500/20 text-cyan-400",
-        delivered: "border-transparent bg-emerald-500/20 text-emerald-400",
-        exception: "border-transparent bg-red-500/20 text-red-400",
+        default: "border-transparent bg-primary/20 text-primary",
+        secondary: "border-transparent bg-muted text-muted-foreground",
+        destructive: "badge--exception",
+        success: "badge--delivered",
+        warning: "badge--in-transit",
+        outline: "border-border text-foreground",
+        // Status-specific variants using semantic tokens
+        created: "badge--created",
+        transit: "badge--in-transit",
+        delivered: "badge--delivered",
+        exception: "badge--exception",
+        manifested: "badge--manifested",
+        arrived: "badge--arrived",
+        cancelled: "badge--cancelled",
+        returned: "badge--returned",
       },
     },
     defaultVariants: {
@@ -28,7 +32,7 @@ const badgeVariants = cva(
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {
+  VariantProps<typeof badgeVariants> {
   className?: string
 }
 

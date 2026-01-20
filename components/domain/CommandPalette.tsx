@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useShipmentStore } from '@/store/shipmentStore'
+import { useShipments } from '@/hooks/useShipments'
 import {
   Command,
   CommandEmpty,
@@ -47,7 +47,7 @@ const QUICK_ACTIONS = [
 export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPaletteProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const navigate = useNavigate()
-  const { shipments } = useShipmentStore()
+  const { data: shipments = [] } = useShipments()
 
   const open = controlledOpen ?? internalOpen
   const setOpen = onOpenChange ?? setInternalOpen
@@ -102,14 +102,14 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="overflow-hidden p-0 shadow-2xl max-w-2xl">
-        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-slate-400">
+        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground">
           <CommandInput placeholder="Search shipments, actions, or navigate..." />
           <CommandList>
             <CommandEmpty>
               <div className="py-6 text-center">
-                <Search className="w-10 h-10 mx-auto text-slate-500 mb-2" />
-                <p className="text-slate-400">No results found</p>
-                <p className="text-xs text-slate-500 mt-1">Try searching for an AWB or action</p>
+                <Search className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
+                <p className="text-muted-foreground">No results found</p>
+                <p className="text-xs text-muted-foreground mt-1">Try searching for an AWB or action</p>
               </div>
             </CommandEmpty>
 
@@ -118,13 +118,13 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
                 {recentShipments.map((shipment) => (
                   <CommandItem
                     key={shipment.id}
-                    value={shipment.awb}
-                    onSelect={() => handleSelect(shipment.awb)}
+                    value={shipment.awb_number}
+                    onSelect={() => handleSelect(shipment.awb_number)}
                   >
                     <Package className="mr-2 h-4 w-4 text-cyber-accent" />
-                    <span className="font-mono">{shipment.awb}</span>
-                    <span className="ml-2 text-slate-500 text-sm">
-                      {shipment.customerName}
+                    <span className="font-mono">{shipment.awb_number}</span>
+                    <span className="ml-2 text-muted-foreground text-sm">
+                      {shipment.customer?.name || 'Unknown Customer'}
                     </span>
                     <CommandShortcut>
                       <Clock className="h-3 w-3" />
@@ -158,7 +158,7 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
                   value={item.path}
                   onSelect={() => handleSelect(item.path)}
                 >
-                  <item.icon className="mr-2 h-4 w-4 text-slate-400" />
+                  <item.icon className="mr-2 h-4 w-4 text-muted-foreground" />
                   <span>{item.name}</span>
                   {item.shortcut && (
                     <CommandShortcut>{item.shortcut}</CommandShortcut>

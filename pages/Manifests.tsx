@@ -47,7 +47,7 @@ export const Manifests: React.FC = () => {
                                     ? meta?.flightNumber || 'N/A'
                                     : meta?.driverName || 'N/A'}
                             </span>
-                            <div className="text-xs text-slate-500">
+                            <div className="text-xs text-muted-foreground">
                                 {row.original.type === 'AIR'
                                     ? meta?.carrier || ''
                                     : meta?.vehicleId || ''}
@@ -72,7 +72,7 @@ export const Manifests: React.FC = () => {
             cell: ({ row }) => (
                 <div>
                     <div className="font-semibold">{row.original.total_shipments} shipments</div>
-                    <div className="text-xs text-slate-500">{row.original.total_weight} kg</div>
+                    <div className="text-xs text-muted-foreground">{row.original.total_weight} kg</div>
                 </div>
             ),
         },
@@ -113,8 +113,8 @@ export const Manifests: React.FC = () => {
         <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Fleet Manifests</h1>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">Manage linehaul movements between hubs.</p>
+                    <h1 className="text-2xl font-bold text-foreground">Fleet Manifests</h1>
+                    <p className="text-muted-foreground text-sm">Manage linehaul movements between hubs.</p>
                 </div>
                 <Button onClick={() => setIsCreateOpen(true)}><FileText className="w-4 h-4 mr-2" /> Create Manifest</Button>
             </div>

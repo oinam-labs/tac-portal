@@ -159,10 +159,10 @@ export function PublicTracking() {
         {data?.shipment && (
           <div className="space-y-6">
             {/* Shipment Overview */}
-            <Card className="p-6 bg-slate-800/50 border-slate-700">
+            <Card className="p-6 bg-card/80 border-border">
               <div className="flex items-start justify-between mb-6">
                 <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">AWB Number</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">AWB Number</p>
                   <h2 className="text-2xl font-mono font-bold text-cyan-400">
                     {data.shipment.awb_number}
                   </h2>
@@ -171,59 +171,59 @@ export function PublicTracking() {
               </div>
 
               {/* Route */}
-              <div className="flex items-center gap-4 p-4 rounded-lg bg-slate-900/50 mb-6">
+              <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/50 mb-6">
                 <div className="text-center">
                   <MapPin className="w-6 h-6 text-cyan-500 mx-auto mb-1" />
                   <p className="text-lg font-bold text-white">
                     {data.shipment.origin_hub?.code || 'IMPHAL'}
                   </p>
-                  <p className="text-xs text-slate-400">Origin</p>
+                  <p className="text-xs text-muted-foreground">Origin</p>
                 </div>
                 <div className="flex-1 flex items-center justify-center">
-                  <div className="h-0.5 flex-1 bg-slate-600" />
+                  <div className="h-0.5 flex-1 bg-border" />
                   {data.shipment.mode === 'AIR' ? (
                     <Plane className="w-6 h-6 text-cyan-400 mx-2" />
                   ) : (
                     <Truck className="w-6 h-6 text-cyan-400 mx-2" />
                   )}
-                  <ArrowRight className="w-4 h-4 text-slate-500" />
-                  <div className="h-0.5 flex-1 bg-slate-600" />
+                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                  <div className="h-0.5 flex-1 bg-border" />
                 </div>
                 <div className="text-center">
                   <MapPin className="w-6 h-6 text-green-500 mx-auto mb-1" />
                   <p className="text-lg font-bold text-white">
                     {data.shipment.destination_hub?.code || 'NEW_DELHI'}
                   </p>
-                  <p className="text-xs text-slate-400">Destination</p>
+                  <p className="text-xs text-muted-foreground">Destination</p>
                 </div>
               </div>
 
               {/* Details Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-3 rounded-lg bg-slate-900/50">
-                  <p className="text-xs text-slate-500 mb-1">Packages</p>
+                <div className="p-3 rounded-lg bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Packages</p>
                   <p className="text-lg font-semibold text-white">{data.shipment.package_count}</p>
                 </div>
-                <div className="p-3 rounded-lg bg-slate-900/50">
-                  <p className="text-xs text-slate-500 mb-1">Weight</p>
+                <div className="p-3 rounded-lg bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Weight</p>
                   <p className="text-lg font-semibold text-white">{data.shipment.total_weight} kg</p>
                 </div>
-                <div className="p-3 rounded-lg bg-slate-900/50">
-                  <p className="text-xs text-slate-500 mb-1">Mode</p>
+                <div className="p-3 rounded-lg bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Mode</p>
                   <p className="text-lg font-semibold text-white flex items-center gap-2">
                     {data.shipment.mode === 'AIR' ? <Plane className="w-4 h-4" /> : <Truck className="w-4 h-4" />}
                     {data.shipment.mode}
                   </p>
                 </div>
-                <div className="p-3 rounded-lg bg-slate-900/50">
-                  <p className="text-xs text-slate-500 mb-1">Service</p>
+                <div className="p-3 rounded-lg bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Service</p>
                   <p className="text-lg font-semibold text-white">{data.shipment.service_level}</p>
                 </div>
               </div>
             </Card>
 
             {/* Tracking Timeline */}
-            <Card className="p-6 bg-slate-800/50 border-slate-700">
+            <Card className="p-6 bg-card/80 border-border">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <Clock className="w-5 h-5 text-cyan-500" />
                 Tracking History
@@ -234,34 +234,34 @@ export function PublicTracking() {
                   {data.events.map((e, idx) => (
                     <div key={e.id} className="flex gap-4">
                       <div className="flex flex-col items-center">
-                        <div className={`w-3 h-3 rounded-full ${idx === 0 ? 'bg-cyan-500' : 'bg-slate-500'}`} />
-                        {idx < data.events.length - 1 && <div className="w-0.5 flex-1 bg-slate-600 mt-1" />}
+                        <div className={`w-3 h-3 rounded-full ${idx === 0 ? 'bg-primary' : 'bg-muted-foreground'}`} />
+                        {idx < data.events.length - 1 && <div className="w-0.5 flex-1 bg-border mt-1" />}
                       </div>
                       <div className="flex-1 pb-4">
                         <p className="font-semibold text-white">{e.event_code.replace(/_/g, ' ')}</p>
-                        <p className="text-sm text-slate-400">{e.hub?.name || 'System'}</p>
-                        <p className="text-xs text-slate-500">{new Date(e.event_time).toLocaleString()}</p>
+                        <p className="text-sm text-muted-foreground">{e.hub?.name || 'System'}</p>
+                        <p className="text-xs text-muted-foreground/70">{new Date(e.event_time).toLocaleString()}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-slate-400 text-center py-8">
+                <p className="text-muted-foreground text-center py-8">
                   No tracking events recorded yet.
                 </p>
               )}
             </Card>
 
             {/* Consignee Info (partial) */}
-            <Card className="p-6 bg-slate-800/50 border-slate-700">
+            <Card className="p-6 bg-card/80 border-border">
               <h3 className="text-lg font-semibold text-white mb-4">Delivery Information</h3>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs text-slate-500 mb-1">Consignee Name</p>
+                  <p className="text-xs text-muted-foreground mb-1">Consignee Name</p>
                   <p className="text-white font-medium">{data.shipment.consignee_name}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 mb-1">Contact</p>
+                  <p className="text-xs text-muted-foreground mb-1">Contact</p>
                   <p className="text-white font-medium">
                     {data.shipment.consignee_phone?.replace(/(\d{2})(\d+)(\d{2})/, '$1****$3')}
                   </p>
@@ -273,9 +273,9 @@ export function PublicTracking() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-700 mt-12 py-6">
+      <footer className="border-t border-border mt-12 py-6">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             © 2026 TAC Cargo. All rights reserved.
           </p>
         </div>

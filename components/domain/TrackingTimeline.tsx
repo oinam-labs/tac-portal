@@ -2,9 +2,9 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { TrackingEvent, HubLocation } from '@/types'
-import { 
-  Package, Truck, MapPin, CheckCircle, AlertTriangle, 
-  ArrowRight, Clock, Building2 
+import {
+  Package, Truck, MapPin, CheckCircle, AlertTriangle,
+  ArrowRight, Clock, Building2
 } from 'lucide-react'
 
 interface TrackingTimelineProps {
@@ -26,18 +26,22 @@ const EVENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> =
   DEFAULT: Clock,
 }
 
+/**
+ * Event colors using semantic status tokens from globals.css
+ * These reference CSS custom properties for consistent theming
+ */
 const EVENT_COLORS: Record<string, string> = {
-  CREATED: 'bg-blue-500',
-  PICKED_UP: 'bg-cyan-500',
-  RECEIVED_AT_ORIGIN_HUB: 'bg-indigo-500',
-  LOADED_FOR_LINEHAUL: 'bg-violet-500',
-  IN_TRANSIT_TO_DESTINATION: 'bg-amber-500',
-  RECEIVED_AT_DEST_HUB: 'bg-teal-500',
-  OUT_FOR_DELIVERY: 'bg-orange-500',
-  DELIVERED: 'bg-emerald-500',
-  EXCEPTION_RAISED: 'bg-red-500',
-  EXCEPTION_RESOLVED: 'bg-emerald-500',
-  DEFAULT: 'bg-slate-500',
+  CREATED: 'bg-[oklch(var(--status-created-bg))]',
+  PICKED_UP: 'bg-[oklch(var(--status-manifested-bg))]',
+  RECEIVED_AT_ORIGIN_HUB: 'bg-[oklch(var(--status-manifested-bg))]',
+  LOADED_FOR_LINEHAUL: 'bg-[oklch(var(--status-in-transit-bg))]',
+  IN_TRANSIT_TO_DESTINATION: 'bg-[oklch(var(--status-in-transit-bg))]',
+  RECEIVED_AT_DEST_HUB: 'bg-[oklch(var(--status-arrived-bg))]',
+  OUT_FOR_DELIVERY: 'bg-[oklch(var(--status-in-transit-bg))]',
+  DELIVERED: 'bg-[oklch(var(--status-delivered-bg))]',
+  EXCEPTION_RAISED: 'bg-[oklch(var(--status-exception-bg))]',
+  EXCEPTION_RESOLVED: 'bg-[oklch(var(--status-delivered-bg))]',
+  DEFAULT: 'bg-muted',
 }
 
 const HUB_NAMES: Record<HubLocation, string> = {
@@ -71,7 +75,7 @@ export function TrackingTimeline({ events, className }: TrackingTimelineProps) {
                 <Icon className="w-5 h-5 text-white" />
               </div>
               {!isLast && (
-                <div className="w-0.5 flex-1 bg-gradient-to-b from-slate-600 to-slate-700 min-h-[40px]" />
+                <div className="w-0.5 flex-1 bg-gradient-to-b from-border to-muted min-h-[40px]" />
               )}
             </div>
 
@@ -89,30 +93,30 @@ export function TrackingTimeline({ events, className }: TrackingTimelineProps) {
                   <div>
                     <p className={cn(
                       "font-semibold",
-                      isFirst ? "text-white" : "text-slate-300"
+                      isFirst ? "text-foreground" : "text-muted-foreground"
                     )}>
                       {event.description || event.eventCode.replace(/_/g, ' ')}
                     </p>
                     {event.hubId && (
-                      <p className="text-sm text-slate-400 flex items-center gap-1 mt-1">
+                      <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                         <MapPin className="w-3 h-3" />
                         {HUB_NAMES[event.hubId]}
                       </p>
                     )}
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-muted-foreground">
                       {format(new Date(event.timestamp), 'dd MMM yyyy')}
                     </p>
-                    <p className="text-xs text-slate-400 font-mono">
+                    <p className="text-xs text-muted-foreground font-mono">
                       {format(new Date(event.timestamp), 'HH:mm')}
                     </p>
                   </div>
                 </div>
-                
+
                 {event.meta && Object.keys(event.meta).length > 0 && (
                   <div className="mt-2 pt-2 border-t border-white/5">
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-muted-foreground">
                       {JSON.stringify(event.meta)}
                     </p>
                   </div>

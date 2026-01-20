@@ -1,41 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Table, Th, Td, Badge, Button } from '../ui/CyberComponents';
-import { Shipment } from '../../types';
+import React from 'react';
+import { Card } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { STATUS_COLORS } from '../../lib/design-tokens';
-import { HUBS } from '../../lib/constants';
-import { db } from '../../lib/mock-db';
+import { useShipments } from '../../hooks/useShipments';
 import { TableSkeleton } from '../ui/skeleton';
 
 export const RecentActivity: React.FC = () => {
-    const [recentShipments, setRecentShipments] = useState<Shipment[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    // Use Supabase hook instead of mock-db
+    const { data: shipments = [], isLoading } = useShipments();
 
-    const refreshData = () => {
-        setIsLoading(true);
-        // Simulate network delay
-        setTimeout(() => {
-            const all = db.getShipments();
-            const sorted = [...all].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-            setRecentShipments(sorted.slice(0, 5));
-            setIsLoading(false);
-        }, 300);
-    };
-
-    useEffect(() => {
-        refreshData();
-        const interval = setInterval(() => {
-            const all = db.getShipments();
-            const sorted = [...all].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-            setRecentShipments(sorted.slice(0, 5));
-        }, 5000);
-        return () => clearInterval(interval);
-    }, []);
+    // Get 5 most recent shipments
+    const recentShipments = [...shipments]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5);
 
     if (isLoading && recentShipments.length === 0) {
         return (
             <Card className="lg:col-span-2">
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Recent Activity</h3>
+                    <h3 className="text-lg font-bold text-foreground">Recent Activity</h3>
                 </div>
                 <TableSkeleton rows={5} columns={4} />
             </Card>
@@ -43,48 +28,54 @@ export const RecentActivity: React.FC = () => {
     }
 
     return (
-        <Card className="lg:col-span-2 h-full">
-            <div className="flex justify-between items-center mb-6">
+        <Card className="lg:col-span-2 h-full border-border/50 shadow-sm">
+            <div className="flex justify-between items-center mb-6 px-2">
                 <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Recent Activity</h3>
-                    <p className="text-xs text-slate-500">Live shipment updates</p>
+                    <h3 className="text-lg font-bold text-foreground">Recent Activity</h3>
+                    <p className="text-sm text-muted-foreground">Live shipment updates</p>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => window.location.hash = '#/shipments'}>View All</Button>
+                <Button variant="outline" size="sm" onClick={() => window.location.hash = '#/shipments'}>View All</Button>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-hidden rounded-md border">
                 <Table>
-                    <thead>
-                        <tr>
-                            <Th>ID / Tracking</Th>
-                            <Th>Route</Th>
-                            <Th>Status</Th>
-                            <Th>ETA</Th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>ID / Tracking</TableHead>
+                            <TableHead>Route</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Date</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {recentShipments.length === 0 ? (
-                            <tr><td colSpan={4} className="text-center py-4 text-slate-500">No shipments found.</td></tr>
+                            <TableRow>
+                                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                                    No shipments found.
+                                </TableCell>
+                            </TableRow>
                         ) : (
                             recentShipments.map((shipment) => (
-                                <tr key={shipment.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                    <Td>
-                                        <div className="font-mono font-bold text-slate-900 dark:text-white">{shipment.id}</div>
-                                        <div className="text-xs text-slate-500">{shipment.awb}</div>
-                                    </Td>
-                                    <Td>
-                                        <div className="text-slate-700 dark:text-white">{HUBS[shipment.originHub]?.name || shipment.originHub}</div>
-                                        <div className="text-xs text-slate-500">to {HUBS[shipment.destinationHub]?.name || shipment.destinationHub}</div>
-                                    </Td>
-                                    <Td>
-                                        <Badge className={STATUS_COLORS[shipment.status as keyof typeof STATUS_COLORS] || ''}>
+                                <TableRow key={shipment.id} className="group hover:bg-muted/50 transition-colors">
+                                    <TableCell>
+                                        <div className="font-medium text-foreground">{shipment.awb_number}</div>
+                                        <div className="text-xs text-muted-foreground font-mono">ID: {shipment.id.slice(0, 8)}</div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="text-sm font-medium">{shipment.origin_hub?.name || 'Origin'}</div>
+                                        <div className="text-xs text-muted-foreground">to {shipment.destination_hub?.name || 'Destination'}</div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant="outline" className={`font-medium ${STATUS_COLORS[shipment.status as keyof typeof STATUS_COLORS] || ''}`}>
                                             {shipment.status.replace(/_/g, ' ')}
                                         </Badge>
-                                    </Td>
-                                    <Td className="font-mono text-xs">{shipment.eta}</Td>
-                                </tr>
+                                    </TableCell>
+                                    <TableCell className="text-xs text-muted-foreground">
+                                        {new Date(shipment.created_at).toLocaleDateString()}
+                                    </TableCell>
+                                </TableRow>
                             ))
                         )}
-                    </tbody>
+                    </TableBody>
                 </Table>
             </div>
         </Card>

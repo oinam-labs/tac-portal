@@ -4,8 +4,9 @@ import { BarcodeScanner } from '../components/scanning/BarcodeScanner';
 import { ScanLine, Box, Check, X, Truck, AlertTriangle, Camera, Keyboard } from 'lucide-react';
 import { parseScanInput } from '../lib/scanParser';
 import { useScanQueue } from '../store/scanQueueStore';
-import { useUpdateShipmentStatus } from '../hooks/useShipments';
-import { supabase } from '../lib/supabase';
+import { useUpdateShipmentStatus, useFindShipmentByAwb } from '../hooks/useShipments';
+import { useFindManifestByCode, useAddManifestItem, useCheckManifestItem, ManifestLookupResult } from '../hooks/useManifests';
+import { useCreateException } from '../hooks/useExceptions';
 import { playSuccessFeedback, playErrorFeedback, playWarningFeedback, playManifestActivatedFeedback } from '../lib/feedback';
 
 type ScanMode = 'RECEIVE' | 'DELIVER' | 'LOAD_MANIFEST' | 'VERIFY_MANIFEST';
@@ -29,8 +30,13 @@ export const Scanning: React.FC = () => {
     // Offline queue
     const { addScan, pendingScans, isOnline, syncPending } = useScanQueue();
 
-    // Mutations
+    // Mutations (using hooks instead of direct Supabase)
     const updateStatus = useUpdateShipmentStatus();
+    const findManifest = useFindManifestByCode();
+    const findShipment = useFindShipmentByAwb();
+    const addManifestItem = useAddManifestItem();
+    const checkManifestItem = useCheckManifestItem();
+    const createException = useCreateException();
 
     // Sync pending scans when online
     useEffect(() => {
@@ -72,32 +78,32 @@ export const Scanning: React.FC = () => {
         // Handle Manifest scans
         if (scanResult.type === 'manifest') {
             if (!activeManifest) {
-                // Try to load manifest
-                const { data: manifest, error } = await (supabase
-                    .from('manifests') as any)
-                    .select('id, manifest_no, from_hub_id, to_hub_id, status')
-                    .or(`id.eq.${scanResult.manifestId},manifest_no.eq.${scanResult.manifestNo}`)
-                    .single();
+                try {
+                    // Use hook to find manifest
+                    const manifest = await findManifest.mutateAsync(scanResult.manifestId || scanResult.manifestNo || code);
 
-                if (error || !manifest) {
-                    addScanResult(code, 'ERROR', 'Manifest not found');
-                    return;
+                    if (!manifest) {
+                        addScanResult(code, 'ERROR', 'Manifest not found');
+                        return;
+                    }
+
+                    const m = manifest as ManifestLookupResult;
+                    if (scanMode === 'LOAD_MANIFEST' && m.status !== 'OPEN') {
+                        addScanResult(code, 'ERROR', `Manifest is ${m.status}, cannot load.`);
+                        return;
+                    }
+
+                    if (scanMode === 'VERIFY_MANIFEST' && m.status !== 'DEPARTED') {
+                        addScanResult(code, 'ERROR', `Manifest is ${m.status}, cannot verify.`);
+                        return;
+                    }
+
+                    setActiveManifest(m);
+                    const action = scanMode === 'LOAD_MANIFEST' ? 'load packages' : 'verify arrival';
+                    addScanResult(m.manifest_no, 'SUCCESS', `Manifest active. Ready to ${action}.`, 'manifest');
+                } catch (err) {
+                    addScanResult(code, 'ERROR', err instanceof Error ? err.message : 'Failed to load manifest');
                 }
-
-                const m = manifest as ActiveManifest;
-                if (scanMode === 'LOAD_MANIFEST' && m.status !== 'OPEN') {
-                    addScanResult(code, 'ERROR', `Manifest is ${m.status}, cannot load.`);
-                    return;
-                }
-
-                if (scanMode === 'VERIFY_MANIFEST' && m.status !== 'DEPARTED') {
-                    addScanResult(code, 'ERROR', `Manifest is ${m.status}, cannot verify.`);
-                    return;
-                }
-
-                setActiveManifest(m);
-                const action = scanMode === 'LOAD_MANIFEST' ? 'load packages' : 'verify arrival';
-                addScanResult(m.manifest_no, 'SUCCESS', `Manifest active. Ready to ${action}.`, 'manifest');
             }
             return;
         }
@@ -120,76 +126,59 @@ export const Scanning: React.FC = () => {
             return;
         }
 
-        // Fetch shipment from Supabase
-        const { data: shipmentData, error: shipmentError } = await (supabase
-            .from('shipments') as any)
-            .select('id, awb_number, status, origin_hub_id, destination_hub_id')
-            .eq('awb_number', awb)
-            .single();
-
-        if (shipmentError || !shipmentData) {
-            addScanResult(awb, 'ERROR', 'Shipment not found in system.');
-            return;
-        }
-
-        const shipment = shipmentData as { id: string; awb_number: string; status: string; origin_hub_id: string; destination_hub_id: string };
-
         try {
+            // Use hook to fetch shipment
+            const shipment = await findShipment.mutateAsync(awb);
+
+            if (!shipment) {
+                addScanResult(awb, 'ERROR', 'Shipment not found in system.');
+                return;
+            }
+
             if (scanMode === 'RECEIVE') {
                 const newStatus = shipment.status === 'CREATED' ? 'RECEIVED' : 'RECEIVED_AT_DEST';
-                await updateStatus.mutateAsync({ id: shipment.id, status: newStatus as any });
+                await updateStatus.mutateAsync({ id: shipment.id, status: newStatus });
                 addScanResult(awb, 'SUCCESS', `Status updated to ${newStatus}`);
 
             } else if (scanMode === 'LOAD_MANIFEST') {
                 if (!activeManifest) throw new Error("No Active Manifest.");
 
-                // Add to manifest
-                const orgResult = await (supabase.from('orgs') as any).select('id').single();
-                const { error: addError } = await (supabase
-                    .from('manifest_items') as any)
-                    .insert({
-                        org_id: orgResult.data?.id,
-                        manifest_id: activeManifest.id,
-                        shipment_id: shipment.id,
-                        scanned_at: new Date().toISOString(),
-                    });
-
-                if (addError) throw new Error(addError.message);
+                // Add to manifest using hook
+                await addManifestItem.mutateAsync({
+                    manifest_id: activeManifest.id,
+                    shipment_id: shipment.id,
+                });
 
                 // Update shipment status
-                await updateStatus.mutateAsync({ id: shipment.id, status: 'LOADED_FOR_LINEHAUL' as any });
+                await updateStatus.mutateAsync({ id: shipment.id, status: 'LOADED_FOR_LINEHAUL' });
                 addScanResult(awb, 'SUCCESS', `Loaded to ${activeManifest.manifest_no}`);
 
             } else if (scanMode === 'VERIFY_MANIFEST') {
                 if (!activeManifest) throw new Error("No Active Manifest.");
 
-                // Check if shipment is in manifest
-                const { data: item } = await (supabase
-                    .from('manifest_items') as any)
-                    .select('id')
-                    .eq('manifest_id', activeManifest.id)
-                    .eq('shipment_id', shipment.id)
-                    .single();
+                // Check if shipment is in manifest using hook
+                const isInManifest = await checkManifestItem.mutateAsync({
+                    manifest_id: activeManifest.id,
+                    shipment_id: shipment.id,
+                });
 
-                if (item) {
-                    await updateStatus.mutateAsync({ id: shipment.id, status: 'RECEIVED_AT_DEST' as any });
+                if (isInManifest) {
+                    await updateStatus.mutateAsync({ id: shipment.id, status: 'RECEIVED_AT_DEST' });
                     addScanResult(awb, 'SUCCESS', 'Verified & Received');
                 } else {
-                    // Create exception
-                    const orgResult = await (supabase.from('orgs') as any).select('id').single();
-                    await (supabase.from('exceptions') as any).insert({
-                        org_id: orgResult.data?.id,
+                    // Create exception using hook
+                    await createException.mutateAsync({
                         shipment_id: shipment.id,
+                        awb_number: awb,
                         type: 'MISROUTE',
                         severity: 'HIGH',
                         description: `Scanned with Manifest ${activeManifest.manifest_no} but not listed.`,
-                        status: 'OPEN',
                     });
                     addScanResult(awb, 'ERROR', 'EXCEPTION: Shipment not in Manifest!');
                 }
 
             } else if (scanMode === 'DELIVER') {
-                await updateStatus.mutateAsync({ id: shipment.id, status: 'DELIVERED' as any });
+                await updateStatus.mutateAsync({ id: shipment.id, status: 'DELIVERED' });
                 addScanResult(awb, 'SUCCESS', 'Marked as Delivered');
             }
         } catch (err: unknown) {
@@ -219,31 +208,31 @@ export const Scanning: React.FC = () => {
         <div className="space-y-6 h-[calc(100vh-140px)] flex flex-col animate-[fadeIn_0.5s_ease-out]">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Terminal Scanner</h1>
-                    <p className="text-sm text-slate-500">Process incoming/outgoing shipments.</p>
+                    <h1 className="text-2xl font-bold text-foreground">Terminal Scanner</h1>
+                    <p className="text-sm text-muted-foreground">Process incoming/outgoing shipments.</p>
                 </div>
                 <div className="flex gap-2 bg-cyber-card p-1 rounded-lg border border-cyber-border">
                     <button
                         onClick={() => { setScanMode('RECEIVE'); setActiveManifest(null); }}
-                        className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'RECEIVE' ? 'bg-cyber-neon text-black' : 'text-slate-500 hover:text-white'}`}
+                        className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'RECEIVE' ? 'bg-cyber-neon text-black' : 'text-muted-foreground hover:text-foreground'}`}
                     >
                         RECEIVE
                     </button>
                     <button
                         onClick={() => { setScanMode('LOAD_MANIFEST'); setActiveManifest(null); }}
-                        className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'LOAD_MANIFEST' ? 'bg-purple-500 text-white' : 'text-slate-500 hover:text-white'}`}
+                        className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'LOAD_MANIFEST' ? 'bg-purple-500 text-white' : 'text-muted-foreground hover:text-foreground'}`}
                     >
                         LOAD
                     </button>
                     <button
                         onClick={() => { setScanMode('VERIFY_MANIFEST'); setActiveManifest(null); }}
-                        className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'VERIFY_MANIFEST' ? 'bg-blue-500 text-white' : 'text-slate-500 hover:text-white'}`}
+                        className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'VERIFY_MANIFEST' ? 'bg-blue-500 text-white' : 'text-muted-foreground hover:text-foreground'}`}
                     >
                         VERIFY
                     </button>
                     <button
                         onClick={() => { setScanMode('DELIVER'); setActiveManifest(null); }}
-                        className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'DELIVER' ? 'bg-green-500 text-black' : 'text-slate-500 hover:text-white'}`}
+                        className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'DELIVER' ? 'bg-green-500 text-black' : 'text-muted-foreground hover:text-foreground'}`}
                     >
                         DELIVER
                     </button>
@@ -301,8 +290,8 @@ export const Scanning: React.FC = () => {
                     ) : (
                         <div className="flex-1 flex flex-col items-center justify-center p-8">
                             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-20"></div>
-                            <ScanLine className="w-16 h-16 text-cyber-neon mx-auto animate-pulse z-10" />
-                            <div className="bg-black/80 px-4 py-2 rounded text-cyber-neon font-mono mt-4 z-10">
+                            <ScanLine className="w-16 h-16 text-primary mx-auto animate-pulse z-10" />
+                            <div className="bg-black/80 px-4 py-2 rounded text-primary font-mono mt-4 z-10">
                                 {(scanMode === 'LOAD_MANIFEST' || scanMode === 'VERIFY_MANIFEST') && !activeManifest
                                     ? 'ENTER MANIFEST CODE'
                                     : 'ENTER AWB MANUALLY'}
@@ -330,18 +319,18 @@ export const Scanning: React.FC = () => {
                     </Card>
 
                     <Card className="flex-1 overflow-hidden flex flex-col">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Scan Log</h3>
+                        <h3 className="text-lg font-bold text-foreground mb-4">Scan Log</h3>
                         <div className="flex-1 overflow-y-auto space-y-2 pr-2">
                             {scannedItems.length === 0 ? (
-                                <div className="text-center text-slate-500 py-10">No items scanned this session</div>
+                                <div className="text-center text-muted-foreground py-10">No items scanned this session</div>
                             ) : (
                                 scannedItems.map((item, idx) => (
                                     <div key={idx} className={`flex items-center justify-between p-3 rounded border animate-[slideIn_0.2s_ease-out] ${item.status === 'SUCCESS' ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
                                         <div className="flex items-center gap-3">
                                             {item.msg.includes('EXCEPTION') ? <AlertTriangle className="w-4 h-4 text-red-500" /> : <Box className={`w-4 h-4 ${item.status === 'SUCCESS' ? 'text-green-500' : 'text-red-500'}`} />}
                                             <div>
-                                                <div className="font-mono font-bold text-slate-900 dark:text-white">{item.code}</div>
-                                                <div className="text-xs text-slate-500">{item.msg}</div>
+                                                <div className="font-mono font-bold text-foreground">{item.code}</div>
+                                                <div className="text-xs text-muted-foreground">{item.msg}</div>
                                             </div>
                                         </div>
                                         {item.status === 'SUCCESS' ? <Check className="w-4 h-4 text-green-400" /> : <X className="w-4 h-4 text-red-400" />}

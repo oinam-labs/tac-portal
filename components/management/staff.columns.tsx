@@ -7,15 +7,15 @@ import { User as UserIcon, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Staff } from "@/hooks/useStaff";
 
-// Role color mapping
+// Role color mapping using semantic badge classes
 const ROLE_COLORS: Record<string, string> = {
-    ADMIN: "bg-cyber-accent text-black",
-    MANAGER: "bg-purple-500/20 text-purple-400 border-purple-400/30",
-    OPS: "bg-blue-500/20 text-blue-400 border-blue-400/30",
-    WAREHOUSE_IMPHAL: "bg-amber-500/20 text-amber-400 border-amber-400/30",
-    WAREHOUSE_DELHI: "bg-amber-500/20 text-amber-400 border-amber-400/30",
-    INVOICE: "bg-emerald-500/20 text-emerald-400 border-emerald-400/30",
-    SUPPORT: "bg-slate-500/20 text-slate-400 border-slate-400/30",
+    ADMIN: "bg-primary text-primary-foreground border-transparent",
+    MANAGER: "badge--manifested",
+    OPS: "badge--created",
+    WAREHOUSE_IMPHAL: "badge--in-transit",
+    WAREHOUSE_DELHI: "badge--in-transit",
+    INVOICE: "badge--delivered",
+    SUPPORT: "badge--cancelled",
 };
 
 export interface StaffColumnsParams {
@@ -37,14 +37,14 @@ export function getStaffColumns(
             header: "Staff Member",
             cell: ({ row }) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center border border-white/10">
-                        <UserIcon className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border border-white/10">
+                        <UserIcon className="w-4 h-4 text-muted-foreground" />
                     </div>
                     <div>
-                        <div className="font-medium text-slate-900 dark:text-white">
+                        <div className="font-medium text-foreground">
                             {row.original.full_name}
                         </div>
-                        <div className="text-xs text-slate-500">{row.original.email}</div>
+                        <div className="text-xs text-muted-foreground">{row.original.email}</div>
                     </div>
                 </div>
             ),
@@ -65,7 +65,7 @@ export function getStaffColumns(
                 row.original.hub ? (
                     <span className="text-xs font-mono">{row.original.hub.code}</span>
                 ) : (
-                    <span className="text-xs text-slate-400">HQ / Global</span>
+                    <span className="text-xs text-muted-foreground">HQ / Global</span>
                 ),
         },
         {
@@ -74,14 +74,14 @@ export function getStaffColumns(
             cell: ({ row }) => (
                 <span
                     className={`flex items-center gap-1.5 text-xs ${row.original.is_active
-                            ? "text-green-600 dark:text-green-400"
-                            : "text-slate-500 dark:text-slate-400"
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-muted-foreground"
                         }`}
                 >
                     <span
                         className={`w-1.5 h-1.5 rounded-full ${row.original.is_active
-                                ? "bg-green-500 dark:bg-green-400"
-                                : "bg-slate-400 dark:bg-slate-600"
+                            ? "bg-green-500 dark:bg-green-400"
+                            : "bg-muted"
                             }`}
                     />
                     {row.original.is_active ? "Active" : "Inactive"}

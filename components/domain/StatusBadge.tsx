@@ -10,42 +10,50 @@ interface StatusBadgeProps {
   showDot?: boolean
 }
 
-const STATUS_CONFIG: Record<string, { bg: string; text: string; dot: string }> = {
+/**
+ * Status to CSS badge class mapping
+ * Uses semantic status tokens from globals.css
+ */
+const STATUS_CLASS_MAP: Record<string, { class: string; animate?: boolean }> = {
   // Shipment Statuses
-  CREATED: { bg: 'bg-blue-500/20', text: 'text-blue-400', dot: 'bg-blue-400' },
-  PICKED_UP: { bg: 'bg-cyan-500/20', text: 'text-cyan-400', dot: 'bg-cyan-400' },
-  RECEIVED_AT_ORIGIN_HUB: { bg: 'bg-indigo-500/20', text: 'text-indigo-400', dot: 'bg-indigo-400' },
-  LOADED_FOR_LINEHAUL: { bg: 'bg-violet-500/20', text: 'text-violet-400', dot: 'bg-violet-400' },
-  IN_TRANSIT_TO_DESTINATION: { bg: 'bg-amber-500/20', text: 'text-amber-400', dot: 'bg-amber-400 animate-pulse' },
-  RECEIVED_AT_DEST_HUB: { bg: 'bg-teal-500/20', text: 'text-teal-400', dot: 'bg-teal-400' },
-  OUT_FOR_DELIVERY: { bg: 'bg-orange-500/20', text: 'text-orange-400', dot: 'bg-orange-400 animate-pulse' },
-  DELIVERED: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', dot: 'bg-emerald-400' },
-  RETURNED: { bg: 'bg-slate-500/20', text: 'text-slate-400', dot: 'bg-slate-400' },
-  CANCELLED: { bg: 'bg-slate-600/20', text: 'text-slate-500', dot: 'bg-slate-500' },
-  DAMAGED: { bg: 'bg-red-500/20', text: 'text-red-400', dot: 'bg-red-400' },
-  EXCEPTION_RAISED: { bg: 'bg-red-500/20', text: 'text-red-400', dot: 'bg-red-400 animate-pulse' },
-  EXCEPTION_RESOLVED: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', dot: 'bg-emerald-400' },
+  CREATED: { class: 'badge--created' },
+  PICKED_UP: { class: 'badge--manifested' },
+  RECEIVED_AT_ORIGIN_HUB: { class: 'badge--manifested' },
+  LOADED_FOR_LINEHAUL: { class: 'badge--in-transit' },
+  IN_TRANSIT_TO_DESTINATION: { class: 'badge--in-transit', animate: true },
+  RECEIVED_AT_DEST_HUB: { class: 'badge--arrived' },
+  OUT_FOR_DELIVERY: { class: 'badge--in-transit', animate: true },
+  DELIVERED: { class: 'badge--delivered' },
+  RETURNED: { class: 'badge--returned' },
+  CANCELLED: { class: 'badge--cancelled' },
+  DAMAGED: { class: 'badge--exception' },
+  EXCEPTION_RAISED: { class: 'badge--exception', animate: true },
+  EXCEPTION_RESOLVED: { class: 'badge--delivered' },
 
   // Manifest Statuses
-  OPEN: { bg: 'bg-blue-500/20', text: 'text-blue-400', dot: 'bg-blue-400' },
-  CLOSED: { bg: 'bg-amber-500/20', text: 'text-amber-400', dot: 'bg-amber-400' },
-  DEPARTED: { bg: 'bg-cyan-500/20', text: 'text-cyan-400', dot: 'bg-cyan-400 animate-pulse' },
-  ARRIVED: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', dot: 'bg-emerald-400' },
+  OPEN: { class: 'badge--created' },
+  CLOSED: { class: 'badge--manifested' },
+  DEPARTED: { class: 'badge--in-transit', animate: true },
+  ARRIVED: { class: 'badge--arrived' },
 
   // Invoice Statuses
-  DRAFT: { bg: 'bg-slate-500/20', text: 'text-slate-400', dot: 'bg-slate-400' },
-  ISSUED: { bg: 'bg-blue-500/20', text: 'text-blue-400', dot: 'bg-blue-400' },
-  PAID: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', dot: 'bg-emerald-400' },
-  OVERDUE: { bg: 'bg-red-500/20', text: 'text-red-400', dot: 'bg-red-400 animate-pulse' },
+  DRAFT: { class: 'badge--cancelled' },
+  ISSUED: { class: 'badge--manifested' },
+  PAID: { class: 'badge--delivered' },
+  OVERDUE: { class: 'badge--exception', animate: true },
+
+  // Exception Statuses
+  INVESTIGATING: { class: 'badge--in-transit' },
+  RESOLVED: { class: 'badge--delivered' },
 
   // Exception Severities
-  LOW: { bg: 'bg-slate-500/20', text: 'text-slate-400', dot: 'bg-slate-400' },
-  MEDIUM: { bg: 'bg-amber-500/20', text: 'text-amber-400', dot: 'bg-amber-400' },
-  HIGH: { bg: 'bg-orange-500/20', text: 'text-orange-400', dot: 'bg-orange-400' },
-  CRITICAL: { bg: 'bg-red-500/20', text: 'text-red-400', dot: 'bg-red-400 animate-pulse' },
+  LOW: { class: 'badge--cancelled' },
+  MEDIUM: { class: 'badge--in-transit' },
+  HIGH: { class: 'badge--exception' },
+  CRITICAL: { class: 'badge--exception', animate: true },
 
-  // Default
-  DEFAULT: { bg: 'bg-slate-500/20', text: 'text-slate-400', dot: 'bg-slate-400' },
+  // Default fallback
+  DEFAULT: { class: 'badge--cancelled' },
 }
 
 const SIZE_CLASSES = {
@@ -55,19 +63,23 @@ const SIZE_CLASSES = {
 }
 
 export function StatusBadge({ status, size = 'md', className, showDot = true }: StatusBadgeProps) {
-  const config = STATUS_CONFIG[status] || STATUS_CONFIG.DEFAULT
+  const config = STATUS_CLASS_MAP[status] || STATUS_CLASS_MAP.DEFAULT
   const displayText = status.replace(/_/g, ' ')
 
   return (
     <span className={cn(
       "inline-flex items-center gap-1.5 rounded-md font-medium",
-      config.bg,
-      config.text,
+      config.class,
       SIZE_CLASSES[size],
       className
     )}>
       {showDot && (
-        <span className={cn("w-1.5 h-1.5 rounded-full", config.dot)} />
+        <span
+          className={cn(
+            "w-1.5 h-1.5 rounded-full bg-current",
+            config.animate && "animate-pulse"
+          )}
+        />
       )}
       <span className="capitalize">{displayText.toLowerCase()}</span>
     </span>

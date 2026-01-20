@@ -26,7 +26,7 @@ export interface Customer {
   phone: string;
   email: string | null;
   gstin: string | null;
-  type: 'individual' | 'business';
+  type: 'INDIVIDUAL' | 'BUSINESS';
   address: any;
   billing_address: any | null;
   credit_limit: number;
@@ -36,6 +36,16 @@ export interface Customer {
   companyName?: string;
   tier?: 'STANDARD' | 'PRIORITY' | 'ENTERPRISE';
   activeContracts?: number;
+  // Optional fields for invoice UI compatibility
+  createdAt?: string;
+  invoiceCount?: number;
+  avgInvoiceValue?: number;
+  preferences?: {
+    preferredTransportMode?: 'AIR' | 'TRUCK';
+    preferredPaymentMode?: string;
+    gstApplicable?: boolean;
+    typicalContents?: string;
+  };
 }
 
 export function useCustomers(options?: { search?: string; limit?: number }) {
@@ -90,7 +100,7 @@ export function useCreateCustomer() {
       phone: string;
       email?: string;
       gstin?: string;
-      type?: 'individual' | 'business';
+      type?: 'INDIVIDUAL' | 'BUSINESS';
       address: any;
       billing_address?: any;
       credit_limit?: number;

@@ -13,8 +13,8 @@ export const Badge: React.FC<{ children: React.ReactNode; variant?: 'default' | 
     const baseStyle = "px-2 py-0.5 rounded text-xs font-mono font-bold tracking-wide uppercase";
     const variants = {
         default: "bg-cyber-surface text-cyber-accent border border-cyber-border",
-        outline: "border border-cyber-border text-slate-500 dark:text-gray-400",
-        neon: "bg-cyber-accent/10 text-cyber-neon border border-cyber-neon/50 shadow-[0_0_10px_rgba(34,211,238,0.3)]",
+        outline: "border border-cyber-border text-muted-foreground",
+        neon: "bg-primary/10 text-primary border border-primary/50 shadow-sm",
     };
     return (
         <span className={`${baseStyle} ${variants[variant]} ${className}`}>
@@ -33,9 +33,9 @@ export const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', s
     const base = "font-sans font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-cyber-accent/50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95";
 
     const variants = {
-        primary: "bg-cyber-accent/10 hover:bg-cyber-accent/20 active:bg-cyber-accent/30 text-cyber-accentHover dark:text-cyber-neon border border-cyber-neon/50 shadow-[0_0_15px_rgba(34,211,238,0.15)] hover:shadow-[0_0_20px_rgba(34,211,238,0.3)]",
-        secondary: "bg-cyber-surface hover:bg-slate-100 active:bg-slate-200 dark:hover:bg-slate-800 dark:active:bg-slate-700 text-slate-600 dark:text-slate-300 border border-cyber-border",
-        ghost: "bg-transparent hover:bg-cyber-accent/5 active:bg-cyber-accent/10 text-slate-500 hover:text-cyber-accentHover dark:text-slate-400 dark:hover:text-cyber-neon",
+        primary: "bg-primary/10 hover:bg-primary/20 active:bg-primary/30 text-primary border border-primary/50 shadow-sm hover:shadow-md",
+        secondary: "bg-cyber-surface hover:bg-muted active:bg-muted/80 text-muted-foreground border border-cyber-border",
+        ghost: "bg-transparent hover:bg-primary/5 active:bg-primary/10 text-muted-foreground hover:text-primary",
         danger: "bg-red-500/10 hover:bg-red-500/20 active:bg-red-500/30 text-red-600 dark:text-red-400 border border-red-500/50",
     };
 
@@ -61,7 +61,7 @@ export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
     ({ className = '', ...props }, ref) => (
         <input
             ref={ref}
-            className={`bg-white/50 dark:bg-cyber-surface/50 border border-cyber-border text-slate-900 dark:text-slate-100 rounded-lg px-4 py-2 focus:border-cyber-neon focus:ring-1 focus:ring-cyber-neon focus:outline-none placeholder-slate-500 dark:placeholder-slate-600 transition-all w-full ${className}`}
+            className={`bg-white/50 dark:bg-cyber-surface/50 border border-cyber-border text-foreground rounded-lg px-4 py-2 focus:border-cyber-neon focus:ring-1 focus:ring-cyber-neon focus:outline-none placeholder-muted-foreground transition-all w-full ${className}`}
             {...props}
         />
     )
@@ -77,9 +77,9 @@ export const Table: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
 
 export const Th: React.FC<React.ThHTMLAttributes<HTMLTableCellElement>> = ({ children, className = '', ...props }) => (
-    <th className={`p-4 text-xs font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-cyber-border ${className}`} {...props}>{children}</th>
+    <th className={`p-4 text-xs font-mono text-muted-foreground uppercase tracking-wider border-b border-cyber-border ${className}`} {...props}>{children}</th>
 );
 
 export const Td: React.FC<React.TdHTMLAttributes<HTMLTableCellElement>> = ({ children, className = '', ...props }) => (
-    <td className={`p-4 border-b border-cyber-border/50 text-sm text-slate-700 dark:text-slate-300 ${className}`} {...props}>{children}</td>
+    <td className={`p-4 border-b border-cyber-border/50 text-sm text-foreground ${className}`} {...props}>{children}</td>
 );

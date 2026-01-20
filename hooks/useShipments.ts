@@ -219,3 +219,31 @@ export function useDeleteShipment() {
     },
   });
 }
+
+/**
+ * Mutation hook for imperative shipment lookup by AWB (used in Scanning.tsx).
+ * Returns shipment with minimal fields needed for scanning operations.
+ */
+export interface ShipmentScanResult {
+  id: string;
+  awb_number: string;
+  status: string;
+  origin_hub_id: string;
+  destination_hub_id: string;
+}
+
+export function useFindShipmentByAwb() {
+  return useMutation({
+    mutationFn: async (awb: string): Promise<ShipmentScanResult | null> => {
+      const { data, error } = await db
+        .from('shipments')
+        .select('id, awb_number, status, origin_hub_id, destination_hub_id')
+        .eq('awb_number', awb)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data as ShipmentScanResult | null;
+    },
+  });
+}
+

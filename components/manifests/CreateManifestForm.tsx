@@ -105,18 +105,18 @@ export const CreateManifestForm: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left: Settings */}
                 <Card className="p-6 space-y-4 h-fit border border-cyber-border bg-white dark:bg-cyber-surface">
-                    <h3 className="text-sm font-bold text-slate-500 uppercase">Route Settings</h3>
+                    <h3 className="text-sm font-bold text-muted-foreground uppercase">Route Settings</h3>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="text-xs text-slate-400 mb-1 block">ORIGIN</label>
-                            <select {...register('fromHub')} className="w-full bg-slate-50 dark:bg-black/20 border border-cyber-border rounded px-3 py-2 text-sm">
+                            <label className="text-xs text-muted-foreground mb-1 block">ORIGIN</label>
+                            <select {...register('fromHub')} className="w-full bg-muted border border-cyber-border rounded px-3 py-2 text-sm">
                                 {Object.values(HUBS).map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label className="text-xs text-slate-400 mb-1 block">DESTINATION</label>
-                            <select {...register('toHub')} className="w-full bg-slate-50 dark:bg-black/20 border border-cyber-border rounded px-3 py-2 text-sm">
+                            <label className="text-xs text-muted-foreground mb-1 block">DESTINATION</label>
+                            <select {...register('toHub')} className="w-full bg-muted border border-cyber-border rounded px-3 py-2 text-sm">
                                 {Object.values(HUBS).map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
                             </select>
                             {errors.toHub && <span className="text-red-500 text-xs">{errors.toHub.message}</span>}
@@ -124,11 +124,11 @@ export const CreateManifestForm: React.FC = () => {
                     </div>
 
                     <div>
-                        <label className="text-xs text-slate-400 mb-1 block">TYPE</label>
+                        <label className="text-xs text-muted-foreground mb-1 block">TYPE</label>
                         <div className="grid grid-cols-2 gap-3">
                             <label className={`
                                 border rounded-lg p-3 flex flex-col items-center cursor-pointer transition-all
-                                ${type === 'AIR' ? 'border-cyber-neon text-cyber-neon bg-cyber-neon/5' : 'border-cyber-border opacity-60'}
+                                ${type === 'AIR' ? 'border-primary text-primary bg-primary/5' : 'border-cyber-border opacity-60'}
                             `}>
                                 <input type="radio" value="AIR" {...register('type')} className="hidden" />
                                 <Plane className="w-5 h-5 mb-1" />
@@ -147,13 +147,13 @@ export const CreateManifestForm: React.FC = () => {
 
                     <div className="space-y-3">
                         <div>
-                            <label className="text-xs text-slate-400 mb-1 block">{type === 'AIR' ? 'FLIGHT NO' : 'VEHICLE NO'}</label>
+                            <label className="text-xs text-muted-foreground mb-1 block">{type === 'AIR' ? 'FLIGHT NO' : 'VEHICLE NO'}</label>
                             <Input {...register('vehicleInfo')} placeholder={type === 'AIR' ? 'Eg. 6E 6055' : 'Eg. MN01 AA 1234'} />
                             {errors.vehicleInfo && <span className="text-red-500 text-xs">{errors.vehicleInfo.message}</span>}
                         </div>
                         {type === 'TRUCK' && (
                             <div>
-                                <label className="text-xs text-slate-400 mb-1 block">DRIVER NAME</label>
+                                <label className="text-xs text-muted-foreground mb-1 block">DRIVER NAME</label>
                                 <Input {...register('driver')} placeholder="Driver Name" />
                             </div>
                         )}
@@ -163,23 +163,23 @@ export const CreateManifestForm: React.FC = () => {
                 {/* Right: Shipment Selection */}
                 <div className="lg:col-span-2 space-y-4">
                     <Card className="p-0 border border-cyber-border overflow-hidden bg-white dark:bg-cyber-surface">
-                        <div className="p-4 border-b border-cyber-border flex justify-between items-center bg-slate-50 dark:bg-white/5">
+                        <div className="p-4 border-b border-cyber-border flex justify-between items-center bg-muted">
                             <div>
                                 <h3 className="font-bold flex items-center gap-2">
-                                    <Package className="w-4 h-4 text-cyber-neon" />
+                                    <Package className="w-4 h-4 text-primary" />
                                     Available Shipments
                                 </h3>
-                                <p className="text-xs text-slate-500">
+                                <p className="text-xs text-muted-foreground">
                                     {shipments?.length || 0} items waiting at {fromHub}
                                 </p>
                             </div>
 
                             {selectedShipmentIds.length > 0 && (
                                 <div className="text-right">
-                                    <div className="text-xs text-cyber-neon font-mono font-bold">
+                                    <div className="text-xs text-primary font-mono font-bold">
                                         {selectedShipmentIds.length} SELECTED
                                     </div>
-                                    <div className="text-[10px] text-slate-400">
+                                    <div className="text-[10px] text-muted-foreground">
                                         {totalSelectedWeight.toFixed(1)} kg Total
                                     </div>
                                 </div>
@@ -207,11 +207,11 @@ export const CreateManifestForm: React.FC = () => {
                                     {loadingShipments && <tr><Td colSpan={6} className="text-center py-10">Loading...</Td></tr>}
 
                                     {!loadingShipments && shipments?.length === 0 && (
-                                        <tr><Td colSpan={6} className="text-center py-10 text-slate-500">No shipments found for this route</Td></tr>
+                                        <tr><Td colSpan={6} className="text-center py-10 text-muted-foreground">No shipments found for this route</Td></tr>
                                     )}
 
                                     {shipments?.map(s => (
-                                        <tr key={s.id} onClick={() => toggleShipment(s.id)} className="cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5">
+                                        <tr key={s.id} onClick={() => toggleShipment(s.id)} className="cursor-pointer hover:bg-muted">
                                             <Td onClick={e => e.stopPropagation()}>
                                                 <Checkbox checked={selectedShipmentIds.includes(s.id)} onCheckedChange={() => toggleShipment(s.id)} />
                                             </Td>
@@ -223,7 +223,7 @@ export const CreateManifestForm: React.FC = () => {
                                                     {s.service_level}
                                                 </span>
                                             </Td>
-                                            <Td className="text-right text-xs text-slate-400">
+                                            <Td className="text-right text-xs text-muted-foreground">
                                                 {new Date(s.created_at).toLocaleDateString()}
                                             </Td>
                                         </tr>

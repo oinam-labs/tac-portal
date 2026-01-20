@@ -91,10 +91,10 @@ export const Shipments: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+                    <h1 className="text-2xl font-bold text-foreground">
                         Shipments
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">
+                    <p className="text-muted-foreground text-sm">
                         Manage and track all logistics orders.
                     </p>
                 </div>

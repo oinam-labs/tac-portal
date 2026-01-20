@@ -12,7 +12,7 @@ const PARTNER_NAMES = [
 export function TrustedBy() {
     return (
         <section
-            className="bg-muted/50 overflow-hidden border-y border-white/5 pt-10 pb-10"
+            className="bg-muted/50 overflow-hidden border-y border-border/10 pt-10 pb-10"
             aria-label="Our trusted partners"
             style={{
                 maskImage:

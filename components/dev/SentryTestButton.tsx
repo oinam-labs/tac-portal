@@ -114,7 +114,7 @@ export const SentryTestButton: React.FC = () => {
                 <span className="text-sm font-bold text-white">Sentry Test Controls</span>
             </div>
 
-            <p className="text-xs text-slate-400 mb-2">
+            <p className="text-xs text-muted-foreground mb-2">
                 Test error tracking, logs, metrics & tracing
             </p>
 

@@ -28,18 +28,20 @@ const CATEGORY_ICONS: Record<NotificationCategory, React.ElementType> = {
     system: Settings,
 };
 
+// Type colors using semantic status tokens
 const TYPE_COLORS: Record<NotificationType, string> = {
-    success: 'bg-green-500',
-    error: 'bg-red-500',
-    warning: 'bg-yellow-500',
-    info: 'bg-blue-500',
+    success: 'bg-[oklch(var(--status-delivered-bg))]',
+    error: 'bg-[oklch(var(--status-exception-bg))]',
+    warning: 'bg-[oklch(var(--status-in-transit-bg))]',
+    info: 'bg-[oklch(var(--status-created-bg))]',
 };
 
+// Type badge styles using semantic badge classes
 const TYPE_BADGE_STYLES: Record<NotificationType, string> = {
-    success: 'bg-green-500/10 text-green-600 border-green-500/30',
-    error: 'bg-red-500/10 text-red-600 border-red-500/30',
-    warning: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/30',
-    info: 'bg-blue-500/10 text-blue-600 border-blue-500/30',
+    success: 'badge--delivered',
+    error: 'badge--exception',
+    warning: 'badge--in-transit',
+    info: 'badge--created',
 };
 
 function groupNotificationsByDate(notifications: Notification[]) {
@@ -125,11 +127,11 @@ export const Notifications: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                    <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                         <Bell className="w-7 h-7 text-primary" />
                         Notifications
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                    <p className="text-muted-foreground text-sm mt-1">
                         Stay updated with your invoices, shipments, and system events.
                     </p>
                 </div>
@@ -230,7 +232,7 @@ export const Notifications: React.FC = () => {
                                 <Bell className="w-8 h-8 text-muted-foreground" />
                             )}
                         </div>
-                        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1">
+                        <h3 className="text-lg font-medium text-foreground mb-1">
                             {activeTab === 'unread' ? 'All caught up!' : 'No notifications yet'}
                         </h3>
                         <p className="text-sm text-muted-foreground">
@@ -243,7 +245,7 @@ export const Notifications: React.FC = () => {
                     <div className="space-y-6">
                         {groupedNotifications.map((group) => (
                             <div key={group.label}>
-                                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
                                     {group.label}
                                 </h3>
                                 <div className="space-y-2">
@@ -286,7 +288,7 @@ export const Notifications: React.FC = () => {
                                                                     <span
                                                                         className={cn(
                                                                             'font-medium',
-                                                                            !notification.is_read && 'text-slate-900 dark:text-white'
+                                                                            !notification.is_read && 'text-foreground'
                                                                         )}
                                                                     >
                                                                         {notification.title}
