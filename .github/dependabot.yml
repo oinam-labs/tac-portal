@@ -1,0 +1,46 @@
+# Dependabot configuration
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+
+version: 2
+updates:
+  # npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Kolkata"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - "dependencies"
+      - "npm"
+    groups:
+      # Group minor and patch updates together
+      development:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      production:
+        dependency-type: "production"
+        update-types:
+          - "patch"
+    ignore:
+      # Ignore major version updates for stability
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "chore(actions)"
+    labels:
+      - "dependencies"
+      - "github-actions"
