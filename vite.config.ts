@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: {
             'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-            'vendor-ui': ['framer-motion', 'lucide-react', 'clsx', 'tailwind-merge'],
+            'vendor-ui': ['motion', 'lucide-react', 'clsx', 'tailwind-merge'],
             'vendor-data': ['@tanstack/react-query', 'zustand', 'zod', '@hookform/resolvers'],
             'vendor-charts': ['recharts'],
             'vendor-utils': ['date-fns']
