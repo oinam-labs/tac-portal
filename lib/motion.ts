@@ -24,7 +24,7 @@ import {
     type TargetAndTransition,
     type HTMLMotionProps,
     type MotionProps,
-} from 'framer-motion';
+} from 'motion/react';
 
 // Simple type assertion to bypass strict type checking for motion components
 // The runtime behavior is identical, this just fixes TypeScript strict mode issues
