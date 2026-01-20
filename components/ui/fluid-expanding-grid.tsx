@@ -150,7 +150,7 @@ export default function FluidExpandingGrid({
                                             </motion.h3>
                                             <motion.p
                                                 layout="position"
-                                                className="text-sm sm:text-base text-gray-300 font-medium max-w-md"
+                                                className="text-sm sm:text-base text-muted-foreground font-medium max-w-md"
                                             >
                                                 {item.subtitle}
                                             </motion.p>

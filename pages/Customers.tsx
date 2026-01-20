@@ -149,10 +149,10 @@ export const Customers: React.FC = () => {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                        Customer Directory
+                    <h1 className="text-2xl font-bold text-foreground">
+                        Customer Management
                     </h1>
-                    <p className="text-slate-500 text-sm">
+                    <p className="text-muted-foreground text-sm">
                         Manage client profiles and contracts.
                     </p>
                 </div>

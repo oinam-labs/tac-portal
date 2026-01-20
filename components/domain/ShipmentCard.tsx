@@ -62,16 +62,16 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
             <span className="font-mono font-bold text-white text-sm">{shipment.awb}</span>
             <StatusBadge status={shipment.status} size="sm" />
           </div>
-          <p className="text-xs text-slate-400 truncate">{shipment.customerName}</p>
+          <p className="text-xs text-muted-foreground truncate">{shipment.customerName}</p>
         </div>
 
-        <div className="flex items-center gap-1 text-xs text-slate-500">
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <span className="font-medium">{origin.code}</span>
           <ArrowRight className="w-3 h-3" />
           <span className="font-medium">{dest.code}</span>
         </div>
 
-        <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-cyber-accent transition-colors" />
+        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-cyber-accent transition-colors" />
       </div>
     )
   }
@@ -87,7 +87,7 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
       {/* Mode indicator strip */}
       <div className={cn(
         "absolute left-0 top-0 bottom-0 w-1",
-        shipment.mode === 'AIR' ? 'bg-cyan-500' : 'bg-amber-500'
+        shipment.mode === 'AIR' ? 'bg-primary' : 'bg-[oklch(var(--status-in-transit-bg))]'
       )} />
 
       {/* Header */}
@@ -95,18 +95,18 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
         <div className="flex items-center gap-3">
           <div className={cn(
             "p-2.5 rounded-lg",
-            shipment.mode === 'AIR' ? 'bg-cyan-500/10' : 'bg-amber-500/10'
+            shipment.mode === 'AIR' ? 'bg-primary/10' : 'bg-[oklch(var(--status-in-transit-bg))]/20'
           )}>
             <ModeIcon className={cn(
               "w-5 h-5",
-              shipment.mode === 'AIR' ? 'text-cyan-400' : 'text-amber-400'
+              shipment.mode === 'AIR' ? 'text-primary' : 'text-[oklch(var(--status-in-transit-fg))]'
             )} />
           </div>
           <div>
             <h3 className="font-mono font-bold text-white text-lg tracking-wide">
               {shipment.awb}
             </h3>
-            <p className="text-sm text-slate-400">{shipment.customerName}</p>
+            <p className="text-sm text-muted-foreground">{shipment.customerName}</p>
           </div>
         </div>
         <StatusBadge status={shipment.status} />
@@ -116,36 +116,36 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
       <div className="flex items-center justify-between bg-cyber-surface/50 rounded-lg p-3 mb-4">
         <div className="text-center">
           <p className="text-2xl font-bold text-white">{origin.code}</p>
-          <p className="text-xs text-slate-500">{origin.name}</p>
+          <p className="text-xs text-muted-foreground">{origin.name}</p>
         </div>
 
         <div className="flex-1 flex items-center justify-center gap-2 px-4">
-          <div className="h-px flex-1 bg-gradient-to-r from-slate-600 to-transparent" />
-          <ModeIcon className="w-4 h-4 text-slate-400" />
-          <div className="h-px flex-1 bg-gradient-to-l from-slate-600 to-transparent" />
+          <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />
+          <ModeIcon className="w-4 h-4 text-muted-foreground" />
+          <div className="h-px flex-1 bg-gradient-to-l from-border to-transparent" />
         </div>
 
         <div className="text-center">
           <p className="text-2xl font-bold text-white">{dest.code}</p>
-          <p className="text-xs text-slate-500">{dest.name}</p>
+          <p className="text-xs text-muted-foreground">{dest.name}</p>
         </div>
       </div>
 
       {/* Details */}
       <div className="grid grid-cols-3 gap-4 text-sm">
         <div className="flex items-center gap-2">
-          <Package className="w-4 h-4 text-slate-500" />
-          <span className="text-slate-400">
+          <Package className="w-4 h-4 text-muted-foreground" />
+          <span className="text-muted-foreground">
             {shipment.totalPackageCount} {shipment.totalPackageCount === 1 ? 'pkg' : 'pkgs'}
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <Weight className="w-4 h-4 text-slate-500" />
-          <span className="text-slate-400">{shipment.totalWeight.chargeable} kg</span>
+          <Weight className="w-4 h-4 text-muted-foreground" />
+          <span className="text-muted-foreground">{shipment.totalWeight.chargeable} kg</span>
         </div>
         <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-slate-500" />
-          <span className="text-slate-400">
+          <Clock className="w-4 h-4 text-muted-foreground" />
+          <span className="text-muted-foreground">
             {format(new Date(shipment.createdAt), 'dd MMM')}
           </span>
         </div>
@@ -156,8 +156,8 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
         <span className={cn(
           "text-xs font-bold px-2 py-0.5 rounded",
           shipment.serviceLevel === 'EXPRESS'
-            ? 'bg-amber-500/20 text-amber-400'
-            : 'bg-slate-500/20 text-slate-400'
+            ? 'badge--in-transit'
+            : 'bg-muted text-muted-foreground'
         )}>
           {shipment.serviceLevel}
         </span>

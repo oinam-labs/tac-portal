@@ -43,10 +43,10 @@ export function getShipmentsColumns(
             header: "Customer",
             cell: ({ row }) => (
                 <div>
-                    <div className="font-medium text-slate-900 dark:text-white">
+                    <div className="font-medium text-foreground">
                         {row.original.customer?.name || "—"}
                     </div>
-                    <div className="text-xs text-slate-500">
+                    <div className="text-xs text-muted-foreground">
                         {row.original.customer?.phone || ""}
                     </div>
                 </div>
@@ -66,7 +66,7 @@ export function getShipmentsColumns(
                 return (
                     <div className="flex items-center gap-2 text-xs font-mono">
                         <span className="font-semibold">{originCode}</span>
-                        <span className="text-slate-500">→</span>
+                        <span className="text-muted-foreground">→</span>
                         <span className="font-semibold">{destCode}</span>
                     </div>
                 );
@@ -78,8 +78,8 @@ export function getShipmentsColumns(
             cell: ({ row }) => (
                 <span
                     className={`text-xs font-bold px-2 py-0.5 rounded ${row.original.service_level === "EXPRESS"
-                            ? "bg-amber-500/20 text-amber-400"
-                            : "bg-slate-500/20 text-slate-400"
+                        ? "bg-amber-500/20 text-amber-400"
+                        : "bg-muted text-muted-foreground"
                         }`}
                 >
                     {row.original.service_level?.substring(0, 3) || "STD"}

@@ -1,3 +1,4 @@
+// @ts-nocheck - Deno Edge Function (different runtime than Node.js TypeScript)
 /**
  * Close Manifest Edge Function
  * Atomic operation to close a manifest and update all related shipments
@@ -12,7 +13,6 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-
 interface CloseManifestRequest {
     manifest_id: string;
     staff_id?: string;
@@ -46,7 +46,6 @@ interface ManifestItem {
     shipment_id: string;
     shipment: ManifestShipment | null;
 }
-
 
 Deno.serve(async (req: Request): Promise<Response> => {
     // CORS headers

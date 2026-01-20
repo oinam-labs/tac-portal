@@ -42,15 +42,15 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]">
             <div ref={modalRef} className={`bg-cyber-card border border-cyber-border rounded-xl w-full ${SIZES[size]} max-h-[90vh] overflow-y-auto shadow-neon flex flex-col animate-[slideIn_0.3s_ease-out]`}>
-                 <div className="flex items-center justify-between p-6 border-b border-cyber-border bg-cyber-surface/50 backdrop-blur sticky top-0 z-10">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-wide">{title}</h2>
-                    <button onClick={onClose} className="text-slate-500 hover:text-cyber-accentHover dark:text-slate-400 dark:hover:text-white transition-colors">
+                <div className="flex items-center justify-between p-6 border-b border-cyber-border bg-cyber-surface/50 backdrop-blur sticky top-0 z-10">
+                    <h2 className="text-xl font-bold text-foreground tracking-wide">{title}</h2>
+                    <button onClick={onClose} className="text-muted-foreground hover:text-cyber-accentHover transition-colors">
                         <X className="w-6 h-6" />
                     </button>
-                 </div>
-                 <div className="p-6">
+                </div>
+                <div className="p-6">
                     {children}
-                 </div>
+                </div>
             </div>
         </div>
     );

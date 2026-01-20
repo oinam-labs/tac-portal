@@ -12,12 +12,15 @@
     "format": "prettier --write \"**/*.{ts,tsx,json,css,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,css,md}\"",
     "stylelint": "stylelint \"**/*.html\" --custom-syntax postcss-html",
+    "lint:css": "stylelint \"**/*.css\" --fix",
     "typecheck": "tsc --noEmit",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "theme-audit": "powershell -ExecutionPolicy Bypass -File scripts/theme-audit.ps1",
+    "theme-audit:ci": "grep -RInE \"(text|bg|border|ring)-(slate|gray)-\" components pages && exit 1 || exit 0"
   },
   "dependencies": {
     "@base-ui/react": "^1.1.0",
@@ -40,6 +43,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@sentry/react": "^10.34.0",
     "@supabase/supabase-js": "^2.90.1",
+    "@tabler/icons-react": "^3.36.1",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-query": "^5.90.18",
     "@tanstack/react-table": "^8.21.3",
@@ -77,6 +81,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "7.52.1",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^6.30.3",
     "react-to-print": "^3.2.0",
     "react-use-measure": "^2.1.7",
@@ -111,6 +116,8 @@
     "shadcn": "^3.7.0",
     "stylelint": "^17.0.0",
     "stylelint-config-standard": "^40.0.0",
+    "stylelint-gamut": "^1.3.4",
+    "stylelint-no-indistinguishable-colors": "^2.3.1",
     "typescript": "~5.8.2",
     "typescript-eslint": "^8.53.1",
     "vite": "^6.2.0"

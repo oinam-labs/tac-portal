@@ -51,7 +51,7 @@ export function ShippingLabel({ shipment, packageIndex = 1 }: ShippingLabelProps
       {/* Header */}
       <div className="text-center border-b-2 border-black pb-2 mb-3">
         <h1 className="text-2xl font-black tracking-tight">TAC CARGO</h1>
-        <p className="text-xs text-gray-600">Express Logistics • Imphal ↔ New Delhi</p>
+        <p className="text-xs text-muted-foreground">Express Logistics • Imphal ↔ New Delhi</p>
       </div>
 
       {/* AWB Barcode */}
@@ -73,23 +73,23 @@ export function ShippingLabel({ shipment, packageIndex = 1 }: ShippingLabelProps
       </div>
 
       {/* Sort Code */}
-      <div className="text-center bg-gray-100 rounded py-2 mb-3">
-        <p className="text-xs text-gray-500">SORT CODE</p>
+      <div className="text-center bg-muted rounded py-2 mb-3">
+        <p className="text-xs text-muted-foreground">SORT CODE</p>
         <p className="text-2xl font-black font-mono">{dest.sortCode}</p>
       </div>
 
       {/* Package Info */}
-      <div className="flex justify-between items-center border border-gray-300 rounded p-2 mb-3">
+      <div className="flex justify-between items-center border border-border rounded p-2 mb-3">
         <div>
-          <p className="text-xs text-gray-500">PACKAGE</p>
+          <p className="text-xs text-muted-foreground">PACKAGE</p>
           <p className="text-xl font-bold">{packageIndex} of {shipment.totalPackageCount}</p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-gray-500">WEIGHT</p>
+          <p className="text-xs text-muted-foreground">WEIGHT</p>
           <p className="text-xl font-bold">{shipment.totalWeight.chargeable} kg</p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-gray-500">MODE</p>
+          <p className="text-xs text-muted-foreground">MODE</p>
           <p className="text-xl font-bold">{shipment.mode}</p>
         </div>
       </div>
@@ -104,12 +104,12 @@ export function ShippingLabel({ shipment, packageIndex = 1 }: ShippingLabelProps
             renderAs="svg"
           />
         </div>
-        <div className="flex-1 border-l border-gray-300 pl-3">
-          <p className="text-xs text-gray-500 mb-1">DELIVER TO:</p>
+        <div className="flex-1 border-l border-border pl-3">
+          <p className="text-xs text-muted-foreground mb-1">DELIVER TO:</p>
           <p className="font-bold text-sm leading-tight">
             {shipment.consignee?.name || shipment.customerName}
           </p>
-          <p className="text-xs text-gray-600 leading-tight mt-1">
+          <p className="text-xs text-muted-foreground leading-tight mt-1">
             {shipment.consignee?.address || 'Address on file'}
           </p>
           <p className="text-xs font-mono mt-1">
@@ -119,7 +119,7 @@ export function ShippingLabel({ shipment, packageIndex = 1 }: ShippingLabelProps
       </div>
 
       {/* Footer */}
-      <div className="absolute bottom-4 left-4 right-4 flex justify-between text-[10px] text-gray-500 border-t border-gray-200 pt-2">
+      <div className="absolute bottom-4 left-4 right-4 flex justify-between text-[10px] text-muted-foreground border-t border-border pt-2">
         <span>{format(new Date(shipment.createdAt), 'dd MMM yyyy HH:mm')}</span>
         <span>{shipment.serviceLevel}</span>
         <span>www.tac-cargo.com</span>

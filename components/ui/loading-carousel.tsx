@@ -54,8 +54,8 @@ export function LoadingCarousel({ tips, autoplayInterval = 5000 }: LoadingCarous
             {/* Left: Content & Navigation */}
             <div className="flex flex-col justify-center p-8 lg:p-16 border-b lg:border-b-0 lg:border-r border-dashed border-border">
                 <div className="mb-8 flex items-center gap-3">
-                    <div className="h-px w-8 bg-emerald-500/50" />
-                    <span className="text-emerald-500 font-mono text-xs tracking-[0.2em] uppercase font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 drop-shadow-sm">
+                    <div className="h-px w-8 bg-primary/50" />
+                    <span className="text-primary font-mono text-xs tracking-[0.2em] uppercase font-bold">
                         SYSTEM CAPABILITY // 0{current + 1}
                     </span>
                 </div>
@@ -88,7 +88,7 @@ export function LoadingCarousel({ tips, autoplayInterval = 5000 }: LoadingCarous
                             className={cn(
                                 "relative group text-left px-5 py-4 rounded-lg border border-transparent transition-all duration-300 isolate overflow-hidden",
                                 current === index
-                                    ? "bg-foreground/5 border-emerald-500/30 dark:border-primary/20"
+                                    ? "bg-foreground/5 border-primary/30"
                                     : "hover:bg-foreground/5 hover:border-border"
                             )}
                         >
@@ -96,7 +96,7 @@ export function LoadingCarousel({ tips, autoplayInterval = 5000 }: LoadingCarous
                             {current === index && (
                                 <motion.div
                                     layoutId="active-tab-bg"
-                                    className="absolute inset-0 bg-emerald-500/10 dark:bg-primary/5 -z-10"
+                                    className="absolute inset-0 bg-primary/10 -z-10"
                                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                 />
                             )}
@@ -104,12 +104,12 @@ export function LoadingCarousel({ tips, autoplayInterval = 5000 }: LoadingCarous
                             <div className="flex items-center justify-between z-10 relative">
                                 <span className={cn(
                                     "font-mono text-sm font-medium transition-colors",
-                                    current === index ? "text-emerald-700 dark:text-primary font-semibold" : "text-muted-foreground group-hover:text-foreground"
+                                    current === index ? "text-primary font-semibold" : "text-muted-foreground group-hover:text-foreground"
                                 )}>
                                     {tip.title}
                                 </span>
                                 {current === index ? (
-                                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-primary shadow-[0_0_10px_rgba(16,185,129,0.5)] dark:shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
+                                    <div className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
                                 ) : (
                                     <span className="text-muted-foreground/30 text-xs font-mono">0{index + 1}</span>
                                 )}
@@ -121,7 +121,7 @@ export function LoadingCarousel({ tips, autoplayInterval = 5000 }: LoadingCarous
                                     initial={{ scaleX: 0 }}
                                     animate={{ scaleX: 1 }}
                                     transition={{ duration: autoplayInterval / 1000, ease: "linear" }}
-                                    className="absolute bottom-0 left-0 h-[2px] bg-emerald-600 dark:bg-primary w-full origin-left"
+                                    className="absolute bottom-0 left-0 h-[2px] bg-primary w-full origin-left"
                                 />
                             )}
                         </button>

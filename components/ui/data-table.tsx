@@ -9,11 +9,28 @@ import {
   getPaginationRowModel,
   getFilteredRowModel,
   ColumnFiltersState,
+  RowSelectionState,
 } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { Button } from './button'
 import { Input } from './input'
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, Search } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  ArrowUpDown,
+  Search,
+  GripVertical
+} from 'lucide-react'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './table'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -22,6 +39,8 @@ interface DataTableProps<TData, TValue> {
   searchPlaceholder?: string
   pageSize?: number
   className?: string
+  enableSelection?: boolean
+  enableRowDrag?: boolean
 }
 
 export function DataTable<TData, TValue>({
@@ -31,14 +50,63 @@ export function DataTable<TData, TValue>({
   searchPlaceholder = 'Search...',
   pageSize = 10,
   className,
+  enableSelection = true,
+  enableRowDrag = true,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = React.useState('')
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
+
+  // Enhance columns with selection and drag handles if enabled
+  const tableColumns = React.useMemo(() => {
+    const enhancedColumns = [...columns]
+
+    if (enableSelection) {
+      enhancedColumns.unshift({
+        id: 'select',
+        header: ({ table }) => (
+          <input
+            type="checkbox"
+            checked={table.getIsAllPageRowsSelected()}
+            onChange={(e) => table.toggleAllPageRowsSelected(!!e.target.checked)}
+            aria-label="Select all"
+            className="translate-y-[2px]"
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            checked={row.getIsSelected()}
+            onChange={(e) => row.toggleSelected(!!e.target.checked)}
+            aria-label="Select row"
+            className="translate-y-[2px]"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      })
+    }
+
+    if (enableRowDrag) {
+      enhancedColumns.unshift({
+        id: 'drag',
+        header: '',
+        cell: () => (
+          <GripVertical className="h-4 w-4 text-muted-foreground/50 cursor-grab" />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+        size: 30,
+      })
+    }
+
+    return enhancedColumns
+  }, [columns, enableSelection, enableRowDrag])
 
   const table = useReactTable({
     data,
-    columns,
+    columns: tableColumns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -46,10 +114,12 @@ export function DataTable<TData, TValue>({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
+    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
       globalFilter,
+      rowSelection,
     },
     initialState: {
       pagination: {
@@ -64,83 +134,82 @@ export function DataTable<TData, TValue>({
       {searchKey && (
         <div className="flex items-center gap-2">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder={searchPlaceholder}
               value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ''}
               onChange={(event) =>
                 table.getColumn(searchKey)?.setFilterValue(event.target.value)
               }
-              className="pl-9"
+              className="pl-9 bg-background"
             />
           </div>
         </div>
       )}
 
       {/* Table */}
-      <div className="rounded-lg border border-white/10 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-cyber-surface/50">
+      <div className="rounded-md border bg-card text-card-foreground shadow-sm overflow-hidden">
+        <Table>
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400"
-                  >
-                    {header.isPlaceholder ? null : (
-                      <div
-                        className={cn(
-                          "flex items-center gap-1",
-                          header.column.getCanSort() && "cursor-pointer select-none hover:text-cyber-accent"
-                        )}
-                        onClick={header.column.getToggleSortingHandler()}
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                        {header.column.getCanSort() && (
-                          <ArrowUpDown className="w-3 h-3" />
-                        )}
-                      </div>
-                    )}
-                  </th>
-                ))}
-              </tr>
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder ? null : (
+                        <div
+                          className={cn(
+                            "flex items-center gap-1",
+                            header.column.getCanSort() && "cursor-pointer select-none hover:text-foreground"
+                          )}
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                          {header.column.getCanSort() && (
+                            <ArrowUpDown className="w-3 h-3" />
+                          )}
+                        </div>
+                      )}
+                    </TableHead>
+                  )
+                })}
+              </TableRow>
             ))}
-          </thead>
-          <tbody className="divide-y divide-white/5">
+          </TableHeader>
+          <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <tr
+                <TableRow
                   key={row.id}
-                  className="hover:bg-white/5 transition-colors"
+                  data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-3 text-sm text-slate-300">
+                    <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
+                    </TableCell>
                   ))}
-                </tr>
+                </TableRow>
               ))
             ) : (
-              <tr>
-                <td
-                  colSpan={columns.length}
-                  className="h-24 text-center text-slate-500"
+              <TableRow>
+                <TableCell
+                  colSpan={tableColumns.length}
+                  className="h-24 text-center"
                 >
                   No results found.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {/* Pagination */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-muted-foreground">
           Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{' '}
           {Math.min(
             (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
@@ -165,7 +234,7 @@ export function DataTable<TData, TValue>({
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <span className="text-sm text-slate-400 px-2">
+          <span className="text-sm text-muted-foreground px-2">
             Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
           </span>
           <Button

@@ -132,8 +132,8 @@ export function BarcodeScanner({
         "flex flex-col items-center justify-center bg-cyber-surface/50 rounded-lg border border-white/10 p-8",
         className
       )}>
-        <CameraOff className="w-16 h-16 text-slate-500 mb-4" />
-        <p className="text-slate-400 text-center">
+        <CameraOff className="w-16 h-16 text-muted-foreground mb-4" />
+        <p className="text-muted-foreground text-center">
           Camera not available.<br />
           Use manual entry below.
         </p>

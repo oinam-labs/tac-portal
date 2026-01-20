@@ -78,13 +78,13 @@ export const Tracking: React.FC = () => {
 
     return (
         <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Live Tracking</h1>
+            <h1 className="text-2xl font-bold text-foreground">Live Tracking</h1>
 
             {/* Search Area */}
             <Card className="max-w-3xl mx-auto p-8 border-cyber-accent/30 shadow-[0_0_30px_rgba(34,211,238,0.05)]">
                 <div className="flex gap-4">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-3 text-slate-500 w-5 h-5" />
+                        <Search className="absolute left-3 top-3 text-muted-foreground w-5 h-5" />
                         <Input
                             placeholder="Enter AWB (e.g., TAC...)"
                             className="pl-10 h-12 text-lg"
@@ -102,7 +102,7 @@ export const Tracking: React.FC = () => {
                     {/* Timeline */}
                     <Card className="lg:col-span-1 p-6">
                         <div className="mb-6">
-                            <div className="text-sm text-slate-500 mb-2">Current Status</div>
+                            <div className="text-sm text-muted-foreground mb-2">Current Status</div>
                             <StatusBadge status={result.shipment.status} size="lg" />
                         </div>
 
@@ -111,7 +111,7 @@ export const Tracking: React.FC = () => {
                     </Card>
 
                     {/* Map & Shipment Details */}
-                    <Card className="lg:col-span-2 relative overflow-hidden min-h-[400px] bg-slate-900">
+                    <Card className="lg:col-span-2 relative overflow-hidden min-h-[400px] bg-background">
                         <div className="absolute inset-0 opacity-20" style={{
                             backgroundImage: 'radial-gradient(circle at 50% 50%, #1e293b 1px, transparent 1px)',
                             backgroundSize: '20px 20px'
@@ -151,7 +151,7 @@ export const Tracking: React.FC = () => {
                                         )}
                                         <div>
                                             <span className="text-sm font-bold text-white font-mono">{result.shipment.awb}</span>
-                                            <div className="text-xs text-slate-400">In Transit</div>
+                                            <div className="text-xs text-muted-foreground">In Transit</div>
                                         </div>
                                     </div>
                                 </div>
@@ -161,7 +161,7 @@ export const Tracking: React.FC = () => {
                         {/* ETA Badge */}
                         <div className="absolute top-4 right-4 text-right">
                             <div className="bg-black/70 backdrop-blur px-3 py-2 rounded-lg">
-                                <div className="text-xs text-slate-400">Estimated Arrival</div>
+                                <div className="text-xs text-muted-foreground">Estimated Arrival</div>
                                 <div className="text-lg font-bold text-white font-mono">{result.shipment.eta}</div>
                             </div>
                         </div>

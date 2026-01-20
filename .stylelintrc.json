@@ -1,21 +1,28 @@
 {
-  "extends": ["stylelint-config-standard"],
+  "extends": "stylelint-config-standard",
+  "ignoreFiles": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/*.min.css"
+  ],
   "rules": {
+    "color-named": "never",
+    "color-no-hex": true,
+    "color-function-notation": "modern",
+    "declaration-block-single-line-max-declarations": null,
+    "selector-class-pattern": null,
+    "declaration-property-value-keyword-no-deprecated": null,
+    "custom-property-pattern": null,
     "at-rule-no-unknown": [
       true,
       {
-        "ignoreAtRules": ["theme", "layer", "apply", "tailwind", "config", "plugin"]
+        "ignoreAtRules": [
+          "source",
+          "custom-variant",
+          "theme"
+        ]
       }
     ],
-    "function-no-unknown": [
-      true,
-      {
-        "ignoreFunctions": ["theme", "color-mix"]
-      }
-    ],
-    "selector-class-pattern": null,
-    "custom-property-pattern": null,
-    "no-descending-specificity": null
-  },
-  "ignoreFiles": ["node_modules/**", "dist/**"]
+    "media-feature-name-value-no-unknown": null
+  }
 }

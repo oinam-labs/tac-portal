@@ -208,31 +208,31 @@ export const Scanning: React.FC = () => {
         <div className="space-y-6 h-[calc(100vh-140px)] flex flex-col animate-[fadeIn_0.5s_ease-out]">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Terminal Scanner</h1>
-                    <p className="text-sm text-slate-500">Process incoming/outgoing shipments.</p>
+                    <h1 className="text-2xl font-bold text-foreground">Terminal Scanner</h1>
+                    <p className="text-sm text-muted-foreground">Process incoming/outgoing shipments.</p>
                 </div>
                 <div className="flex gap-2 bg-cyber-card p-1 rounded-lg border border-cyber-border">
                     <button
                         onClick={() => { setScanMode('RECEIVE'); setActiveManifest(null); }}
-                        className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'RECEIVE' ? 'bg-cyber-neon text-black' : 'text-slate-500 hover:text-white'}`}
+                        className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'RECEIVE' ? 'bg-cyber-neon text-black' : 'text-muted-foreground hover:text-foreground'}`}
                     >
                         RECEIVE
                     </button>
                     <button
                         onClick={() => { setScanMode('LOAD_MANIFEST'); setActiveManifest(null); }}
-                        className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'LOAD_MANIFEST' ? 'bg-purple-500 text-white' : 'text-slate-500 hover:text-white'}`}
+                        className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'LOAD_MANIFEST' ? 'bg-purple-500 text-white' : 'text-muted-foreground hover:text-foreground'}`}
                     >
                         LOAD
                     </button>
                     <button
                         onClick={() => { setScanMode('VERIFY_MANIFEST'); setActiveManifest(null); }}
-                        className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'VERIFY_MANIFEST' ? 'bg-blue-500 text-white' : 'text-slate-500 hover:text-white'}`}
+                        className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'VERIFY_MANIFEST' ? 'bg-blue-500 text-white' : 'text-muted-foreground hover:text-foreground'}`}
                     >
                         VERIFY
                     </button>
                     <button
                         onClick={() => { setScanMode('DELIVER'); setActiveManifest(null); }}
-                        className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'DELIVER' ? 'bg-green-500 text-black' : 'text-slate-500 hover:text-white'}`}
+                        className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'DELIVER' ? 'bg-green-500 text-black' : 'text-muted-foreground hover:text-foreground'}`}
                     >
                         DELIVER
                     </button>
@@ -290,8 +290,8 @@ export const Scanning: React.FC = () => {
                     ) : (
                         <div className="flex-1 flex flex-col items-center justify-center p-8">
                             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-20"></div>
-                            <ScanLine className="w-16 h-16 text-cyber-neon mx-auto animate-pulse z-10" />
-                            <div className="bg-black/80 px-4 py-2 rounded text-cyber-neon font-mono mt-4 z-10">
+                            <ScanLine className="w-16 h-16 text-primary mx-auto animate-pulse z-10" />
+                            <div className="bg-black/80 px-4 py-2 rounded text-primary font-mono mt-4 z-10">
                                 {(scanMode === 'LOAD_MANIFEST' || scanMode === 'VERIFY_MANIFEST') && !activeManifest
                                     ? 'ENTER MANIFEST CODE'
                                     : 'ENTER AWB MANUALLY'}
@@ -319,18 +319,18 @@ export const Scanning: React.FC = () => {
                     </Card>
 
                     <Card className="flex-1 overflow-hidden flex flex-col">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Scan Log</h3>
+                        <h3 className="text-lg font-bold text-foreground mb-4">Scan Log</h3>
                         <div className="flex-1 overflow-y-auto space-y-2 pr-2">
                             {scannedItems.length === 0 ? (
-                                <div className="text-center text-slate-500 py-10">No items scanned this session</div>
+                                <div className="text-center text-muted-foreground py-10">No items scanned this session</div>
                             ) : (
                                 scannedItems.map((item, idx) => (
                                     <div key={idx} className={`flex items-center justify-between p-3 rounded border animate-[slideIn_0.2s_ease-out] ${item.status === 'SUCCESS' ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
                                         <div className="flex items-center gap-3">
                                             {item.msg.includes('EXCEPTION') ? <AlertTriangle className="w-4 h-4 text-red-500" /> : <Box className={`w-4 h-4 ${item.status === 'SUCCESS' ? 'text-green-500' : 'text-red-500'}`} />}
                                             <div>
-                                                <div className="font-mono font-bold text-slate-900 dark:text-white">{item.code}</div>
-                                                <div className="text-xs text-slate-500">{item.msg}</div>
+                                                <div className="font-mono font-bold text-foreground">{item.code}</div>
+                                                <div className="text-xs text-muted-foreground">{item.msg}</div>
                                             </div>
                                         </div>
                                         {item.status === 'SUCCESS' ? <Check className="w-4 h-4 text-green-400" /> : <X className="w-4 h-4 text-red-400" />}

@@ -30,7 +30,7 @@ export function HeroSection() {
                     alt="TAC Cargo Background"
                     className="absolute inset-0 w-full h-full object-cover opacity-60 grayscale scale-105"
                 />
-                <div className="absolute inset-0 bg-background/60 dark:bg-black/40" /> {/* Lighter overlay for visibility */}
+                <div className="absolute inset-0 bg-background/60" /> {/* Overlay for visibility */}
                 <div className="absolute inset-0 bg-grid opacity-30" />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
             </div>
@@ -86,13 +86,13 @@ export function HeroSection() {
                             className="flex flex-col sm:flex-row gap-4 w-full"
                         >
                             <Link to="/login">
-                                <Button size="lg" className="rounded-full px-8 h-12 text-base font-medium shadow-[0_0_20px_rgba(var(--primary),0.3)] hover:shadow-[0_0_30px_rgba(var(--primary),0.5)] transition-all duration-300">
+                                <Button size="lg" className="rounded-full px-8 h-12 text-base font-medium shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all duration-300">
                                     Book a Shipment
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </Link>
                             <TrackingDialog trigger={
-                                <Button variant="outline" size="lg" className="rounded-full px-8 h-12 text-base font-medium backdrop-blur-sm bg-background/30 hover:bg-background/50 border-white/20 dark:border-white/10">
+                                <Button variant="outline" size="lg" className="rounded-full px-8 h-12 text-base font-medium backdrop-blur-sm bg-background/30 hover:bg-background/50 border-border">
                                     Track Shipment
                                 </Button>
                             } />

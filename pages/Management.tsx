@@ -136,10 +136,10 @@ export const Management: React.FC = () => {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                        Staff Management
+                    <h1 className="text-2xl font-bold text-foreground">
+                        Staff & Hubs
                     </h1>
-                    <p className="text-slate-500 text-sm">
+                    <p className="text-muted-foreground text-sm">
                         Manage access control and personnel.
                     </p>
                 </div>

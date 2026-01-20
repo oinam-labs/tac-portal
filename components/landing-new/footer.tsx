@@ -9,7 +9,7 @@ export function Footer() {
                     {/* Brand */}
                     <div className="col-span-1 md:col-span-1">
                         <Link to="/" className="flex items-center gap-2 mb-6">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-primary text-black font-bold">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-primary text-primary-foreground font-bold">
                                 <Box className="h-5 w-5 fill-current" />
                             </div>
                             <span className="text-foreground text-lg font-mono font-bold tracking-tighter">

@@ -78,7 +78,7 @@ export const Exceptions: React.FC = () => {
             accessorKey: 'created_at',
             header: 'Reported',
             cell: ({ row }) => (
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-muted-foreground">
                     {format(new Date(row.getValue('created_at')), 'dd MMM HH:mm')}
                 </span>
             ),
@@ -144,7 +144,7 @@ export const Exceptions: React.FC = () => {
     return (
         <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                     <AlertTriangle className="text-red-500 w-8 h-8" />
                     Exceptions & Alerts
                 </h1>
@@ -187,12 +187,12 @@ export const Exceptions: React.FC = () => {
             <Modal isOpen={isRaiseModalOpen} onClose={() => setIsRaiseModalOpen(false)} title="Raise New Exception">
                 <form onSubmit={handleSubmitRaise(onRaiseSubmit)} className="space-y-4">
                     <div>
-                        <label className="block text-xs text-slate-500 mb-1">AWB NUMBER</label>
+                        <label className="block text-xs text-muted-foreground mb-1">AWB NUMBER</label>
                         <Input {...registerRaise('awb')} placeholder="Scan or type AWB" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs text-slate-500 mb-1">TYPE</label>
+                            <label className="block text-xs text-muted-foreground mb-1">TYPE</label>
                             <select {...registerRaise('type')} className="w-full bg-cyber-card border border-cyber-border rounded-lg p-2">
                                 <option value="DAMAGED">Damaged</option>
                                 <option value="LOST">Lost</option>
@@ -202,7 +202,7 @@ export const Exceptions: React.FC = () => {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs text-slate-500 mb-1">SEVERITY</label>
+                            <label className="block text-xs text-muted-foreground mb-1">SEVERITY</label>
                             <select {...registerRaise('severity')} className="w-full bg-cyber-card border border-cyber-border rounded-lg p-2">
                                 <option value="LOW">Low</option>
                                 <option value="MEDIUM">Medium</option>
@@ -212,7 +212,7 @@ export const Exceptions: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs text-slate-500 mb-1">DESCRIPTION</label>
+                        <label className="block text-xs text-muted-foreground mb-1">DESCRIPTION</label>
                         <Input {...registerRaise('description')} placeholder="Details of the issue..." />
                     </div>
                     <Button type="submit" variant="danger" className="w-full mt-4" disabled={isLoading}>
@@ -224,12 +224,12 @@ export const Exceptions: React.FC = () => {
             {/* Resolve Modal */}
             <Modal isOpen={!!selectedException} onClose={() => setSelectedException(null)} title="Resolve Exception">
                 <form onSubmit={handleSubmitResolve(onResolveSubmit)} className="space-y-4">
-                    <div className="bg-slate-100 dark:bg-white/5 p-4 rounded text-sm mb-4">
+                    <div className="bg-muted p-4 rounded text-sm mb-4">
                         <div className="font-bold">Exception: {selectedException?.type}</div>
                         <div>{selectedException?.description}</div>
                     </div>
                     <div>
-                        <label className="block text-xs text-slate-500 mb-1">RESOLUTION NOTE</label>
+                        <label className="block text-xs text-muted-foreground mb-1">RESOLUTION NOTE</label>
                         <Input {...registerResolve('note')} placeholder="How was this resolved?" />
                     </div>
                     <Button type="submit" className="w-full mt-4" disabled={isLoading}>

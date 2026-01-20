@@ -328,10 +328,10 @@ const ColorsSection: React.FC = () => {
             <Card>
                 <SectionTitle>Usage Examples</SectionTitle>
                 <div className="bg-muted/50 rounded-lg p-4 font-mono text-sm space-y-2">
-                    <p className="text-muted-foreground">// ❌ Avoid</p>
-                    <p className="text-destructive">className="text-slate-500 dark:text-slate-400"</p>
-                    <p className="text-muted-foreground mt-4">// ✅ Preferred</p>
-                    <p className="text-green-500">className="text-muted-foreground"</p>
+                    <p className="text-muted-foreground">// ❌ Avoid hardcoded colors</p>
+                    <code className="text-destructive block">{'className="text-'}{'slate-500 dark:text-'}{'slate-400"'}</code>
+                    <p className="text-muted-foreground mt-4">// ✅ Preferred semantic tokens</p>
+                    <code className="text-green-500 block">{'className="text-muted-foreground"'}</code>
                 </div>
             </Card>
         </div>

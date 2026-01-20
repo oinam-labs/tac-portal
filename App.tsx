@@ -37,6 +37,7 @@ const PrintLabel = lazy(() => import('./pages/PrintLabel').then(module => ({ def
 const Notifications = lazy(() => import('./pages/Notifications').then(module => ({ default: module.Notifications })));
 const DevUIKit = lazy(() => import('./pages/DevUIKit').then(module => ({ default: module.DevUIKit })));
 
+
 // Login Page Component with Supabase Auth
 const Login: React.FC = () => {
     const { signIn, isAuthenticated, isLoading, error, clearError, user } = useAuthStore();
@@ -101,7 +102,7 @@ const Login: React.FC = () => {
             {/* Back Arrow */}
             <button
                 onClick={() => navigate('/')}
-                className="absolute top-6 left-6 z-50 p-2 text-slate-500 hover:text-cyber-neon transition-colors flex items-center gap-2 group"
+                className="absolute top-6 left-6 z-50 p-2 text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group"
             >
                 <div className="p-2 rounded-full bg-white/10 border border-white/10 group-hover:border-cyber-neon/50 transition-all">
                     <ArrowLeft className="w-5 h-5" />
@@ -116,10 +117,10 @@ const Login: React.FC = () => {
             <Card className="w-full max-w-md relative z-10 border-cyber-accent/30 shadow-[0_0_50px_rgba(34,211,238,0.1)]">
                 <div className="text-center mb-8">
                     <div className="w-16 h-16 bg-gradient-to-br from-cyber-neon to-cyber-purple rounded-xl mx-auto mb-4 flex items-center justify-center shadow-neon">
-                        <span className="text-3xl font-bold text-slate-900 dark:text-white">T</span>
+                        <span className="text-3xl font-bold text-foreground">T</span>
                     </div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">TAC <span className="text-cyber-neon">CARGO</span></h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2">Secure Logistics Terminal</p>
+                    <h1 className="text-3xl font-bold text-foreground tracking-tight">TAC <span className="text-primary">CARGO</span></h1>
+                    <p className="text-muted-foreground mt-2">Secure Logistics Terminal</p>
                 </div>
 
                 {error && (
@@ -130,7 +131,7 @@ const Login: React.FC = () => {
 
                 <form onSubmit={handleLogin} className="space-y-4">
                     <div>
-                        <label className="block text-xs font-mono text-cyber-neon mb-1 uppercase">Email</label>
+                        <label className="block text-xs font-mono text-primary mb-1 uppercase">Email</label>
                         <Input
                             type="email"
                             value={email}
@@ -141,7 +142,7 @@ const Login: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-mono text-cyber-neon mb-1 uppercase">Password</label>
+                        <label className="block text-xs font-mono text-primary mb-1 uppercase">Password</label>
                         <Input
                             type="password"
                             value={password}
@@ -161,11 +162,11 @@ const Login: React.FC = () => {
                     </Button>
                 </form>
 
-                <div className="mt-6 text-center text-xs text-slate-500 font-mono">
-                    <button onClick={() => navigate('/')} className="hover:text-cyber-neon transition-colors">Return to Home</button>
+                <div className="mt-6 text-center text-xs text-muted-foreground font-mono">
+                    <button onClick={() => navigate('/')} className="hover:text-primary transition-colors">Return to Home</button>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-slate-700/50 text-center text-xs text-slate-500">
+                <div className="mt-4 pt-4 border-t border-border text-center text-xs text-muted-foreground">
                     <p>Contact your administrator for account access</p>
                 </div>
             </Card>
@@ -184,7 +185,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: UserR
             <div className="min-h-screen flex items-center justify-center bg-cyber-bg">
                 <div className="text-center">
                     <div className="w-12 h-12 border-4 border-cyber-neon border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-slate-400">Verifying credentials...</p>
+                    <p className="text-muted-foreground">Verifying credentials...</p>
                 </div>
             </div>
         );
@@ -219,8 +220,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: UserR
             <div className="min-h-screen flex items-center justify-center bg-cyber-bg text-center p-4">
                 <div>
                     <h1 className="text-4xl font-bold text-red-500 mb-2">403 Forbidden</h1>
-                    <p className="text-slate-400 mb-4">Your clearance level ({user.role}) is insufficient for this sector.</p>
-                    <Link to="/dashboard" className="text-cyber-neon hover:underline">Return to Dashboard</Link>
+                    <p className="text-muted-foreground mb-4">Your clearance level ({user.role}) is insufficient for this sector.</p>
+                    <Link to="/dashboard" className="text-primary hover:underline">Return to Dashboard</Link>
                 </div>
             </div>
         );
@@ -233,7 +234,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: UserR
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { sidebarCollapsed } = useStore();
     return (
-        <div className="min-h-screen bg-cyber-bg text-slate-900 dark:text-slate-200 font-sans selection:bg-cyber-accent/30 transition-colors duration-300">
+        <div className="min-h-screen bg-cyber-bg text-foreground font-sans selection:bg-cyber-accent/30 transition-colors duration-300">
             <a href="#main-content" className="skip-to-content">Skip to content</a>
             <Sidebar />
             <div className={`transition-all duration-300 ${sidebarCollapsed ? 'pl-20' : 'pl-64'}`}>
@@ -277,7 +278,7 @@ const App: React.FC = () => {
                         <div className="min-h-screen flex items-center justify-center bg-cyber-bg p-4">
                             <Card className="max-w-lg p-8 text-center">
                                 <h1 className="text-2xl font-bold text-red-500 mb-4">Something went wrong</h1>
-                                <p className="text-slate-300 mb-6">{error instanceof Error ? error.message : 'An unexpected error occurred'}</p>
+                                <p className="text-muted-foreground mb-6">{error instanceof Error ? error.message : 'An unexpected error occurred'}</p>
                                 <Button onClick={resetError}>Try Again</Button>
                             </Card>
                         </div>
@@ -300,6 +301,7 @@ const App: React.FC = () => {
                                         <Route path="/track/:awb" element={<PublicTracking />} />
 
                                         <Route path="/login" element={<Login />} />
+
 
                                         {/* Dashboard Routes (Protected) */}
                                         <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />

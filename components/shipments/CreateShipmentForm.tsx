@@ -92,10 +92,10 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
             {/* Route Section */}
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-xs font-mono text-slate-500 mb-1">ORIGIN HUB</label>
+                    <label className="block text-xs font-mono text-muted-foreground mb-1">ORIGIN HUB</label>
                     <select
                         {...register('originHub')}
-                        className="w-full bg-white/50 dark:bg-cyber-surface/50 border border-cyber-border rounded-lg px-4 py-2"
+                        className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
                     >
                         {Object.values(HUBS).map(hub => (
                             <option key={hub.id} value={hub.id}>{hub.name} ({hub.code})</option>
@@ -103,10 +103,10 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
                     </select>
                 </div>
                 <div>
-                    <label className="block text-xs font-mono text-slate-500 mb-1">DESTINATION HUB</label>
+                    <label className="block text-xs font-mono text-muted-foreground mb-1">DESTINATION HUB</label>
                     <select
                         {...register('destinationHub')}
-                        className="w-full bg-white/50 dark:bg-cyber-surface/50 border border-cyber-border rounded-lg px-4 py-2"
+                        className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
                     >
                         {Object.values(HUBS).map(hub => (
                             <option key={hub.id} value={hub.id}>{hub.name} ({hub.code})</option>
@@ -118,10 +118,10 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
 
             {/* Customer */}
             <div>
-                <label className="block text-xs font-mono text-slate-500 mb-1">CUSTOMER</label>
+                <label className="block text-xs font-mono text-muted-foreground mb-1">CUSTOMER</label>
                 <select
                     {...register('customerId')}
-                    className="w-full bg-white/50 dark:bg-cyber-surface/50 border border-cyber-border rounded-lg px-4 py-2"
+                    className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
                 >
                     <option value="">Select Customer</option>
                     {customers.map(c => (
@@ -134,14 +134,14 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
             {/* Mode & Service */}
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-xs font-mono text-slate-500 mb-1">TRANSPORT MODE</label>
+                    <label className="block text-xs font-mono text-muted-foreground mb-1">TRANSPORT MODE</label>
                     <div className="grid grid-cols-2 gap-2">
                         {SHIPMENT_MODES.map(mode => (
                             <label key={mode.id} className={`
                                 cursor-pointer border rounded-lg p-2 flex flex-col items-center justify-center text-xs transition-all text-center
                                 ${selectedMode === mode.id
-                                    ? 'bg-cyber-accent/10 border-cyber-neon text-cyber-accentHover dark:text-cyber-neon'
-                                    : 'border-cyber-border hover:bg-slate-50 dark:hover:bg-white/5'}
+                                    ? 'bg-primary/10 border-primary text-primary'
+                                    : 'border-input hover:bg-muted text-muted-foreground'}
                             `}>
                                 <input type="radio" value={mode.id} {...register('mode')} className="hidden" />
                                 {mode.id === 'AIR' ? <Plane className="w-4 h-4 mb-1" /> : <Truck className="w-4 h-4 mb-1" />}
@@ -151,14 +151,14 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
                     </div>
                 </div>
                 <div>
-                    <label className="block text-xs font-mono text-slate-500 mb-1">SERVICE LEVEL</label>
+                    <label className="block text-xs font-mono text-muted-foreground mb-1">SERVICE LEVEL</label>
                     <div className="grid grid-cols-2 gap-2">
                         {SERVICE_LEVELS.map(level => (
                             <label key={level.id} className={`
                                 cursor-pointer border rounded-lg p-2 flex flex-col items-center justify-center text-xs transition-all text-center
                                 ${selectedService === level.id
                                     ? 'bg-purple-500/10 border-purple-400 text-purple-600 dark:text-purple-400'
-                                    : 'border-cyber-border hover:bg-slate-50 dark:hover:bg-white/5'}
+                                    : 'border-input hover:bg-muted text-muted-foreground'}
                             `}>
                                 <input type="radio" value={level.id} {...register('serviceLevel')} className="hidden" />
                                 {level.id === 'EXPRESS' ? <Zap className="w-4 h-4 mb-1" /> : <Clock className="w-4 h-4 mb-1" />}
@@ -170,22 +170,22 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
             </div>
 
             {/* Package Details */}
-            <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-lg border border-cyber-border">
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+            <div className="p-4 bg-muted/40 rounded-lg border border-border">
+                <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
                     <Package className="w-4 h-4" /> Package Details
                 </h3>
                 <div className="grid grid-cols-2 gap-4 mb-3">
                     <div>
-                        <label className="block text-xs font-mono text-slate-500 mb-1">COUNT</label>
+                        <label className="block text-xs font-mono text-muted-foreground mb-1">COUNT</label>
                         <Input type="number" {...register('packageCount', { valueAsNumber: true })} />
                     </div>
                     <div>
-                        <label className="block text-xs font-mono text-slate-500 mb-1">DEAD WEIGHT (KG)</label>
+                        <label className="block text-xs font-mono text-muted-foreground mb-1">DEAD WEIGHT (KG)</label>
                         <Input type="number" step="0.1" {...register('weightDead', { valueAsNumber: true })} />
                     </div>
                 </div>
                 <div>
-                    <label className="block text-xs font-mono text-slate-500 mb-1">DIMENSIONS (L x W x H) cm</label>
+                    <label className="block text-xs font-mono text-muted-foreground mb-1">DIMENSIONS (L x W x H) cm</label>
                     <div className="grid grid-cols-3 gap-2">
                         <Input type="number" placeholder="L" {...register('dimL', { valueAsNumber: true })} />
                         <Input type="number" placeholder="W" {...register('dimW', { valueAsNumber: true })} />
@@ -194,7 +194,7 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
                 </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-cyber-border">
+            <div className="flex justify-end gap-3 pt-4 border-t border-border">
                 <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
                 <Button type="submit" disabled={createShipmentMutation.isPending}>
                     {createShipmentMutation.isPending ? 'Creating...' : 'Create Shipment'}

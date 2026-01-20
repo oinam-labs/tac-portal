@@ -44,7 +44,7 @@ export const Inventory: React.FC = () => {
             case '6-12h': return 'text-yellow-500';
             case '12-24h': return 'text-orange-500';
             case '24h+': return 'text-red-500 font-bold';
-            default: return 'text-slate-500';
+            default: return 'text-muted-foreground';
         }
     };
 
@@ -64,8 +64,8 @@ export const Inventory: React.FC = () => {
             <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Inventory Management</h1>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm">Real-time stock view across hub network.</p>
+                        <h1 className="text-2xl font-bold text-foreground">Inventory Management</h1>
+                        <p className="text-muted-foreground text-sm">Real-time stock view across hub network.</p>
                     </div>
                 </div>
                 <Card>
@@ -79,8 +79,8 @@ export const Inventory: React.FC = () => {
         <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Inventory Management</h1>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">Real-time stock view across hub network.</p>
+                    <h1 className="text-2xl font-bold text-foreground">Inventory Management</h1>
+                    <p className="text-muted-foreground text-sm">Real-time stock view across hub network.</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant={filterHub === 'ALL' ? 'primary' : 'secondary'} onClick={() => setFilterHub('ALL')}>All Hubs</Button>
@@ -90,12 +90,12 @@ export const Inventory: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-2">
-                <Card className="p-4 bg-slate-50 dark:bg-white/5 flex justify-between items-center">
-                    <span className="text-sm text-slate-500">Total In Stock</span>
-                    <span className="text-xl font-bold text-slate-900 dark:text-white">{stats.total} Pkgs</span>
+                <Card className="p-4 bg-muted flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Total In Stock</span>
+                    <span className="text-xl font-bold text-foreground">{stats.total} Pkgs</span>
                 </Card>
-                <Card className="p-4 bg-slate-50 dark:bg-white/5 flex justify-between items-center">
-                    <span className="text-sm text-slate-500">Aging Critical (24h+)</span>
+                <Card className="p-4 bg-muted flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Aging Critical (24h+)</span>
                     <span className="text-xl font-bold text-red-500">{stats.critical} Pkgs</span>
                 </Card>
             </div>
@@ -103,7 +103,7 @@ export const Inventory: React.FC = () => {
             <Card>
                 <div className="flex justify-between mb-4">
                     <div className="relative w-64">
-                        <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
+                        <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
                         <Input
                             placeholder="Search AWB..."
                             className="pl-9"
@@ -126,7 +126,7 @@ export const Inventory: React.FC = () => {
                     </thead>
                     <tbody>
                         {inventoryItems.length === 0 ? (
-                            <tr><td colSpan={6} className="text-center py-10 text-slate-500">No items currently in inventory matching filters.</td></tr>
+                            <tr><td colSpan={6} className="text-center py-10 text-muted-foreground">No items currently in inventory matching filters.</td></tr>
                         ) : (
                             inventoryItems.map((s) => {
                                 const location = getInventoryLocation(s);
@@ -134,13 +134,13 @@ export const Inventory: React.FC = () => {
                                 const bucket = getAgingBucket(s.created_at);
 
                                 return (
-                                    <tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                        <Td><span className="font-mono text-slate-900 dark:text-white font-bold">{s.awb_number}</span></Td>
+                                    <tr key={s.id} className="hover:bg-muted transition-colors">
+                                        <Td><span className="font-mono text-foreground font-bold">{s.awb_number}</span></Td>
                                         <Td><span className="font-mono">{s.package_count}</span></Td>
                                         <Td>{s.total_weight} kg</Td>
                                         <Td>
                                             <div className="flex items-center gap-2">
-                                                <Warehouse className="w-4 h-4 text-slate-500" />
+                                                <Warehouse className="w-4 h-4 text-muted-foreground" />
                                                 {hubName}
                                             </div>
                                         </Td>

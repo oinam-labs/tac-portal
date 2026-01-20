@@ -236,43 +236,43 @@ Thank you for choosing TAC Cargo.`;
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Invoices</h1>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">Manage invoices, billing, and payment gateways.</p>
+                    <h1 className="text-2xl font-bold text-foreground">Invoices</h1>
+                    <p className="text-muted-foreground text-sm">Manage invoices, billing, and payment gateways.</p>
                 </div>
             </div>
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="bg-gradient-to-br from-white to-slate-50 dark:from-cyber-surface dark:to-cyber-card">
+                <Card className="bg-card border-border shadow-sm">
                     <div className="flex items-center gap-4">
                         <div className="p-3 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
                             <CreditCard className="w-6 h-6" />
                         </div>
                         <div>
-                            <div className="text-sm text-slate-500 dark:text-slate-400">Total Revenue (Paid)</div>
-                            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">{formatCurrency(totalRevenue)}</div>
+                            <div className="text-sm text-muted-foreground">Total Revenue (Paid)</div>
+                            <div className="text-2xl font-bold text-foreground font-mono">{formatCurrency(totalRevenue)}</div>
                         </div>
                     </div>
                 </Card>
-                <Card className="bg-gradient-to-br from-white to-slate-50 dark:from-cyber-surface dark:to-cyber-card">
+                <Card className="bg-card border-border shadow-sm">
                     <div className="flex items-center gap-4">
                         <div className="p-3 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
                             <FileText className="w-6 h-6" />
                         </div>
                         <div>
-                            <div className="text-sm text-slate-500 dark:text-slate-400">Pending Invoices</div>
-                            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">{formatCurrency(pendingAmount)}</div>
+                            <div className="text-sm text-muted-foreground">Pending Invoices</div>
+                            <div className="text-2xl font-bold text-foreground font-mono">{formatCurrency(pendingAmount)}</div>
                         </div>
                     </div>
                 </Card>
-                <Card className="bg-gradient-to-br from-white to-slate-50 dark:from-cyber-surface dark:to-cyber-card">
+                <Card className="bg-card border-border shadow-sm">
                     <div className="flex items-center gap-4">
                         <div className="p-3 rounded-full bg-red-500/10 text-red-600 dark:text-red-400">
                             <FileText className="w-6 h-6" />
                         </div>
                         <div>
-                            <div className="text-sm text-slate-500 dark:text-slate-400">Overdue</div>
-                            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">{formatCurrency(overdueAmount)}</div>
+                            <div className="text-sm text-muted-foreground">Overdue</div>
+                            <div className="text-2xl font-bold text-foreground font-mono">{formatCurrency(overdueAmount)}</div>
                         </div>
                     </div>
                 </Card>
@@ -309,8 +309,8 @@ Thank you for choosing TAC Cargo.`;
                             <Check className="w-8 h-8 text-green-500" />
                         </div>
                         <div>
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Ready for Dispatch</h3>
-                            <p className="text-slate-500 text-sm">Invoice {successData.invoice.invoiceNumber} and AWB {successData.invoice.awb} generated.</p>
+                            <h3 className="text-xl font-bold text-foreground mb-2">Ready for Dispatch</h3>
+                            <p className="text-muted-foreground text-sm">Invoice {successData.invoice.invoiceNumber} and AWB {successData.invoice.awb} generated.</p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
@@ -323,7 +323,7 @@ Thank you for choosing TAC Cargo.`;
                         </div>
 
                         <div className="border-t border-white/10 pt-4">
-                            <p className="text-xs text-slate-500 mb-3 uppercase font-bold tracking-wider">Share with Customer</p>
+                            <p className="text-xs text-muted-foreground mb-3 uppercase font-bold tracking-wider">Share with Customer</p>
                             <div className="flex justify-center gap-4">
                                 <Button variant="ghost" className="text-green-500 border border-green-500/30 hover:bg-green-500/10" onClick={() => handleShareWhatsapp(successData.invoice)}>
                                     <MessageCircle className="w-5 h-5 mr-2" /> WhatsApp

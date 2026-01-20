@@ -76,7 +76,7 @@ export const Analytics: React.FC = () => {
 
     return (
         <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Operations Analytics</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-6">Operations Analytics</h1>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Area Chart with Legend - Shipment Volume (In/Out) */}
@@ -118,10 +118,10 @@ export const Analytics: React.FC = () => {
                     <CardFooter>
                         <div className="flex w-full items-start gap-2 text-sm">
                             <div className="grid gap-2">
-                                <div className="flex items-center gap-2 leading-none font-medium text-slate-900 dark:text-white">
+                                <div className="flex items-center gap-2 leading-none font-medium text-foreground">
                                     Trending up by 5.2% this month <TrendingUp className="h-4 w-4 text-cyber-success" />
                                 </div>
-                                <div className="flex items-center gap-2 leading-none text-slate-500 dark:text-slate-400">
+                                <div className="flex items-center gap-2 leading-none text-muted-foreground">
                                     {format(subMonths(new Date(), 5), 'MMMM')} - {format(new Date(), 'MMMM yyyy')}
                                 </div>
                             </div>
@@ -152,10 +152,10 @@ export const Analytics: React.FC = () => {
                         </div>
                     </CardContent>
                     <CardFooter className="flex-col items-start gap-2 text-sm">
-                        <div className="flex gap-2 leading-none font-medium text-slate-900 dark:text-white">
+                        <div className="flex gap-2 leading-none font-medium text-foreground">
                             Delivery rate up by 8.1% <TrendingUp className="h-4 w-4 text-cyber-success" />
                         </div>
-                        <div className="leading-none text-slate-500 dark:text-slate-400">
+                        <div className="leading-none text-muted-foreground">
                             Comparing to previous period
                         </div>
                     </CardFooter>

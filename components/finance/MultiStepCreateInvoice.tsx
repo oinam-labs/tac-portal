@@ -676,7 +676,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                             <div className="space-y-2">
                                 <Label>Transport Mode</Label>
                                 <div className="relative">
-                                    <select {...form.register('transportMode')} className="w-full h-10 pl-10 pr-3 bg-background border border-input rounded-md text-sm text-foreground focus:ring-1 focus:ring-primary outline-none appearance-none">
+                                    <select {...form.register('transportMode')} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none">
                                         <option value="TRUCK">Surface / Truck</option>
                                         <option value="AIR">Air Cargo</option>
                                     </select>
@@ -691,7 +691,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                             </div>
                             <div className="space-y-2">
                                 <Label>Payment Mode</Label>
-                                <select {...form.register('paymentMode')} className="w-full h-10 px-3 bg-background border border-input rounded-md text-sm text-foreground focus:ring-1 focus:ring-primary outline-none">
+                                <select {...form.register('paymentMode')} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                                     {PAYMENT_MODES.map(pm => <option key={pm.id} value={pm.id}>{pm.label}</option>)}
                                 </select>
                             </div>
@@ -717,7 +717,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                                 <Input placeholder="Address Line" {...form.register('consignorAddress')} />
                                 <div className="grid grid-cols-2 gap-3">
                                     <select
-                                        className="w-full h-10 bg-background border border-input rounded-md px-3 text-sm text-foreground outline-none"
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                         onChange={(e) => {
                                             if (e.target.value === 'OTHER') { setConsignorCityMode('INPUT'); setValue('consignorCity', ''); }
                                             else setValue('consignorCity', e.target.value);
@@ -748,7 +748,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                                 <Input placeholder="Address Line" {...form.register('consigneeAddress')} />
                                 <div className="grid grid-cols-2 gap-3">
                                     <select
-                                        className="w-full h-10 bg-background border border-input rounded-md px-3 text-sm text-foreground outline-none"
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                         onChange={(e) => {
                                             if (e.target.value === 'OTHER') { setConsigneeCityMode('INPUT'); setValue('consigneeCity', ''); }
                                             else setValue('consigneeCity', e.target.value);
@@ -774,7 +774,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                                 <Label>Nature of Goods <span className="text-red-500">*</span></Label>
                                 <div className="flex gap-2">
                                     <select
-                                        className="w-full h-10 bg-background border border-input rounded-md px-3 text-sm text-foreground outline-none"
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                         onChange={(e) => {
                                             if (e.target.value === 'OTHER') { setContentMode('INPUT'); setValue('contents', ''); }
                                             else setValue('contents', e.target.value);

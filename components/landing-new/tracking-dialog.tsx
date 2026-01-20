@@ -46,7 +46,7 @@ export function TrackingDialog({ trigger, children }: TrackingDialogProps) {
             <DialogTrigger asChild>
                 {trigger || children || <Button>Track Shipment</Button>}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
+            <DialogContent className="sm:max-w-md bg-card border-border">
                 {!result ? (
                     <div className="space-y-4 py-4">
                         <div className="text-center space-y-2">

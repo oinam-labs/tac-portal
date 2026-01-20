@@ -7,13 +7,13 @@ import { FileText, Download, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InvoiceWithRelations } from "@/hooks/useInvoices";
 
-// Status color mapping
+// Status color mapping using semantic badge classes
 const STATUS_COLORS: Record<string, string> = {
-    PAID: "bg-emerald-500/20 text-emerald-400 border-emerald-400/30",
-    ISSUED: "bg-blue-500/20 text-blue-400 border-blue-400/30",
-    OVERDUE: "bg-red-500/20 text-red-400 border-red-400/30",
-    DRAFT: "bg-slate-500/20 text-slate-400 border-slate-400/30",
-    CANCELLED: "bg-gray-500/20 text-gray-400 border-gray-400/30",
+    PAID: "badge--delivered",
+    ISSUED: "badge--manifested",
+    OVERDUE: "badge--exception",
+    DRAFT: "badge--cancelled",
+    CANCELLED: "badge--cancelled",
 };
 
 export interface InvoicesColumnsParams {
@@ -49,11 +49,11 @@ export function getInvoicesColumns(
             header: "Customer",
             cell: ({ row }) => (
                 <div>
-                    <div className="font-medium text-slate-900 dark:text-white">
+                    <div className="font-medium text-foreground">
                         {row.original.customer?.name || "—"}
                     </div>
                     {row.original.shipment?.awb_number && (
-                        <div className="text-xs text-slate-500 font-mono">
+                        <div className="text-xs text-muted-foreground font-mono">
                             AWB: {row.original.shipment.awb_number}
                         </div>
                     )}
@@ -68,7 +68,7 @@ export function getInvoicesColumns(
                     <div className="font-bold text-lg">
                         ₹{row.original.total?.toLocaleString("en-IN") ?? "0"}
                     </div>
-                    <div className="text-xs text-slate-500">
+                    <div className="text-xs text-muted-foreground">
                         Tax: ₹{(row.original.tax?.total ?? 0).toLocaleString("en-IN")}
                     </div>
                 </div>
@@ -78,7 +78,7 @@ export function getInvoicesColumns(
             accessorKey: "due_date",
             header: "Due Date",
             cell: ({ row }) => (
-                <span className="font-mono text-sm text-slate-400">
+                <span className="font-mono text-sm text-muted-foreground">
                     {row.original.due_date
                         ? new Date(row.original.due_date).toLocaleDateString("en-IN")
                         : "—"}

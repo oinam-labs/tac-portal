@@ -96,7 +96,7 @@ const ToolbarButton = memo<ToolbarButtonProps>(
                 <TooltipPrimitive.Portal>
                     <TooltipPrimitive.Content
                         side="bottom"
-                        className="z-50 overflow-hidden rounded-md bg-slate-900 px-3 py-1.5 text-xs text-slate-50 animate-in fade-in-0 zoom-in-95"
+                        className="z-50 overflow-hidden rounded-md bg-popover px-3 py-1.5 text-xs text-popover-foreground animate-in fade-in-0 zoom-in-95"
                         sideOffset={4}
                     >
                         {tooltip}

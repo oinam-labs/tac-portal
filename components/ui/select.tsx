@@ -67,7 +67,7 @@ const SelectTrigger = React.forwardRef<HTMLButtonElement, SelectTriggerProps>(
                 type="button"
                 onClick={() => setOpen(!open)}
                 className={cn(
-                    "flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-cyber-border bg-cyber-surface/50 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyber-accent/50 disabled:cursor-not-allowed disabled:opacity-50",
+                    "flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
                     className
                 )}
                 {...props}
@@ -130,7 +130,7 @@ const SelectContent = React.forwardRef<HTMLDivElement, SelectContentProps>(
             <div
                 ref={mergedRef}
                 className={cn(
-                    "absolute top-full left-0 z-50 mt-1 min-w-[8rem] w-full overflow-hidden rounded-xl border border-cyber-border bg-cyber-surface shadow-lg animate-in fade-in-0 zoom-in-95",
+                    "absolute top-full left-0 z-50 mt-1 min-w-[8rem] w-full overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95",
                     className
                 )}
                 {...props}
@@ -162,14 +162,14 @@ const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(
                     setOpen(false)
                 }}
                 className={cn(
-                    "relative flex cursor-pointer select-none items-center rounded-lg py-2 px-3 text-sm text-slate-700 dark:text-slate-200 outline-none transition-colors hover:bg-cyber-accent/10 hover:text-cyber-accent focus:bg-cyber-accent/10",
-                    isSelected && "bg-cyber-accent/10 text-cyber-accent",
+                    "relative flex cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                    isSelected && "bg-accent text-accent-foreground",
                     className
                 )}
                 {...props}
             >
                 <span className="flex-1">{children}</span>
-                {isSelected && <Check className="h-4 w-4 text-cyber-accent" />}
+                {isSelected && <Check className="h-4 w-4 text-foreground" />}
             </div>
         )
     }

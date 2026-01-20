@@ -95,8 +95,8 @@ export const Sidebar: React.FC = () => {
                     <span className="font-bold text-white text-lg">T</span>
                 </div>
                 {!sidebarCollapsed && (
-                    <span className="ml-3 font-bold text-xl tracking-tight text-slate-900 dark:text-white">
-                        TAC <span className="text-cyber-neon">CARGO</span>
+                    <span className="ml-3 font-bold text-xl tracking-tight text-foreground">
+                        TAC <span className="text-primary">CARGO</span>
                     </span>
                 )}
             </div>
@@ -111,7 +111,7 @@ export const Sidebar: React.FC = () => {
                     return (
                         <div key={groupIndex}>
                             {!sidebarCollapsed && group.title && (
-                                <div className="px-3 mb-2 text-xs font-mono text-slate-500 uppercase tracking-wider">
+                                <div className="px-3 mb-2 text-xs font-mono text-muted-foreground uppercase tracking-wider">
                                     {group.title}
                                 </div>
                             )}
@@ -124,8 +124,8 @@ export const Sidebar: React.FC = () => {
                                         className={({ isActive }) => `
                                             flex items-center px-3 py-2 rounded-lg transition-all duration-200 group
                                             ${isActive
-                                                ? 'bg-cyber-accent/10 text-cyber-neon shadow-[0_0_15px_rgba(34,211,238,0.1)] border border-cyber-neon/20'
-                                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-black/5 dark:hover:bg-white/5'}
+                                                ? 'bg-primary/10 text-primary shadow-sm border border-primary/20'
+                                                : 'text-muted-foreground hover:text-foreground hover:bg-muted'}
                                         `}
                                     >
                                         <item.icon className={`w-5 h-5 ${sidebarCollapsed ? 'mx-auto' : 'mr-3'}`} />
@@ -142,11 +142,11 @@ export const Sidebar: React.FC = () => {
             <div className="p-4 border-t border-cyber-border">
                 {!sidebarCollapsed && user && (
                     <div className="mb-3 px-2">
-                        <div className="text-xs font-mono text-slate-500 uppercase">Logged in as</div>
-                        <div className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.name}</div>
-                        <div className="text-xs text-cyber-accentHover dark:text-cyber-neon truncate mb-1">{user.role}</div>
+                        <div className="text-xs font-mono text-muted-foreground uppercase">Logged in as</div>
+                        <div className="text-sm font-bold text-foreground truncate">{user.name}</div>
+                        <div className="text-xs text-primary truncate mb-1">{user.role}</div>
 
-                        <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-2 bg-slate-100 dark:bg-white/5 p-1.5 rounded">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2 bg-muted p-1.5 rounded">
                             <MapPin className="w-3 h-3" />
                             <span className="truncate">{userHub}</span>
                         </div>
@@ -157,7 +157,7 @@ export const Sidebar: React.FC = () => {
                         await signOut();
                         legacyLogout();
                     }}
-                    className={`flex items-center w-full px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
+                    className={`flex items-center w-full px-3 py-2 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
                 >
                     <LogOut className="w-5 h-5" />
                     {!sidebarCollapsed && <span className="ml-3 text-sm font-medium">Sign Out</span>}
