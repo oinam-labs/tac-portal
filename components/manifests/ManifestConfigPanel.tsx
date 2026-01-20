@@ -1,7 +1,7 @@
 "use client"
 
 import type { UseFormReturn } from "react-hook-form"
-import { motion, AnimatePresence } from "motion/react"
+import { motion, AnimatePresence } from "@/lib/motion"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"

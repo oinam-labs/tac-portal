@@ -65,7 +65,7 @@ Core policy file: `supabase/migrations/002_rls_policies.sql`
 ## 5. UI/UX & Design System
 
 ### Styling Engine
-- **Framework**: Tailwind CSS v4.0 (Alpha/Beta based on package version).
+- **Framework**: Tailwind CSS v4.1 (Stable).
 - **Design Tokens**: CSS Variables in `globals.css` verify distinct Light/Dark modes.
 - **Linter**: `stylelint` with `postcss-html` ensures CSS consistency.
 
@@ -80,6 +80,7 @@ Core policy file: `supabase/migrations/002_rls_policies.sql`
 ## 6. Dependencies & Package Health
 
 ### Key Packages
+
 | Category | Package | Version | Status |
 |----------|---------|---------|--------|
 | **Core** | `react` | ^19.1.0 | 🆕 Modern |

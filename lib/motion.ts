@@ -1,10 +1,10 @@
 /**
- * Typed Motion Components
+ * Motion Components Wrapper
  * 
- * This module exports properly typed framer-motion components
+ * This module exports properly typed motion/react components
  * to fix compatibility issues with TypeScript strict mode.
  * 
- * Use these instead of importing directly from 'framer-motion'
+ * Use these instead of importing directly from 'motion/react'
  */
 
 import {
