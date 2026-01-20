@@ -30,7 +30,7 @@ const GuaranteeCard: React.FC<GuaranteeCardProps> = ({ icon, title, description,
             </div>
 
             <h4 className="text-lg font-bold text-cyber-text mb-2">{title}</h4>
-            <p className="text-sm text-slate-500 leading-relaxed">{description}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
         </div>
     </div>
 );
@@ -79,7 +79,7 @@ export const SLASection: React.FC<SLASectionProps> = ({ className }) => {
                     <h2 className="text-3xl md:text-5xl font-bold text-cyber-text tracking-tight mb-4">
                         Our Guarantees
                     </h2>
-                    <p className="text-lg text-slate-500 max-w-xl mx-auto">
+                    <p className="text-lg text-muted-foreground max-w-xl mx-auto">
                         Enterprise-level commitments backed by SLAs and transparent operations.
                     </p>
                 </div>

@@ -53,7 +53,7 @@ const TestimonialCard: React.FC<TestimonialProps> = ({ quote, author, role, comp
                     <div className={cn('font-bold text-cyber-text', featured ? 'text-base' : 'text-sm')}>
                         {author}
                     </div>
-                    <div className="text-xs text-slate-500">
+                    <div className="text-xs text-muted-foreground">
                         {role}, {company}
                     </div>
                 </div>
@@ -117,7 +117,7 @@ export const Testimonials: React.FC<TestimonialsProps> = ({ className }) => {
                     <h2 className="text-3xl md:text-5xl font-bold text-cyber-text tracking-tight mb-4">
                         Trusted by Industry Leaders
                     </h2>
-                    <p className="text-lg text-slate-500 max-w-xl mx-auto">
+                    <p className="text-lg text-muted-foreground max-w-xl mx-auto">
                         See why operations teams across India choose TAC Cargo.
                     </p>
                 </div>

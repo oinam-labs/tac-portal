@@ -24,7 +24,7 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, isOpen, onToggle })
                 {question}
             </span>
             <ChevronDown className={cn(
-                'w-5 h-5 text-slate-500 transition-transform duration-300',
+                'w-5 h-5 text-muted-foreground transition-transform duration-300',
                 isOpen && 'rotate-180 text-cyber-accent'
             )} />
         </button>
@@ -33,7 +33,7 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, isOpen, onToggle })
             'overflow-hidden transition-all duration-300',
             isOpen ? 'max-h-96 pb-5' : 'max-h-0'
         )}>
-            <p className="text-sm text-slate-500 leading-relaxed pr-8">
+            <p className="text-sm text-muted-foreground leading-relaxed pr-8">
                 {answer}
             </p>
         </div>
@@ -86,7 +86,7 @@ export const FAQ: React.FC<FAQProps> = ({ className }) => {
                     <h2 className="text-3xl md:text-4xl font-bold text-cyber-text tracking-tight mb-4">
                         Frequently Asked Questions
                     </h2>
-                    <p className="text-slate-500">
+                    <p className="text-muted-foreground">
                         Everything you need to know about our services.
                     </p>
                 </div>

@@ -31,7 +31,7 @@ const StatCard: React.FC<StatCardProps> = ({ icon, value, label, trend }) => (
             <div className="text-3xl md:text-4xl font-bold text-cyber-text tracking-tight mb-1">
                 {value}
             </div>
-            <div className="text-xs font-medium text-slate-500 uppercase tracking-widest">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
                 {label}
             </div>
         </div>
@@ -54,7 +54,7 @@ export const StatsRow: React.FC<StatsRowProps> = ({ className }) => {
         <section className={cn('py-16 px-6', className)}>
             <div className="max-w-7xl mx-auto">
                 {/* Section Label */}
-                <div className="flex items-center justify-center gap-2 mb-8 text-xs font-mono font-bold text-slate-500 uppercase tracking-[0.2em]">
+                <div className="flex items-center justify-center gap-2 mb-8 text-xs font-mono font-bold text-muted-foreground uppercase tracking-[0.2em]">
                     <span className="w-8 h-px bg-cyber-border" />
                     Trusted by Operations Teams
                     <span className="w-8 h-px bg-cyber-border" />

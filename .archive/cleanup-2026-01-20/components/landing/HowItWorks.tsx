@@ -39,7 +39,7 @@ const Step: React.FC<StepProps> = ({ number, icon, title, description, isLast })
 
         {/* Content */}
         <h4 className="text-lg font-bold text-cyber-text mb-2">{title}</h4>
-        <p className="text-sm text-slate-500 max-w-[200px] leading-relaxed">{description}</p>
+        <p className="text-sm text-muted-foreground max-w-[200px] leading-relaxed">{description}</p>
     </div>
 );
 
@@ -78,7 +78,7 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({ className }) => {
                     <h2 className="text-3xl md:text-5xl font-bold text-cyber-text tracking-tight mb-4">
                         How It Works
                     </h2>
-                    <p className="text-lg text-slate-500 max-w-xl mx-auto">
+                    <p className="text-lg text-muted-foreground max-w-xl mx-auto">
                         From booking to delivery in three simple steps. Transparent, tracked, and reliable.
                     </p>
                 </div>

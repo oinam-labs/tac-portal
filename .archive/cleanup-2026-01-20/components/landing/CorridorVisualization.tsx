@@ -59,7 +59,7 @@ export const CorridorVisualization: React.FC<CorridorVisualizationProps> = ({ cl
                         <h2 className="text-3xl md:text-5xl font-bold text-cyber-text tracking-tight mb-6 leading-[1.1]">
                             The Northeast Corridor
                         </h2>
-                        <p className="text-lg text-slate-500 leading-relaxed mb-8">
+                        <p className="text-lg text-muted-foreground leading-relaxed mb-8">
                             Specialized logistics network connecting Imphal (IMF) with New Delhi (DEL) and beyond. Real-time telemetry monitoring.
                         </p>
                     </div>
@@ -72,7 +72,7 @@ export const CorridorVisualization: React.FC<CorridorVisualizationProps> = ({ cl
                             </div>
                             <div>
                                 <h4 className="font-bold text-cyber-text">Air Freight</h4>
-                                <p className="text-sm text-slate-500">Daily flights • 24-48h turnaround • Priority handling</p>
+                                <p className="text-sm text-muted-foreground">Daily flights • 24-48h turnaround • Priority handling</p>
                             </div>
                             <div className="ml-auto text-xs font-mono text-cyber-accent bg-cyber-accent/10 px-2 py-1 rounded">ACTIVE</div>
                         </div>
@@ -83,7 +83,7 @@ export const CorridorVisualization: React.FC<CorridorVisualizationProps> = ({ cl
                             </div>
                             <div>
                                 <h4 className="font-bold text-cyber-text">Surface Linehaul</h4>
-                                <p className="text-sm text-slate-500">Cost-effective • Heavy cargo • 5-7 days</p>
+                                <p className="text-sm text-muted-foreground">Cost-effective • Heavy cargo • 5-7 days</p>
                             </div>
                             <div className="ml-auto text-xs font-mono text-cyber-purple bg-cyber-purple/10 px-2 py-1 rounded">ACTIVE</div>
                         </div>
@@ -138,35 +138,35 @@ export const CorridorVisualization: React.FC<CorridorVisualizationProps> = ({ cl
                         {/* City Labels */}
                         <div className="absolute top-[42%] left-[8%] bg-cyber-card/90 backdrop-blur px-3 py-1.5 rounded-lg shadow-lg text-xs font-bold border border-cyber-border text-cyber-text">
                             <span className="text-cyber-neon">●</span> New Delhi
-                            <span className="ml-2 text-[10px] font-mono text-slate-500">DEL</span>
+                            <span className="ml-2 text-[10px] font-mono text-muted-foreground">DEL</span>
                         </div>
                         <div className="absolute top-[35%] right-[8%] bg-cyber-card/90 backdrop-blur px-3 py-1.5 rounded-lg shadow-lg text-xs font-bold border border-cyber-border text-cyber-text">
                             <span className="text-cyber-purple">●</span> Imphal
-                            <span className="ml-2 text-[10px] font-mono text-slate-500">IMF</span>
+                            <span className="ml-2 text-[10px] font-mono text-muted-foreground">IMF</span>
                         </div>
 
                         {/* Telemetry Panel */}
                         <div className="absolute bottom-4 left-4 right-4 bg-cyber-bg/90 backdrop-blur-xl rounded-xl border border-cyber-border/50 p-4">
-                            <div className="flex items-center gap-2 text-xs font-mono text-slate-500 mb-3">
+                            <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground mb-3">
                                 <Activity className="w-3 h-3 text-cyber-accent" />
                                 LIVE TELEMETRY
                             </div>
                             <div className="grid grid-cols-4 gap-4">
                                 <div>
                                     <div className="text-lg font-bold text-cyber-text">127</div>
-                                    <div className="text-[10px] text-slate-500 uppercase">Active</div>
+                                    <div className="text-[10px] text-muted-foreground uppercase">Active</div>
                                 </div>
                                 <div>
                                     <div className="text-lg font-bold text-cyber-accent">32h</div>
-                                    <div className="text-[10px] text-slate-500 uppercase">Avg Time</div>
+                                    <div className="text-[10px] text-muted-foreground uppercase">Avg Time</div>
                                 </div>
                                 <div>
                                     <div className="text-lg font-bold text-cyber-success">99.1%</div>
-                                    <div className="text-[10px] text-slate-500 uppercase">On-Time</div>
+                                    <div className="text-[10px] text-muted-foreground uppercase">On-Time</div>
                                 </div>
                                 <div>
                                     <div className="text-lg font-bold text-amber-500">2</div>
-                                    <div className="text-[10px] text-slate-500 uppercase">Exceptions</div>
+                                    <div className="text-[10px] text-muted-foreground uppercase">Exceptions</div>
                                 </div>
                             </div>
                         </div>
