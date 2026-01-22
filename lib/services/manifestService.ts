@@ -505,6 +505,14 @@ export const manifestService = {
         });
 
         if (error) {
+            // Handle AbortError gracefully
+            if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+                return {
+                    success: false,
+                    error: 'REQUEST_CANCELLED',
+                    message: 'Request was cancelled. Please try again.',
+                };
+            }
             // RPC function doesn't exist yet, fall back to app-level logic
             if (error.code === '42883' || error.message?.includes('does not exist')) {
                 return this.addShipmentByScanFallback(manifestId, scanToken, options);
@@ -529,150 +537,162 @@ export const manifestService = {
             validateStatus?: boolean;
         } = {}
     ): Promise<ScanResponse> {
-        const orgId = orgService.getCurrentOrgId();
-        const { staffId, validateDestination = true, validateStatus = true } = options;
+        try {
+            const orgId = orgService.getCurrentOrgId();
+            const { staffId, validateDestination = true, validateStatus = true } = options;
 
-        // Normalize scan token
-        const normalized = scanToken.replace(/[\s-]/g, '').toUpperCase();
+            // Normalize scan token
+            const normalized = scanToken.replace(/[\s-]/g, '').toUpperCase();
 
-        // Get manifest
-        const manifest = await this.getById(manifestId);
-        if (!manifest) {
-            return {
-                success: false,
-                error: 'MANIFEST_NOT_FOUND',
-                message: 'Manifest not found or access denied',
-            };
-        }
+            // Get manifest
+            const manifest = await this.getById(manifestId);
+            if (!manifest) {
+                return {
+                    success: false,
+                    error: 'MANIFEST_NOT_FOUND',
+                    message: 'Manifest not found or access denied',
+                };
+            }
 
-        // Check manifest is editable
-        if (!['OPEN', 'DRAFT', 'BUILDING'].includes(manifest.status)) {
-            return {
-                success: false,
-                error: 'MANIFEST_CLOSED',
-                message: 'Cannot add items to a closed manifest',
-            };
-        }
+            // Check manifest is editable
+            if (!['OPEN', 'DRAFT', 'BUILDING'].includes(manifest.status)) {
+                return {
+                    success: false,
+                    error: 'MANIFEST_CLOSED',
+                    message: 'Cannot add items to a closed manifest',
+                };
+            }
 
-        // Find shipment by AWB or ID
-        const { data: shipment } = await supabase
-            .from('shipments')
-            .select('*')
-            .eq('org_id', orgId)
-            .is('deleted_at', null)
-            .or(`awb_number.ilike.%${normalized}%,id.eq.${scanToken}`)
-            .limit(1)
-            .maybeSingle();
+            // Find shipment by AWB or ID
+            const { data: shipment } = await supabase
+                .from('shipments')
+                .select('*')
+                .eq('org_id', orgId)
+                .is('deleted_at', null)
+                .or(`awb_number.ilike.%${normalized}%,id.eq.${scanToken}`)
+                .limit(1)
+                .maybeSingle();
 
-        if (!shipment) {
-            return {
-                success: false,
-                error: 'SHIPMENT_NOT_FOUND',
-                message: `No shipment found matching: ${scanToken}`,
-            };
-        }
+            if (!shipment) {
+                return {
+                    success: false,
+                    error: 'SHIPMENT_NOT_FOUND',
+                    message: `No shipment found matching: ${scanToken}`,
+                };
+            }
 
-        // Check if already in this manifest (idempotency)
-        const { data: existing } = await supabase
-            .from('manifest_items')
-            .select('id')
-            .eq('manifest_id', manifestId)
-            .eq('shipment_id', shipment.id)
-            .maybeSingle();
+            // Check if already in this manifest (idempotency)
+            const { data: existing } = await supabase
+                .from('manifest_items')
+                .select('id')
+                .eq('manifest_id', manifestId)
+                .eq('shipment_id', shipment.id)
+                .maybeSingle();
 
-        if (existing) {
-            return {
-                success: true,
-                duplicate: true,
-                message: 'Shipment already in manifest',
-                shipment_id: shipment.id,
-                awb_number: shipment.awb_number,
-                manifest_item_id: existing.id,
-            };
-        }
-
-        // Check if in another open manifest
-        const { data: otherManifest } = await supabase
-            .from('manifest_items')
-            .select('manifest_id, manifests!inner(status)')
-            .eq('shipment_id', shipment.id)
-            .in('manifests.status', ['OPEN', 'DRAFT', 'BUILDING'])
-            .neq('manifest_id', manifestId)
-            .maybeSingle();
-
-        if (otherManifest) {
-            return {
-                success: false,
-                error: 'ALREADY_IN_MANIFEST',
-                message: 'Shipment is already in another open manifest',
-                shipment_id: shipment.id,
-                awb_number: shipment.awb_number,
-            };
-        }
-
-        // Validate destination
-        if (validateDestination && shipment.destination_hub_id !== manifest.to_hub_id) {
-            return {
-                success: false,
-                error: 'DESTINATION_MISMATCH',
-                message: 'Shipment destination does not match manifest destination',
-                shipment_id: shipment.id,
-                awb_number: shipment.awb_number,
-            };
-        }
-
-        // Validate status
-        const validStatuses = ['RECEIVED', 'CREATED', 'PICKED_UP', 'RECEIVED_AT_ORIGIN_HUB'];
-        if (validateStatus && !validStatuses.includes(shipment.status)) {
-            return {
-                success: false,
-                error: 'INVALID_STATUS',
-                message: `Shipment status is not eligible for manifesting: ${shipment.status}`,
-                shipment_id: shipment.id,
-                awb_number: shipment.awb_number,
-                current_status: shipment.status,
-            };
-        }
-
-        // Insert manifest item
-        const { data: newItem, error: insertError } = await (supabase
-            .from('manifest_items') as any)
-            .insert({
-                org_id: orgId,
-                manifest_id: manifestId,
-                shipment_id: shipment.id,
-                scanned_by_staff_id: staffId || null,
-                scanned_at: new Date().toISOString(),
-            })
-            .select()
-            .single();
-
-        if (insertError) {
-            // Unique constraint violation = duplicate (race condition)
-            if (insertError.code === '23505') {
+            if (existing) {
                 return {
                     success: true,
                     duplicate: true,
-                    message: 'Shipment already in manifest (concurrent)',
+                    message: 'Shipment already in manifest',
+                    shipment_id: shipment.id,
+                    awb_number: shipment.awb_number,
+                    manifest_item_id: existing.id,
+                };
+            }
+
+            // Check if in another open manifest
+            const { data: otherManifest } = await supabase
+                .from('manifest_items')
+                .select('manifest_id, manifests!inner(status)')
+                .eq('shipment_id', shipment.id)
+                .in('manifests.status', ['OPEN', 'DRAFT', 'BUILDING'])
+                .neq('manifest_id', manifestId)
+                .maybeSingle();
+
+            if (otherManifest) {
+                return {
+                    success: false,
+                    error: 'ALREADY_IN_MANIFEST',
+                    message: 'Shipment is already in another open manifest',
                     shipment_id: shipment.id,
                     awb_number: shipment.awb_number,
                 };
             }
-            throw mapSupabaseError(insertError);
-        }
 
-        return {
-            success: true,
-            duplicate: false,
-            message: 'Shipment added to manifest',
-            shipment_id: shipment.id,
-            awb_number: shipment.awb_number,
-            consignee_name: shipment.receiver_name,
-            consignor_name: shipment.sender_name,
-            total_packages: shipment.total_packages,
-            total_weight: shipment.total_weight,
-            manifest_item_id: newItem.id,
-        };
+            // Validate destination
+            if (validateDestination && shipment.destination_hub_id !== manifest.to_hub_id) {
+                return {
+                    success: false,
+                    error: 'DESTINATION_MISMATCH',
+                    message: 'Shipment destination does not match manifest destination',
+                    shipment_id: shipment.id,
+                    awb_number: shipment.awb_number,
+                };
+            }
+
+            // Validate status
+            const validStatuses = ['RECEIVED', 'CREATED', 'PICKED_UP', 'RECEIVED_AT_ORIGIN_HUB'];
+            if (validateStatus && !validStatuses.includes(shipment.status)) {
+                return {
+                    success: false,
+                    error: 'INVALID_STATUS',
+                    message: `Shipment status is not eligible for manifesting: ${shipment.status}`,
+                    shipment_id: shipment.id,
+                    awb_number: shipment.awb_number,
+                    current_status: shipment.status,
+                };
+            }
+
+            // Insert manifest item
+            const { data: newItem, error: insertError } = await (supabase
+                .from('manifest_items') as any)
+                .insert({
+                    org_id: orgId,
+                    manifest_id: manifestId,
+                    shipment_id: shipment.id,
+                    scanned_by_staff_id: staffId || null,
+                    scanned_at: new Date().toISOString(),
+                })
+                .select()
+                .single();
+
+            if (insertError) {
+                // Unique constraint violation = duplicate (race condition)
+                if (insertError.code === '23505') {
+                    return {
+                        success: true,
+                        duplicate: true,
+                        message: 'Shipment already in manifest (concurrent)',
+                        shipment_id: shipment.id,
+                        awb_number: shipment.awb_number,
+                    };
+                }
+                throw mapSupabaseError(insertError);
+            }
+
+            return {
+                success: true,
+                duplicate: false,
+                message: 'Shipment added to manifest',
+                shipment_id: shipment.id,
+                awb_number: shipment.awb_number,
+                consignee_name: shipment.receiver_name,
+                consignor_name: shipment.sender_name,
+                total_packages: shipment.total_packages,
+                total_weight: shipment.total_weight,
+                manifest_item_id: newItem.id,
+            };
+        } catch (error) {
+            // Handle AbortError gracefully
+            if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('aborted'))) {
+                return {
+                    success: false,
+                    error: 'REQUEST_CANCELLED',
+                    message: 'Request was cancelled. Please try again.',
+                };
+            }
+            throw error;
+        }
     },
 
     /**

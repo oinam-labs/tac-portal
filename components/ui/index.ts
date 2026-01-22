@@ -54,3 +54,6 @@ export {
 export { Separator } from './separator'
 export { ScrollArea, ScrollBar } from './scroll-area'
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs'
+export { Calendar } from './calendar'
+export { Popover, PopoverContent, PopoverTrigger } from './popover'
+export { DatePicker, TimePicker, DateTimePicker, DateRangePicker } from './date-time-picker'
