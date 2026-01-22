@@ -8,6 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
 import { isFeatureEnabled } from '@/config/features';
+import { logger } from '@/lib/logger';
 
 /**
  * Subscribe to realtime changes for shipments
@@ -28,25 +29,22 @@ export function useRealtimeShipments() {
                     table: 'shipments',
                 },
                 (payload) => {
-                    if (import.meta.env.DEV) {
-                        console.log('[Realtime] Shipment changed:', payload.eventType);
-                    }
+                    logger.debug('[Realtime] Shipment changed', { eventType: payload.eventType });
 
                     // Invalidate shipments queries
                     queryClient.invalidateQueries({ queryKey: queryKeys.shipments.all });
 
                     // If it's a specific shipment, invalidate that too
-                    if (payload.new && (payload.new as any).id) {
+                    const newRecord = payload.new as Record<string, unknown> | null;
+                    if (newRecord?.id && typeof newRecord.id === 'string') {
                         queryClient.invalidateQueries({
-                            queryKey: queryKeys.shipments.detail((payload.new as any).id)
+                            queryKey: queryKeys.shipments.detail(newRecord.id)
                         });
                     }
                 }
             )
             .subscribe((status) => {
-                if (import.meta.env.DEV) {
-                    console.log('[Realtime] Shipments subscription:', status);
-                }
+                logger.debug('[Realtime] Shipments subscription', { status });
             });
 
         return () => {
@@ -74,9 +72,7 @@ export function useRealtimeManifests() {
                     table: 'manifests',
                 },
                 (payload) => {
-                    if (import.meta.env.DEV) {
-                        console.log('[Realtime] Manifest changed:', payload.eventType);
-                    }
+                    logger.debug('[Realtime] Manifest changed', { eventType: payload.eventType });
                     queryClient.invalidateQueries({ queryKey: queryKeys.manifests.all });
                 }
             )
@@ -108,9 +104,7 @@ export function useRealtimeTracking(awb?: string) {
                     filter: `awb_number=eq.${awb}`,
                 },
                 () => {
-                    if (import.meta.env.DEV) {
-                        console.log('[Realtime] New tracking event for:', awb);
-                    }
+                    logger.debug('[Realtime] New tracking event', { awb });
                     queryClient.invalidateQueries({ queryKey: queryKeys.tracking.byAwb(awb) });
                 }
             )
@@ -141,9 +135,7 @@ export function useRealtimeExceptions() {
                     table: 'exceptions',
                 },
                 (payload) => {
-                    if (import.meta.env.DEV) {
-                        console.log('[Realtime] Exception changed:', payload.eventType);
-                    }
+                    logger.debug('[Realtime] Exception changed', { eventType: payload.eventType });
                     queryClient.invalidateQueries({ queryKey: queryKeys.exceptions.all });
                 }
             )

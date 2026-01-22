@@ -2,6 +2,7 @@
  * Staff Service
  * Handles staff/user operations
  */
+/* eslint-disable @typescript-eslint/no-explicit-any -- Supabase client requires any for complex operations */
 
 import { supabase } from '@/lib/supabase';
 import { mapSupabaseError } from '@/lib/errors';

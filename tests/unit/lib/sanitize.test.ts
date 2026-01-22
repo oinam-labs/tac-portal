@@ -38,9 +38,9 @@ describe('Sanitization Utilities', () => {
         });
 
         it('removes script tags', () => {
-            expect(stripHtml('<script>alert("xss")</script>Safe text')).toBe(
-                'alert("xss")Safe text'
-            );
+            const result = stripHtml('<script>alert("xss")</script>Safe text');
+            expect(result).toContain('Safe text');
+            expect(result).not.toContain('<script');
         });
 
         it('handles self-closing tags', () => {
@@ -49,6 +49,59 @@ describe('Sanitization Utilities', () => {
 
         it('handles empty string', () => {
             expect(stripHtml('')).toBe('');
+        });
+
+        // Security tests for XSS bypass patterns (CodeQL js/incomplete-multi-character-sanitization)
+        it('handles nested script tags that could reform after naive stripping', () => {
+            // Pattern: <scr<script>ipt> could become <script> after naive /<[^>]*>/g
+            const malicious = '<scr<script>ipt>alert(1)</scr</script>ipt>';
+            const result = stripHtml(malicious);
+            expect(result).not.toContain('<script');
+            expect(result).not.toContain('</script');
+        });
+
+        it('handles script tags with encoded entities', () => {
+            const malicious = '&lt;script&gt;alert(1)&lt;/script&gt;';
+            const result = stripHtml(malicious);
+            // Encoded entities pass through (they're not actual tags)
+            // But no actual < or > characters should exist
+            expect(result).not.toContain('<');
+            expect(result).not.toContain('>');
+        });
+
+        it('handles malformed script tags with attributes', () => {
+            const malicious = '<script/xss>alert(1)</script>';
+            const result = stripHtml(malicious);
+            expect(result).not.toContain('<script');
+        });
+
+        it('handles img tags with onerror handlers', () => {
+            const malicious = '<img src=x onerror=alert(1)>';
+            const result = stripHtml(malicious);
+            expect(result).not.toContain('onerror');
+            expect(result).not.toContain('<img');
+        });
+
+        it('handles SVG-based XSS vectors', () => {
+            const malicious = '<svg onload=alert(1)><rect/></svg>';
+            const result = stripHtml(malicious);
+            expect(result).not.toContain('<svg');
+            expect(result).not.toContain('onload');
+        });
+
+        it('handles javascript: protocol in href', () => {
+            const malicious = '<a href="javascript:alert(1)">click</a>';
+            const result = stripHtml(malicious);
+            expect(result).not.toContain('javascript:');
+            expect(result).not.toContain('<a');
+        });
+
+        it('handles data: protocol XSS', () => {
+            const malicious = '<object data="data:text/html,<script>alert(1)</script>">';
+            const result = stripHtml(malicious);
+            expect(result).not.toContain('<object');
+            expect(result).not.toContain('<');
+            expect(result).not.toContain('>');
         });
     });
 

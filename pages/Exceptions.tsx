@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Data mapping between Supabase and UI types */
 import React, { useState, useMemo } from 'react';
 import { Card, Button, Input } from '../components/ui/CyberComponents';
 import { DataTable } from '../components/ui/data-table';

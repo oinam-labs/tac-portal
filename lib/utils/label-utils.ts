@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Label generation requires any for dynamic form/invoice data */
 import { LabelData, ServiceLevel, TransportMode } from '@/components/domain/LabelGenerator';
 import { Shipment } from '@/types';
 

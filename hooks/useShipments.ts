@@ -4,8 +4,7 @@ import { toast } from 'sonner';
 import type { Json } from '../lib/database.types';
 import { getOrCreateDefaultOrg } from '../lib/org-helper';
 
-// Type helper to work around Supabase client type inference issues
-const db = supabase as any;
+// Direct supabase usage - types handled via database.types.ts
 
 /**
  * Query key factory for shipments.
@@ -121,10 +120,10 @@ export function useCreateShipment() {
       // Generate AWB number - fallback if function doesn't exist
       let awbNumber = `TAC${new Date().getFullYear()}${String(Date.now()).slice(-6)}`;
       try {
-        const { data: awbResult } = await supabase.rpc('generate_awb_number', { p_org_id: orgId } as any);
+        const { data: awbResult } = await supabase.rpc('generate_awb_number', { p_org_id: orgId });
         if (awbResult) awbNumber = awbResult as string;
-      } catch (e) {
-        console.warn('AWB generation function not available, using fallback');
+      } catch {
+        // AWB generation function not available, using fallback
       }
 
       const insertPayload = {
@@ -134,8 +133,8 @@ export function useCreateShipment() {
         status: 'CREATED' as const,
       };
 
-      const { data, error } = await (supabase
-        .from('shipments') as any)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase.from('shipments') as any)
         .insert(insertPayload)
         .select()
         .single();
@@ -158,8 +157,8 @@ export function useUpdateShipmentStatus() {
 
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { data, error } = await (supabase
-        .from('shipments') as any)
+      const { data, error } = await supabase
+        .from('shipments')
         .update({ status, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select()
@@ -177,7 +176,7 @@ export function useUpdateShipmentStatus() {
         awb_number: shipmentData.awb_number,
         event_code: status,
         source: 'MANUAL',
-      } as any);
+      });
 
       return shipmentData;
     },
@@ -200,7 +199,7 @@ export function useDeleteShipment() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await db
+      const { error } = await supabase
         .from('shipments')
         .update({
           deleted_at: new Date().toISOString(),
@@ -235,7 +234,7 @@ export interface ShipmentScanResult {
 export function useFindShipmentByAwb() {
   return useMutation({
     mutationFn: async (awb: string): Promise<ShipmentScanResult | null> => {
-      const { data, error } = await db
+      const { data, error } = await supabase
         .from('shipments')
         .select('id, awb_number, status, origin_hub_id, destination_hub_id')
         .eq('awb_number', awb)

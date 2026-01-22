@@ -1,369 +1,616 @@
 # TAC Cargo API Reference
 
-Complete reference for all types, interfaces, stores, and utility functions in the TAC Cargo Enterprise Portal.
+Complete reference for all types, interfaces, stores, hooks, services, and utilities in the TAC Cargo Enterprise Portal.
+
+**Version:** 2.0  
+**Last Updated:** January 2026  
+**Stack:** React 19 + Vite + TypeScript + Supabase + TanStack Query + Zustand
 
 ---
 
 ## Table of Contents
 
-1. [Type Definitions](#type-definitions)
-2. [Stores API](#stores-api)
-3. [Mock Database API](#mock-database-api)
-4. [Utility Functions](#utility-functions)
-5. [Constants](#constants)
+1. [Architecture Overview](#architecture-overview)
+2. [Type Definitions](#type-definitions)
+3. [Supabase Client & Authentication](#supabase-client--authentication)
+4. [React Query Hooks](#react-query-hooks)
+5. [Services Layer](#services-layer)
+6. [Zustand Stores](#zustand-stores)
+7. [Utility Functions](#utility-functions)
+8. [Constants & Design Tokens](#constants--design-tokens)
+
+---
+
+## Architecture Overview
+
+### Data Flow Pattern
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   UI Component  │────▶│  React Query    │────▶│    Service      │
+│   (pages/*)     │     │  Hooks          │     │    Layer        │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                                                        │
+                                                        ▼
+                                               ┌─────────────────┐
+                                               │    Supabase     │
+                                               │    Client       │
+                                               └─────────────────┘
+```
+
+### Key Architectural Rules
+
+| Rule | Description |
+|------|-------------|
+| **No Direct Supabase in Pages** | UI pages must use React Query hooks, never call Supabase directly |
+| **Org Scoping** | All queries must include `org_id` filter via RLS or explicit parameter |
+| **UUID as PK** | All tables use UUID primary keys; AWB is indexed business key only |
+| **Branded Types** | Use branded types (`AWB`, `UUID`) to prevent type mixing |
 
 ---
 
 ## Type Definitions
 
-### Enums & Type Aliases
+### Location: `types/domain.ts`
 
-#### HubLocation
+#### Branded Types
 
 ```typescript
-type HubLocation = 'IMPHAL' | 'NEW_DELHI';
+type AWB = Brand<string, 'AWB'>;
+type UUID = Brand<string, 'UUID'>;
+type ManifestNumber = Brand<string, 'ManifestNumber'>;
+type InvoiceNumber = Brand<string, 'InvoiceNumber'>;
+
+// Type Guards
+const isAWB = (value: string): value is AWB => /^TAC\d{8}$/.test(value);
+const isUUID = (value: string): value is UUID =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 ```
 
-#### ShipmentMode
+#### Enums
 
 ```typescript
-type ShipmentMode = 'AIR' | 'TRUCK';
-```
+enum HubCode {
+    IMPHAL = 'IMPHAL',
+    NEW_DELHI = 'NEW_DELHI',
+}
 
-#### ServiceLevel
+enum ShipmentStatus {
+    CREATED = 'CREATED',
+    PICKED_UP = 'PICKED_UP',
+    RECEIVED_AT_ORIGIN_HUB = 'RECEIVED_AT_ORIGIN_HUB',
+    LOADED_FOR_LINEHAUL = 'LOADED_FOR_LINEHAUL',
+    IN_TRANSIT_TO_DESTINATION = 'IN_TRANSIT_TO_DESTINATION',
+    RECEIVED_AT_DEST_HUB = 'RECEIVED_AT_DEST_HUB',
+    OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY',
+    DELIVERED = 'DELIVERED',
+    EXCEPTION_RAISED = 'EXCEPTION_RAISED',
+    EXCEPTION_RESOLVED = 'EXCEPTION_RESOLVED',
+    CANCELLED = 'CANCELLED',
+}
 
-```typescript
-type ServiceLevel = 'STANDARD' | 'EXPRESS';
-```
+enum ManifestStatus {
+    OPEN = 'OPEN',
+    CLOSED = 'CLOSED',
+    DEPARTED = 'DEPARTED',
+    ARRIVED = 'ARRIVED',
+}
 
-#### PaymentMode
+enum InvoiceStatus {
+    DRAFT = 'DRAFT',
+    ISSUED = 'ISSUED',
+    PAID = 'PAID',
+    CANCELLED = 'CANCELLED',
+    OVERDUE = 'OVERDUE',
+}
 
-```typescript
-type PaymentMode = 'PAID' | 'TO_PAY' | 'TBB';
-```
+enum ExceptionType {
+    DAMAGED = 'DAMAGED',
+    LOST = 'LOST',
+    DELAYED = 'DELAYED',
+    MISMATCH = 'MISMATCH',
+    PAYMENT_HOLD = 'PAYMENT_HOLD',
+    MISROUTED = 'MISROUTED',
+    ADDRESS_ISSUE = 'ADDRESS_ISSUE',
+}
 
-#### ShipmentStatus
+enum ExceptionSeverity {
+    LOW = 'LOW',
+    MEDIUM = 'MEDIUM',
+    HIGH = 'HIGH',
+    CRITICAL = 'CRITICAL',
+}
 
-```typescript
-type ShipmentStatus = 
-    | 'CREATED'
-    | 'PICKED_UP'
-    | 'RECEIVED_AT_ORIGIN_HUB'
-    | 'LOADED_FOR_LINEHAUL'
-    | 'IN_TRANSIT_TO_DESTINATION'
-    | 'RECEIVED_AT_DEST_HUB'
-    | 'OUT_FOR_DELIVERY'
-    | 'DELIVERED'
-    | 'RETURNED'
-    | 'CANCELLED'
-    | 'DAMAGED'
-    | 'EXCEPTION_RAISED'
-    | 'EXCEPTION_RESOLVED';
-```
+enum UserRole {
+    ADMIN = 'ADMIN',
+    MANAGER = 'MANAGER',
+    WAREHOUSE_IMPHAL = 'WAREHOUSE_IMPHAL',
+    WAREHOUSE_DELHI = 'WAREHOUSE_DELHI',
+    OPS = 'OPS',
+    INVOICE = 'INVOICE',
+    SUPPORT = 'SUPPORT',
+}
 
-#### ManifestStatus
+enum TransportMode {
+    AIR = 'AIR',
+    TRUCK = 'TRUCK',
+}
 
-```typescript
-type ManifestStatus = 'OPEN' | 'CLOSED' | 'DEPARTED' | 'ARRIVED';
-```
+enum ServiceLevel {
+    STANDARD = 'STANDARD',
+    EXPRESS = 'EXPRESS',
+}
 
-#### InvoiceStatus
+enum PaymentMode {
+    PAID = 'PAID',
+    TO_PAY = 'TO_PAY',
+    TBB = 'TBB',
+}
 
-```typescript
-type InvoiceStatus = 'DRAFT' | 'ISSUED' | 'PAID' | 'CANCELLED' | 'OVERDUE';
-```
-
-#### ExceptionType
-
-```typescript
-type ExceptionType = 'DAMAGED' | 'LOST' | 'DELAYED' | 'OVERWEIGHT' | 'MISROUTED' | 'CUSTOMS';
-```
-
-#### ExceptionSeverity
-
-```typescript
-type ExceptionSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-```
-
-#### UserRole
-
-```typescript
-type UserRole = 'ADMIN' | 'MANAGER' | 'WAREHOUSE_STAFF' | 'OPS_STAFF' | 'FINANCE_STAFF';
-```
-
-#### NavItem
-
-```typescript
-enum NavItem {
-    DASHBOARD = 'Dashboard',
-    ANALYTICS = 'Analytics',
-    SHIPMENTS = 'Shipments',
-    TRACKING = 'Tracking',
-    MANIFESTS = 'Manifests',
-    SCANNING = 'Scanning',
-    INVENTORY = 'Inventory',
-    EXCEPTIONS = 'Exceptions',
-    FINANCE = 'Finance', 
-    INVOICES = 'Invoices',
-    CUSTOMERS = 'Customers',
-    MANAGEMENT = 'Management',
-    SETTINGS = 'Settings'
+enum TrackingEventSource {
+    SCAN = 'SCAN',
+    MANUAL = 'MANUAL',
+    SYSTEM = 'SYSTEM',
+    API = 'API',
 }
 ```
 
----
-
-### Interfaces
-
-#### Address
+#### Domain Interfaces
 
 ```typescript
 interface Address {
     line1: string;
+    line2?: string;
     city: string;
     state: string;
     zip: string;
+    country?: string;
 }
-```
 
-#### Hub
-
-```typescript
-interface Hub {
-    id: HubLocation;
+interface ContactInfo {
     name: string;
-    code: string;
-    address: string;
-    sortCode: string;
-}
-```
-
-#### Customer
-
-```typescript
-interface Customer {
-    id: string;
-    type: 'INDIVIDUAL' | 'BUSINESS';
-    name: string;
-    companyName?: string;
     phone: string;
-    email: string;
-    address: string;
-    addressDetails?: Address;
+    email?: string;
+    address: Address;
     gstin?: string;
-    tier: 'STANDARD' | 'PRIORITY' | 'ENTERPRISE';
-    createdAt: string;
-    activeContracts?: number;
-    contactPerson?: string;
+}
+
+interface Weight {
+    dead: number;
+    volumetric: number;
+    chargeable: number;
+}
+
+interface TaxBreakdown {
+    cgst: number;
+    sgst: number;
+    igst: number;
+    total: number;
+}
+
+interface Financials {
+    ratePerKg: number;
+    baseFreight: number;
+    docketCharge: number;
+    pickupCharge: number;
+    packingCharge: number;
+    fuelSurcharge: number;
+    handlingFee: number;
+    insurance: number;
+    tax: TaxBreakdown;
+    discount: number;
+    totalAmount: number;
+    advancePaid: number;
+    balance: number;
 }
 ```
 
-#### Package
+#### Status Transition Rules
 
 ```typescript
-interface Package {
-    id: string;
-    shipmentId: string;
-    packageIndex: number;
-    weight: {
-        dead: number;
-        volumetric: number;
-        chargeable: number;
-    };
-    dimensions: {
-        length: number;
-        width: number;
-        height: number;
-    };
-    currentHubId: HubLocation;
-    binLocation?: string;
-    status: ShipmentStatus;
-    description?: string;
-}
-```
+// Valid shipment transitions
+const SHIPMENT_STATUS_TRANSITIONS: Record<ShipmentStatus, ShipmentStatus[]> = {
+    CREATED: [PICKED_UP, RECEIVED_AT_ORIGIN_HUB, CANCELLED],
+    PICKED_UP: [RECEIVED_AT_ORIGIN_HUB, EXCEPTION_RAISED],
+    RECEIVED_AT_ORIGIN_HUB: [LOADED_FOR_LINEHAUL, EXCEPTION_RAISED],
+    LOADED_FOR_LINEHAUL: [IN_TRANSIT_TO_DESTINATION, EXCEPTION_RAISED],
+    IN_TRANSIT_TO_DESTINATION: [RECEIVED_AT_DEST_HUB, EXCEPTION_RAISED],
+    RECEIVED_AT_DEST_HUB: [OUT_FOR_DELIVERY, EXCEPTION_RAISED],
+    OUT_FOR_DELIVERY: [DELIVERED, EXCEPTION_RAISED],
+    DELIVERED: [],
+    EXCEPTION_RAISED: [EXCEPTION_RESOLVED, CANCELLED],
+    EXCEPTION_RESOLVED: [RECEIVED_AT_ORIGIN_HUB, RECEIVED_AT_DEST_HUB, OUT_FOR_DELIVERY],
+    CANCELLED: [],
+};
 
-#### Shipment
-
-```typescript
-interface Shipment {
-    id: string;
-    awb: string;
-    customerId: string;
-    customerName: string;
-    originHub: HubLocation;
-    destinationHub: HubLocation;
-    mode: ShipmentMode;
-    serviceLevel: ServiceLevel;
-    totalPackageCount: number;
-    totalWeight: {
-        dead: number;
-        volumetric: number;
-        chargeable: number;
-    };
-    status: ShipmentStatus;
-    invoiceId?: string;
-    manifestId?: string;
-    createdAt: string;
-    updatedAt: string;
-    eta: string;
-    lastUpdate?: string;
-    consignor?: {
-        name: string;
-        phone: string;
-        address: string;
-        gstin?: string;
-        city?: string;
-        state?: string;
-        zip?: string;
-    };
-    consignee?: {
-        name: string;
-        phone: string;
-        address: string;
-        gstin?: string;
-        city?: string;
-        state?: string;
-        zip?: string;
-    };
-    contentsDescription?: string;
-    declaredValue?: number;
-    bookingDate?: string;
-    paymentMode?: PaymentMode;
-}
-```
-
-#### TrackingEvent
-
-```typescript
-interface TrackingEvent {
-    id: string;
-    shipmentId: string;
-    awb: string;
-    eventCode: ShipmentStatus;
-    hubId?: HubLocation;
-    description: string;
-    timestamp: string;
-    actorId: string;
-    meta?: Record<string, any>;
-}
-```
-
-#### Manifest
-
-```typescript
-interface Manifest {
-    id: string;
-    reference: string;
-    type: ShipmentMode;
-    originHub: HubLocation;
-    destinationHub: HubLocation;
-    status: ManifestStatus;
-    vehicleMeta: {
-        vehicleId?: string;
-        driverName?: string;
-        driverPhone?: string;
-        flightNumber?: string;
-        carrier?: string;
-    };
-    shipmentIds: string[];
-    shipmentCount: number;
-    totalWeight: number;
-    createdBy: string;
-    createdAt: string;
-    departedAt?: string;
-    arrivedAt?: string;
-}
-```
-
-#### Invoice
-
-```typescript
-interface Invoice {
-    id: string;
-    invoiceNumber: string;
-    customerId: string;
-    customerName: string;
-    shipmentId: string;
-    awb: string;
-    status: InvoiceStatus;
-    paymentMode: PaymentMode;
-    financials: {
-        ratePerKg: number;
-        baseFreight: number;
-        docketCharge: number;
-        pickupCharge: number;
-        packingCharge: number;
-        fuelSurcharge: number;
-        handlingFee: number;
-        insurance: number;
-        tax: {
-            cgst: number;
-            sgst: number;
-            igst: number;
-            total: number;
-        };
-        discount: number;
-        totalAmount: number;
-        advancePaid: number;
-        balance: number;
-    };
-    dueDate: string;
-    paidAt?: string;
-    pdfUrl?: string;
-    createdAt: string;
-}
-```
-
-#### Exception
-
-```typescript
-interface Exception {
-    id: string;
-    shipmentId: string;
-    awb: string;
-    type: ExceptionType;
-    severity: ExceptionSeverity;
-    description: string;
-    status: 'OPEN' | 'INVESTIGATING' | 'RESOLVED';
-    reportedAt: string;
-    resolvedAt?: string;
-    assignedTo?: string;
-}
-```
-
-#### User
-
-```typescript
-interface User {
-    id: string;
-    name: string;
-    email: string;
-    role: UserRole;
-    assignedHub?: HubLocation;
-    active: boolean;
-    lastLogin: string;
-}
-```
-
-#### AuditLog
-
-```typescript
-interface AuditLog {
-    id: string;
-    actorId: string;
-    action: string;
-    entityType: 'SHIPMENT' | 'MANIFEST' | 'INVOICE' | 'USER' | 'CUSTOMER';
-    entityId: string;
-    timestamp: string;
-    payload?: any;
-}
+// Validate transition
+function isValidShipmentTransition(from: ShipmentStatus, to: ShipmentStatus): boolean;
+function isValidManifestTransition(from: ManifestStatus, to: ManifestStatus): boolean;
 ```
 
 ---
 
-## Stores API
+## Supabase Client & Authentication
 
-### Main App Store (`store/index.ts`)
+### Location: `lib/supabase.ts`
+
+```typescript
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from './database.types';
+
+export const supabase = createClient<Database>(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
+// Check if configured
+export const isSupabaseConfigured = (): boolean;
+
+// Auth helpers
+export const signIn = async (email: string, password: string): Promise<AuthData>;
+export const signOut = async (): Promise<void>;
+export const getCurrentUser = async (): Promise<User | null>;
+
+// Realtime subscription helper
+export const subscribeToTable = <T>(
+    table: string,
+    callback: (payload: T) => void,
+    filter?: string
+): () => void;
+```
+
+### Auth Store
+
+**Location:** `store/authStore.ts`
+
+```typescript
+interface StaffUser {
+    id: string;
+    authUserId: string;
+    email: string;
+    fullName: string;
+    role: UserRole;
+    hubId: string | null;
+    hubCode: string | null;
+    orgId: string;
+    isActive: boolean;
+}
+
+interface AuthState {
+    session: Session | null;
+    user: StaffUser | null;
+    isAuthenticated: boolean;
+    isLoading: boolean;
+    error: string | null;
+    
+    initialize: () => Promise<void>;
+    signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+    signOut: () => Promise<void>;
+    clearError: () => void;
+}
+
+// Usage
+const { user, isAuthenticated, signIn, signOut } = useAuthStore();
+
+// Role check hooks
+function useHasRole(roles: UserRole | UserRole[]): boolean;
+function useCanAccessModule(module: string): boolean;
+```
+
+---
+
+## React Query Hooks
+
+### Query Keys
+
+**Location:** `lib/queryKeys.ts`
+
+```typescript
+export const queryKeys = {
+    shipments: {
+        all: ['shipments'],
+        lists: () => [...queryKeys.shipments.all, 'list'],
+        list: (filters?) => [...queryKeys.shipments.lists(), filters],
+        details: () => [...queryKeys.shipments.all, 'detail'],
+        detail: (id: string) => [...queryKeys.shipments.details(), id],
+        byAwb: (awb: string) => [...queryKeys.shipments.all, 'awb', awb],
+    },
+    manifests: {
+        all: ['manifests'],
+        list: (filters?) => [...queryKeys.manifests.all, 'list', filters],
+        detail: (id: string) => [...queryKeys.manifests.all, 'detail', id],
+        items: (manifestId: string) => [...queryKeys.manifests.all, 'items', manifestId],
+    },
+    tracking: {
+        all: ['tracking'],
+        events: (awb: string) => [...queryKeys.tracking.all, 'events', awb],
+        shipment: (shipmentId: string) => [...queryKeys.tracking.all, 'shipment', shipmentId],
+    },
+    invoices: {
+        all: ['invoices'],
+        list: (filters?) => [...queryKeys.invoices.all, 'list', filters],
+        detail: (id: string) => [...queryKeys.invoices.all, 'detail', id],
+        byShipment: (shipmentId: string) => [...queryKeys.invoices.all, 'shipment', shipmentId],
+    },
+    customers: {
+        all: ['customers'],
+        list: (filters?) => [...queryKeys.customers.all, 'list', filters],
+        detail: (id: string) => [...queryKeys.customers.all, 'detail', id],
+    },
+    exceptions: {
+        all: ['exceptions'],
+        list: (filters?) => [...queryKeys.exceptions.all, 'list', filters],
+        detail: (id: string) => [...queryKeys.exceptions.all, 'detail', id],
+        byShipment: (shipmentId: string) => [...queryKeys.exceptions.all, 'shipment', shipmentId],
+    },
+    auditLogs: {
+        all: ['audit-logs'],
+        list: (filters?) => [...queryKeys.auditLogs.all, 'list', filters],
+        byEntity: (entityType: string, entityId: string) => [...queryKeys.auditLogs.all, entityType, entityId],
+    },
+    staff: {
+        all: ['staff'],
+        list: (filters?) => [...queryKeys.staff.all, 'list', filters],
+        detail: (id: string) => [...queryKeys.staff.all, 'detail', id],
+    },
+    dashboard: {
+        all: ['dashboard'],
+        kpis: () => [...queryKeys.dashboard.all, 'kpis'],
+        recentActivity: () => [...queryKeys.dashboard.all, 'recent-activity'],
+        charts: (dateRange?) => [...queryKeys.dashboard.all, 'charts', dateRange],
+    },
+};
+```
+
+### Shipment Hooks
+
+**Location:** `hooks/useShipments.ts`
+
+```typescript
+interface ShipmentWithRelations {
+    id: string;
+    org_id: string;
+    awb_number: string;
+    customer_id: string;
+    origin_hub_id: string;
+    destination_hub_id: string;
+    mode: 'AIR' | 'TRUCK';
+    service_level: 'STANDARD' | 'EXPRESS';
+    status: string;
+    package_count: number;
+    total_weight: number;
+    declared_value: number | null;
+    consignee_name: string;
+    consignee_phone: string;
+    consignee_address: Json;
+    created_at: string;
+    updated_at: string;
+    customer?: { name: string; phone: string };
+    origin_hub?: { code: string; name: string };
+    destination_hub?: { code: string; name: string };
+}
+
+// List shipments
+function useShipments(options?: { 
+    limit?: number; 
+    status?: string 
+}): UseQueryResult<ShipmentWithRelations[]>;
+
+// Get by AWB
+function useShipmentByAWB(awb: string | null): UseQueryResult<ShipmentWithRelations>;
+
+// Create shipment
+function useCreateShipment(): UseMutationResult<Shipment, Error, CreateShipmentInput>;
+
+// Update shipment status
+function useUpdateShipmentStatus(): UseMutationResult<Shipment, Error, {
+    id: string;
+    status: string;
+    description?: string;
+}>;
+```
+
+### Tracking Hooks
+
+**Location:** `hooks/useTrackingEvents.ts`
+
+```typescript
+interface TrackingEvent {
+    id: string;
+    org_id: string;
+    shipment_id: string;
+    awb_number: string;
+    event_code: string;
+    event_time: string;
+    hub_id: string | null;
+    actor_staff_id: string | null;
+    source: 'SCAN' | 'MANUAL' | 'SYSTEM' | 'API';
+    meta: Json;
+    created_at: string;
+}
+
+// Get tracking events
+function useTrackingEvents(shipmentId: string): UseQueryResult<TrackingEvent[]>;
+
+// Create tracking event
+function useCreateTrackingEvent(): UseMutationResult<TrackingEvent, Error, {
+    shipment_id: string;
+    awb_number: string;
+    event_code: string;
+    hub_id?: string;
+    source: string;
+    notes?: string;
+}>;
+```
+
+### Customer Hooks
+
+**Location:** `hooks/useCustomers.ts`
+
+```typescript
+interface Customer {
+    id: string;
+    org_id: string;
+    customer_code: string;
+    name: string;
+    type: 'INDIVIDUAL' | 'BUSINESS' | 'CORPORATE';
+    phone: string;
+    email: string | null;
+    gstin: string | null;
+    address: Json;
+    is_active: boolean;
+    created_at: string;
+}
+
+function useCustomers(): UseQueryResult<Customer[]>;
+function useCustomer(id: string): UseQueryResult<Customer>;
+function useCreateCustomer(): UseMutationResult<Customer, Error, CreateCustomerInput>;
+function useUpdateCustomer(): UseMutationResult<Customer, Error, UpdateCustomerInput>;
+```
+
+### Invoice Hooks
+
+**Location:** `hooks/useInvoices.ts`
+
+```typescript
+interface Invoice {
+    id: string;
+    org_id: string;
+    invoice_no: string;
+    customer_id: string;
+    shipment_id: string | null;
+    status: 'DRAFT' | 'ISSUED' | 'PAID' | 'CANCELLED' | 'OVERDUE';
+    issue_date: string;
+    due_date: string | null;
+    subtotal: number;
+    tax_amount: number;
+    discount: number;
+    total: number;
+    line_items: Json;
+    notes: string | null;
+    created_at: string;
+}
+
+function useInvoices(filters?: InvoiceFilters): UseQueryResult<Invoice[]>;
+function useInvoice(id: string): UseQueryResult<Invoice>;
+function useCreateInvoice(): UseMutationResult<Invoice, Error, CreateInvoiceInput>;
+function useUpdateInvoiceStatus(): UseMutationResult<Invoice, Error, {
+    id: string;
+    status: InvoiceStatus;
+}>;
+```
+
+### Manifest Hooks
+
+**Location:** `hooks/useManifests.ts`
+
+```typescript
+interface Manifest {
+    id: string;
+    org_id: string;
+    manifest_no: string;
+    type: 'AIR' | 'TRUCK';
+    from_hub_id: string;
+    to_hub_id: string;
+    status: 'OPEN' | 'CLOSED' | 'DEPARTED' | 'ARRIVED';
+    total_shipments: number;
+    total_weight: number;
+    created_by_staff_id: string;
+    created_at: string;
+    from_hub?: { code: string; name: string };
+    to_hub?: { code: string; name: string };
+}
+
+function useManifests(filters?: ManifestFilters): UseQueryResult<Manifest[]>;
+function useManifest(id: string): UseQueryResult<Manifest>;
+function useManifestItems(manifestId: string): UseQueryResult<ManifestItem[]>;
+function useCreateManifest(): UseMutationResult<Manifest, Error, CreateManifestInput>;
+function useAddShipmentToManifest(): UseMutationResult<void, Error, {
+    manifestId: string;
+    shipmentId: string;
+}>;
+function useCloseManifest(): UseMutationResult<Manifest, Error, string>;
+```
+
+---
+
+## Services Layer
+
+### Location: `lib/services/`
+
+### Org Service
+
+**File:** `lib/services/orgService.ts`
+
+```typescript
+export const orgService = {
+    setCurrentOrg(orgId: string): void;
+    getCurrentOrgId(): string;
+    
+    async getOrgs(): Promise<Org[]>;
+    async getOrg(id: string): Promise<Org>;
+    async getHubs(): Promise<Hub[]>;
+    async getHub(id: string): Promise<Hub>;
+    async getHubByCode(code: 'IMPHAL' | 'NEW_DELHI'): Promise<Hub>;
+};
+```
+
+### Shipment Service
+
+**File:** `lib/services/shipmentService.ts`
+
+```typescript
+interface ShipmentFilters {
+    status?: string;
+    originHubId?: string;
+    destinationHubId?: string;
+    customerId?: string;
+    search?: string;
+    limit?: number;
+}
+
+export const shipmentService = {
+    async list(filters?: ShipmentFilters): Promise<ShipmentWithRelations[]>;
+    async getById(id: string): Promise<ShipmentWithRelations>;
+    async getByAwb(awb: string): Promise<ShipmentWithRelations | null>;
+    async create(shipment: Omit<ShipmentInsert, 'org_id'>): Promise<Shipment>;
+    async update(id: string, updates: ShipmentUpdate): Promise<Shipment>;
+    async updateStatus(
+        id: string, 
+        status: string, 
+        meta?: { description?: string; hubId?: string }
+    ): Promise<Shipment>;
+    async delete(id: string): Promise<void>;
+    async getStats(): Promise<{
+        total: number;
+        inTransit: number;
+        delivered: number;
+        exceptions: number;
+    }>;
+};
+```
+
+### Customer Service
+
+**File:** `lib/services/customerService.ts`
+
+```typescript
+export const customerService = {
+    async list(): Promise<Customer[]>;
+    async getById(id: string): Promise<Customer>;
+    async create(customer: CustomerInsert): Promise<Customer>;
+    async update(id: string, updates: CustomerUpdate): Promise<Customer>;
+    async delete(id: string): Promise<void>;
+};
+```
+
+---
+
+## Zustand Stores
+
+### App Store
+
+**Location:** `store/index.ts`
 
 ```typescript
 interface AppState {
@@ -379,308 +626,155 @@ interface AppState {
     toggleSidebar: () => void;
     toggleTheme: () => void;
 }
+
+export const useStore = create<AppState>()(
+    persist(
+        (set) => ({
+            // ... implementation
+        }),
+        { name: 'tac-storage' }
+    )
+);
 ```
 
-**Usage:**
-```typescript
-import { useStore } from './store';
+### Management Store
 
-const { user, isAuthenticated, login, logout } = useStore();
-```
-
----
-
-### Shipment Store (`store/shipmentStore.ts`)
-
-```typescript
-interface ShipmentState {
-    shipments: Shipment[];
-    customers: Customer[];
-    currentShipmentEvents: TrackingEvent[];
-    isLoading: boolean;
-    
-    fetchShipments: () => void;
-    fetchCustomers: () => void;
-    fetchShipmentEvents: (shipmentId: string) => void;
-    createShipment: (data: Partial<Shipment>, packages: Package[]) => Promise<void>;
-    addCustomer: (customer: Partial<Customer>) => Promise<void>;
-}
-```
-
-**Usage:**
-```typescript
-import { useShipmentStore } from './store/shipmentStore';
-
-const { shipments, fetchShipments, createShipment } = useShipmentStore();
-```
-
----
-
-### Manifest Store (`store/manifestStore.ts`)
-
-```typescript
-interface ManifestState {
-    manifests: Manifest[];
-    availableShipments: Shipment[];
-    isLoading: boolean;
-    
-    fetchManifests: () => void;
-    fetchAvailableShipments: (origin: string, dest: string) => void;
-    createManifest: (data: Partial<Manifest>) => Promise<void>;
-    addShipmentsToManifest: (manifestId: string, shipmentIds: string[]) => Promise<void>;
-    updateManifestStatus: (manifestId: string, status: 'DEPARTED' | 'ARRIVED') => Promise<void>;
-}
-```
-
----
-
-### Invoice Store (`store/invoiceStore.ts`)
-
-```typescript
-interface InvoiceState {
-    invoices: Invoice[];
-    isLoading: boolean;
-    
-    fetchInvoices: () => void;
-    createInvoice: (data: Partial<Invoice>) => Promise<void>;
-    updateInvoiceStatus: (id: string, status: InvoiceStatus) => Promise<void>;
-}
-```
-
----
-
-### Exception Store (`store/exceptionStore.ts`)
-
-```typescript
-interface ExceptionState {
-    exceptions: Exception[];
-    isLoading: boolean;
-    
-    fetchExceptions: () => void;
-    raiseException: (data: Partial<Exception>) => Promise<void>;
-    resolveException: (id: string, note: string) => Promise<void>;
-}
-```
-
----
-
-### Management Store (`store/managementStore.ts`)
+**Location:** `store/managementStore.ts`
 
 ```typescript
 interface ManagementState {
     users: User[];
     isLoading: boolean;
     
-    fetchUsers: () => void;
+    fetchUsers: () => Promise<void>;
     addUser: (user: Partial<User>) => Promise<void>;
     toggleUserStatus: (id: string, currentStatus: boolean) => Promise<void>;
 }
+
+export const useManagementStore = create<ManagementState>();
 ```
 
----
+### Audit Store
 
-### Audit Store (`store/auditStore.ts`)
+**Location:** `store/auditStore.ts`
 
 ```typescript
 interface AuditState {
     logs: AuditLog[];
     isLoading: boolean;
     
-    fetchLogs: () => void;
+    fetchLogs: (filters?: AuditLogFilters) => Promise<void>;
 }
+
+export const useAuditStore = create<AuditState>();
 ```
-
----
-
-## Mock Database API
-
-Located in `lib/mock-db.ts`. The `db` object is a singleton instance of `MockDB`.
-
-### Shipment Methods
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `getShipments()` | - | `Shipment[]` | Get all shipments |
-| `getShipmentByAWB(awb)` | `string` | `Shipment \| undefined` | Find shipment by AWB |
-| `addShipment(shipment)` | `Shipment` | `Shipment` | Add new shipment (auto-creates invoice) |
-| `updateShipmentStatus(id, status, desc, hubId?)` | `string, ShipmentStatus, string, HubLocation?` | `void` | Update shipment status |
-
-### Manifest Methods
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `getManifests()` | - | `Manifest[]` | Get all manifests |
-| `getManifestByRef(ref)` | `string` | `Manifest \| undefined` | Find manifest by reference |
-| `addManifest(manifest)` | `Manifest` | `Manifest` | Add new manifest |
-| `addShipmentToManifest(manifestId, shipmentId)` | `string, string` | `void` | Add shipment to manifest |
-| `updateManifestStatus(id, status)` | `string, 'DEPARTED' \| 'ARRIVED'` | `void` | Update manifest status |
-
-### Invoice Methods
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `getInvoices()` | - | `Invoice[]` | Get all invoices |
-| `addInvoice(invoice)` | `Invoice` | `Invoice` | Add new invoice |
-| `updateInvoiceStatus(id, status)` | `string, InvoiceStatus` | `void` | Update invoice status |
-
-### Exception Methods
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `getExceptions()` | - | `Exception[]` | Get all exceptions |
-| `addException(exception)` | `Exception` | `Exception` | Add new exception |
-| `resolveException(id, note)` | `string, string` | `void` | Resolve exception |
-
-### User & Customer Methods
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `getUsers()` | - | `User[]` | Get all users |
-| `addUser(user)` | `User` | `User` | Add new user |
-| `updateUserStatus(id, active)` | `string, boolean` | `void` | Enable/disable user |
-| `getCustomers()` | - | `Customer[]` | Get all customers |
-| `addCustomer(customer)` | `Customer` | `Customer` | Add new customer |
-
-### Event Methods
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `getEvents(shipmentId)` | `string` | `TrackingEvent[]` | Get tracking events for shipment |
-| `addEvent(event)` | `TrackingEvent` | `TrackingEvent` | Add tracking event |
-
-### Utility Methods
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `generateAWB()` | - | `string` | Generate unique AWB (TAC + 8 digits) |
-| `getAuditLogs()` | - | `AuditLog[]` | Get all audit logs |
 
 ---
 
 ## Utility Functions
 
-### `lib/utils.ts`
+### Error Handling
 
-#### cn(...inputs)
-
-Merge Tailwind CSS classes with conflict resolution.
+**Location:** `lib/errors.ts`
 
 ```typescript
-import { cn } from './lib/utils';
+// Map Supabase errors to user-friendly messages
+function mapSupabaseError(error: PostgrestError): AppError;
 
-cn('px-4 py-2', isActive && 'bg-blue-500', 'text-white');
-// Returns: "px-4 py-2 bg-blue-500 text-white" (if isActive is true)
-```
-
-#### formatCurrency(amount)
-
-Format number as Indian Rupees.
-
-```typescript
-formatCurrency(1500);    // "₹1,500.00"
-formatCurrency(99999);   // "₹99,999.00"
-```
-
-#### formatDate(dateString)
-
-Format ISO date string to readable format.
-
-```typescript
-formatDate('2024-01-15T10:30:00Z');
-// "15 Jan 2024, 10:30"
-```
-
-#### calculateFreight(weight, mode, service)
-
-Calculate shipping charges.
-
-```typescript
-const charges = calculateFreight(10, 'AIR', 'EXPRESS');
-
-// Returns:
-{
-    ratePerKg: 180,        // AIR base (120) * EXPRESS multiplier (1.5)
-    baseFreight: 1800,
-    fuelSurcharge: 180,    // 10%
-    handlingFee: 50,
-    insurance: 36,         // 2%
-    docketCharge: 80,
-    pickupCharge: 100,
-    packingCharge: 50,
-    tax: { cgst: 0, sgst: 0, igst: 413, total: 413 },
-    discount: 0,
-    totalAmount: 2709,
-    advancePaid: 0,
-    balance: 2709
+// Validation error class
+class ValidationError extends Error {
+    constructor(message: string, details?: Record<string, any>);
 }
+
+// Get error message from unknown error type
+function getErrorMessage(err: unknown): string;
 ```
 
-#### isValidTransition(current, next)
+### Class Name Utility
 
-Check if shipment status transition is valid.
+**Location:** `lib/utils.ts`
 
 ```typescript
-isValidTransition('PICKED_UP', 'RECEIVED_AT_ORIGIN_HUB');  // true
-isValidTransition('DELIVERED', 'IN_TRANSIT');              // false
-isValidTransition('CREATED', 'EXCEPTION_RAISED');          // true (always allowed)
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+// Merge Tailwind classes with conflict resolution
+export function cn(...inputs: ClassValue[]): string;
+```
+
+### Currency & Date Formatting
+
+```typescript
+// Format as Indian Rupees
+function formatCurrency(amount: number): string;
+// Example: formatCurrency(1500) → "₹1,500.00"
+
+// Format ISO date string
+function formatDate(dateString: string): string;
+// Example: formatDate('2026-01-22T10:30:00Z') → "22 Jan 2026, 10:30"
+
+// Format relative time
+function formatRelativeTime(dateString: string): string;
+// Example: formatRelativeTime('...') → "2 hours ago"
+```
+
+### Freight Calculation
+
+```typescript
+interface FreightCharges {
+    ratePerKg: number;
+    baseFreight: number;
+    fuelSurcharge: number;
+    handlingFee: number;
+    insurance: number;
+    docketCharge: number;
+    pickupCharge: number;
+    packingCharge: number;
+    tax: TaxBreakdown;
+    discount: number;
+    totalAmount: number;
+    advancePaid: number;
+    balance: number;
+}
+
+function calculateFreight(
+    weight: number, 
+    mode: 'AIR' | 'TRUCK', 
+    service: 'STANDARD' | 'EXPRESS'
+): FreightCharges;
+```
+
+### AWB Parsing
+
+**Location:** `types/domain.ts`
+
+```typescript
+// Parse AWB from various formats
+function parseAWB(input: string): AWB | null;
+
+// Format AWB for display
+function formatAWB(awb: AWB | string): string;
+
+// Generate random AWB (for testing only)
+function generateAWB(): AWB;
 ```
 
 ---
 
-### `lib/pdf-generator.ts`
+## Constants & Design Tokens
 
-#### generateShipmentLabel(shipment)
-
-Generate a 4x6 inch shipping label PDF.
+### Location: `lib/constants.ts`
 
 ```typescript
-const pdfUrl = await generateShipmentLabel(shipment);
-window.open(pdfUrl, '_blank');
-```
-
-#### generateEnterpriseInvoice(invoice)
-
-Generate an A4 enterprise invoice PDF.
-
-```typescript
-const pdfUrl = await generateEnterpriseInvoice(invoice);
-window.open(pdfUrl, '_blank');
-```
-
----
-
-### `lib/logger.ts`
-
-```typescript
-import { logger } from './lib/logger';
-
-logger.info('Operation completed', { id: '123' });
-logger.warn('Low inventory', { sku: 'ABC' });
-logger.error('Failed to process', error);
-logger.debug('Debug data', data);
-
-// Get all logs
-const allLogs = logger.getLogs();
-```
-
----
-
-## Constants
-
-### `lib/constants.ts`
-
-#### HUBS
-
-```typescript
-const HUBS: Record<HubLocation, Hub> = {
-    'IMPHAL': {
+export const HUBS: Record<HubCode, Hub> = {
+    IMPHAL: {
         id: 'IMPHAL',
         name: 'Imphal Hub',
         code: 'IMF',
         address: 'Tulihal Airport Road, Imphal, Manipur 795001',
         sortCode: 'SUR'
     },
-    'NEW_DELHI': {
+    NEW_DELHI: {
         id: 'NEW_DELHI',
         name: 'New Delhi Hub',
         code: 'DEL',
@@ -688,85 +782,42 @@ const HUBS: Record<HubLocation, Hub> = {
         sortCode: 'GAUA'
     }
 };
-```
 
-#### SHIPMENT_MODES
-
-```typescript
-const SHIPMENT_MODES = [
+export const SHIPMENT_MODES = [
     { id: 'AIR', label: 'Air Cargo' },
     { id: 'TRUCK', label: 'Truck Linehaul' }
 ];
-```
 
-#### SERVICE_LEVELS
-
-```typescript
-const SERVICE_LEVELS = [
+export const SERVICE_LEVELS = [
     { id: 'STANDARD', label: 'Standard (3-5 Days)' },
     { id: 'EXPRESS', label: 'Express (1-2 Days)' }
 ];
-```
 
-#### PAYMENT_MODES
-
-```typescript
-const PAYMENT_MODES = [
+export const PAYMENT_MODES = [
     { id: 'PAID', label: 'Paid (Prepaid)' },
     { id: 'TO_PAY', label: 'To Pay (Collect)' },
     { id: 'TBB', label: 'TBB (To Be Billed)' }
 ];
+
+export const INDIAN_STATES: string[];  // 36 states/UTs
+export const POPULAR_CITIES: string[]; // 23 cities
+export const CONTENT_TYPES: string[];  // 12 content categories
 ```
 
-#### INDIAN_STATES
+### Design Tokens
 
-Array of 36 Indian states and union territories.
-
-#### POPULAR_CITIES
-
-Array of 23 commonly used cities.
-
-#### CONTENT_TYPES
+**Location:** `lib/design-tokens.ts`
 
 ```typescript
-const CONTENT_TYPES = [
-    "Personal Effects",
-    "Documents",
-    "Electronics",
-    "Clothing/Garments",
-    "Auto Parts",
-    "Medicines/Pharma",
-    "Perishables (Dry)",
-    "Household Goods",
-    "Books/Stationery",
-    "Handicrafts",
-    "Machinery Parts",
-    "Sports Goods"
-];
-```
-
----
-
-### `lib/design-tokens.ts`
-
-#### STATUS_COLORS
-
-Tailwind class mappings for each shipment status:
-
-```typescript
-const STATUS_COLORS: Partial<Record<ShipmentStatus, string>> = {
-    'CREATED': 'text-slate-500 border-slate-500/30 bg-slate-500/10',
-    'IN_TRANSIT_TO_DESTINATION': 'text-cyber-neon border-cyber-neon/30 bg-cyber-neon/10',
-    'DELIVERED': 'text-cyber-success border-cyber-success/30 bg-cyber-success/10',
-    'EXCEPTION_RAISED': 'text-cyber-danger border-cyber-danger/30 bg-cyber-danger/10',
+export const STATUS_COLORS: Record<ShipmentStatus, string> = {
+    CREATED: 'text-slate-500 border-slate-500/30 bg-slate-500/10',
+    IN_TRANSIT_TO_DESTINATION: 'text-cyber-neon border-cyber-neon/30 bg-cyber-neon/10',
+    DELIVERED: 'text-cyber-success border-cyber-success/30 bg-cyber-success/10',
+    EXCEPTION_RAISED: 'text-cyber-danger border-cyber-danger/30 bg-cyber-danger/10',
     // ... more statuses
 };
-```
 
-#### CHART_COLORS
-
-```typescript
-const CHART_COLORS = {
+export const CHART_COLORS = {
     primary: '#22d3ee',
     secondary: '#c084fc',
     success: '#10b981',
@@ -774,14 +825,8 @@ const CHART_COLORS = {
     background: 'transparent',
     grid: 'rgba(34, 211, 238, 0.1)'
 };
-```
 
-#### ANIMATION_VARIANTS
-
-Framer Motion animation presets:
-
-```typescript
-const ANIMATION_VARIANTS = {
+export const ANIMATION_VARIANTS = {
     fadeIn: {
         initial: { opacity: 0, y: 10 },
         animate: { opacity: 1, y: 0 },
@@ -792,6 +837,51 @@ const ANIMATION_VARIANTS = {
         animate: { x: 0, opacity: 1 },
     }
 };
+```
+
+---
+
+## Database Types
+
+### Location: `lib/database.types.ts`
+
+Auto-generated from Supabase using:
+
+```bash
+npx supabase gen types typescript --project-id xkkhxhgkyavxcfgeojww > lib/database.types.ts
+```
+
+Key tables:
+- `orgs` - Multi-tenant organizations
+- `hubs` - Operational locations
+- `staff` - User accounts with roles
+- `customers` - Customer records
+- `shipments` - Core shipment entities
+- `packages` - Individual package units
+- `manifests` - Dispatch batches
+- `manifest_items` - Shipment-manifest junction
+- `tracking_events` - Immutable tracking history
+- `invoices` - Finance documents
+- `exceptions` - Problem tracking
+- `audit_logs` - Compliance trail
+
+---
+
+## Feature Flags
+
+**Location:** `config/features.ts`
+
+```typescript
+export const features = {
+    ENABLE_FINANCE: true,
+    ENABLE_INVENTORY: true,
+    ENABLE_EXCEPTIONS: true,
+    ENABLE_EMAIL_INVOICES: true,
+    ENABLE_OFFLINE_SCANNING: true,
+    ENABLE_REALTIME: true,
+};
+
+export const isFeatureEnabled = (feature: keyof typeof features): boolean;
 ```
 
 ---

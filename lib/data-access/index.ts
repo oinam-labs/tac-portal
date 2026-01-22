@@ -68,5 +68,5 @@ export interface EventRepository {
 
 export interface AuditRepository {
     getAll(): Promise<AuditLog[]>;
-    log(action: string, entityType: string, entityId: string, payload?: any): Promise<void>;
+    log(action: string, entityType: string, entityId: string, payload?: Record<string, unknown>): Promise<void>;
 }

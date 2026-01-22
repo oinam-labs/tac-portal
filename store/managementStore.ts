@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Supabase client requires any for complex operations */
 import { create } from 'zustand';
 import { User, UserRole } from '../types';
 import { supabase } from '../lib/supabase';

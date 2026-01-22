@@ -33,16 +33,8 @@ jobs:
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
-          # Custom queries for additional security checks
-          queries: security-extended,security-and-quality
-          # Exclude build artifacts and node_modules from scanning
-          config: |
-            paths-ignore:
-              - dist
-              - build
-              - node_modules
-              - '**/*.min.js'
-              - '.archive'
+          # Use external config file for better maintainability
+          config-file: .github/codeql/codeql-config.yml
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

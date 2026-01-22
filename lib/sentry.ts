@@ -98,9 +98,7 @@ export const initSentry = () => {
     // Filter and enrich events before sending
     beforeSend(event, hint) {
       // Log to console in development
-      if (import.meta.env.DEV) {
-        console.log('[Sentry] Capturing event:', event);
-      }
+      // Debug logging handled by Sentry's own mechanisms in dev
 
       // Filter out non-critical errors
       if (event.exception) {
@@ -150,7 +148,7 @@ export const initSentry = () => {
     ],
   });
 
-  console.log(`[Sentry] Initialized in ${environment} mode`);
+  // Sentry initialization complete - logged via Sentry.logger below
 
   // Send verification test log using Sentry.logger (official API)
   // This confirms logs are being sent to Sentry
@@ -160,8 +158,7 @@ export const initSentry = () => {
     timestamp: new Date().toISOString(),
   });
 
-  // Also log via console which will be captured by consoleLoggingIntegration
-  console.log('[Sentry] Test log sent to Sentry Logs dashboard');
+  // Test log sent via Sentry.logger above
 };
 
 /**
@@ -196,7 +193,7 @@ export const reactErrorHandler = Sentry.reactErrorHandler;
  * Start a custom span for performance tracking
  */
 export const startSpan = <T>(
-  options: { op: string; name: string; attributes?: Record<string, any> },
+  options: Parameters<typeof Sentry.startSpan>[0],
   callback: (span: Sentry.Span) => T
 ): T => {
   return Sentry.startSpan(options, callback);

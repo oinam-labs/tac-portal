@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Data mapping between Supabase and UI types */
 import React, { useState, useMemo } from 'react';
 import { Download, Plus } from 'lucide-react';
 

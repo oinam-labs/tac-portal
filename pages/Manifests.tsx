@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Data mapping between Supabase and UI types */
 import React, { useState, useMemo } from 'react';
 import { Card, Button } from '../components/ui/CyberComponents';
 import { DataTable } from '../components/ui/data-table';
@@ -103,6 +104,7 @@ export const Manifests: React.FC = () => {
                 return <Button size="sm" variant="ghost">View</Button>;
             },
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     ], []);
 
     const openCount = manifests.filter(m => m.status === 'OPEN').length;

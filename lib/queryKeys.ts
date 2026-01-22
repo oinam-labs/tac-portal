@@ -9,7 +9,7 @@ export const queryKeys = {
     shipments: {
         all: ['shipments'] as const,
         lists: () => [...queryKeys.shipments.all, 'list'] as const,
-        list: (filters?: Record<string, any>) =>
+        list: (filters?: Record<string, unknown>) =>
             [...queryKeys.shipments.lists(), filters] as const,
         details: () => [...queryKeys.shipments.all, 'detail'] as const,
         detail: (id: string) => [...queryKeys.shipments.details(), id] as const,
@@ -20,7 +20,7 @@ export const queryKeys = {
     manifests: {
         all: ['manifests'] as const,
         lists: () => [...queryKeys.manifests.all, 'list'] as const,
-        list: (filters?: Record<string, any>) =>
+        list: (filters?: Record<string, unknown>) =>
             [...queryKeys.manifests.lists(), filters] as const,
         details: () => [...queryKeys.manifests.all, 'detail'] as const,
         detail: (id: string) => [...queryKeys.manifests.details(), id] as const,
@@ -41,7 +41,7 @@ export const queryKeys = {
     invoices: {
         all: ['invoices'] as const,
         lists: () => [...queryKeys.invoices.all, 'list'] as const,
-        list: (filters?: Record<string, any>) =>
+        list: (filters?: Record<string, unknown>) =>
             [...queryKeys.invoices.lists(), filters] as const,
         details: () => [...queryKeys.invoices.all, 'detail'] as const,
         detail: (id: string) => [...queryKeys.invoices.details(), id] as const,
@@ -53,7 +53,7 @@ export const queryKeys = {
     customers: {
         all: ['customers'] as const,
         lists: () => [...queryKeys.customers.all, 'list'] as const,
-        list: (filters?: Record<string, any>) =>
+        list: (filters?: Record<string, unknown>) =>
             [...queryKeys.customers.lists(), filters] as const,
         details: () => [...queryKeys.customers.all, 'detail'] as const,
         detail: (id: string) => [...queryKeys.customers.details(), id] as const,
@@ -63,7 +63,7 @@ export const queryKeys = {
     exceptions: {
         all: ['exceptions'] as const,
         lists: () => [...queryKeys.exceptions.all, 'list'] as const,
-        list: (filters?: Record<string, any>) =>
+        list: (filters?: Record<string, unknown>) =>
             [...queryKeys.exceptions.lists(), filters] as const,
         details: () => [...queryKeys.exceptions.all, 'detail'] as const,
         detail: (id: string) => [...queryKeys.exceptions.details(), id] as const,
@@ -75,7 +75,7 @@ export const queryKeys = {
     auditLogs: {
         all: ['audit-logs'] as const,
         lists: () => [...queryKeys.auditLogs.all, 'list'] as const,
-        list: (filters?: Record<string, any>) =>
+        list: (filters?: Record<string, unknown>) =>
             [...queryKeys.auditLogs.lists(), filters] as const,
         byEntity: (entityType: string, entityId: string) =>
             [...queryKeys.auditLogs.all, entityType, entityId] as const,
@@ -85,7 +85,7 @@ export const queryKeys = {
     staff: {
         all: ['staff'] as const,
         lists: () => [...queryKeys.staff.all, 'list'] as const,
-        list: (filters?: Record<string, any>) =>
+        list: (filters?: Record<string, unknown>) =>
             [...queryKeys.staff.lists(), filters] as const,
         details: () => [...queryKeys.staff.all, 'detail'] as const,
         detail: (id: string) => [...queryKeys.staff.details(), id] as const,

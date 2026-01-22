@@ -134,7 +134,7 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
                         <div key={evt.id} className="relative pl-6 border-l border-cyber-border last:border-0 pb-1">
                             <div className={`absolute left-[-5px] top-0 w-2.5 h-2.5 rounded-full ${idx === 0 ? 'bg-cyber-neon shadow-neon' : 'bg-muted-foreground'}`}></div>
                             <div className="text-sm font-bold text-foreground">{evt.event_code.replace(/_/g, ' ')}</div>
-                            <div className="text-sm text-muted-foreground">{evt.meta?.description || 'Event recorded'}</div>
+                            <div className="text-sm text-muted-foreground">{(evt.meta as Record<string, unknown>)?.description as string || 'Event recorded'}</div>
                             <div className="text-xs text-muted-foreground mt-1">
                                 {new Date(evt.event_time).toLocaleString()} • {evt.hub?.name || 'Transit'}
                             </div>

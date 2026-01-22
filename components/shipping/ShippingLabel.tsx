@@ -37,6 +37,7 @@ function Code128Svg({ value }: { value: string }) {
             // Clear previous content
             svgRef.current.innerHTML = '';
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const svg = (bwipjs as any).toSVG({
                 bcid: "code128",
                 text: value,

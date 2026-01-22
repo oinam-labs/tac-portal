@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- PDF generation requires any for dynamic shipment/invoice properties */
 
 import { PDFDocument, rgb, StandardFonts, Color } from 'pdf-lib';
 import JsBarcode from 'jsbarcode';
 import { Shipment, Invoice } from '../types';
 import { HUBS } from './constants';
 import { formatCurrency } from './utils';
+import { logger } from './logger';
 
 // --- HELPERS ---
 
@@ -72,7 +74,7 @@ const C = {
 
 // --- PROFESSIONAL SHIPPING LABEL GENERATOR (B&W Reference Match) ---
 export async function generateShipmentLabel(shipment: Shipment): Promise<string> {
-    console.log('[Label] Starting generation for AWB:', shipment.awb);
+    logger.debug('[Label] Starting generation', { awb: shipment.awb });
 
     if (!shipment || !shipment.awb) {
         throw new Error('Invalid shipment data: missing AWB');
@@ -86,7 +88,7 @@ export async function generateShipmentLabel(shipment: Shipment): Promise<string>
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    console.log('[Label] PDF document created, embedding fonts...');
+    logger.debug('[Label] PDF document created, embedding fonts...');
 
     // Background and Main Border
     page.drawRectangle({ x: 0, y: 0, width, height, color: C.WHITE });
@@ -106,7 +108,7 @@ export async function generateShipmentLabel(shipment: Shipment): Promise<string>
     // Barcode & AWB
     y -= 30;
     const barcodeDataUrl = generate1DBarcode(shipment.awb);
-    console.log('[Label] Barcode generated:', barcodeDataUrl ? 'success' : 'failed');
+    logger.debug('[Label] Barcode generated', { success: !!barcodeDataUrl });
     if (barcodeDataUrl) {
         try {
             const barcodeImg = await pdfDoc.embedPng(barcodeDataUrl);
@@ -264,10 +266,10 @@ export async function generateShipmentLabel(shipment: Shipment): Promise<string>
     page.drawText("TAC", { x: xBrand + 14, y: 8, size: 12, font: fontBold, color: C.BLACK });
     page.drawText("SHIPPING", { x: xBrand + 42, y: 8, size: 12, font, color: C.BLACK });
 
-    console.log('[Label] Saving PDF...');
+    logger.debug('[Label] Saving PDF...');
     const pdfBytes = await pdfDoc.save();
     const url = URL.createObjectURL(new Blob([pdfBytes as BlobPart], { type: 'application/pdf' }));
-    console.log('[Label] PDF generated successfully:', url.substring(0, 50));
+    logger.debug('[Label] PDF generated successfully');
     return url;
 }
 

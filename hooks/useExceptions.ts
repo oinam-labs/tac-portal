@@ -8,8 +8,9 @@ import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 import { getOrCreateDefaultOrg } from '../lib/org-helper';
 
-// Type helper
-const db = supabase as any;
+import type { Database } from '../lib/database.types';
+
+type Json = Database['public']['Tables']['exceptions']['Row']['images'];
 
 export interface ExceptionWithRelations {
     id: string;
@@ -23,7 +24,7 @@ export interface ExceptionWithRelations {
     assigned_to_staff_id: string | null;
     resolution: string | null;
     resolved_at: string | null;
-    images: any;
+    images: Json;
     created_at: string;
     updated_at: string;
     shipment?: { awb_number: string };
@@ -34,7 +35,7 @@ export interface ExceptionWithRelations {
 export const exceptionKeys = {
     all: ['exceptions'] as const,
     lists: () => [...exceptionKeys.all, 'list'] as const,
-    list: (filters?: any) => [...exceptionKeys.lists(), filters] as const,
+    list: (filters?: { status?: string; severity?: string }) => [...exceptionKeys.lists(), filters] as const,
     detail: (id: string) => [...exceptionKeys.all, 'detail', id] as const,
 };
 
@@ -82,7 +83,7 @@ export function useCreateException() {
         mutationFn: async (input: CreateExceptionInput) => {
             const orgId = await getOrCreateDefaultOrg();
 
-            const { data, error } = await db
+            const { data, error } = await supabase
                 .from('exceptions')
                 .insert({
                     org_id: orgId,
@@ -98,7 +99,7 @@ export function useCreateException() {
             if (error) throw error;
 
             // Update shipment status to EXCEPTION
-            await db
+            await supabase
                 .from('shipments')
                 .update({ status: 'EXCEPTION' })
                 .eq('id', input.shipment_id);
@@ -120,7 +121,7 @@ export function useResolveException() {
 
     return useMutation({
         mutationFn: async ({ id, resolution }: { id: string; resolution: string }) => {
-            const { data, error } = await db
+            const { data, error } = await supabase
                 .from('exceptions')
                 .update({
                     status: 'RESOLVED',
@@ -150,7 +151,7 @@ export function useAssignException() {
 
     return useMutation({
         mutationFn: async ({ id, staffId }: { id: string; staffId: string }) => {
-            const { data, error } = await db
+            const { data, error } = await supabase
                 .from('exceptions')
                 .update({
                     assigned_to_staff_id: staffId,

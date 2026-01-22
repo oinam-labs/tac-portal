@@ -2,6 +2,7 @@
  * Shift Handover Report Service
  * Generates comprehensive reports for shift handover
  */
+/* eslint-disable @typescript-eslint/no-explicit-any -- Supabase client requires any for complex operations */
 
 import { supabase } from '@/lib/supabase';
 import { mapSupabaseError } from '@/lib/errors';

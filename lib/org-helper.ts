@@ -1,8 +1,7 @@
 
 import { supabase } from './supabase';
 
-// Type helper
-const db = supabase as any;
+// Direct supabase usage - types from database.types.ts
 
 /**
  * Ensures a default organization exists for the demo environment.
@@ -15,7 +14,7 @@ const db = supabase as any;
 export async function getOrCreateDefaultOrg(): Promise<string> {
     try {
         // 1. Try to find any existing org
-        const { data: existingOrg } = await db
+        const { data: existingOrg } = await supabase
             .from('orgs')
             .select('id')
             .limit(1)
@@ -30,7 +29,7 @@ export async function getOrCreateDefaultOrg(): Promise<string> {
         const demoOrgId = '00000000-0000-0000-0000-000000000001';
 
         // Check if our specific demo org exists (might have failed previously due to rls but checking anyway)
-        const { data: demoOrg } = await db
+        const { data: demoOrg } = await supabase
             .from('orgs')
             .select('id')
             .eq('id', demoOrgId)
@@ -41,7 +40,7 @@ export async function getOrCreateDefaultOrg(): Promise<string> {
         }
 
         // Attempt to insert
-        const { data: newOrg, error } = await db
+        const { data: newOrg, error } = await supabase
             .from('orgs')
             .insert({
                 id: demoOrgId,
@@ -64,7 +63,7 @@ export async function getOrCreateDefaultOrg(): Promise<string> {
     } catch (error) {
         console.error('Error in getOrCreateDefaultOrg:', error);
         // If everything fails, try to query one last time without single() to see if ANY exist
-        const { data: fallbackOrgs } = await db.from('orgs').select('id').limit(1);
+        const { data: fallbackOrgs } = await supabase.from('orgs').select('id').limit(1);
         if (fallbackOrgs && fallbackOrgs.length > 0) {
             return fallbackOrgs[0].id;
         }

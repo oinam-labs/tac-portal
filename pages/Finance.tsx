@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Data mapping between Supabase and UI types */
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, CreditCard, Plus, Check, Printer, Mail, MessageCircle } from 'lucide-react';
@@ -383,6 +384,7 @@ Thank you for choosing TAC Cargo.`;
                     setDeleteOpen(true);
                 },
             }),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [navigate]
     );
 

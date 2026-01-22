@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Data mapping between Supabase and UI types */
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ShippingLabel, ShippingLabelData } from '../components/shipping/ShippingLabel';

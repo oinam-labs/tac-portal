@@ -158,7 +158,7 @@ export interface TrackingEvent {
     description: string;
     timestamp: string;
     actorId: string;
-    meta?: Record<string, any>;
+    meta?: Record<string, unknown>;
 }
 
 export interface Manifest {

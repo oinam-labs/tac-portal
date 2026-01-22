@@ -30,7 +30,7 @@ export function TrackingDialog({ trigger, children }: TrackingDialogProps) {
             } else {
                 toast.error(response.error || "Shipment not found");
             }
-        } catch (e) {
+        } catch {
             toast.error("Failed to track shipment");
         } finally {
             setLoading(false);
