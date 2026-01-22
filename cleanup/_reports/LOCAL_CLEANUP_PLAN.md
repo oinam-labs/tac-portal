@@ -10,7 +10,7 @@
 | Category | Count | Size | Status |
 |----------|-------|------|--------|
 | Unused public images | 7 | ~49MB | Ready to quarantine |
-| Unused npm dependencies | 10+ | ~2MB (bundle) | Requires team review |
+| Unused npm dependencies | 3 | ~75KB (bundle) | Safe to remove |
 | Duplicate docs (already quarantined) | 14 | ~270KB | ✅ Done |
 | Old logs/reports (already quarantined) | 10 | ~7.6MB | ✅ Done |
 | Root-level MD reports | 12 | ~70KB | Ready to quarantine |
@@ -76,36 +76,33 @@ Move-Item -Path "ADMIN_USER_SETUP_COMPLETE.md", "CODERABBIT_REVIEW_REQUEST.md", 
 
 ---
 
-## Phase 3: Unused npm Dependencies (REQUIRES TEAM REVIEW)
+## Phase 3: Unused npm Dependencies (REVISED after CodeRabbit Review)
 
-These packages have **no imports** in source code:
+> **Note:** Initial audit incorrectly flagged 10 packages. CodeRabbit review found only **3 genuinely unused**.
 
-### High Confidence (Safe to Remove)
-| Package | Size Impact | Reason |
-|---------|-------------|--------|
-| `@tiptap/*` (12 packages) | ~500KB bundle | Rich text editor - no imports |
-| `embla-carousel-*` (2 packages) | ~50KB bundle | Carousel - no imports |
-| `gsap` | ~60KB bundle | Animation - no imports |
-| `dompurify` | ~20KB bundle | HTML sanitizer - no imports |
-| `react-markdown` | ~30KB bundle | Markdown renderer - no imports |
+### Confirmed Unused (Safe to Remove)
+| Package | Size Impact | Evidence |
+|---------|-------------|----------|
+| `@openrouter/sdk` | ~10KB | AI SDK - not integrated |
+| `react-use-measure` | ~5KB | Measurement hook - unused |
+| `gsap` | ~60KB | Animation library - `motion` is used instead |
 
-### Medium Confidence (Verify First)
-| Package | Reason to Keep |
-|---------|----------------|
-| `@openrouter/sdk` | May be planned AI feature |
-| `@base-ui/react` | May be shadcn transitive dep |
-| `fuse.js` | May be planned search feature |
-| `react-use-measure` | May be used by `motion` |
-| `tw-animate-css` | May be tailwind plugin |
+### Previously Flagged but IN USE (DO NOT REMOVE)
+| Package | Used In | Purpose |
+|---------|---------|---------|
+| `fuse.js` | `components/finance/MultiStepCreateInvoice.tsx` | Search library |
+| `embla-carousel-react` | `components/ui/carousel.tsx` | Carousel component |
+| `embla-carousel-autoplay` | `components/ui/loading-carousel.tsx` | Carousel autoplay |
+| `react-markdown` | `components/landing-new/tac-bot.tsx` | Markdown rendering |
+| `dompurify` | `components/domain/NotesPanel.tsx` | HTML sanitization |
+| `@tiptap/*` (12 packages) | `components/ui/rich-text-editor.tsx` | Rich text editor |
+| `@base-ui/react` | `components/optics/button.jsx` | UI primitives |
+| `tw-animate-css` | `globals.css` | Tailwind animations |
 
-### Removal Commands (After Team Approval)
+### Removal Commands (Only 3 packages - After Team Approval)
 ```bash
-# High confidence removals
-npm uninstall @tiptap/extension-color @tiptap/extension-highlight @tiptap/extension-image @tiptap/extension-link @tiptap/extension-placeholder @tiptap/extension-task-item @tiptap/extension-task-list @tiptap/extension-text-align @tiptap/extension-text-style @tiptap/extension-underline @tiptap/pm @tiptap/react @tiptap/starter-kit
-
-npm uninstall embla-carousel-autoplay embla-carousel-react
-
-npm uninstall gsap dompurify react-markdown
+# Safe to remove - genuinely unused packages only
+npm uninstall @openrouter/sdk react-use-measure gsap
 ```
 
 ---
