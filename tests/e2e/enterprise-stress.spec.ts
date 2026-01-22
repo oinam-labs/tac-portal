@@ -36,12 +36,22 @@ test.describe('Enterprise Stress Tests', () => {
                 // Verify page is still functional (no crash)
                 await expect(page.locator('body')).toContainText(/(Scanning|Dashboard|TAC)/i);
 
-                // Check for duplicate warning/info messages
-                const duplicateMessages = page.locator('text=/already|duplicate|exists/i');
+                // Check for duplicate warning/info messages OR verify UI stability
+                const duplicateMessages = page.locator('text=/already|duplicate|exists|scanned/i');
                 const messageCount = await duplicateMessages.count();
 
-                // Should have shown duplicate warnings for scans 2-20
-                expect(messageCount).toBeGreaterThanOrEqual(0); // At least the UI handled it
+                // Idempotency check: Either duplicate warnings shown OR page remained stable
+                // If no duplicate warnings, verify the scan queue/list doesn't have 20 entries
+                if (messageCount === 0) {
+                    // Fallback: verify page didn't create 20 separate items (idempotency)
+                    const scanItems = page.locator('[data-testid="scan-item"], .scan-item, tr');
+                    const itemCount = await scanItems.count();
+                    // Should not have 20+ items from duplicate scans
+                    expect(itemCount).toBeLessThan(20);
+                } else {
+                    // Duplicate warnings were shown - idempotency working
+                    expect(messageCount).toBeGreaterThan(0);
+                }
             }
         });
 

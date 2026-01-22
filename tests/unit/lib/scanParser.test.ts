@@ -116,6 +116,18 @@ describe('scanParser', () => {
                 const payload = JSON.stringify({ v: 1, type: 'package' });
                 expect(() => parseScanInput(payload)).toThrow('requires packageId');
             });
+
+            it('should preserve AWB case in package payload (passthrough behavior)', () => {
+                const payload = JSON.stringify({
+                    v: 1,
+                    type: 'package',
+                    packageId: 'PKG-002',
+                    awb: 'tac12345678'
+                });
+                const result = parseScanInput(payload);
+                // Note: package payloads pass through AWB as-is (no uppercase)
+                expect(result.awb).toBe('tac12345678');
+            });
         });
 
         describe('Manifest number format', () => {
