@@ -13,7 +13,9 @@ const __dirname = path.dirname(__filename);
 const authFile = path.join(__dirname, '../../.auth/user.json');
 
 setup('authenticate', async ({ page }) => {
-  const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+  // Use port 4173 (preview) in CI, port 3000 (dev) locally
+  const BASE_URL =
+    process.env.BASE_URL || (process.env.CI ? 'http://localhost:4173' : 'http://localhost:3000');
 
   // Go to login page
   await page.goto(`${BASE_URL}/#/login`);
