@@ -127,7 +127,7 @@ export function useManifestBuilder(options: ManifestBuilderOptions = {}) {
                     });
                 } else {
                     toast.success('Shipment added', {
-                        description: `${result.awb_number} - ${result.consignee_name}`,
+                        description: `${result.awb_number} - ${result.receiver_name}`,
                     });
                     // Refetch items to update list
                     queryClient.invalidateQueries({

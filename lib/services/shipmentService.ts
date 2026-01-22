@@ -79,7 +79,7 @@ export const shipmentService = {
             query = query.eq('customer_id', filters.customerId);
         }
         if (filters?.search) {
-            query = query.or(`awb_number.ilike.%${filters.search}%,consignee_name.ilike.%${filters.search}%`);
+            query = query.or(`awb_number.ilike.%${filters.search}%,receiver_name.ilike.%${filters.search}%,sender_name.ilike.%${filters.search}%`);
         }
         if (filters?.limit) {
             query = query.limit(filters.limit);
@@ -266,7 +266,7 @@ export const shipmentService = {
         const shipments = (data || []) as { status: string }[];
         const stats = {
             total: shipments.length,
-            inTransit: shipments.filter(s => ['IN_TRANSIT', 'LOADED_FOR_LINEHAUL'].includes(s.status)).length,
+            inTransit: shipments.filter(s => s.status === 'IN_TRANSIT').length,
             delivered: shipments.filter(s => s.status === 'DELIVERED').length,
             exceptions: shipments.filter(s => s.status === 'EXCEPTION').length,
         };

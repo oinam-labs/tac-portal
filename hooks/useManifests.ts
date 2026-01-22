@@ -14,7 +14,9 @@ export interface ManifestItemWithRelations {
     shipment: {
         id: string;
         awb_number: string;
-        consignee_name: string;
+        receiver_name: string;
+        receiver_phone?: string;
+        sender_name?: string;
         destination_hub_id: string;
         package_count: number;
         total_weight: number;
@@ -251,7 +253,7 @@ export function useCreateManifest() {
 
                 // Update Shipments
                 const { error: shipmentsError } = await (supabase.from('shipments') as any)
-                    .update({ manifest_id: manifest.id, status: 'LOADED_FOR_LINEHAUL' })
+                    .update({ manifest_id: manifest.id, status: 'IN_TRANSIT' })
                     .in('id', input.shipment_ids);
                 if (shipmentsError) throw shipmentsError;
             }

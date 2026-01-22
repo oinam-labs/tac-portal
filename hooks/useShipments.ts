@@ -32,9 +32,12 @@ export interface ShipmentWithRelations {
   package_count: number;
   total_weight: number;
   declared_value: number | null;
-  consignee_name: string;
-  consignee_phone: string;
-  consignee_address: Json;
+  receiver_name: string;
+  receiver_phone: string;
+  receiver_address: Json;
+  sender_name?: string;
+  sender_phone?: string;
+  sender_address?: Json;
   special_instructions: string | null;
   created_at: string;
   updated_at: string;
@@ -104,9 +107,12 @@ interface CreateShipmentInput {
   package_count: number;
   total_weight: number;
   declared_value?: number;
-  consignee_name: string;
-  consignee_phone: string;
-  consignee_address: Json;
+  receiver_name: string;
+  receiver_phone: string;
+  receiver_address: Json;
+  sender_name?: string;
+  sender_phone?: string;
+  sender_address?: Json;
   special_instructions?: string;
 }
 

@@ -35,8 +35,8 @@ export const Tracking: React.FC = () => {
             originHub: shipmentData.origin_hub?.code || 'ORIGIN',
             destinationHub: shipmentData.destination_hub?.code || 'DEST',
             eta: 'TBD',
-            consigneeName: shipmentData.consignee_name,
-            consigneePhone: shipmentData.consignee_phone,
+            consigneeName: shipmentData.receiver_name,
+            consigneePhone: shipmentData.receiver_phone,
             weight: shipmentData.total_weight,
             pieces: shipmentData.package_count,
         } as unknown as Shipment,
@@ -142,7 +142,7 @@ export const Tracking: React.FC = () => {
                             <div className="absolute top-1/2 left-[28%] right-[28%] h-1 bg-gradient-to-r from-cyan-500 via-amber-500 to-emerald-500 rounded-full"></div>
 
                             {/* Moving vehicle indicator */}
-                            {(result.shipment.status === 'IN_TRANSIT_TO_DESTINATION' || result.shipment.status === 'LOADED_FOR_LINEHAUL') && (
+                            {(result.shipment.status === 'IN_TRANSIT') && (
                                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-cyber-card border-2 border-cyber-accent p-3 rounded-xl shadow-lg animate-pulse">
                                     <div className="flex items-center gap-2">
                                         {result.shipment.mode === 'AIR' ? (

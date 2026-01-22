@@ -23,7 +23,8 @@ export default defineConfig(() => {
             'vendor-ui': ['motion', 'lucide-react', 'clsx', 'tailwind-merge'],
             'vendor-data': ['@tanstack/react-query', 'zustand', 'zod', '@hookform/resolvers'],
             'vendor-charts': ['recharts'],
-            'vendor-utils': ['date-fns']
+            'vendor-utils': ['date-fns'],
+            'vendor-sentry': ['@sentry/react']
           }
         }
       },

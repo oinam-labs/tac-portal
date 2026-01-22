@@ -44,7 +44,7 @@ export function ManifestShipmentsTable({
 }: ManifestShipmentsTableProps) {
     const [searchQuery, setSearchQuery] = React.useState("")
 
-    // Filter items by search query (AWB, consignee, consignor)
+    // Filter items by search query (AWB, receiver, sender)
     const filteredItems = React.useMemo(() => {
         if (!searchQuery.trim()) return items
         const query = searchQuery.toLowerCase()
@@ -53,9 +53,8 @@ export function ManifestShipmentsTable({
             if (!shipment) return false
             return (
                 shipment.awb_number?.toLowerCase().includes(query) ||
-                shipment.consignee_name?.toLowerCase().includes(query) ||
-                shipment.consignor_name?.toLowerCase().includes(query) ||
-                shipment.receiver_name?.toLowerCase().includes(query)
+                shipment.receiver_name?.toLowerCase().includes(query) ||
+                shipment.sender_name?.toLowerCase().includes(query)
             )
         })
     }, [items, searchQuery])
@@ -72,14 +71,14 @@ export function ManifestShipmentsTable({
                 ),
             },
             {
-                id: "consignee",
-                header: "Consignee",
+                id: "receiver",
+                header: "Receiver",
                 cell: ({ row }) => {
                     const shipment = row.original.shipment
                     return (
                         <div className="space-y-0.5">
                             <div className="font-medium truncate max-w-[180px]">
-                                {shipment?.consignee_name || shipment?.receiver_name || "—"}
+                                {shipment?.receiver_name || "—"}
                             </div>
                             {shipment?.receiver_city && (
                                 <div className="text-xs text-muted-foreground">
@@ -91,14 +90,14 @@ export function ManifestShipmentsTable({
                 },
             },
             {
-                id: "consignor",
-                header: "Consignor",
+                id: "sender",
+                header: "Sender",
                 cell: ({ row }) => {
                     const shipment = row.original.shipment
                     return (
                         <div className="space-y-0.5">
                             <div className="font-medium truncate max-w-[180px]">
-                                {shipment?.consignor_name || shipment?.sender_name || "—"}
+                                {shipment?.sender_name || "—"}
                             </div>
                             {shipment?.sender_city && (
                                 <div className="text-xs text-muted-foreground">
@@ -227,7 +226,7 @@ export function ManifestShipmentsTable({
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search AWB, consignee, consignor..."
+                        placeholder="Search AWB, receiver, sender..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-9"

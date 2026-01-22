@@ -11,7 +11,7 @@ test.describe('Enterprise Manifest Scanning', () => {
     test.beforeEach(async ({ page }) => {
         // Navigate to manifests page
         await page.goto(`${BASE_URL}/#/manifests`);
-        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
     });
 
     test('should load manifests page without errors', async ({ page }) => {
@@ -22,7 +22,7 @@ test.describe('Enterprise Manifest Scanning', () => {
             }
         });
 
-        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
 
         // Verify manifests page loads
         await expect(page.locator('body')).toContainText(/(Manifest|Dashboard|TAC)/i, { timeout: 15000 });
@@ -36,7 +36,7 @@ test.describe('Enterprise Manifest Scanning', () => {
     });
 
     test('should display manifest list with correct columns', async ({ page }) => {
-        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
 
         // Look for manifest table or list
         const table = page.locator('table').first();
@@ -54,10 +54,10 @@ test.describe('Enterprise Manifest Scanning', () => {
     });
 
     test('should open create manifest modal', async ({ page }) => {
-        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
 
         // Find create button
-        const createButton = page.getByRole('button', { name: /create|new|add/i });
+        const createButton = page.getByRole('button', { name: /create|new|add/i }).first();
         if (await createButton.isVisible()) {
             await createButton.click();
 
@@ -68,8 +68,8 @@ test.describe('Enterprise Manifest Scanning', () => {
             const modal = page.getByRole('dialog');
             if (await modal.isVisible()) {
                 // Should have origin/destination selectors
-                const originLabel = page.getByText(/origin|from/i);
-                const destLabel = page.getByText(/destination|to/i);
+                const originLabel = page.getByText(/origin|from/i).first();
+                const destLabel = page.getByText(/destination|to/i).first();
 
                 expect(await originLabel.isVisible() || await destLabel.isVisible()).toBe(true);
             }
@@ -77,10 +77,10 @@ test.describe('Enterprise Manifest Scanning', () => {
     });
 
     test('should show transport type toggle (AIR/TRUCK)', async ({ page }) => {
-        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
 
         // Open create modal
-        const createButton = page.getByRole('button', { name: /create|new|add/i });
+        const createButton = page.getByRole('button', { name: /create|new|add/i }).first();
         if (await createButton.isVisible()) {
             await createButton.click();
             await page.waitForTimeout(500);
@@ -94,7 +94,7 @@ test.describe('Enterprise Manifest Scanning', () => {
                 // Should show flight-related fields
                 await page.waitForTimeout(300);
                 // Updated selector for new UI
-                const flightField = page.getByPlaceholder(/e\.g\.\s*6055|flight/i);
+                const flightField = page.getByPlaceholder(/1234|flight/i);
                 // Flight field should be visible when AIR is selected
                 if (await flightField.isVisible()) {
                     expect(true).toBe(true);
@@ -106,7 +106,7 @@ test.describe('Enterprise Manifest Scanning', () => {
                 // Should show vehicle-related fields
                 await page.waitForTimeout(300);
                 // Updated selector for new UI
-                const vehicleField = page.getByPlaceholder(/e\.g\.\s*MN01AB1234|vehicle/i);
+                const vehicleField = page.getByPlaceholder(/TX-1234-AB|vehicle/i);
                 // Vehicle field should be visible when TRUCK is selected
                 if (await vehicleField.isVisible()) {
                     expect(true).toBe(true);
@@ -116,16 +116,16 @@ test.describe('Enterprise Manifest Scanning', () => {
     });
 
     test('should validate required fields before creating manifest', async ({ page }) => {
-        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
 
         // Open create modal
-        const createButton = page.getByRole('button', { name: /create|new|add/i });
+        const createButton = page.getByRole('button', { name: /create|new|add/i }).first();
         if (await createButton.isVisible()) {
             await createButton.click();
             await page.waitForTimeout(500);
 
             // Try to submit without filling required fields
-            const submitButton = page.getByRole('button', { name: /create manifest|submit|save/i });
+            const submitButton = page.getByRole('button', { name: /create manifest|submit|save|next/i });
             if (await submitButton.isVisible()) {
                 // Button should be disabled or clicking should show validation errors
                 const isDisabled = await submitButton.isDisabled();
@@ -149,27 +149,27 @@ test.describe('Manifest Scan Panel', () => {
     // Shared helper to get to the scanning phase - always creates a new manifest
     async function enterScanPhase(page: Page) {
         await page.goto(`${BASE_URL}/#/manifests`);
-        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
 
         // Always create a new manifest for consistent test behavior
-        await page.getByRole('button', { name: /build manifest/i }).click();
+        await page.getByRole('button', { name: /create manifest/i }).click();
 
-        // Wait for modal to be fully open
+        // Wait for modal to be fully open - look for dialog and Route Selection card
         await expect(page.getByRole('dialog')).toBeVisible();
-        await expect(page.getByRole('heading', { name: 'Manifest Settings' })).toBeVisible();
+        await expect(page.getByText('Route Selection')).toBeVisible({ timeout: 5000 });
 
-        // Select Origin - use button name from the UI
-        const originBtn = page.getByRole('button', { name: /select origin/i });
-        await originBtn.click();
+        // Select Origin - Radix Select uses combobox role
+        const originCombobox = page.getByRole('combobox').first();
+        await originCombobox.click();
         await page.waitForTimeout(300);
         const originOptions = page.getByRole('option');
         await expect(originOptions.first()).toBeVisible({ timeout: 5000 });
         await originOptions.first().click();
         await page.waitForTimeout(300);
 
-        // Select Destination - use button name from the UI  
-        const destBtn = page.getByRole('button', { name: /select destination/i });
-        await destBtn.click();
+        // Select Destination - second combobox
+        const destCombobox = page.getByRole('combobox').nth(1);
+        await destCombobox.click();
         await page.waitForTimeout(300);
         const destOptions = page.getByRole('option');
         await expect(destOptions.first()).toBeVisible({ timeout: 5000 });
@@ -177,36 +177,44 @@ test.describe('Manifest Scan Panel', () => {
         await page.waitForTimeout(300);
 
         // Fill required Flight No (AIR is default)
-        const flightField = page.getByPlaceholder(/e\.g\.\s*6055/i);
+        const flightField = page.getByPlaceholder(/1234/i);
         await expect(flightField).toBeVisible();
         await flightField.fill('TEST001');
-        await page.waitForTimeout(500); // Wait for form validation
+        // Trigger blur to ensure form validation runs
+        await flightField.press('Tab');
+        await page.waitForTimeout(1000); // Wait for form validation
 
         // Wait for validation to pass (button enabled) and click
-        const createBtn = page.getByRole('button', { name: /create manifest/i });
-        await expect(createBtn).toBeEnabled({ timeout: 5000 });
+        const createBtn = page.getByRole('button', { name: /next/i });
+        await expect(createBtn).toBeEnabled({ timeout: 10000 });
         await createBtn.click({ force: true });
+
+        // Check for error toast
+        const errorToast = page.getByText(/Failed to create manifest/i);
+        if (await errorToast.isVisible()) {
+            throw new Error('Manifest creation failed: ' + await errorToast.textContent());
+        }
 
         // Wait for phase transition - either scan input appears or we see build phase heading
         await page.waitForTimeout(1000);
 
-        // Check for scan input or any indication we're in build phase
-        const scanInput = page.getByPlaceholder(/awb|scan|barcode/i);
-        const buildHeading = page.getByRole('heading', { name: /build|scanning/i });
+        // Check for scan input or any indication we're in step 2 (Add Shipments)
+        const scanInput = page.getByPlaceholder(/Scan or enter AWB/i).first();
+        const buildHeading = page.getByRole('heading', { name: /Add Shipments/i });
 
-        // Wait for either element
+        // Wait for phase transition - either scan input appears or we see step 2 heading
         await expect(scanInput.or(buildHeading).first()).toBeVisible({ timeout: 15000 });
     }
 
     test('should show scan input when manifest is in building state', async ({ page }) => {
         await enterScanPhase(page);
-        const scanInput = page.getByPlaceholder(/awb|scan|barcode/i);
+        const scanInput = page.getByPlaceholder(/Scan or enter AWB/i).first();
         await expect(scanInput).toBeVisible();
     });
 
     test('should handle AWB scan input', async ({ page }) => {
         await enterScanPhase(page);
-        const scanInput = page.getByPlaceholder(/awb|scan|barcode/i);
+        const scanInput = page.getByPlaceholder(/Scan or enter AWB/i).first();
 
         // Enter a test AWB
         await scanInput.fill('TAC12345678');
@@ -222,7 +230,7 @@ test.describe('Manifest Scan Panel', () => {
 
     test('should prevent duplicate scans (idempotency)', async ({ page }) => {
         await enterScanPhase(page);
-        const scanInput = page.getByPlaceholder(/awb|scan|barcode/i);
+        const scanInput = page.getByPlaceholder(/Scan or enter AWB/i).first();
         const testAWB = 'TAC12345678';
 
         // First scan
@@ -247,7 +255,7 @@ test.describe('Manifest Scan Panel', () => {
 test.describe('Manifest Status Workflow', () => {
     test('should display manifest status badge', async ({ page }) => {
         await page.goto(`${BASE_URL}/#/manifests`);
-        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
 
         // Look for status badges
         const statuses = ['DRAFT', 'OPEN', 'BUILDING', 'CLOSED', 'DEPARTED', 'ARRIVED'];
@@ -263,12 +271,12 @@ test.describe('Manifest Status Workflow', () => {
 
     test('should show close manifest button for open manifests', async ({ page }) => {
         await page.goto(`${BASE_URL}/#/manifests`);
-        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
 
-        // Click on an OPEN or BUILDING manifest
+        // Click on an OPEN or BUILDING manifest - use first matching row
         const openBadge = page.getByText(/DRAFT|OPEN|BUILDING/i).first();
         if (await openBadge.isVisible()) {
-            const row = page.locator('tr', { has: openBadge });
+            const row = page.locator('tr', { has: openBadge }).first();
             await row.getByRole('button', { name: 'View' }).click();
             await expect(page.getByRole('dialog')).toBeVisible();
             await expect(page.getByRole('button', { name: /close manifest/i })).toBeVisible();
@@ -277,12 +285,12 @@ test.describe('Manifest Status Workflow', () => {
 
     test('should not allow editing closed manifests', async ({ page }) => {
         await page.goto(`${BASE_URL}/#/manifests`);
-        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
 
-        // Find a CLOSED manifest
+        // Find a CLOSED manifest - use first matching row
         const closedBadge = page.getByText(/^CLOSED$/i).first();
         if (await closedBadge.isVisible()) {
-            const row = page.locator('tr', { has: closedBadge });
+            const row = page.locator('tr', { has: closedBadge }).first();
             await row.getByRole('button', { name: 'View' }).click();
             await expect(page.getByRole('dialog')).toBeVisible();
 
@@ -297,45 +305,54 @@ test.describe('Manifest Shipment Table', () => {
     // Helper to get to the scanning phase - creates a new manifest
     async function enterScanPhase(page: Page) {
         await page.goto(`${BASE_URL}/#/manifests`);
-        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
 
         // Create a new manifest for consistent test behavior
-        await page.getByRole('button', { name: /build manifest/i }).click();
+        await page.getByRole('button', { name: /create manifest/i }).click();
         await expect(page.getByRole('dialog')).toBeVisible();
-        await expect(page.getByRole('heading', { name: 'Manifest Settings' })).toBeVisible();
+        await expect(page.getByText('Route Selection')).toBeVisible({ timeout: 5000 });
 
-        // Select Origin
-        const originBtn = page.getByRole('button', { name: /select origin/i });
-        await originBtn.click();
+        // Select Origin - Radix Select uses combobox role
+        const originCombobox = page.getByRole('combobox').first();
+        await originCombobox.click();
         await page.waitForTimeout(300);
-        await expect(page.getByRole('option').first()).toBeVisible({ timeout: 5000 });
-        await page.getByRole('option').first().click();
-        await page.waitForTimeout(300);
-
-        // Select Destination
-        const destBtn = page.getByRole('button', { name: /select destination/i });
-        await destBtn.click();
-        await page.waitForTimeout(300);
-        await expect(page.getByRole('option').first()).toBeVisible({ timeout: 5000 });
-        await page.getByRole('option').first().click();
+        const originOption = page.getByRole('option').first();
+        await expect(originOption).toBeVisible({ timeout: 5000 });
+        await originOption.click();
         await page.waitForTimeout(300);
 
-        // Fill required Flight No
-        const flightField = page.getByPlaceholder(/e\.g\.\s*6055/i);
+        // Select Destination - second combobox
+        const destCombobox = page.getByRole('combobox').nth(1);
+        await destCombobox.click();
+        await page.waitForTimeout(300);
+        const destOption = page.getByRole('option').first();
+        await expect(destOption).toBeVisible({ timeout: 5000 });
+        await destOption.click();
+        await page.waitForTimeout(300);
+
+        // Fill required Flight No and trigger validation
+        const flightField = page.getByPlaceholder(/1234/i);
         await expect(flightField).toBeVisible();
         await flightField.fill('TEST002');
-        await page.waitForTimeout(500);
-
-        // Create manifest
-        const createBtn = page.getByRole('button', { name: /create manifest/i });
-        await expect(createBtn).toBeEnabled({ timeout: 5000 });
-        await createBtn.click({ force: true });
-
-        // Wait for phase transition
+        await flightField.press('Tab');
         await page.waitForTimeout(1000);
-        const scanInput = page.getByPlaceholder(/awb|scan|barcode/i);
-        const buildHeading = page.getByRole('heading', { name: /build|scanning/i });
-        await expect(scanInput.or(buildHeading).first()).toBeVisible({ timeout: 15000 });
+
+        // Click Next to proceed to step 2
+        const nextBtn = page.getByRole('button', { name: /next/i });
+        await expect(nextBtn).toBeEnabled({ timeout: 10000 });
+        await nextBtn.click({ force: true });
+
+        // Check for error toast
+        const errorToast = page.getByText(/Failed to create manifest/i);
+        if (await errorToast.isVisible()) {
+            throw new Error('Manifest creation failed: ' + await errorToast.textContent());
+        }
+
+        // Wait for phase transition to step 2 (Add Shipments)
+        await page.waitForTimeout(1000);
+        const scanInput = page.getByPlaceholder(/Scan or enter AWB/i).first();
+        const addShipmentsText = page.getByText(/Add Shipments/i).first();
+        await expect(scanInput.or(addShipmentsText)).toBeVisible({ timeout: 15000 });
     }
 
     test('should display shipment details in manifest', async ({ page }) => {
@@ -376,45 +393,54 @@ test.describe('Scan Audit Logging', () => {
     // Helper to get to the scanning phase - creates a new manifest
     async function enterScanPhase(page: Page) {
         await page.goto(`${BASE_URL}/#/manifests`);
-        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
 
         // Create a new manifest for consistent test behavior
-        await page.getByRole('button', { name: /build manifest/i }).click();
+        await page.getByRole('button', { name: /create manifest/i }).click();
         await expect(page.getByRole('dialog')).toBeVisible();
-        await expect(page.getByRole('heading', { name: 'Manifest Settings' })).toBeVisible();
+        await expect(page.getByText('Route Selection')).toBeVisible({ timeout: 5000 });
 
-        // Select Origin
-        const originBtn = page.getByRole('button', { name: /select origin/i });
-        await originBtn.click();
+        // Select Origin - Radix Select uses combobox role
+        const originCombobox = page.getByRole('combobox').first();
+        await originCombobox.click();
         await page.waitForTimeout(300);
-        await expect(page.getByRole('option').first()).toBeVisible({ timeout: 5000 });
-        await page.getByRole('option').first().click();
-        await page.waitForTimeout(300);
-
-        // Select Destination
-        const destBtn = page.getByRole('button', { name: /select destination/i });
-        await destBtn.click();
-        await page.waitForTimeout(300);
-        await expect(page.getByRole('option').first()).toBeVisible({ timeout: 5000 });
-        await page.getByRole('option').first().click();
+        const originOption = page.getByRole('option').first();
+        await expect(originOption).toBeVisible({ timeout: 5000 });
+        await originOption.click();
         await page.waitForTimeout(300);
 
-        // Fill required Flight No
-        const flightField = page.getByPlaceholder(/e\.g\.\s*6055/i);
+        // Select Destination - second combobox
+        const destCombobox = page.getByRole('combobox').nth(1);
+        await destCombobox.click();
+        await page.waitForTimeout(300);
+        const destOption = page.getByRole('option').first();
+        await expect(destOption).toBeVisible({ timeout: 5000 });
+        await destOption.click();
+        await page.waitForTimeout(300);
+
+        // Fill required Flight No and trigger validation
+        const flightField = page.getByPlaceholder(/1234/i);
         await expect(flightField).toBeVisible();
         await flightField.fill('TEST003');
-        await page.waitForTimeout(500);
-
-        // Create manifest
-        const createBtn = page.getByRole('button', { name: /create manifest/i });
-        await expect(createBtn).toBeEnabled({ timeout: 5000 });
-        await createBtn.click({ force: true });
-
-        // Wait for phase transition
+        await flightField.press('Tab');
         await page.waitForTimeout(1000);
-        const scanInput = page.getByPlaceholder(/awb|scan|barcode/i);
-        const buildHeading = page.getByRole('heading', { name: /build|scanning/i });
-        await expect(scanInput.or(buildHeading).first()).toBeVisible({ timeout: 15000 });
+
+        // Click Next to proceed to step 2
+        const nextBtn = page.getByRole('button', { name: /next/i });
+        await expect(nextBtn).toBeEnabled({ timeout: 10000 });
+        await nextBtn.click({ force: true });
+
+        // Check for error toast
+        const errorToast = page.getByText(/Failed to create manifest/i);
+        if (await errorToast.isVisible()) {
+            throw new Error('Manifest creation failed: ' + await errorToast.textContent());
+        }
+
+        // Wait for phase transition to step 2 (Add Shipments)
+        await page.waitForTimeout(1000);
+        const scanInput = page.getByPlaceholder(/Scan or enter AWB/i).first();
+        const addShipmentsText = page.getByText(/Add Shipments/i).first();
+        await expect(scanInput.or(addShipmentsText)).toBeVisible({ timeout: 15000 });
     }
 
     test('should track scan history', async ({ page }) => {

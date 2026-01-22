@@ -28,3 +28,7 @@ dist-ssr
 playwright-report/
 test-results/
 playwright/.cache/
+# Generated files
+sentry_report.json
+test_output.txt
+manifest_analysis.md

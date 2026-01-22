@@ -1,13 +1,14 @@
 "use client"
 
 import * as React from "react"
-import { Camera, CheckCircle2, Keyboard, Scan, XCircle, AlertCircle, Trash2 } from "lucide-react"
+import { Camera, CheckCircle2, Keyboard, Scan, XCircle, AlertCircle, Trash2, RotateCcw } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { useScanInput } from "@/hooks/useManifestScan"
 import type { ScanResponse } from "@/lib/services/manifestService"
@@ -173,10 +174,35 @@ export function ManifestScanPanel({
                                 {scanner.lastResult.awb_number && (
                                     <p className="text-xs mt-1 opacity-80 font-mono">
                                         {scanner.lastResult.awb_number}
-                                        {scanner.lastResult.consignee_name && ` • ${scanner.lastResult.consignee_name}`}
+                                        {scanner.lastResult.receiver_name && ` • ${scanner.lastResult.receiver_name}`}
                                     </p>
                                 )}
                             </div>
+                            {/* Retry button for cancelled/error scans */}
+                            {!scanner.lastResult.success && scanner.lastResult.error === 'REQUEST_CANCELLED' && (
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-6 w-6 shrink-0"
+                                                aria-label="Retry scan"
+                                                title="Retry scan"
+                                                onClick={() => {
+                                                    if (scanner.inputValue) {
+                                                        scanner.handleSubmit()
+                                                    }
+                                                }}
+                                            >
+                                                <RotateCcw className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Retry scan</TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            )}
                         </div>
                     </div>
                 )}

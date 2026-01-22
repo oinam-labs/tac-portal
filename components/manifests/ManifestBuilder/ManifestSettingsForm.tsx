@@ -15,8 +15,7 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Plane, Truck, Calendar as CalendarIcon, Clock, Loader2 } from "lucide-react"
-import { format } from "date-fns"
+import { Plane, Truck, Loader2 } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -24,12 +23,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
-import { Calendar } from "@/components/ui/calendar"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
+import { DatePicker, DateTimePicker, TimePicker } from "@/components/ui/date-time-picker"
 import {
     Select,
     SelectContent,
@@ -279,33 +273,12 @@ export function ManifestSettingsForm({
                                     <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                         Flight Date
                                     </Label>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                className={cn(
-                                                    "w-full pl-3 text-left font-normal justify-start",
-                                                    !watchedValues.flightDate && "text-muted-foreground"
-                                                )}
-                                            >
-                                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                                {watchedValues.flightDate ? (
-                                                    format(watchedValues.flightDate, "PPP")
-                                                ) : (
-                                                    <span>Pick a date</span>
-                                                )}
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                            <Calendar
-                                                mode="single"
-                                                selected={watchedValues.flightDate}
-                                                onSelect={(date) => form.setValue("flightDate", date)}
-                                                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePicker
+                                        value={watchedValues.flightDate}
+                                        onChange={(date) => form.setValue("flightDate", date)}
+                                        placeholder="Pick a date"
+                                        minDate={new Date(new Date().setHours(0, 0, 0, 0))}
+                                    />
                                 </div>
 
                                 {/* ETD / ETA Time Inputs */}
@@ -314,27 +287,19 @@ export function ManifestSettingsForm({
                                         <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                             ETD
                                         </Label>
-                                        <div className="relative">
-                                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                            <Input
-                                                type="time"
-                                                {...form.register("etd")}
-                                                className="pl-9 font-mono"
-                                            />
-                                        </div>
+                                        <TimePicker
+                                            value={watchedValues.etd}
+                                            onChange={(time) => form.setValue("etd", time)}
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                             ETA
                                         </Label>
-                                        <div className="relative">
-                                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                            <Input
-                                                type="time"
-                                                {...form.register("eta")}
-                                                className="pl-9 font-mono"
-                                            />
-                                        </div>
+                                        <TimePicker
+                                            value={watchedValues.eta}
+                                            onChange={(time) => form.setValue("eta", time)}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -388,18 +353,12 @@ export function ManifestSettingsForm({
                                     <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                         Dispatch Date/Time
                                     </Label>
-                                    <div className="relative">
-                                        <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            type="datetime-local"
-                                            value={watchedValues.dispatchAt ? format(watchedValues.dispatchAt, "yyyy-MM-dd'T'HH:mm") : ""}
-                                            onChange={(e) => {
-                                                const date = e.target.value ? new Date(e.target.value) : undefined
-                                                form.setValue("dispatchAt", date)
-                                            }}
-                                            className="pl-9 font-mono"
-                                        />
-                                    </div>
+                                    <DateTimePicker
+                                        value={watchedValues.dispatchAt}
+                                        onChange={(date) => form.setValue("dispatchAt", date)}
+                                        placeholder="Pick date & time"
+                                        showTime={true}
+                                    />
                                 </div>
                             </div>
                         )}

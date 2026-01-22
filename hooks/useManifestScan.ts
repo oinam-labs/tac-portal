@@ -181,6 +181,17 @@ export function useManifestScan(options: ScanOptions) {
 
                 return result;
             } catch (error) {
+                // Handle AbortError gracefully - this happens during component unmount or query cancellation
+                if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('aborted'))) {
+                    const abortResult: ScanResponse = {
+                        success: false,
+                        error: 'REQUEST_CANCELLED',
+                        message: 'Request was cancelled. Please try again.',
+                    };
+                    setState((s) => ({ ...s, isScanning: false }));
+                    return abortResult;
+                }
+
                 const errorResult: ScanResponse = {
                     success: false,
                     error: 'SYSTEM_ERROR',

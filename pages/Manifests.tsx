@@ -7,11 +7,12 @@ import { KPICard } from '../components/domain/KPICard';
 import { ColumnDef } from '@tanstack/react-table';
 import { useManifests, useUpdateManifestStatus, ManifestWithRelations } from '../hooks/useManifests';
 import { useRealtimeManifests } from '../hooks/useRealtime';
-import { ManifestBuilder } from '../components/manifests/ManifestBuilder/ManifestBuilder';
-import { Truck, Plane, Play, CheckCircle, Package, Weight, Scan } from 'lucide-react';
+import { ManifestBuilderWizard } from '../components/manifests/ManifestBuilder/ManifestBuilderWizard';
+import { Truck, Plane, Play, CheckCircle, Package, Weight, Scan, AlertCircle } from 'lucide-react';
+import { Skeleton } from '../components/ui/skeleton';
 
 export const Manifests: React.FC = () => {
-    const { data: manifests = [] } = useManifests();
+    const { data: manifests = [], isLoading, isError, error } = useManifests();
     const updateStatusMutation = useUpdateManifestStatus();
     const [isEnterpriseOpen, setIsEnterpriseOpen] = useState(false);
     const [selectedManifestId, setSelectedManifestId] = useState<string | null>(null);
@@ -33,7 +34,7 @@ export const Manifests: React.FC = () => {
             accessorKey: 'manifest_no',
             header: 'Reference',
             cell: ({ row }) => (
-                <span className="font-mono font-bold text-white">{row.getValue('manifest_no')}</span>
+                <span className="font-mono font-bold text-foreground">{row.getValue('manifest_no')}</span>
             ),
         },
         {
@@ -53,7 +54,7 @@ export const Manifests: React.FC = () => {
                             <Truck className="w-4 h-4 text-amber-400" />
                         )}
                         <div>
-                            <span className="font-medium text-white">
+                            <span className="font-medium text-foreground">
                                 {row.original.type === 'AIR'
                                     ? flightLabel
                                     : driverLabel}
@@ -121,6 +122,55 @@ export const Manifests: React.FC = () => {
     const transitCount = manifests.filter(m => m.status === 'DEPARTED').length;
     const transitWeight = manifests.filter(m => m.status === 'DEPARTED').reduce((acc, m) => acc + (m.total_weight || 0), 0);
 
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h1 className="text-2xl font-bold text-foreground">Fleet Manifests</h1>
+                        <p className="text-muted-foreground text-sm">Manage linehaul movements between hubs.</p>
+                    </div>
+                    <Skeleton className="h-10 w-36" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Skeleton className="h-24" />
+                    <Skeleton className="h-24" />
+                    <Skeleton className="h-24" />
+                </div>
+                <Card className="p-6">
+                    <div className="space-y-3">
+                        <Skeleton className="h-10 w-64" />
+                        <Skeleton className="h-64" />
+                    </div>
+                </Card>
+            </div>
+        );
+    }
+
+    // Error state
+    if (isError) {
+        return (
+            <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h1 className="text-2xl font-bold text-foreground">Fleet Manifests</h1>
+                        <p className="text-muted-foreground text-sm">Manage linehaul movements between hubs.</p>
+                    </div>
+                </div>
+                <Card className="p-6">
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+                        <h3 className="text-lg font-medium text-foreground">Failed to load manifests</h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            {error instanceof Error ? error.message : 'An unexpected error occurred'}
+                        </p>
+                    </div>
+                </Card>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
             <div className="flex justify-between items-center">
@@ -129,7 +179,7 @@ export const Manifests: React.FC = () => {
                     <p className="text-muted-foreground text-sm">Manage linehaul movements between hubs.</p>
                 </div>
                 <Button onClick={() => { setSelectedManifestId(null); setIsEnterpriseOpen(true); }} variant="primary">
-                    <Scan className="w-4 h-4 mr-2" /> Build Manifest
+                    <Scan className="w-4 h-4 mr-2" /> Create Manifest
                 </Button>
             </div>
 
@@ -153,17 +203,36 @@ export const Manifests: React.FC = () => {
                 />
             </div>
 
-            <Card className="p-6">
-                <DataTable
-                    columns={columns}
-                    data={manifests}
-                    searchKey="manifest_no"
-                    searchPlaceholder="Search manifests..."
-                    pageSize={10}
-                />
-            </Card>
+            {/* Empty state */}
+            {manifests.length === 0 ? (
+                <Card className="p-6">
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <Package className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                        <h3 className="text-lg font-medium text-muted-foreground">No manifests yet</h3>
+                        <p className="text-sm text-muted-foreground/70 mt-1">
+                            Create your first manifest to start managing linehaul movements
+                        </p>
+                        <Button
+                            className="mt-4"
+                            onClick={() => { setSelectedManifestId(null); setIsEnterpriseOpen(true); }}
+                        >
+                            <Scan className="w-4 h-4 mr-2" /> Create Manifest
+                        </Button>
+                    </div>
+                </Card>
+            ) : (
+                <Card className="p-6">
+                    <DataTable
+                        columns={columns}
+                        data={manifests}
+                        searchKey="manifest_no"
+                        searchPlaceholder="Search manifests..."
+                        pageSize={10}
+                    />
+                </Card>
+            )}
 
-            <ManifestBuilder
+            <ManifestBuilderWizard
                 open={isEnterpriseOpen}
                 onOpenChange={setIsEnterpriseOpen}
                 initialManifestId={selectedManifestId}
