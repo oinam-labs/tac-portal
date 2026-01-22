@@ -54,6 +54,12 @@ export interface ManifestItemWithShipment extends ManifestItem {
     };
 }
 
+/**
+ * Ensure a manifest item's embedded shipment includes normalized fields for consignee/consignor names, package count, and sender/receiver city.
+ *
+ * @param item - The manifest item object that may contain a `shipment` property
+ * @returns The manifest item with `shipment` augmented (when present) to include `consignee_name`, `consignor_name`, `package_count`, `receiver_city`, and `sender_city`
+ */
 export function mapManifestItemWithShipment(item: any): ManifestItemWithShipment {
     return {
         ...item,

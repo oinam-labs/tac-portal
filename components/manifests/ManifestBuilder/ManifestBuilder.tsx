@@ -31,6 +31,11 @@ interface ManifestBuilderProps {
     initialManifestId?: string | null
 }
 
+/**
+ * Fetches the list of active hubs (id, code, name) ordered by name.
+ *
+ * @returns The React Query result whose `data` is an array of hub options (`id`, `code`, `name`) for hubs where `is_active` is true.
+ */
 function useHubs() {
     return useQuery({
         queryKey: ['hubs'],
@@ -46,6 +51,17 @@ function useHubs() {
     })
 }
 
+/**
+ * Renders a modal dialog that guides creating and building a shipment manifest through a settings phase and a scan/build phase.
+ *
+ * The component manages manifest creation, scanning/adding shipments, removal, and final closure; it fetches hubs and staff, applies validation rules, and shows a summary bar when building.
+ *
+ * @param open - Whether the dialog is visible
+ * @param onOpenChange - Called when the dialog visibility should change; receives the new open state
+ * @param onComplete - Optional callback invoked with the manifest ID after a manifest is successfully closed
+ * @param initialManifestId - Optional manifest ID to start the component in the build (scan) phase for an existing manifest
+ * @returns The rendered manifest builder dialog element
+ */
 export function ManifestBuilder({ open, onOpenChange, onComplete, initialManifestId }: ManifestBuilderProps) {
     const navigate = useNavigate()
     const [phase, setPhase] = React.useState<ManifestBuilderPhase>(initialManifestId ? 'build' : 'settings')

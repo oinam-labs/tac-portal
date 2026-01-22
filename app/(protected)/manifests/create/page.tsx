@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -6,6 +5,13 @@ import { useNavigate } from "react-router-dom"
 import { ManifestBuilder } from "@/components/manifests/ManifestBuilder/ManifestBuilder"
 import { Button } from "@/components/ui/button"
 
+/**
+ * Renders the "Build Manifest" page with a control to open the manifest builder and redirects to the manifest list when the builder is closed.
+ *
+ * When the builder's open state becomes `false`, navigates to "/manifests".
+ *
+ * @returns The page's JSX element.
+ */
 export default function CreateManifestPage() {
     const navigate = useNavigate()
     const [open, setOpen] = useState(true)

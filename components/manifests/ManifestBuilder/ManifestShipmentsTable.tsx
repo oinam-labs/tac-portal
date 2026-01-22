@@ -33,6 +33,23 @@ interface ManifestShipmentsTableProps {
     className?: string
 }
 
+/**
+ * Render an interactive shipments table for a manifest builder.
+ *
+ * Renders a searchable, pageable table of manifest items with columns for AWB, consignee,
+ * consignor, load, status, and per-row actions (view and optional remove). Shows a loading
+ * spinner, an empty state when no items are present, and an optional summary footer with
+ * aggregate totals.
+ *
+ * @param items - Array of manifest items with shipment data to display
+ * @param isLoading - When true, displays a centered loading spinner instead of the table
+ * @param isEditable - When true, enables the "Remove from Manifest" action for rows
+ * @param onRemove - Callback invoked with a shipment ID when a row's remove action is triggered
+ * @param onViewShipment - Callback invoked with a shipment ID when a row's view action is triggered
+ * @param showSummary - When true, displays a footer summarizing shipments, packages, and weight
+ * @param className - Optional additional CSS class names applied to the root container
+ * @returns The rendered manifest shipments table element
+ */
 export function ManifestShipmentsTable({
     items,
     isLoading = false,

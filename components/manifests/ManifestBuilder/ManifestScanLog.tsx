@@ -18,6 +18,15 @@ const resultVariant: Record<'success' | 'duplicate' | 'error', "default" | "seco
     error: "destructive",
 }
 
+/**
+ * Render a scrollable scan log of manifest scan entries.
+ *
+ * Renders a bordered container with a header showing the total entry count and a scrollable list of entries. Each entry shows an identifier (AWB or shipment ID), a status badge (success, duplicate, or error), a message, and a timestamp formatted as `HH:mm:ss`. When `entries` is empty, a placeholder message is shown.
+ *
+ * @param entries - Array of scan history entries to display.
+ * @param className - Optional additional CSS class names to apply to the root container.
+ * @returns The rendered scan log element.
+ */
 export function ManifestScanLog({ entries, className }: ManifestScanLogProps) {
     return (
         <div className={cn("rounded-xl border bg-background", className)}>

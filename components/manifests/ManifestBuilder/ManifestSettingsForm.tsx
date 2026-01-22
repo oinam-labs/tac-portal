@@ -99,6 +99,16 @@ interface ManifestSettingsFormProps {
     className?: string
 }
 
+/**
+ * Renders a manifest settings form for AIR or TRUCK shipments, validates input, and submits a normalized manifest payload.
+ *
+ * @param hubs - Array of hub options used to populate origin and destination selects.
+ * @param defaultValues - Optional initial form values to prefill the form fields.
+ * @param onSubmit - Callback invoked with the transformed manifest payload; date/time fields are normalized (flightDate as `YYYY-MM-DD`, ETD/ETA combined into ISO timestamps, dispatchAt as ISO).
+ * @param isSubmitting - When true, disables the submit button and shows a loading state.
+ * @param className - Optional additional CSS class applied to the root card container.
+ * @returns The form UI as a React element.
+ */
 export function ManifestSettingsForm({
     hubs,
     defaultValues,

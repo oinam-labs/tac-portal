@@ -18,6 +18,17 @@ interface ManifestSummaryBarProps {
     className?: string
 }
 
+/**
+ * Render a summary bar that displays shipment totals (shipments, packages, weight), an optional COD amount, an optional status badge, and a close action.
+ *
+ * @param totals - Object with totals: `shipments` (number), `packages` (number), `weight` (number), and optional `codAmount` (number).
+ * @param status - Optional status label shown in a small uppercase badge.
+ * @param isClosing - When true, the close button is disabled and shows "Closing...".
+ * @param disableClose - When true, the close button is disabled.
+ * @param onClose - Optional click handler invoked when the close button is pressed.
+ * @param className - Optional additional class names applied to the container.
+ * @returns The rendered summary bar element.
+ */
 export function ManifestSummaryBar({
     totals,
     status,

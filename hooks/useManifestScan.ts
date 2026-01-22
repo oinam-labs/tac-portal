@@ -48,6 +48,28 @@ export interface ScanHistoryEntry extends ScanResponse {
 const SCAN_DEBOUNCE_MS = 100;
 const KEYBOARD_BUFFER_TIMEOUT_MS = 50;
 
+/**
+ * Manages scanning flows, history, debouncing, feedback, and callbacks for building a manifest.
+ *
+ * Creates a scanner tied to a specific manifest that processes scan tokens (manual, barcode, camera),
+ * updates counters and scan history, debounces rapid input, emits optional audio feedback, and invokes
+ * the provided callbacks for success, error, and duplicate results.
+ *
+ * @param options - Configuration for the scanner:
+ *   - manifestId: target manifest identifier (required)
+ *   - staffId: optional staff identifier included with each scan
+ *   - validateDestination: whether to validate shipment destination (default: true)
+ *   - validateStatus: whether to validate shipment status (default: true)
+ *   - onSuccess/onError/onDuplicate: callbacks invoked with the ScanResponse for respective outcomes
+ *   - playSound: enable audio feedback (default: true)
+ *   - debounceMs: minimum interval between processed scans in milliseconds
+ *
+ * @returns An object exposing:
+ *   - State: isScanning, lastResult, scanCount, successCount, errorCount, duplicateCount, scanHistory
+ *   - Actions: scanManual(token), scanBarcode(token), scanCamera(token), processScan(token, source),
+ *     enableKeyboardWedge(), resetStats()
+ *   - Utilities: normalizeScanToken, isValidAwbFormat
+ */
 export function useManifestScan(options: ScanOptions) {
     const {
         manifestId,
@@ -309,7 +331,17 @@ export function useManifestScan(options: ScanOptions) {
 }
 
 /**
- * Hook for scan input field with auto-submit
+ * Binds a text input to the manifest scanner, providing input state and handlers that submit the current value on Enter or form submit.
+ *
+ * @param options - Configuration for the hook. Includes the same scan options accepted by the scanner plus:
+ *   - inputRef: optional ref to an HTML input element that will be focused after a successful scan.
+ * @returns An object combining the scanner's state and actions with input helpers:
+ *   - inputValue: current input string
+ *   - setInputValue: setter for the input value
+ *   - handleChange: change handler for an <input> element
+ *   - handleKeyDown: keydown handler that submits on Enter
+ *   - handleSubmit: submit handler that processes the current input, clears it on success, and refocuses the input when `inputRef` is provided
+ *   - plus all fields returned by `useManifestScan` (state, scan actions, and utilities)
  */
 export function useScanInput(options: ScanOptions & { inputRef?: React.RefObject<HTMLInputElement | null> }) {
     const { inputRef, ...scanOptions } = options;

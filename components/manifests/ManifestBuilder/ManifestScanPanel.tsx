@@ -25,6 +25,19 @@ interface ManifestScanPanelProps {
     className?: string
 }
 
+/**
+ * Render a scanning UI for AWB/package barcodes with manual, USB scanner, and camera modes.
+ *
+ * @param manifestId - Identifier of the manifest to which scanned items will be applied
+ * @param staffId - Optional staff identifier used for scan attribution
+ * @param validateDestination - When true, enforce destination validation for scanned items
+ * @param validateStatus - When true, enforce status validation for scanned items
+ * @param disabled - When true, disable input and actions in the panel
+ * @param onScanSuccess - Callback invoked with the scan result when a scan succeeds
+ * @param onItemsChanged - Callback invoked when the scanned items count or list changes
+ * @param className - Optional additional CSS class names to apply to the root card
+ * @returns A React element containing the manifest scan panel UI
+ */
 export function ManifestScanPanel({
     manifestId,
     staffId,

@@ -47,6 +47,31 @@ export const manifestBuilderKeys = {
     items: (id: string) => [...manifestBuilderKeys.all, 'items', id] as const,
 };
 
+/**
+ * Hook for building and managing an enterprise manifest with a scan-first workflow.
+ *
+ * Provides manifest and item state, aggregated totals, scan history and last scan result,
+ * loading flags, and actions to create a manifest, scan shipments by barcode (idempotent,
+ * optimistic updates), remove shipments, update manifest status, close a manifest,
+ * clear scan history, and refetch manifest data.
+ *
+ * @param options - Optional configuration:
+ *   - manifestId: ID of the manifest to load and operate on.
+ *   - onScanSuccess: callback invoked with the `ScanResponse` when a scan succeeds.
+ *   - onScanError: callback invoked with the `ScanResponse` when a scan fails.
+ *   - onManifestCreated: callback invoked with the created manifest.
+ *   - validateDestination: whether scans should validate destination (default `true`).
+ *   - validateStatus: whether scans should validate shipment status (default `true`).
+ * @returns An object with:
+ *   - manifest: the current manifest or `null`.
+ *   - items: array of manifest items (shipments with details).
+ *   - totals: aggregated totals { shipments, packages, weight, codAmount }.
+ *   - isEditable: `true` if manifest status allows edits.
+ *   - lastScanResult: last `ScanResponse` or `null`.
+ *   - scanHistory: recent `ScanResponse` entries (capped).
+ *   - isLoading, isCreating, isScanning, isRemoving, isUpdatingStatus: loading flags.
+ *   - createManifest, scanShipment, removeShipment, updateStatus, closeManifest, clearScanHistory, refetch: action functions.
+ */
 export function useManifestBuilder(options: ManifestBuilderOptions = {}) {
     const queryClient = useQueryClient();
     const {
