@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase } from '@/lib/supabase';
+import { orgService } from '@/lib/services/orgService';
 import type { Session } from '@supabase/supabase-js';
 import type { UserRole } from '@/types';
 
@@ -33,7 +34,7 @@ interface AuthState {
     error: string | null;
 
     // Actions
-    initialize: () => Promise<void>;
+    initialize: () => Promise<() => void>;
     signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
     signOut: () => Promise<void>;
     clearError: () => void;
@@ -58,12 +59,12 @@ export const useAuthStore = create<AuthState>()(
                     if (sessionError) {
                         console.error('[Auth] Session error:', sessionError);
                         set({ isLoading: false, isAuthenticated: false, session: null, user: null });
-                        return;
+                        return () => { }; // Return no-op cleanup function
                     }
 
                     if (!session) {
                         set({ isLoading: false, isAuthenticated: false, session: null, user: null });
-                        return;
+                        return () => { }; // Return no-op cleanup function
                     }
 
                     // Fetch staff record linked to this auth user
@@ -72,7 +73,7 @@ export const useAuthStore = create<AuthState>()(
                     if (!staffUser) {
                         console.warn('[Auth] No staff record found for user:', session.user.email);
                         set({ isLoading: false, isAuthenticated: false, session: null, user: null });
-                        return;
+                        return () => { }; // Return no-op cleanup function
                     }
 
                     if (!staffUser.isActive) {
@@ -85,8 +86,11 @@ export const useAuthStore = create<AuthState>()(
                             user: null,
                             error: 'Your account has been deactivated. Please contact an administrator.'
                         });
-                        return;
+                        return () => { }; // Return no-op cleanup function
                     }
+
+                    // Set organization context for services
+                    orgService.setCurrentOrg(staffUser.orgId);
 
                     set({
                         session,
@@ -97,28 +101,45 @@ export const useAuthStore = create<AuthState>()(
                     });
 
                     // Set up auth state change listener
-                    supabase.auth.onAuthStateChange(async (event, newSession) => {
-
-                        if (event === 'SIGNED_OUT' || !newSession) {
-                            set({ session: null, user: null, isAuthenticated: false });
-                            return;
-                        }
-
-                        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                            const staff = await fetchStaffByAuthId(newSession.user.id);
-                            if (staff && staff.isActive) {
-                                set({
-                                    session: newSession,
-                                    user: staff,
-                                    isAuthenticated: true
-                                });
+                    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+                        try {
+                            if (event === 'SIGNED_OUT' || !newSession) {
+                                orgService.clearCurrentOrg();
+                                set({ session: null, user: null, isAuthenticated: false });
+                                return;
                             }
+
+                            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                                const staff = await fetchStaffByAuthId(newSession.user.id);
+                                if (staff && staff.isActive) {
+                                    // Set organization context for services
+                                    orgService.setCurrentOrg(staff.orgId);
+                                    set({
+                                        session: newSession,
+                                        user: staff,
+                                        isAuthenticated: true
+                                    });
+                                }
+                            }
+                        } catch (error) {
+                            // Handle AbortError and other errors gracefully
+                            if (error instanceof Error && error.name === 'AbortError') {
+                                console.log('[Auth] Request aborted during auth state change');
+                                return;
+                            }
+                            console.error('[Auth] Error in auth state change handler:', error);
                         }
                     });
 
+                    // Return cleanup function to unsubscribe from auth state changes
+                    return () => {
+                        console.log('[Auth] Cleaning up auth state listener');
+                        subscription.unsubscribe();
+                    };
                 } catch (error) {
                     console.error('[Auth] Initialize error:', error);
                     set({ isLoading: false, isAuthenticated: false, error: 'Failed to initialize authentication' });
+                    return () => { }; // Return no-op cleanup function
                 }
             },
 
@@ -176,6 +197,9 @@ export const useAuthStore = create<AuthState>()(
                         .update({ updated_at: new Date().toISOString() })
                         .eq('id', staffUser.id);
 
+                    // Set organization context for services
+                    orgService.setCurrentOrg(staffUser.orgId);
+
                     set({
                         session: authData.session,
                         user: staffUser,
@@ -213,6 +237,7 @@ export const useAuthStore = create<AuthState>()(
                     });
 
                     await supabase.auth.signOut();
+                    orgService.clearCurrentOrg();
                     set({
                         session: null,
                         user: null,
@@ -222,6 +247,7 @@ export const useAuthStore = create<AuthState>()(
                     });
                 } catch (error) {
                     console.error('[Auth] Sign out error:', error);
+                    orgService.clearCurrentOrg();
                     // Force clear state even on error - also clear localStorage
                     Object.keys(localStorage).forEach(key => {
                         if (key.startsWith('invoice_draft') || key.startsWith('shipment_') ||

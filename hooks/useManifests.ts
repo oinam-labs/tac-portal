@@ -25,7 +25,7 @@ export interface ManifestItemWithRelations {
 }
 
 type ManifestListFilters = { limit?: number; status?: string };
-export type ManifestStatus = 'OPEN' | 'CLOSED' | 'DEPARTED' | 'ARRIVED';
+export type ManifestStatus = 'DRAFT' | 'OPEN' | 'BUILDING' | 'CLOSED' | 'DEPARTED' | 'ARRIVED' | 'RECONCILED';
 
 export interface AvailableShipment {
     id: string;
@@ -53,8 +53,17 @@ export interface ManifestWithRelations {
     type: 'AIR' | 'TRUCK';
     from_hub_id: string;
     to_hub_id: string;
-    status: 'OPEN' | 'CLOSED' | 'DEPARTED' | 'ARRIVED';
+    status: ManifestStatus;
     vehicle_meta: Json;
+    flight_number?: string | null;
+    flight_date?: string | null;
+    airline_code?: string | null;
+    etd?: string | null;
+    eta?: string | null;
+    vehicle_number?: string | null;
+    driver_name?: string | null;
+    driver_phone?: string | null;
+    dispatch_at?: string | null;
     total_shipments: number;
     total_packages: number;
     total_weight: number;
