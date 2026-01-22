@@ -21,7 +21,8 @@ export default defineConfig({
   reporter: [['html'], ['list']],
 
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    // Use port 4173 (preview) in CI, port 3000 (dev) locally
+    baseURL: process.env.BASE_URL || (process.env.CI ? 'http://localhost:4173' : 'http://localhost:3000'),
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',
@@ -63,10 +64,11 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
+  // Only use webServer locally - CI workflow manages server separately
+  webServer: process.env.CI ? undefined : {
     command: 'npm run dev',
     url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     timeout: 120 * 1000,
   },
 });

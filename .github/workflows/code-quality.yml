@@ -138,8 +138,32 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Run E2E tests
-        run: npm run test
+      - name: Build application
+        run: npm run build
+
+      - name: Start preview server and run E2E tests
+        run: |
+          # Start preview server in background
+          npm run preview &
+          SERVER_PID=$!
+          
+          # Wait for server to be ready (max 60 seconds)
+          echo "Waiting for server to start..."
+          for i in {1..60}; do
+            if curl -s http://localhost:4173 > /dev/null 2>&1; then
+              echo "Server is ready!"
+              break
+            fi
+            sleep 1
+          done
+          
+          # Run E2E tests
+          npm run test || TEST_EXIT=$?
+          
+          # Cleanup
+          kill $SERVER_PID 2>/dev/null || true
+          
+          exit ${TEST_EXIT:-0}
         env:
           CI: true
 
