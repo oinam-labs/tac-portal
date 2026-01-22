@@ -1,0 +1,28 @@
+
+Folder            SizeMB
+------            ------
+dist               65.07
+public             60.69
+cleanup             2.41
+testsprite_tests    0.81
+playwright-report   0.67
+components          0.66
+docs                0.40
+lib                 0.26
+pages               0.20
+.windsurf           0.17
+test-results        0.12
+tests               0.11
+hooks               0.07
+supabase            0.04
+store               0.03
+.github             0.02
+label-design        0.02
+CSS-Docs            0.02
+types               0.01
+scripts             0.01
+config              0.00
+app                 0.00
+.vscode             0.00
+.auth               0.00
+

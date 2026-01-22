@@ -1,0 +1,34 @@
+
+  SizeKB FullName
+  ------ --------
+10819.50 C:\tac-portal\public\express-air-cargo.png
+10237.20 C:\tac-portal\public\express-surface-cargo.png
+ 8720.70 C:\tac-portal\public\pick-n-drop.png
+ 7595.90 C:\tac-portal\public\tac-hero-bg.jpeg
+ 6786.80 C:\tac-portal\public\surface-cargo.png
+ 6716.90 C:\tac-portal\public\express-pick-drop.png
+ 6513.00 C:\tac-portal\public\air-cargo.png
+  687.40 C:\tac-portal\public\assets\generated\secure-packaging-cyber.png
+  657.50 C:\tac-portal\public\assets\generated\ground-logistics-cyber.png
+  632.40 C:\tac-portal\public\network-illustration.png
+  628.50 C:\tac-portal\public\assets\generated\air-freight-cyber.png
+  617.50 C:\tac-portal\public\assets\generated\eco-delivery-cyber.png
+  601.90 C:\tac-portal\package-lock.json
+  559.50 C:\tac-portal\playwright-report\index.html
+  551.80 C:\tac-portal\public\warehouse-illustration.png
+  529.10 C:\tac-portal\public\truck-illustration.png
+  452.10 C:\tac-portal\public\drone-illustration.png
+  109.70 C:\tac-portal\playwright-report\data\4c0a5fab5699de76f54460b85e9b58cf349bb95e.png
+  109.70 C:\tac-portal\test-results\enterprise-stress-Performa-8f94b-oard-within-acceptable-time-firefox\test-failed-1.png
+   90.60 C:\tac-portal\docs\TAC-Cargo-QA-Audit.tasks.md
+   59.50 C:\tac-portal\components\finance\MultiStepCreateInvoice.tsx
+   47.30 C:\tac-portal\docs\ENTERPRISE_PLATFORM_PRD.md
+   38.60 C:\tac-portal\docs\PRODUCTION_ENHANCEMENT_PLAN.md
+   35.10 C:\tac-portal\lib\database.types.ts
+   27.00 C:\tac-portal\lib\pdf-generator.ts
+   24.50 C:\tac-portal\docs\schema.sql
+   24.10 C:\tac-portal\pages\Finance.tsx
+   23.50 C:\tac-portal\docs\API_REFERENCE.md
+   20.70 C:\tac-portal\docs\CRUD-implementation.md
+   19.40 C:\tac-portal\App.tsx
+

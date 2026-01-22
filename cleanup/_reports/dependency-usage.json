@@ -1,0 +1,109 @@
+{
+    "audit_date": "2026-01-22",
+    "summary": {
+        "total_dependencies": 66,
+        "potentially_unused": 10,
+        "confirmed_used": 56
+    },
+    "unused_dependencies": [
+        {
+            "name": "@openrouter/sdk",
+            "type": "dependency",
+            "evidence": "No imports found in any .ts/.tsx file",
+            "recommendation": "QUARANTINE - verify no runtime usage"
+        },
+        {
+            "name": "@base-ui/react",
+            "type": "dependency",
+            "evidence": "No imports found in any .ts/.tsx file",
+            "recommendation": "QUARANTINE - verify no runtime usage"
+        },
+        {
+            "name": "fuse.js",
+            "type": "dependency",
+            "evidence": "No imports found in any .ts/.tsx file",
+            "recommendation": "QUARANTINE - search library, may be planned"
+        },
+        {
+            "name": "react-use-measure",
+            "type": "dependency",
+            "evidence": "No imports found in any .ts/.tsx file",
+            "recommendation": "QUARANTINE - verify no runtime usage"
+        },
+        {
+            "name": "tw-animate-css",
+            "type": "dependency",
+            "evidence": "No imports found in any .ts/.tsx/.css file",
+            "recommendation": "QUARANTINE - check if used via tailwind config"
+        },
+        {
+            "name": "react-markdown",
+            "type": "dependency",
+            "evidence": "No imports found in any .ts/.tsx file",
+            "recommendation": "QUARANTINE - verify no runtime usage"
+        },
+        {
+            "name": "embla-carousel-autoplay",
+            "type": "dependency",
+            "evidence": "No imports found in any .ts/.tsx file",
+            "recommendation": "QUARANTINE with embla-carousel-react"
+        },
+        {
+            "name": "embla-carousel-react",
+            "type": "dependency",
+            "evidence": "No imports found in any .ts/.tsx file",
+            "recommendation": "QUARANTINE - carousel lib unused"
+        },
+        {
+            "name": "@tiptap/* (12 packages)",
+            "type": "dependency",
+            "evidence": "No imports found - rich text editor unused",
+            "recommendation": "QUARANTINE - heavy library, ~500KB"
+        },
+        {
+            "name": "gsap",
+            "type": "dependency",
+            "evidence": "No imports found in any .ts/.tsx file",
+            "recommendation": "QUARANTINE - animation library unused"
+        },
+        {
+            "name": "dompurify",
+            "type": "dependency",
+            "evidence": "No imports found in any .ts/.tsx file",
+            "recommendation": "QUARANTINE - HTML sanitizer unused"
+        }
+    ],
+    "confirmed_used": [
+        "@hookform/resolvers",
+        "@radix-ui/*",
+        "@sentry/react",
+        "@supabase/supabase-js",
+        "@tanstack/react-query",
+        "@tanstack/react-table",
+        "@zxing/library",
+        "bwip-js",
+        "class-variance-authority",
+        "clsx",
+        "cmdk",
+        "date-fns",
+        "jsbarcode",
+        "lucide-react",
+        "motion",
+        "pdf-lib",
+        "qrcode",
+        "qrcode.react",
+        "react",
+        "react-dom",
+        "react-hook-form",
+        "react-router-dom",
+        "react-to-print",
+        "recharts",
+        "sonner",
+        "tailwind-merge",
+        "tailwindcss",
+        "uuid",
+        "zod",
+        "zustand"
+    ],
+    "dev_dependencies_status": "All devDependencies appear to be used by build/test tooling"
+}
