@@ -1,5 +1,6 @@
 # Dependabot configuration
 # https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+# Policy: docs/DEPENDENCY_SECURITY_POLICY.md
 
 version: 2
 updates:
@@ -17,12 +18,28 @@ updates:
     labels:
       - "dependencies"
       - "npm"
+    reviewers:
+      - "oinam-labs"
+    # Group non-critical dependencies for batch updates
     groups:
-      all-npm:
+      # Development dependencies - safe to batch
+      dev-dependencies:
+        dependency-type: "development"
         patterns:
           - "*"
+        exclude-patterns:
+          - "@supabase/*"
+      # Production utilities - safe to batch
+      production-utilities:
+        dependency-type: "production"
+        patterns:
+          - "lodash*"
+          - "date-fns*"
+          - "clsx"
+          - "@radix-ui/*"
+          - "lucide-react"
     ignore:
-      # Ignore major version updates for stability
+      # Ignore major version updates for stability (require manual review)
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
 
