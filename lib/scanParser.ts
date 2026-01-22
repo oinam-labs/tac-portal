@@ -15,7 +15,7 @@ export interface ScanResult {
     manifestNo?: string;
     packageId?: string;
     route?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
     raw: string;
 }
 
@@ -27,7 +27,7 @@ export interface ScanPayloadV1 {
     manifestNo?: string;
     packageId?: string;
     route?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 /**

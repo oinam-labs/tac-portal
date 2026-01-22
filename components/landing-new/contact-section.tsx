@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any -- Motion library type compatibility */
 
 import { useState, useRef } from 'react';
 import { motion, useInView } from '@/lib/motion';

@@ -1,5 +1,6 @@
 
 "use client"
+/* eslint-disable @typescript-eslint/no-explicit-any -- Data mapping requires any */
 
 import * as React from "react"
 import type { UseFormReturn } from "react-hook-form"

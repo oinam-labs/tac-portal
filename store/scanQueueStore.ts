@@ -3,12 +3,14 @@
  * Handles scanning operations with automatic sync retry
  * Critical for warehouse reliability with weak connections
  */
+/* eslint-disable @typescript-eslint/no-explicit-any -- Supabase client requires any for complex operations */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { ScanEvent, ScanSource, HubCode } from '@/types/domain';
+import { ScanEvent, ScanSource, HubCode, UUID } from '@/types/domain';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface ScanQueueState {
     queue: ScanEvent[];
@@ -180,9 +182,7 @@ if (typeof window !== 'undefined') {
             const pendingCount = store.getPendingScans().length;
 
             if (pendingCount > 0 && navigator.onLine) {
-                if (import.meta.env.DEV) {
-                    console.log(`[ScanQueue] Auto-retry: ${pendingCount} pending scans`);
-                }
+                logger.debug('[ScanQueue] Auto-retry', { pendingCount });
                 store.retrySync();
             }
         }, 30000); // 30 seconds
@@ -190,16 +190,12 @@ if (typeof window !== 'undefined') {
 
     // Listen for online/offline events
     window.addEventListener('online', () => {
-        if (import.meta.env.DEV) {
-            console.log('[ScanQueue] Connection restored, syncing...');
-        }
+        logger.debug('[ScanQueue] Connection restored, syncing...');
         useScanQueueStore.getState().retrySync();
     });
 
     window.addEventListener('offline', () => {
-        if (import.meta.env.DEV) {
-            console.log('[ScanQueue] Connection lost, scans will queue');
-        }
+        logger.debug('[ScanQueue] Connection lost, scans will queue');
         toast.warning('Offline Mode', {
             description: 'Scans will sync when connection is restored',
         });
@@ -223,7 +219,7 @@ export const useScanQueue = () => {
                 code: scan.awb,
                 source: ScanSource.CAMERA,
                 hubCode: HubCode.IMPHAL,
-                staffId: 'system' as any, // Will be resolved on sync
+                staffId: null as unknown as UUID, // Null until resolved on sync - 'system' is not a valid UUID
             });
         },
         pendingScans: store.getPendingScans(),

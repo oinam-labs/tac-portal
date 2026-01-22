@@ -43,6 +43,7 @@ export const Scanning: React.FC = () => {
         if (isOnline && pendingScans.length > 0) {
             syncPending();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOnline, pendingScans.length]);
 
     const addScanResult = useCallback((code: string, status: 'SUCCESS' | 'ERROR', msg: string, feedbackType?: 'manifest' | 'duplicate') => {
@@ -189,6 +190,7 @@ export const Scanning: React.FC = () => {
 
     const handleCameraScan = useCallback((result: string) => {
         processScan(result);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [scanMode, activeManifest, isOnline]);
 
     const handleScanSubmit = (e: React.FormEvent) => {

@@ -2,6 +2,7 @@
  * Shipment Service
  * All shipment CRUD operations
  */
+/* eslint-disable @typescript-eslint/no-explicit-any -- Supabase client requires any for complex insert/update operations */
 
 import { supabase } from '@/lib/supabase';
 import { mapSupabaseError, ValidationError } from '@/lib/errors';

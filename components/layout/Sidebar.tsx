@@ -23,7 +23,7 @@ import { HUBS } from '../../lib/constants';
 
 interface NavItemDef {
     label: string;
-    icon: React.ComponentType<any>;
+    icon: React.ComponentType<{ className?: string }>;
     path: string;
     roles?: UserRole[]; // If undefined, accessible by all
 }

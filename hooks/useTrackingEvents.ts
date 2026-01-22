@@ -3,8 +3,9 @@ import { useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 
-// Type helper to work around Supabase client type inference issues
-const db = supabase as any;
+import type { Database } from '../lib/database.types';
+
+type Json = Database['public']['Tables']['tracking_events']['Row']['meta'];
 
 export interface TrackingEvent {
   id: string;
@@ -16,7 +17,7 @@ export interface TrackingEvent {
   hub_id: string | null;
   actor_staff_id: string | null;
   source: 'SCAN' | 'MANUAL' | 'SYSTEM' | 'API';
-  meta: any;
+  meta: Json;
   created_at: string;
   hub?: { code: string; name: string };
 }
@@ -82,13 +83,13 @@ export function useCreateTrackingEvent() {
       event_code: string;
       hub_id?: string;
       source: 'SCAN' | 'MANUAL' | 'SYSTEM' | 'API';
-      meta?: any;
+      meta?: Json;
     }) => {
       // Get org_id from the first org
-      const { data: org } = await db.from('orgs').select('id').single();
+      const { data: org } = await supabase.from('orgs').select('id').single();
       if (!org) throw new Error('No organization found');
 
-      const { data, error } = await db
+      const { data, error } = await supabase
         .from('tracking_events')
         .insert({
           ...event,

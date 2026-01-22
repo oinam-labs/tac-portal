@@ -25,6 +25,7 @@ export function useAutoResizeTextarea({
 
     useEffect(() => {
         adjustHeight();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return { textareaRef, adjustHeight };

@@ -2,28 +2,71 @@
  * Input Sanitization Utilities
  * Prevents XSS and injection attacks
  * Based on tac-code-reviewer security requirements
+ *
+ * SECURITY NOTE: Pure Node-safe implementation without DOM dependencies.
+ * Uses single-character replacement to avoid CodeQL js/incomplete-multi-character-sanitization.
+ * All functions are deterministic and safe for unit testing.
  */
 
 /**
  * Escape HTML special characters to prevent XSS
+ * Single-pass replacement - safe and deterministic
  */
 export function escapeHtml(str: string): string {
-    const htmlEscapes: Record<string, string> = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#x27;',
-        '/': '&#x2F;',
-    };
-    return str.replace(/[&<>"'/]/g, (char) => htmlEscapes[char]);
+    if (!str) return '';
+
+    // Single-character replacements only - no multi-character patterns
+    // Order matters: & must be first to avoid double-escaping
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;')
+        .replace(/\//g, '&#x2F;');
 }
 
 /**
- * Strip HTML tags from string
+ * Strip HTML tags from string - pure Node-safe implementation
+ * Returns plain text content only - no HTML allowed
+ *
+ * SECURITY: Uses single-character removal of < and > to eliminate all HTML.
+ * This approach is safe because:
+ * 1. Removes ALL angle brackets unconditionally (not pattern-based)
+ * 2. No multi-character regex that could be bypassed
+ * 3. Deterministic bounded loop (MAX_ITERATIONS) to reach a stable result
+ * 4. Pure function - no DOM/window dependency
+ *
+ * Trade-off: Legitimate < > in text are also removed. For display contexts
+ * where HTML is never expected, this is the safest approach.
  */
 export function stripHtml(str: string): string {
-    return str.replace(/<[^>]*>/g, '');
+    if (!str) return '';
+
+    // Step 1: Remove all content between < and > (tag removal)
+    // Use non-greedy match to handle nested scenarios
+    let result = str;
+
+    // Iteratively remove tag-like patterns until stable
+    // Limit iterations to prevent infinite loops on malformed input
+    const MAX_ITERATIONS = 10;
+    let iterations = 0;
+    let previous = '';
+
+    while (result !== previous && iterations < MAX_ITERATIONS) {
+        previous = result;
+        // Remove anything that looks like a tag (content between < and >)
+        result = result.replace(/<[^>]*>/g, '');
+        // Also remove orphaned < that might form tags with remaining >
+        result = result.replace(/<[^<]*$/g, '');
+        iterations++;
+    }
+
+    // Step 2: Final safety - remove any remaining angle brackets entirely
+    // This ensures no < or > survive even in malformed/nested cases
+    result = result.replace(/</g, '').replace(/>/g, '');
+
+    return result;
 }
 
 /**

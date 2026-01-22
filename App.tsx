@@ -259,9 +259,7 @@ const App: React.FC = () => {
     }, [initialize]);
 
     useEffect(() => {
-        if (import.meta.env.DEV) {
-            console.log('[Theme] Switching to:', theme);
-        }
+        // Theme switching is silent - no logging needed
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
             document.documentElement.classList.remove('light');

@@ -14,7 +14,7 @@ export class AppError extends Error {
         message: string,
         public code: string,
         public statusCode?: number,
-        public meta?: Record<string, any>
+        public meta?: Record<string, unknown>
     ) {
         super(message);
         this.name = 'AppError';
@@ -22,7 +22,7 @@ export class AppError extends Error {
 }
 
 export class ValidationError extends AppError {
-    constructor(message: string, meta?: Record<string, any>) {
+    constructor(message: string, meta?: Record<string, unknown>) {
         super(message, 'VALIDATION_ERROR', 400, meta);
         this.name = 'ValidationError';
     }
@@ -53,7 +53,7 @@ export class NotFoundError extends AppError {
 }
 
 export class ConflictError extends AppError {
-    constructor(message: string, meta?: Record<string, any>) {
+    constructor(message: string, meta?: Record<string, unknown>) {
         super(message, 'CONFLICT_ERROR', 409, meta);
         this.name = 'ConflictError';
     }
@@ -70,9 +70,16 @@ export class NetworkError extends AppError {
 // SUPABASE ERROR MAPPING
 // ============================================================================
 
-export const mapSupabaseError = (error: any): AppError => {
+interface PostgresError {
+    code?: string;
+    message?: string;
+    details?: string;
+    statusCode?: number;
+}
+
+export const mapSupabaseError = (error: PostgresError): AppError => {
     // PostgreSQL error codes
-    const pgErrorCodes: Record<string, (error: any) => AppError> = {
+    const pgErrorCodes: Record<string, (error: PostgresError) => AppError> = {
         '23505': (err) => new ConflictError('A record with this identifier already exists', {
             constraint: err.details,
         }),

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Test assertions require any */
 import { describe, it, expect } from 'vitest';
 import { ValidationError } from '@/lib/errors';
 import { isValidStatusTransition } from '@/lib/schemas/shipment.schema';

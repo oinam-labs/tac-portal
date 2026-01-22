@@ -3,8 +3,7 @@ import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 import { getOrCreateDefaultOrg } from '../lib/org-helper';
 
-// Type helper for Supabase client
-const db = supabase as any;
+// Direct supabase usage - types from database.types.ts
 
 /**
  * Query key factory for staff.
@@ -36,7 +35,7 @@ export function useStaff(options?: { hubId?: string }) {
   return useQuery({
     queryKey: ['staff', options],
     queryFn: async () => {
-      let query = db
+      let query = supabase
         .from('staff')
         .select(`
           *,
@@ -67,7 +66,7 @@ export function useCreateStaff() {
     }) => {
       const orgId = await getOrCreateDefaultOrg();
 
-      const { data, error } = await db
+      const { data, error } = await supabase
         .from('staff')
         .insert({
           ...staff,
@@ -95,7 +94,7 @@ export function useUpdateStaff() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Staff> }) => {
-      const { data: result, error } = await db
+      const { data: result, error } = await supabase
         .from('staff')
         .update({ ...data, updated_at: new Date().toISOString() })
         .eq('id', id)
@@ -120,7 +119,7 @@ export function useToggleStaffStatus() {
 
   return useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      const { data, error } = await db
+      const { data, error } = await supabase
         .from('staff')
         .update({ is_active: !isActive, updated_at: new Date().toISOString() })
         .eq('id', id)
@@ -148,7 +147,7 @@ export function useDeleteStaff() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await db
+      const { error } = await supabase
         .from('staff')
         .update({
           deleted_at: new Date().toISOString(),

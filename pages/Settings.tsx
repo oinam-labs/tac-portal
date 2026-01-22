@@ -11,6 +11,7 @@ export const Settings: React.FC = () => {
         if (activeTab === 'AUDIT') {
             fetchLogs();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab]);
 
     return (

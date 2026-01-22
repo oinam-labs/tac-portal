@@ -337,7 +337,7 @@ export interface ScanPayload {
     awb?: AWB;
     manifestId?: UUID;
     packageId?: UUID;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 export interface ScanEvent {

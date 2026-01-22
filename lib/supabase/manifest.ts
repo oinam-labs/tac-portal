@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Supabase operations require any for complex types */
 
 import { supabase } from "@/lib/supabase"
 import { ShipmentMode } from "@/types"

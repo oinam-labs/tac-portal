@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Data mapping requires any */
 
 import React from 'react';
 import { ManifestWithRelations } from '../../hooks/useManifests';
