@@ -1,6 +1,7 @@
 -- Migration: Add CHECK constraint on shipments.status
 -- Purpose: Enforce canonical shipment status values at database level
 -- Idempotent: Drops prior constraint before adding
+-- Safe: Backfills legacy values before adding constraint
 
 -- ============================================================================
 -- STEP 1: Drop existing constraint if it exists (idempotent)
@@ -19,7 +20,30 @@ BEGIN
 END $$;
 
 -- ============================================================================
--- STEP 2: Add CHECK constraint with canonical status values
+-- STEP 2: Backfill legacy status values to canonical values
+-- Maps old status names to new canonical names to prevent constraint failure
+-- ============================================================================
+
+UPDATE public.shipments SET status = 'RECEIVED_AT_ORIGIN' 
+WHERE status = 'RECEIVED_AT_ORIGIN_HUB';
+
+UPDATE public.shipments SET status = 'IN_TRANSIT' 
+WHERE status IN ('LOADED_FOR_LINEHAUL', 'IN_TRANSIT_TO_DESTINATION');
+
+UPDATE public.shipments SET status = 'RECEIVED_AT_DEST' 
+WHERE status = 'RECEIVED_AT_DEST_HUB';
+
+UPDATE public.shipments SET status = 'RTO' 
+WHERE status = 'RETURNED';
+
+UPDATE public.shipments SET status = 'EXCEPTION' 
+WHERE status IN ('EXCEPTION_RAISED', 'DAMAGED');
+
+UPDATE public.shipments SET status = 'DELIVERED' 
+WHERE status = 'EXCEPTION_RESOLVED';
+
+-- ============================================================================
+-- STEP 3: Add CHECK constraint with NOT VALID first (faster, non-blocking)
 -- ============================================================================
 
 ALTER TABLE public.shipments
@@ -37,10 +61,16 @@ ADD CONSTRAINT shipments_status_check CHECK (
         'RTO',
         'EXCEPTION'
     )
-);
+) NOT VALID;
 
 -- ============================================================================
--- STEP 3: Add comment for documentation
+-- STEP 4: Validate the constraint (scans table but allows concurrent writes)
+-- ============================================================================
+
+ALTER TABLE public.shipments VALIDATE CONSTRAINT shipments_status_check;
+
+-- ============================================================================
+-- STEP 5: Add comment for documentation
 -- ============================================================================
 
 COMMENT ON CONSTRAINT shipments_status_check ON public.shipments IS 

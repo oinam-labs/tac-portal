@@ -188,6 +188,8 @@ export function ManifestScanPanel({
                                                 variant="ghost"
                                                 size="icon"
                                                 className="h-6 w-6 shrink-0"
+                                                aria-label="Retry scan"
+                                                title="Retry scan"
                                                 onClick={() => {
                                                     if (scanner.inputValue) {
                                                         scanner.handleSubmit()
