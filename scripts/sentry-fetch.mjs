@@ -28,6 +28,35 @@ const headers = {
     'Content-Type': 'application/json',
 };
 
+/**
+ * Sanitize data from external API to prevent code injection
+ * Only allows safe primitive types and nested objects/arrays
+ */
+function sanitizeData(data, depth = 0) {
+    if (depth > 10) return null; // Prevent deep recursion attacks
+
+    if (data === null || data === undefined) return null;
+    if (typeof data === 'string') return data.slice(0, 10000); // Limit string length
+    if (typeof data === 'number' && Number.isFinite(data)) return data;
+    if (typeof data === 'boolean') return data;
+
+    if (Array.isArray(data)) {
+        return data.slice(0, 1000).map(item => sanitizeData(item, depth + 1));
+    }
+
+    if (typeof data === 'object') {
+        const sanitized = {};
+        const keys = Object.keys(data).slice(0, 100);
+        for (const key of keys) {
+            const safeKey = String(key).slice(0, 100);
+            sanitized[safeKey] = sanitizeData(data[key], depth + 1);
+        }
+        return sanitized;
+    }
+
+    return null; // Reject functions, symbols, etc.
+}
+
 async function fetchFromSentry(endpoint) {
     const url = `https://sentry.io/api/0/${endpoint}`;
     console.log(`📡 Fetching: ${endpoint}`);
@@ -37,7 +66,8 @@ async function fetchFromSentry(endpoint) {
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        return await response.json();
+        const data = await response.json();
+        return sanitizeData(data); // Sanitize external data before use
     } catch (error) {
         console.error(`❌ Failed to fetch ${endpoint}:`, error.message);
         return null;
