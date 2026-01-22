@@ -5,6 +5,9 @@
  * 
  * Usage: node scripts/sentry-fetch.mjs
  * Requires: SENTRY_AUTH_TOKEN in .env.local
+ * 
+ * Security: This script extracts only specific fields from API responses
+ * to prevent arbitrary data injection (CodeQL js/http-to-file-access).
  */
 
 import { config } from 'dotenv';
@@ -29,32 +32,60 @@ const headers = {
 };
 
 /**
- * Sanitize data from external API to prevent code injection
- * Only allows safe primitive types and nested objects/arrays
+ * Safely extract a string value with length limit
  */
-function sanitizeData(data, depth = 0) {
-    if (depth > 10) return null; // Prevent deep recursion attacks
+function safeString(value, maxLength = 500) {
+    if (typeof value !== 'string') return '';
+    return value.slice(0, maxLength);
+}
 
-    if (data === null || data === undefined) return null;
-    if (typeof data === 'string') return data.slice(0, 10000); // Limit string length
-    if (typeof data === 'number' && Number.isFinite(data)) return data;
-    if (typeof data === 'boolean') return data;
+/**
+ * Safely extract a number value
+ */
+function safeNumber(value) {
+    if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
+    return value;
+}
 
-    if (Array.isArray(data)) {
-        return data.slice(0, 1000).map(item => sanitizeData(item, depth + 1));
-    }
+/**
+ * Extract only safe, known fields from a Sentry issue object
+ * This prevents arbitrary network data from being written to file
+ */
+function extractIssueFields(issue) {
+    if (!issue || typeof issue !== 'object') return null;
+    return {
+        id: safeString(issue.id, 50),
+        title: safeString(issue.title, 200),
+        level: safeString(issue.level, 20),
+        count: safeNumber(issue.count),
+        firstSeen: safeString(issue.firstSeen, 30),
+        lastSeen: safeString(issue.lastSeen, 30),
+        culprit: safeString(issue.culprit, 200),
+    };
+}
 
-    if (typeof data === 'object') {
-        const sanitized = {};
-        const keys = Object.keys(data).slice(0, 100);
-        for (const key of keys) {
-            const safeKey = String(key).slice(0, 100);
-            sanitized[safeKey] = sanitizeData(data[key], depth + 1);
-        }
-        return sanitized;
-    }
+/**
+ * Extract only safe, known fields from a Sentry event object
+ */
+function extractEventFields(event) {
+    if (!event || typeof event !== 'object') return null;
+    return {
+        eventID: safeString(event.eventID, 50),
+        title: safeString(event.title, 200),
+        message: safeString(event.message, 200),
+        dateCreated: safeString(event.dateCreated, 30),
+    };
+}
 
-    return null; // Reject functions, symbols, etc.
+/**
+ * Extract stats as [timestamp, count] tuples
+ */
+function extractStats(stats) {
+    if (!Array.isArray(stats)) return [];
+    return stats.slice(0, 100).map(item => {
+        if (!Array.isArray(item) || item.length < 2) return [0, 0];
+        return [safeNumber(item[0]), safeNumber(item[1])];
+    });
 }
 
 async function fetchFromSentry(endpoint) {
@@ -66,8 +97,7 @@ async function fetchFromSentry(endpoint) {
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        const data = await response.json();
-        return sanitizeData(data); // Sanitize external data before use
+        return await response.json();
     } catch (error) {
         console.error(`❌ Failed to fetch ${endpoint}:`, error.message);
         return null;
@@ -77,36 +107,41 @@ async function fetchFromSentry(endpoint) {
 async function main() {
     console.log('🔍 Fetching Sentry data for TAC Portal...\n');
 
+    // Build report with ONLY controlled fields - no raw network data
     const report = {
         fetchedAt: new Date().toISOString(),
         organization: ORG_SLUG,
         project: PROJECT_SLUG,
         issues: [],
-        stats: null,
+        stats: [],
         errors: [],
     };
 
     // Fetch unresolved issues (last 24h)
     console.log('\n📋 UNRESOLVED ISSUES (Last 24h)');
     console.log('─'.repeat(50));
-    const issues = await fetchFromSentry(
+    const rawIssues = await fetchFromSentry(
         `projects/${ORG_SLUG}/${PROJECT_SLUG}/issues/?query=is:unresolved&statsPeriod=24h`
     );
 
-    if (issues && Array.isArray(issues)) {
-        report.issues = issues;
-        if (issues.length === 0) {
+    if (rawIssues && Array.isArray(rawIssues)) {
+        // Extract only known safe fields - prevents arbitrary data injection
+        report.issues = rawIssues.slice(0, 100)
+            .map(extractIssueFields)
+            .filter(Boolean);
+
+        if (report.issues.length === 0) {
             console.log('✅ No unresolved issues!');
         } else {
-            issues.slice(0, 10).forEach((issue, i) => {
+            report.issues.slice(0, 10).forEach((issue, i) => {
                 console.log(`\n${i + 1}. ${issue.title}`);
                 console.log(`   Level: ${issue.level} | Count: ${issue.count}`);
                 console.log(`   First seen: ${issue.firstSeen}`);
                 console.log(`   Last seen: ${issue.lastSeen}`);
                 if (issue.culprit) console.log(`   Culprit: ${issue.culprit}`);
             });
-            if (issues.length > 10) {
-                console.log(`\n... and ${issues.length - 10} more issues`);
+            if (report.issues.length > 10) {
+                console.log(`\n... and ${report.issues.length - 10} more issues`);
             }
         }
     }
@@ -114,17 +149,18 @@ async function main() {
     // Fetch project stats
     console.log('\n\n📊 ERROR STATS (Last 24h)');
     console.log('─'.repeat(50));
-    const stats = await fetchFromSentry(
+    const rawStats = await fetchFromSentry(
         `projects/${ORG_SLUG}/${PROJECT_SLUG}/stats/?stat=received&resolution=1h&statsPeriod=24h`
     );
 
-    if (stats) {
-        report.stats = stats;
-        const total = stats.reduce((sum, [_, count]) => sum + count, 0);
+    if (rawStats) {
+        // Extract only numeric tuples
+        report.stats = extractStats(rawStats);
+        const total = report.stats.reduce((sum, [_, count]) => sum + count, 0);
         console.log(`Total errors received: ${total}`);
 
         // Find peak hours
-        const sorted = [...stats].sort((a, b) => b[1] - a[1]);
+        const sorted = [...report.stats].sort((a, b) => b[1] - a[1]);
         if (sorted[0] && sorted[0][1] > 0) {
             console.log(`Peak hour: ${new Date(sorted[0][0] * 1000).toISOString()} (${sorted[0][1]} errors)`);
         }
@@ -133,24 +169,24 @@ async function main() {
     // Fetch recent events
     console.log('\n\n🔴 RECENT ERROR EVENTS');
     console.log('─'.repeat(50));
-    const events = await fetchFromSentry(
+    const rawEvents = await fetchFromSentry(
         `projects/${ORG_SLUG}/${PROJECT_SLUG}/events/?full=true`
     );
 
-    if (events && Array.isArray(events)) {
-        report.errors = events.slice(0, 20);
-        events.slice(0, 5).forEach((event, i) => {
+    if (rawEvents && Array.isArray(rawEvents)) {
+        // Extract only known safe fields
+        report.errors = rawEvents.slice(0, 20)
+            .map(extractEventFields)
+            .filter(Boolean);
+
+        report.errors.slice(0, 5).forEach((event, i) => {
             console.log(`\n${i + 1}. ${event.title || event.message || 'Unknown error'}`);
             console.log(`   ID: ${event.eventID}`);
             console.log(`   Time: ${event.dateCreated}`);
-            if (event.tags) {
-                const browser = event.tags.find(t => t.key === 'browser');
-                if (browser) console.log(`   Browser: ${browser.value}`);
-            }
         });
     }
 
-    // Save report
+    // Save report - only contains extracted safe fields, not raw network data
     const reportPath = resolve(process.cwd(), 'sentry_report.json');
     writeFileSync(reportPath, JSON.stringify(report, null, 2));
     console.log(`\n\n✅ Full report saved to: sentry_report.json`);
