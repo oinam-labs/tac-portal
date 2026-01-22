@@ -44,10 +44,13 @@ export enum ShipmentStatus {
 }
 
 export enum ManifestStatus {
+    DRAFT = 'DRAFT',
+    BUILDING = 'BUILDING',
     OPEN = 'OPEN',
     CLOSED = 'CLOSED',
     DEPARTED = 'DEPARTED',
     ARRIVED = 'ARRIVED',
+    RECONCILED = 'RECONCILED',
 }
 
 export enum InvoiceStatus {
@@ -181,10 +184,13 @@ export const isValidShipmentTransition = (
 };
 
 export const MANIFEST_STATUS_TRANSITIONS: Record<ManifestStatus, ManifestStatus[]> = {
-    [ManifestStatus.OPEN]: [ManifestStatus.CLOSED],
+    [ManifestStatus.DRAFT]: [ManifestStatus.BUILDING, ManifestStatus.OPEN, ManifestStatus.CLOSED],
+    [ManifestStatus.BUILDING]: [ManifestStatus.OPEN, ManifestStatus.CLOSED],
+    [ManifestStatus.OPEN]: [ManifestStatus.BUILDING, ManifestStatus.CLOSED],
     [ManifestStatus.CLOSED]: [ManifestStatus.DEPARTED],
     [ManifestStatus.DEPARTED]: [ManifestStatus.ARRIVED],
-    [ManifestStatus.ARRIVED]: [],
+    [ManifestStatus.ARRIVED]: [ManifestStatus.RECONCILED],
+    [ManifestStatus.RECONCILED]: [],
 };
 
 export const isValidManifestTransition = (

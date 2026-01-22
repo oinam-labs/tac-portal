@@ -18,10 +18,21 @@ export const orgService = {
         currentOrgId = orgId;
     },
 
+    clearCurrentOrg() {
+        currentOrgId = null;
+    },
+
     getCurrentOrgId(): string {
         if (!currentOrgId) {
             throw new Error('Organization context not set. Call setCurrentOrg first.');
         }
+        return currentOrgId;
+    },
+
+    /**
+     * Safe version that returns null instead of throwing
+     */
+    tryGetCurrentOrgId(): string | null {
         return currentOrgId;
     },
 

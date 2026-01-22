@@ -7,19 +7,25 @@ import { KPICard } from '../components/domain/KPICard';
 import { ColumnDef } from '@tanstack/react-table';
 import { useManifests, useUpdateManifestStatus, ManifestWithRelations } from '../hooks/useManifests';
 import { useRealtimeManifests } from '../hooks/useRealtime';
-import { CreateManifestModal } from '@/components/manifests/CreateManifestModal';
-import { FileText, Truck, Plane, Play, CheckCircle, Package, Weight } from 'lucide-react';
+import { ManifestBuilder } from '../components/manifests/ManifestBuilder/ManifestBuilder';
+import { Truck, Plane, Play, CheckCircle, Package, Weight, Scan } from 'lucide-react';
 
 export const Manifests: React.FC = () => {
     const { data: manifests = [] } = useManifests();
     const updateStatusMutation = useUpdateManifestStatus();
-    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [isEnterpriseOpen, setIsEnterpriseOpen] = useState(false);
+    const [selectedManifestId, setSelectedManifestId] = useState<string | null>(null);
 
     // Enable realtime updates
     useRealtimeManifests();
 
     const handleStatusChange = async (id: string, newStatus: 'DEPARTED' | 'ARRIVED') => {
         await updateStatusMutation.mutateAsync({ id, status: newStatus });
+    };
+
+    const handleEditManifest = (id: string) => {
+        setSelectedManifestId(id);
+        setIsEnterpriseOpen(true);
     };
 
     const columns: ColumnDef<ManifestWithRelations>[] = useMemo(() => [
@@ -35,6 +41,10 @@ export const Manifests: React.FC = () => {
             header: 'Transport',
             cell: ({ row }) => {
                 const meta = row.original.vehicle_meta as any;
+                const flightLabel = row.original.flight_number ?? meta?.flight_no ?? meta?.flightNumber ?? 'N/A';
+                const carrierLabel = row.original.airline_code ?? meta?.carrier ?? '';
+                const vehicleLabel = row.original.vehicle_number ?? meta?.vehicle_no ?? meta?.vehicleId ?? 'N/A';
+                const driverLabel = row.original.driver_name ?? meta?.driver_name ?? meta?.driverName ?? 'N/A';
                 return (
                     <div className="flex items-center gap-2">
                         {row.original.type === 'AIR' ? (
@@ -45,13 +55,13 @@ export const Manifests: React.FC = () => {
                         <div>
                             <span className="font-medium text-white">
                                 {row.original.type === 'AIR'
-                                    ? meta?.flightNumber || 'N/A'
-                                    : meta?.driverName || 'N/A'}
+                                    ? flightLabel
+                                    : driverLabel}
                             </span>
                             <div className="text-xs text-muted-foreground">
                                 {row.original.type === 'AIR'
-                                    ? meta?.carrier || ''
-                                    : meta?.vehicleId || ''}
+                                    ? carrierLabel
+                                    : vehicleLabel}
                             </div>
                         </div>
                     </div>
@@ -87,7 +97,7 @@ export const Manifests: React.FC = () => {
             header: '',
             cell: ({ row }) => {
                 const m = row.original;
-                if (m.status === 'OPEN') {
+                if (m.status === 'CLOSED') {
                     return (
                         <Button size="sm" onClick={() => handleStatusChange(m.id, 'DEPARTED')}>
                             <Play className="w-3 h-3 mr-1" /> Depart
@@ -101,13 +111,13 @@ export const Manifests: React.FC = () => {
                         </Button>
                     );
                 }
-                return <Button size="sm" variant="ghost">View</Button>;
+                return <Button size="sm" variant="ghost" onClick={() => handleEditManifest(m.id)}>View</Button>;
             },
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
     ], []);
 
-    const openCount = manifests.filter(m => m.status === 'OPEN').length;
+    const openCount = manifests.filter(m => ['DRAFT', 'OPEN', 'BUILDING'].includes(m.status)).length;
     const transitCount = manifests.filter(m => m.status === 'DEPARTED').length;
     const transitWeight = manifests.filter(m => m.status === 'DEPARTED').reduce((acc, m) => acc + (m.total_weight || 0), 0);
 
@@ -118,7 +128,9 @@ export const Manifests: React.FC = () => {
                     <h1 className="text-2xl font-bold text-foreground">Fleet Manifests</h1>
                     <p className="text-muted-foreground text-sm">Manage linehaul movements between hubs.</p>
                 </div>
-                <Button onClick={() => setIsCreateOpen(true)}><FileText className="w-4 h-4 mr-2" /> Create Manifest</Button>
+                <Button onClick={() => { setSelectedManifestId(null); setIsEnterpriseOpen(true); }} variant="primary">
+                    <Scan className="w-4 h-4 mr-2" /> Build Manifest
+                </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -151,9 +163,14 @@ export const Manifests: React.FC = () => {
                 />
             </Card>
 
-            <CreateManifestModal
-                open={isCreateOpen}
-                onOpenChange={setIsCreateOpen}
+            <ManifestBuilder
+                open={isEnterpriseOpen}
+                onOpenChange={setIsEnterpriseOpen}
+                initialManifestId={selectedManifestId}
+                onComplete={() => {
+                    // Manifest creation complete - refresh handled by query invalidation
+                    setIsEnterpriseOpen(false);
+                }}
             />
         </div>
     );

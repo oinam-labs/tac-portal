@@ -31,13 +31,15 @@ const STATUS_CLASS_MAP: Record<string, { class: string; animate?: boolean }> = {
   EXCEPTION_RESOLVED: { class: 'badge--delivered' },
 
   // Manifest Statuses
+  DRAFT: { class: 'badge--created' },
+  BUILDING: { class: 'badge--manifested', animate: true },
   OPEN: { class: 'badge--created' },
   CLOSED: { class: 'badge--manifested' },
   DEPARTED: { class: 'badge--in-transit', animate: true },
   ARRIVED: { class: 'badge--arrived' },
+  RECONCILED: { class: 'badge--delivered' },
 
   // Invoice Statuses
-  DRAFT: { class: 'badge--cancelled' },
   ISSUED: { class: 'badge--manifested' },
   PAID: { class: 'badge--delivered' },
   OVERDUE: { class: 'badge--exception', animate: true },
