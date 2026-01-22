@@ -180,7 +180,9 @@ if (typeof window !== 'undefined') {
             const pendingCount = store.getPendingScans().length;
 
             if (pendingCount > 0 && navigator.onLine) {
-                console.log(`[ScanQueue] Auto-retry: ${pendingCount} pending scans`);
+                if (import.meta.env.DEV) {
+                    console.log(`[ScanQueue] Auto-retry: ${pendingCount} pending scans`);
+                }
                 store.retrySync();
             }
         }, 30000); // 30 seconds
@@ -188,12 +190,16 @@ if (typeof window !== 'undefined') {
 
     // Listen for online/offline events
     window.addEventListener('online', () => {
-        console.log('[ScanQueue] Connection restored, syncing...');
+        if (import.meta.env.DEV) {
+            console.log('[ScanQueue] Connection restored, syncing...');
+        }
         useScanQueueStore.getState().retrySync();
     });
 
     window.addEventListener('offline', () => {
-        console.log('[ScanQueue] Connection lost, scans will queue');
+        if (import.meta.env.DEV) {
+            console.log('[ScanQueue] Connection lost, scans will queue');
+        }
         toast.warning('Offline Mode', {
             description: 'Scans will sync when connection is restored',
         });

@@ -221,7 +221,7 @@ export const shiftReportService = {
         end: Date,
         hubId?: string
     ): Promise<ExceptionSummary> {
-        let query = db
+        const query = db
             .from('exceptions')
             .select('id, type, severity, status, resolved_at, shipment:shipments(origin_hub_id, destination_hub_id)')
             .eq('org_id', orgId)
@@ -310,7 +310,7 @@ export const shiftReportService = {
         const { count: openManifests } = await manifestQuery;
 
         // Unresolved exceptions
-        let exceptionQuery = db
+        const exceptionQuery = db
             .from('exceptions')
             .select('id', { count: 'exact', head: true })
             .eq('org_id', orgId)

@@ -360,10 +360,9 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
     useEffect(() => {
         if (mode === 'NEW_BOOKING' && !getValues('awb')) {
             const randomAWB = `TAC${Math.floor(10000000 + Math.random() * 90000000)}`;
-            const invoiceNum = `INV-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
 
             setValue('awb', randomAWB);
-            setValue('invoiceNumber', invoiceNum);
+            setValue('invoiceNumber', '');
         }
     }, [mode, setValue, getValues]);
 
@@ -492,15 +491,24 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
 
             // VALIDATION START
             // Find selected customer object for context-aware validation (e.g., TBB checks)
-            // In a real app, this might come from a selectedCustomer state that persists full object
+            // Match by name (consignor or consignee) to find the customer in our database
             const customerContext = customers.find(c =>
                 (c.companyName === data.consignorName || c.name === data.consignorName) ||
                 (c.companyName === data.consigneeName || c.name === data.consigneeName)
             );
 
+            // CRITICAL: Get a valid customer_id - use first available customer as fallback
+            // This ensures we always have a valid foreign key reference
+            const validCustomerId = customerContext?.id || customers[0]?.id;
+
+            if (!validCustomerId) {
+                toast.error('No customers found. Please create a customer first.');
+                return;
+            }
+
             const validationResult = validateInvoice({
                 awb: data.awb,
-                customerId: customerContext?.id || 'WALK-IN', // Mock ID if not found
+                customerId: validCustomerId,
                 paymentMode: data.paymentMode,
                 financials: financials
             }, customerContext as any);
@@ -519,15 +527,15 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
 
             // Create invoice in Supabase
             const createdInvoice = await createInvoiceMutation.mutateAsync({
-                customer_id: customerContext?.id || '00000000-0000-0000-0000-000000000001', // Default customer ID
+                customer_id: validCustomerId, // Use validated customer ID (never hardcoded)
                 shipment_id: selectedShipment?.id,
                 subtotal: subtotal,
-                tax: { cgst: 0, sgst: 0, igst: tax, total: tax }, // jsonb format
+                tax_amount: tax, // DB column is tax_amount (number)
                 total: total, // DB column name (not total_amount)
+                discount: safeNum(data.discount),
                 issue_date: new Date().toISOString().split('T')[0],
                 due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                payment_terms: data.paymentMode,
-                notes: `Contents: ${data.contents}`,
+                notes: `Contents: ${data.contents} | Payment: ${data.paymentMode}`,
                 line_items: {
                     baseFreight: financials.baseFreight,
                     docketCharge: financials.docketCharge,
@@ -537,6 +545,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                     handlingFee: financials.handlingFee,
                     insurance: financials.insurance,
                     discount: financials.discount,
+                    tax: { cgst: 0, sgst: 0, igst: tax, total: tax }, // Store tax breakdown in line_items
                     consignor: {
                         name: data.consignorName,
                         phone: data.consignorPhone,
@@ -559,7 +568,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
             // Clear draft after success
             localStorage.removeItem('invoice_draft');
 
-            // Build invoice object for success dialog
+            // Build invoice object for success dialog (include consignor/consignee for label generation)
             const invoiceForDialog: Invoice = {
                 id: createdInvoice.id,
                 invoiceNumber: createdInvoice.invoice_no, // Use DB column name
@@ -572,7 +581,22 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                 dueDate: createdInvoice.due_date || '',
                 paymentMode: data.paymentMode,
                 financials: financials as any,
-            };
+                // Include consignor/consignee for label generation when no shipment exists
+                consignor: {
+                    name: data.consignorName,
+                    phone: data.consignorPhone,
+                    address: data.consignorAddress,
+                    city: data.consignorCity,
+                    state: data.consignorState,
+                },
+                consignee: {
+                    name: data.consigneeName,
+                    phone: data.consigneePhone,
+                    address: data.consigneeAddress,
+                    city: data.consigneeCity,
+                    state: data.consigneeState,
+                },
+            } as Invoice;
 
             // Pass invoice to parent for success dialog
             onSuccess(invoiceForDialog, selectedShipment || undefined);
@@ -666,7 +690,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                             </div>
                             <div className="space-y-2">
                                 <Label>Invoice Ref</Label>
-                                <Input {...form.register('invoiceNumber')} readOnly className="font-mono bg-muted" />
+                                <Input {...form.register('invoiceNumber')} readOnly className="font-mono bg-muted" placeholder="Auto-generated on save" />
                             </div>
                             <div className="space-y-2">
                                 <Label>Booking Date</Label>

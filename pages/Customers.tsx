@@ -37,7 +37,7 @@ import { getCustomersColumns } from '@/components/customers/customers.columns';
 
 // Schema
 const customerFormSchema = z.object({
-    type: z.enum(['INDIVIDUAL', 'BUSINESS']),
+    type: z.enum(['INDIVIDUAL', 'BUSINESS', 'CORPORATE']),
     name: z.string().min(2, 'Name must be at least 2 characters'),
     companyName: z.string().optional(),
     email: z.string().email('Invalid email').optional().or(z.literal('')),
@@ -96,7 +96,7 @@ export const Customers: React.FC = () => {
     // Form default values for editing
     const formDefaultValues: CustomerFormValues = activeRow
         ? {
-            type: activeRow.type as 'INDIVIDUAL' | 'BUSINESS',
+            type: activeRow.type as 'INDIVIDUAL' | 'BUSINESS' | 'CORPORATE',
             name: activeRow.name,
             companyName: activeRow.companyName ?? '',
             email: activeRow.email ?? '',
@@ -215,6 +215,7 @@ export const Customers: React.FC = () => {
                                             <SelectContent>
                                                 <SelectItem value="BUSINESS">Business</SelectItem>
                                                 <SelectItem value="INDIVIDUAL">Individual</SelectItem>
+                                                <SelectItem value="CORPORATE">Corporate</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -249,7 +250,7 @@ export const Customers: React.FC = () => {
                             />
                         </div>
 
-                        {form.watch('type') === 'BUSINESS' && (
+                        {(form.watch('type') === 'BUSINESS' || form.watch('type') === 'CORPORATE') && (
                             <div className="grid grid-cols-2 gap-4">
                                 <FormField
                                     control={form.control}

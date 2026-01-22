@@ -1,0 +1,94 @@
+# TAC Cargo — Windsurf Rules (Enterprise / Vite SPA)
+
+## 0) Priority
+- Follow these rules strictly.
+- Prefer correctness + safety over speed.
+- Avoid breaking changes unless explicitly requested.
+
+## 1) Stack / Runtime Context (Non-negotiable)
+- Frontend: Vite + React 19 + TypeScript (SPA)
+- Router: react-router-dom (client-side routes)
+- Data layer:
+  - @supabase/supabase-js (auth + database)
+  - @tanstack/react-query (server state)
+  - zustand (client state)
+- Observability: @sentry/react
+- UI: Tailwind v4 + Radix UI + shadcn + motion/gsap
+- Tests:
+  - unit: Vitest
+  - e2e: Playwright
+
+## 2) Output Format (Always)
+Plan → Files to change → Patch → Test plan → Risk/Rollback
+
+## 3) Editing Discipline
+- No large refactors by default.
+- Keep diffs minimal and localized.
+- Do not rename files/folders without explicit approval.
+- Preserve existing conventions, patterns, and architecture.
+
+## 4) Project Modules (Product Map)
+Core:
+- Invoices
+- Customers
+- Shipments
+- Manifests
+- Scanning
+
+Secondary:
+- Dashboard
+- Analytics
+- Operations
+- Tracking
+- Inventory
+- Exceptions
+- Business
+- Management
+
+## 5) Database + Data Integrity Rules
+- Treat DB schema and identifiers as contracts.
+- Never silently change:
+  - invoice numbering formats
+  - barcode formats
+  - manifest identifiers
+- Every write path must:
+  - validate inputs (zod preferred)
+  - enforce idempotency (esp. scanning)
+  - preserve referential integrity
+  - create audit trails for operator actions
+
+## 6) Scanning Rules (Critical)
+- Idempotent inserts.
+- Duplicate scans must not create duplicate packages.
+- Every scan must create an immutable event record.
+- Conflicts must route to Exceptions (never discard).
+
+## 7) Invoices + PDF + Labels (Critical)
+- PDF/label output is a contract.
+- Any PDF/layout change requires:
+  - at least 3 sample invoice checks
+  - regression checklist
+- Keep invoice calculations deterministic and reproducible.
+
+## 8) UI/UX Rules
+- Avoid excessive click “pop-out” effects:
+  - limit scale transforms
+  - avoid major shadow jumps
+- Ensure consistent alignment across cards/headers/icons.
+- Must be responsive for laptop + smaller widths.
+
+## 9) Testing Rules
+Prefer these scripts:
+- typecheck: npm run typecheck
+- lint: npm run lint
+- unit tests: npm run test:unit
+- e2e: npm run test
+
+Rules:
+- Any logic change → unit tests OR clear manual QA checklist.
+- Critical flow change (Scanning/Manifest/Invoice) → Playwright check or explicit manual E2E steps.
+
+## 10) Documentation Rules
+If behavior changes:
+- Update docs in /docs (PRD/tasks)
+- Include what changed + why + how to verify

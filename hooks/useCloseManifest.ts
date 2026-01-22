@@ -8,9 +8,9 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { queryKeys } from '@/lib/queryKeys';
 import { handleMutationError } from '@/lib/errors';
+import type { Json } from '@/lib/database.types';
 
-// Type helper to work around Supabase client type inference issues
-const db = supabase as any;
+// Supabase client - now properly typed with manifests table
 
 interface CloseManifestInput {
     manifestId: string;
@@ -83,13 +83,13 @@ export function useDepartManifest() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (input: { manifestId: string; vehicleMeta?: Record<string, any> }) => {
-            const { data, error } = await db
+        mutationFn: async (input: { manifestId: string; vehicleMeta?: Record<string, unknown> }) => {
+            const { data, error } = await supabase
                 .from('manifests')
                 .update({
                     status: 'DEPARTED',
                     departed_at: new Date().toISOString(),
-                    vehicle_meta: input.vehicleMeta || {},
+                    vehicle_meta: (input.vehicleMeta || {}) as Json,
                     updated_at: new Date().toISOString(),
                 })
                 .eq('id', input.manifestId)
@@ -101,37 +101,43 @@ export function useDepartManifest() {
             if (!data) throw new Error('Manifest not found or not in CLOSED status');
 
             // Create tracking events for all shipments
-            const { data: items } = await db
+            const { data: items } = await supabase
                 .from('manifest_items')
                 .select('shipment_id, shipment:shipments(awb_number)')
                 .eq('manifest_id', input.manifestId);
 
             if (items && items.length > 0) {
-                const trackingEvents = items.map((item: any) => ({
-                    org_id: data.org_id,
-                    shipment_id: item.shipment_id,
-                    awb_number: item.shipment?.awb_number,
-                    event_code: 'IN_TRANSIT',
-                    hub_id: data.from_hub_id,
-                    source: 'SYSTEM',
-                    meta: { manifest_id: data.id, action: 'MANIFEST_DEPARTED' },
-                }));
+                // Type assertion for Supabase nested select result
+                type ManifestItem = { shipment_id: string; shipment: { awb_number: string } | null };
+                const typedItems = items as unknown as ManifestItem[];
 
-                await db.from('tracking_events').insert(trackingEvents);
+                const trackingEvents = typedItems
+                    .filter((item) => item.shipment?.awb_number)
+                    .map((item) => ({
+                        org_id: data.org_id,
+                        shipment_id: item.shipment_id,
+                        awb_number: item.shipment!.awb_number,
+                        event_code: 'IN_TRANSIT',
+                        hub_id: data.from_hub_id,
+                        source: 'SYSTEM',
+                        meta: { manifest_id: data.id, action: 'MANIFEST_DEPARTED' } as Json,
+                    }));
 
-                await db
+                await supabase.from('tracking_events').insert(trackingEvents);
+
+                await supabase
                     .from('shipments')
                     .update({ status: 'IN_TRANSIT', updated_at: new Date().toISOString() })
-                    .in('id', items.map((i: any) => i.shipment_id));
+                    .in('id', typedItems.map((i) => i.shipment_id));
             }
 
             return data;
         },
-        onSuccess: (data: any) => {
+        onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: queryKeys.manifests.all });
             queryClient.invalidateQueries({ queryKey: queryKeys.shipments.all });
             toast.success('Manifest Departed', {
-                description: `${data.manifest_no} is now in transit`,
+                description: `${data?.manifest_no} is now in transit`,
             });
         },
         onError: (error) => {
@@ -148,7 +154,7 @@ export function useArriveManifest() {
 
     return useMutation({
         mutationFn: async (input: { manifestId: string }) => {
-            const { data, error } = await db
+            const { data, error } = await supabase
                 .from('manifests')
                 .update({
                     status: 'ARRIVED',
@@ -164,37 +170,43 @@ export function useArriveManifest() {
             if (!data) throw new Error('Manifest not found or not in DEPARTED status');
 
             // Create tracking events and update shipments
-            const { data: items } = await db
+            const { data: items } = await supabase
                 .from('manifest_items')
                 .select('shipment_id, shipment:shipments(awb_number)')
                 .eq('manifest_id', input.manifestId);
 
             if (items && items.length > 0) {
-                const trackingEvents = items.map((item: any) => ({
-                    org_id: data.org_id,
-                    shipment_id: item.shipment_id,
-                    awb_number: item.shipment?.awb_number,
-                    event_code: 'RECEIVED_AT_DEST',
-                    hub_id: data.to_hub_id,
-                    source: 'SYSTEM',
-                    meta: { manifest_id: data.id, action: 'MANIFEST_ARRIVED' },
-                }));
+                // Type assertion for Supabase nested select result
+                type ManifestItem = { shipment_id: string; shipment: { awb_number: string } | null };
+                const typedItems = items as unknown as ManifestItem[];
 
-                await db.from('tracking_events').insert(trackingEvents);
+                const trackingEvents = typedItems
+                    .filter((item) => item.shipment?.awb_number)
+                    .map((item) => ({
+                        org_id: data.org_id,
+                        shipment_id: item.shipment_id,
+                        awb_number: item.shipment!.awb_number,
+                        event_code: 'RECEIVED_AT_DEST',
+                        hub_id: data.to_hub_id,
+                        source: 'SYSTEM',
+                        meta: { manifest_id: data.id, action: 'MANIFEST_ARRIVED' } as Json,
+                    }));
 
-                await db
+                await supabase.from('tracking_events').insert(trackingEvents);
+
+                await supabase
                     .from('shipments')
                     .update({ status: 'RECEIVED_AT_DEST', updated_at: new Date().toISOString() })
-                    .in('id', items.map((i: any) => i.shipment_id));
+                    .in('id', typedItems.map((i) => i.shipment_id));
             }
 
             return data;
         },
-        onSuccess: (data: any) => {
+        onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: queryKeys.manifests.all });
             queryClient.invalidateQueries({ queryKey: queryKeys.shipments.all });
             toast.success('Manifest Arrived', {
-                description: `${data.manifest_no} has arrived at destination hub`,
+                description: `${data?.manifest_no} has arrived at destination hub`,
             });
         },
         onError: (error) => {

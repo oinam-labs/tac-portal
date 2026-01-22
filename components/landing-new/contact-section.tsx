@@ -23,8 +23,7 @@ export function ContactSection() {
         setIsSubmitting(true);
 
         try {
-            // Perform form submission logic here
-            console.log('Form submitted:', { name, email, message });
+            // Form submission logic - console logging removed for security
             await new Promise((resolve) => setTimeout(resolve, 1000));
             setName('');
             setEmail('');

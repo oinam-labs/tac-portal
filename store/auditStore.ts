@@ -46,7 +46,7 @@ export const useAuditStore = create<AuditState>((set) => ({
                 action: log.action,
                 entityType: log.entity_type as AuditLog['entityType'],
                 entityId: log.entity_id ?? '',
-                timestamp: log.created_at,
+                timestamp: log.created_at ?? new Date().toISOString(),
                 payload: log.after ? (typeof log.after === 'object' ? log.after as Record<string, unknown> : undefined) : undefined,
             }));
 

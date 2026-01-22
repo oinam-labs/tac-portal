@@ -221,8 +221,7 @@ tac-portal/
 │   ├── mock-db.ts              # localStorage mock database
 │   ├── pdf-generator.ts        # PDF generation (labels, invoices)
 │   ├── utils.ts                # Helper functions
-│   └── mcp/                    # AI/MCP integration
-│       └── shipment-server.ts  # Gemini AI assistant
+│   └── mcp/                    # AI/MCP integration (OpenRouter)
 │
 ├── docs/                       # Documentation
 │   ├── README.md               # This file

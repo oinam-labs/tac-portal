@@ -69,7 +69,7 @@ export function getInvoicesColumns(
                         ₹{row.original.total?.toLocaleString("en-IN") ?? "0"}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                        Tax: ₹{(row.original.tax?.total ?? 0).toLocaleString("en-IN")}
+                        Tax: ₹{(row.original.tax_amount ?? 0).toLocaleString("en-IN")}
                     </div>
                 </div>
             ),

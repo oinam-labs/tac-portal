@@ -8,9 +8,19 @@ import { formatCurrency } from './utils';
 // --- HELPERS ---
 
 function generate1DBarcode(text: string): string {
+    if (!text || text.length < 1) {
+        console.warn('Barcode generation skipped: empty text');
+        return '';
+    }
     const canvas = document.createElement('canvas');
     try {
-        JsBarcode(canvas, text, {
+        // Sanitize text for CODE128 (alphanumeric only)
+        const sanitized = text.replace(/[^A-Za-z0-9-]/g, '').substring(0, 20);
+        if (!sanitized) {
+            console.warn('Barcode generation skipped: no valid characters');
+            return '';
+        }
+        JsBarcode(canvas, sanitized, {
             format: "CODE128",
             width: 4,
             height: 80,
@@ -20,7 +30,7 @@ function generate1DBarcode(text: string): string {
         });
         return canvas.toDataURL('image/png');
     } catch (e) {
-        console.error("Barcode generation failed", e);
+        console.error("Barcode generation failed for:", text, e);
         return '';
     }
 }
@@ -62,6 +72,12 @@ const C = {
 
 // --- PROFESSIONAL SHIPPING LABEL GENERATOR (B&W Reference Match) ---
 export async function generateShipmentLabel(shipment: Shipment): Promise<string> {
+    console.log('[Label] Starting generation for AWB:', shipment.awb);
+
+    if (!shipment || !shipment.awb) {
+        throw new Error('Invalid shipment data: missing AWB');
+    }
+
     const pdfDoc = await PDFDocument.create();
     // 4x6 inch label (288 x 432 points)
     const page = pdfDoc.addPage([288, 432]);
@@ -69,6 +85,8 @@ export async function generateShipmentLabel(shipment: Shipment): Promise<string>
 
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+    console.log('[Label] PDF document created, embedding fonts...');
 
     // Background and Main Border
     page.drawRectangle({ x: 0, y: 0, width, height, color: C.WHITE });
@@ -88,11 +106,17 @@ export async function generateShipmentLabel(shipment: Shipment): Promise<string>
     // Barcode & AWB
     y -= 30;
     const barcodeDataUrl = generate1DBarcode(shipment.awb);
+    console.log('[Label] Barcode generated:', barcodeDataUrl ? 'success' : 'failed');
     if (barcodeDataUrl) {
-        const barcodeImg = await pdfDoc.embedPng(barcodeDataUrl);
-        page.drawImage(barcodeImg, { x: 16, y: y - 40, width: 160, height: 45 });
+        try {
+            const barcodeImg = await pdfDoc.embedPng(barcodeDataUrl);
+            page.drawImage(barcodeImg, { x: 16, y: y - 40, width: 160, height: 45 });
+        } catch (barcodeErr) {
+            console.error('[Label] Failed to embed barcode image:', barcodeErr);
+            // Continue without barcode
+        }
     }
-    page.drawText(shipment.awb, { x: 50, y: y - 52, size: 14, font: fontBold });
+    page.drawText(shipment.awb || 'NO-AWB', { x: 50, y: y - 52, size: 14, font: fontBold });
 
     // Truck Section (Right side)
     // Vertical separator for truck box
@@ -240,8 +264,11 @@ export async function generateShipmentLabel(shipment: Shipment): Promise<string>
     page.drawText("TAC", { x: xBrand + 14, y: 8, size: 12, font: fontBold, color: C.BLACK });
     page.drawText("SHIPPING", { x: xBrand + 42, y: 8, size: 12, font, color: C.BLACK });
 
+    console.log('[Label] Saving PDF...');
     const pdfBytes = await pdfDoc.save();
-    return URL.createObjectURL(new Blob([pdfBytes as BlobPart], { type: 'application/pdf' }));
+    const url = URL.createObjectURL(new Blob([pdfBytes as BlobPart], { type: 'application/pdf' }));
+    console.log('[Label] PDF generated successfully:', url.substring(0, 50));
+    return url;
 }
 
 // --- ENTERPRISE INVOICE GENERATOR (DESIGN A) ---
@@ -471,7 +498,7 @@ export async function generateEnterpriseInvoice(invoice: Invoice): Promise<strin
 
     const col2Start = margin + 260;
     const termSize = 6;
-    let tY = tContentY - 15;
+    const tY = tContentY - 15;
 
     const termsL = [
         "DECLARATION: Consignor warrants accurate declaration of contents.",

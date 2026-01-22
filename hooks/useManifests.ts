@@ -29,10 +29,10 @@ export type ManifestStatus = 'OPEN' | 'CLOSED' | 'DEPARTED' | 'ARRIVED';
 export interface AvailableShipment {
     id: string;
     awb_number: string;
-    package_count: number;
+    total_packages: number;
     total_weight: number;
-    service_level: string;
-    created_at: string;
+    service_type: string;
+    created_at: string | null;
 }
 
 export const manifestKeys = {
@@ -306,6 +306,7 @@ export function useFindManifestByCode() {
 }
 
 // Add shipment to manifest (for LOAD_MANIFEST scan mode)
+// CRITICAL: Includes idempotency check to prevent duplicate scans
 export function useAddManifestItem() {
     const queryClient = useQueryClient();
 
@@ -313,15 +314,32 @@ export function useAddManifestItem() {
         mutationFn: async (input: { manifest_id: string; shipment_id: string }) => {
             const orgId = await getOrCreateDefaultOrg();
 
-            const { error } = await (supabase.from('manifest_items') as any)
+            // IDEMPOTENCY CHECK: Prevent duplicate manifest items
+            const { data: existing } = await supabase
+                .from('manifest_items')
+                .select('id')
+                .eq('manifest_id', input.manifest_id)
+                .eq('shipment_id', input.shipment_id)
+                .maybeSingle();
+
+            if (existing) {
+                // Already exists - idempotent success (no duplicate created)
+                toast.info('Shipment already in manifest');
+                return existing;
+            }
+
+            const { data, error } = await (supabase.from('manifest_items') as any)
                 .insert({
                     org_id: orgId,
                     manifest_id: input.manifest_id,
                     shipment_id: input.shipment_id,
                     scanned_at: new Date().toISOString(),
-                });
+                })
+                .select()
+                .single();
 
             if (error) throw error;
+            return data;
         },
         onSuccess: (_data, { manifest_id }) => {
             queryClient.invalidateQueries({ queryKey: manifestKeys.items(manifest_id) });

@@ -1,30 +1,28 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
-
-// Type helper for Supabase client
-const db = supabase as any;
+import type { Json } from '../lib/database.types';
 
 export interface AuditLog {
   id: string;
   org_id: string;
-  actor_staff_id: string;
+  actor_staff_id: string | null;
   action: string;
   entity_type: string;
   entity_id: string;
-  before: any;
-  after: any;
-  request_id: string;
-  ip_address: string;
-  user_agent: string;
+  before: Json | null;
+  after: Json | null;
+  request_id: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
   created_at: string;
-  staff?: { full_name: string; email: string };
+  staff?: { full_name: string; email: string } | null;
 }
 
 export function useAuditLogs(options?: { limit?: number; entityType?: string }) {
   return useQuery({
     queryKey: ['audit-logs', options],
     queryFn: async () => {
-      let query = db
+      let query = supabase
         .from('audit_logs')
         .select(`
           *,
