@@ -170,13 +170,15 @@ export function useUpdateShipmentStatus() {
       const shipmentData = data as unknown as ShipmentWithRelations;
 
       // Create tracking event
-      await supabase.from('tracking_events').insert({
+      const { error: trackingError } = await supabase.from('tracking_events').insert({
         org_id: shipmentData.org_id,
         shipment_id: id,
         awb_number: shipmentData.awb_number,
         event_code: status,
         source: 'MANUAL',
       });
+
+      if (trackingError) throw trackingError;
 
       return shipmentData;
     },

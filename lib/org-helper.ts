@@ -14,11 +14,13 @@ import { supabase } from './supabase';
 export async function getOrCreateDefaultOrg(): Promise<string> {
     try {
         // 1. Try to find any existing org
-        const { data: existingOrg } = await supabase
+        const { data: existingOrg, error: existingOrgError } = await supabase
             .from('orgs')
             .select('id')
             .limit(1)
-            .single();
+            .maybeSingle();
+
+        if (existingOrgError) throw existingOrgError;
 
         if (existingOrg) {
             return existingOrg.id;
@@ -29,11 +31,13 @@ export async function getOrCreateDefaultOrg(): Promise<string> {
         const demoOrgId = '00000000-0000-0000-0000-000000000001';
 
         // Check if our specific demo org exists (might have failed previously due to rls but checking anyway)
-        const { data: demoOrg } = await supabase
+        const { data: demoOrg, error: demoOrgError } = await supabase
             .from('orgs')
             .select('id')
             .eq('id', demoOrgId)
-            .single();
+            .maybeSingle();
+
+        if (demoOrgError) throw demoOrgError;
 
         if (demoOrg) {
             return demoOrg.id;

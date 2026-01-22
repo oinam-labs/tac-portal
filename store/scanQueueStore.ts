@@ -219,7 +219,7 @@ export const useScanQueue = () => {
                 code: scan.awb,
                 source: ScanSource.CAMERA,
                 hubCode: HubCode.IMPHAL,
-                staffId: 'system' as UUID, // Placeholder - resolved on sync
+                staffId: null as unknown as UUID, // Null until resolved on sync - 'system' is not a valid UUID
             });
         },
         pendingScans: store.getPendingScans(),

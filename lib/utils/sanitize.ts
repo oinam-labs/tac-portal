@@ -34,7 +34,7 @@ export function escapeHtml(str: string): string {
  * This approach is safe because:
  * 1. Removes ALL angle brackets unconditionally (not pattern-based)
  * 2. No multi-character regex that could be bypassed
- * 3. Deterministic single-pass - no loops, no recursion
+ * 3. Deterministic bounded loop (MAX_ITERATIONS) to reach a stable result
  * 4. Pure function - no DOM/window dependency
  *
  * Trade-off: Legitimate < > in text are also removed. For display contexts

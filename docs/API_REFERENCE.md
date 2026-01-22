@@ -25,7 +25,7 @@ Complete reference for all types, interfaces, stores, hooks, services, and utili
 
 ### Data Flow Pattern
 
-```
+```text
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │   UI Component  │────▶│  React Query    │────▶│    Service      │
 │   (pages/*)     │     │  Hooks          │     │    Layer        │

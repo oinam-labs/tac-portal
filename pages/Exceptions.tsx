@@ -195,11 +195,13 @@ export const Exceptions: React.FC = () => {
                         <div>
                             <label className="block text-xs text-muted-foreground mb-1">TYPE</label>
                             <select {...registerRaise('type')} className="w-full bg-cyber-card border border-cyber-border rounded-lg p-2">
-                                <option value="DAMAGED">Damaged</option>
-                                <option value="LOST">Lost</option>
-                                <option value="DELAYED">Delayed</option>
-                                <option value="CUSTOMS">Customs</option>
-                                <option value="MISROUTED">Misrouted</option>
+                                <option value="DAMAGE">Damage</option>
+                                <option value="SHORTAGE">Shortage</option>
+                                <option value="MISROUTE">Misroute</option>
+                                <option value="DELAY">Delay</option>
+                                <option value="CUSTOMER_REFUSAL">Customer Refusal</option>
+                                <option value="ADDRESS_ISSUE">Address Issue</option>
+                                <option value="OTHER">Other</option>
                             </select>
                         </div>
                         <div>
