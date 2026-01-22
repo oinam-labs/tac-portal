@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
 /**
  * Enterprise Manifest Scanning E2E Tests
@@ -147,7 +147,7 @@ test.describe('Enterprise Manifest Scanning', () => {
 
 test.describe('Manifest Scan Panel', () => {
     // Shared helper to get to the scanning phase - always creates a new manifest
-    async function enterScanPhase(page: any) {
+    async function enterScanPhase(page: Page) {
         await page.goto(`${BASE_URL}/#/manifests`);
         await page.waitForLoadState('networkidle');
 
@@ -295,7 +295,7 @@ test.describe('Manifest Status Workflow', () => {
 
 test.describe('Manifest Shipment Table', () => {
     // Helper to get to the scanning phase - creates a new manifest
-    async function enterScanPhase(page: any) {
+    async function enterScanPhase(page: Page) {
         await page.goto(`${BASE_URL}/#/manifests`);
         await page.waitForLoadState('networkidle');
 
@@ -374,7 +374,7 @@ test.describe('Manifest Shipment Table', () => {
 
 test.describe('Scan Audit Logging', () => {
     // Helper to get to the scanning phase - creates a new manifest
-    async function enterScanPhase(page: any) {
+    async function enterScanPhase(page: Page) {
         await page.goto(`${BASE_URL}/#/manifests`);
         await page.waitForLoadState('networkidle');
 

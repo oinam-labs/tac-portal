@@ -124,7 +124,7 @@ export const useAuthStore = create<AuthState>()(
                         } catch (error) {
                             // Handle AbortError and other errors gracefully
                             if (error instanceof Error && error.name === 'AbortError') {
-                                console.log('[Auth] Request aborted during auth state change');
+                                // Request aborted during auth state change - normal during navigation
                                 return;
                             }
                             console.error('[Auth] Error in auth state change handler:', error);
@@ -133,7 +133,7 @@ export const useAuthStore = create<AuthState>()(
 
                     // Return cleanup function to unsubscribe from auth state changes
                     return () => {
-                        console.log('[Auth] Cleaning up auth state listener');
+                        // Cleanup auth state listener on unmount
                         subscription.unsubscribe();
                     };
                 } catch (error) {

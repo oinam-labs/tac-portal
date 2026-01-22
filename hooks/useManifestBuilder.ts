@@ -210,7 +210,7 @@ export function useManifestBuilder(options: ManifestBuilderOptions = {}) {
 
     // Computed values
     const manifest = manifestQuery.data ?? null;
-    const items = itemsQuery.data ?? [];
+    const items = useMemo(() => itemsQuery.data ?? [], [itemsQuery.data]);
 
     const totals = useMemo(() => {
         return items.reduce(

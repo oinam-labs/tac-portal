@@ -712,8 +712,7 @@ export const manifestService = {
         const orgId = orgService.getCurrentOrgId();
 
         // Use type assertion for table defined in migration 006
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error } = await (supabase as any)
+        const { data, error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
             .from('manifest_scan_logs')
             .select('*')
             .eq('manifest_id', manifestId)

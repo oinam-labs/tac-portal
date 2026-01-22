@@ -167,8 +167,8 @@ export const Manifests: React.FC = () => {
                 open={isEnterpriseOpen}
                 onOpenChange={setIsEnterpriseOpen}
                 initialManifestId={selectedManifestId}
-                onComplete={(manifestId: string) => {
-                    console.log('Manifest created:', manifestId);
+                onComplete={() => {
+                    // Manifest creation complete - refresh handled by query invalidation
                     setIsEnterpriseOpen(false);
                 }}
             />

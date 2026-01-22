@@ -81,6 +81,7 @@ export function useManifestScan(options: ScanOptions) {
         if (!playSound) return;
 
         try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
