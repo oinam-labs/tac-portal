@@ -317,12 +317,12 @@ export const manifestService = {
         // Update manifest totals
         await this.updateTotals(manifestId);
 
-        // Update shipment
+        // Update shipment - revert to RECEIVED_AT_ORIGIN when removed from manifest
         await (supabase
             .from('shipments') as any)
             .update({
                 manifest_id: null,
-                status: 'RECEIVED',
+                status: 'RECEIVED_AT_ORIGIN',
                 updated_at: new Date().toISOString(),
             })
             .eq('id', shipmentId);

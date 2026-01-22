@@ -44,7 +44,7 @@ export function ManifestShipmentsTable({
 }: ManifestShipmentsTableProps) {
     const [searchQuery, setSearchQuery] = React.useState("")
 
-    // Filter items by search query (AWB, consignee, consignor)
+    // Filter items by search query (AWB, receiver, sender)
     const filteredItems = React.useMemo(() => {
         if (!searchQuery.trim()) return items
         const query = searchQuery.toLowerCase()
@@ -71,8 +71,8 @@ export function ManifestShipmentsTable({
                 ),
             },
             {
-                id: "consignee",
-                header: "Consignee",
+                id: "receiver",
+                header: "Receiver",
                 cell: ({ row }) => {
                     const shipment = row.original.shipment
                     return (
@@ -90,8 +90,8 @@ export function ManifestShipmentsTable({
                 },
             },
             {
-                id: "consignor",
-                header: "Consignor",
+                id: "sender",
+                header: "Sender",
                 cell: ({ row }) => {
                     const shipment = row.original.shipment
                     return (
@@ -226,7 +226,7 @@ export function ManifestShipmentsTable({
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search AWB, consignee, consignor..."
+                        placeholder="Search AWB, receiver, sender..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-9"

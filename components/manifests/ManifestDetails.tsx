@@ -81,7 +81,7 @@ export const ManifestDetails: React.FC = () => {
                         <thead>
                             <tr>
                                 <Th>AWB</Th>
-                                <Th>CONSIGNEE</Th>
+                                <Th>RECEIVER</Th>
                                 <Th>PKG</Th>
                                 <Th>WEIGHT</Th>
                                 <Th>SCANNED AT</Th>
