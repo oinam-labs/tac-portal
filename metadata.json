@@ -1,7 +1,5 @@
 {
   "name": "TAC Cargo",
   "description": "Enterprise-grade logistics management dashboard with a Cyber UI theme, featuring real-time tracking, analytics, and AI integration.",
-  "requestFramePermissions": [
-    "camera"
-  ]
+  "requestFramePermissions": ["camera"]
 }

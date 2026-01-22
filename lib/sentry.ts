@@ -1,7 +1,7 @@
 /**
  * Sentry Configuration
  * Enterprise-grade error tracking, performance monitoring, logging, and metrics
- * 
+ *
  * Features enabled:
  * - Error Monitoring (automatic + manual capture)
  * - Logs (structured logging with logger API)
@@ -36,11 +36,12 @@ export const initSentry = () => {
     // Use tunnel to bypass ad-blockers and CORS issues in development
     // In production, this should point to a server-side tunnel endpoint
     // https://docs.sentry.io/platforms/javascript/troubleshooting/#using-the-tunnel-option
-    ...(import.meta.env.DEV && {
-      // In dev mode, we'll just let errors through - CORS errors are expected
-      // and don't affect functionality. The browser's privacy protection
-      // blocks direct Sentry requests but errors are still captured locally.
-    }),
+    ...(import.meta.env.DEV &&
+      {
+        // In dev mode, we'll just let errors through - CORS errors are expected
+        // and don't affect functionality. The browser's privacy protection
+        // blocks direct Sentry requests but errors are still captured locally.
+      }),
 
     // Send default PII (IP addresses, user agent)
     // https://docs.sentry.io/platforms/javascript/guides/react/configuration/options/#sendDefaultPii
@@ -63,7 +64,7 @@ export const initSentry = () => {
 
       // Console logging integration - captures console.log/warn/error as Sentry logs
       Sentry.consoleLoggingIntegration({
-        levels: ['log', 'warn', 'error']
+        levels: ['log', 'warn', 'error'],
       }),
 
       // User Feedback widget (optional - users can report issues)
@@ -84,8 +85,8 @@ export const initSentry = () => {
     // This enables trace context to be passed to your backend
     tracePropagationTargets: [
       'localhost',
-      /^https:\/\/.*\.supabase\.co/,  // Supabase APIs
-      /^\/api\//,  // Local API routes
+      /^https:\/\/.*\.supabase\.co/, // Supabase APIs
+      /^\/api\//, // Local API routes
     ],
 
     // Session Replay Sample Rates
@@ -110,15 +111,14 @@ export const initSentry = () => {
             'This is your first error!',
             'Test exception captured manually',
           ];
-          if (testErrorMessages.some(msg => error.message.includes(msg))) {
+          if (testErrorMessages.some((msg) => error.message.includes(msg))) {
             return null;
           }
         }
 
         // Ignore network errors in development
         if (import.meta.env.DEV && error instanceof Error) {
-          if (error.message.includes('NetworkError') ||
-            error.message.includes('Failed to fetch')) {
+          if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
             return null;
           }
         }
@@ -140,7 +140,7 @@ export const initSentry = () => {
       'chrome-extension://',
       'moz-extension://',
       // Random plugins/extensions
-      'Can\'t find variable: ZiteReader',
+      "Can't find variable: ZiteReader",
       'jigsaw is not defined',
       'ComboSearch is not defined',
       // React DevTools
@@ -238,11 +238,7 @@ export const trackApiCall = async <T>(
 /**
  * Track user interactions
  */
-export const trackInteraction = <T>(
-  action: string,
-  component: string,
-  fn: () => T
-): T => {
+export const trackInteraction = <T>(action: string, component: string, fn: () => T): T => {
   return startSpan(
     {
       op: 'ui.interaction',
@@ -256,13 +252,15 @@ export const trackInteraction = <T>(
 /**
  * Set user context for error tracking
  */
-export const setUserContext = (user: {
-  id: string;
-  email?: string;
-  username?: string;
-  role?: string;
-  org_id?: string;
-} | null) => {
+export const setUserContext = (
+  user: {
+    id: string;
+    email?: string;
+    username?: string;
+    role?: string;
+    org_id?: string;
+  } | null
+) => {
   if (user) {
     setUser({
       id: user.id,
@@ -282,7 +280,11 @@ export const setUserContext = (user: {
 /**
  * Add breadcrumb for debugging
  */
-export const addBreadcrumb = (message: string, category: string, level: 'info' | 'warning' | 'error' = 'info') => {
+export const addBreadcrumb = (
+  message: string,
+  category: string,
+  level: 'info' | 'warning' | 'error' = 'info'
+) => {
   Sentry.addBreadcrumb({
     message,
     category,

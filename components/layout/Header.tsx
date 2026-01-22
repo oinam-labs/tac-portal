@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Menu, Search } from 'lucide-react';
 import { useStore } from '../../store';
@@ -7,34 +6,34 @@ import { AnimatedThemeToggler } from '../ui/animated-theme-toggler';
 import { NotificationBell } from '../domain/NotificationBell';
 
 export const Header: React.FC = () => {
-    const { toggleSidebar } = useStore();
+  const { toggleSidebar } = useStore();
 
-    return (
-        <header className="h-16 bg-cyber-bg/80 backdrop-blur-md border-b border-cyber-border sticky top-0 z-40 px-6 flex items-center justify-between transition-colors duration-300">
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={toggleSidebar}
-                    className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                >
-                    <Menu className="w-5 h-5" />
-                </button>
-                <div className="hidden md:flex items-center relative w-64">
-                    <Search className="w-4 h-4 absolute left-3 text-muted-foreground" />
-                    <Input
-                        placeholder="Search shipments, invoices..."
-                        className="pl-9 py-1.5 text-sm bg-background border-input focus:ring-2 focus:ring-ring focus:border-input transition-all"
-                    />
-                </div>
-            </div>
+  return (
+    <header className="h-16 bg-cyber-bg/80 backdrop-blur-md border-b border-cyber-border sticky top-0 z-40 px-6 flex items-center justify-between transition-colors duration-300">
+      <div className="flex items-center gap-4">
+        <button
+          onClick={toggleSidebar}
+          className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+        <div className="hidden md:flex items-center relative w-64">
+          <Search className="w-4 h-4 absolute left-3 text-muted-foreground" />
+          <Input
+            placeholder="Search shipments, invoices..."
+            className="pl-9 py-1.5 text-sm bg-background border-input focus:ring-2 focus:ring-ring focus:border-input transition-all"
+          />
+        </div>
+      </div>
 
-            <div className="flex items-center gap-4">
-                <AnimatedThemeToggler
-                    className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                    duration={500}
-                />
+      <div className="flex items-center gap-4">
+        <AnimatedThemeToggler
+          className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+          duration={500}
+        />
 
-                <NotificationBell />
-            </div>
-        </header>
-    );
+        <NotificationBell />
+      </div>
+    </header>
+  );
 };

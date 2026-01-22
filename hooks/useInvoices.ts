@@ -12,202 +12,211 @@ type Json = Database['public']['Tables']['invoices']['Row']['line_items'];
  * Provides consistent, type-safe query keys for caching.
  */
 export const invoiceKeys = {
-    all: ['invoices'] as const,
-    lists: () => [...invoiceKeys.all, 'list'] as const,
-    list: (filters?: { status?: string; customerId?: string }) => [...invoiceKeys.lists(), filters] as const,
-    details: () => [...invoiceKeys.all, 'detail'] as const,
-    detail: (id: string) => [...invoiceKeys.details(), id] as const,
+  all: ['invoices'] as const,
+  lists: () => [...invoiceKeys.all, 'list'] as const,
+  list: (filters?: { status?: string; customerId?: string }) =>
+    [...invoiceKeys.lists(), filters] as const,
+  details: () => [...invoiceKeys.all, 'detail'] as const,
+  detail: (id: string) => [...invoiceKeys.details(), id] as const,
 };
 
 export interface InvoiceWithRelations {
-    id: string;
-    org_id: string;
-    invoice_no: string; // DB column name (not invoice_number)
-    customer_id: string;
-    shipment_id: string | null;
-    status: 'DRAFT' | 'ISSUED' | 'PAID' | 'CANCELLED' | 'OVERDUE';
-    issue_date: string | null;
-    subtotal: number;
-    tax_amount: number | null; // DB column is tax_amount (number)
-    discount: number | null;
-    total: number; // DB column name (not total_amount)
-    due_date: string | null;
-    notes: string | null;
-    line_items: Json;
-    pdf_file_path: string | null;
-    label_file_path: string | null;
-    created_at: string;
-    updated_at: string;
-    deleted_at: string | null;
-    customer?: { name: string; phone: string; email: string | null };
-    shipment?: { awb_number: string };
+  id: string;
+  org_id: string;
+  invoice_no: string; // DB column name (not invoice_number)
+  customer_id: string;
+  shipment_id: string | null;
+  status: 'DRAFT' | 'ISSUED' | 'PAID' | 'CANCELLED' | 'OVERDUE';
+  issue_date: string | null;
+  subtotal: number;
+  tax_amount: number | null; // DB column is tax_amount (number)
+  discount: number | null;
+  total: number; // DB column name (not total_amount)
+  due_date: string | null;
+  notes: string | null;
+  line_items: Json;
+  pdf_file_path: string | null;
+  label_file_path: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  customer?: { name: string; phone: string; email: string | null };
+  shipment?: { awb_number: string };
 }
 
 export function useInvoices(options?: { status?: string; customerId?: string }) {
-    return useQuery({
-        queryKey: invoiceKeys.list(options),
-        queryFn: async () => {
-            let query = supabase
-                .from('invoices')
-                .select(`
+  return useQuery({
+    queryKey: invoiceKeys.list(options),
+    queryFn: async () => {
+      let query = supabase
+        .from('invoices')
+        .select(
+          `
           *,
           customer:customers(name, phone, email),
           shipment:shipments(awb_number)
-        `)
-                .is('deleted_at', null)
-                .order('created_at', { ascending: false });
+        `
+        )
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
 
-            if (options?.status) {
-                query = query.eq('status', options.status);
-            }
+      if (options?.status) {
+        query = query.eq('status', options.status);
+      }
 
-            if (options?.customerId) {
-                query = query.eq('customer_id', options.customerId);
-            }
+      if (options?.customerId) {
+        query = query.eq('customer_id', options.customerId);
+      }
 
-            const { data, error } = await query;
-            if (error) throw error;
-            return (data ?? []) as unknown as InvoiceWithRelations[];
-        },
-    });
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data ?? []) as unknown as InvoiceWithRelations[];
+    },
+  });
 }
 
 export function useInvoice(id: string | null) {
-    return useQuery({
-        queryKey: invoiceKeys.detail(id!),
-        queryFn: async () => {
-            const { data, error } = await supabase
-                .from('invoices')
-                .select(`
+  return useQuery({
+    queryKey: invoiceKeys.detail(id!),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('invoices')
+        .select(
+          `
           *,
           customer:customers(*),
           shipment:shipments(*)
-        `)
-                .eq('id', id!)
-                .single();
+        `
+        )
+        .eq('id', id!)
+        .single();
 
-            if (error) throw error;
-            return data as unknown as InvoiceWithRelations;
-        },
-        enabled: !!id,
-    });
+      if (error) throw error;
+      return data as unknown as InvoiceWithRelations;
+    },
+    enabled: !!id,
+  });
 }
 
 interface CreateInvoiceInput {
-    customer_id: string;
-    shipment_id?: string;
-    subtotal: number;
-    tax_amount?: number; // DB column is tax_amount (number), not tax (jsonb)
-    total: number; // DB column name
-    issue_date?: string;
-    due_date?: string;
-    payment_terms?: string;
-    notes?: string;
-    line_items?: Json;
-    discount?: number;
+  customer_id: string;
+  shipment_id?: string;
+  subtotal: number;
+  tax_amount?: number; // DB column is tax_amount (number), not tax (jsonb)
+  total: number; // DB column name
+  issue_date?: string;
+  due_date?: string;
+  payment_terms?: string;
+  notes?: string;
+  line_items?: Json;
+  discount?: number;
 }
 
 export function useCreateInvoice() {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (invoice: CreateInvoiceInput) => {
-            const orgId = await getOrCreateDefaultOrg();
+  return useMutation({
+    mutationFn: async (invoice: CreateInvoiceInput) => {
+      const orgId = await getOrCreateDefaultOrg();
 
-            // invoice_no is generated by the database
+      // invoice_no is generated by the database
 
-            const { data, error } = await supabase
-                .from('invoices')
-                .insert({
-                    org_id: orgId,
-                    customer_id: invoice.customer_id,
-                    shipment_id: invoice.shipment_id ?? null,
-                    subtotal: invoice.subtotal,
-                    tax_amount: invoice.tax_amount ?? 0, // DB column is tax_amount (number)
-                    total: invoice.total, // DB column name
-                    issue_date: invoice.issue_date ?? new Date().toISOString().split('T')[0],
-                    due_date: invoice.due_date ?? null,
-                    notes: invoice.notes ?? null,
-                    line_items: invoice.line_items ?? null,
-                    discount: invoice.discount ?? 0,
-                    status: 'ISSUED',
-                })
-                .select()
-                .single();
+      const { data, error } = await supabase
+        .from('invoices')
+        .insert({
+          org_id: orgId,
+          customer_id: invoice.customer_id,
+          shipment_id: invoice.shipment_id ?? null,
+          subtotal: invoice.subtotal,
+          tax_amount: invoice.tax_amount ?? 0, // DB column is tax_amount (number)
+          total: invoice.total, // DB column name
+          issue_date: invoice.issue_date ?? new Date().toISOString().split('T')[0],
+          due_date: invoice.due_date ?? null,
+          notes: invoice.notes ?? null,
+          line_items: invoice.line_items ?? null,
+          discount: invoice.discount ?? 0,
+          status: 'ISSUED',
+        })
+        .select()
+        .single();
 
-            if (error) throw error;
-            return data as unknown as InvoiceWithRelations;
-        },
-        onSuccess: (data: InvoiceWithRelations) => {
-            queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
-            toast.success(`Invoice ${data.invoice_no} created successfully`);
-        },
-        onError: (error: Error) => {
-            toast.error(`Failed to create invoice: ${error.message}`);
-        },
-    });
+      if (error) throw error;
+      return data as unknown as InvoiceWithRelations;
+    },
+    onSuccess: (data: InvoiceWithRelations) => {
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
+      toast.success(`Invoice ${data.invoice_no} created successfully`);
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to create invoice: ${error.message}`);
+    },
+  });
 }
 
 export function useUpdateInvoiceStatus() {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async ({ id, status }: { id: string; status: InvoiceWithRelations['status'] }) => {
-            const updateData: { status: InvoiceWithRelations['status']; updated_at: string; paid_at?: string } = {
-                status,
-                updated_at: new Date().toISOString(),
-            };
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: InvoiceWithRelations['status'] }) => {
+      const updateData: {
+        status: InvoiceWithRelations['status'];
+        updated_at: string;
+        paid_at?: string;
+      } = {
+        status,
+        updated_at: new Date().toISOString(),
+      };
 
-            // Set paid_at if marking as paid
-            if (status === 'PAID') {
-                updateData.paid_at = new Date().toISOString();
-            }
+      // Set paid_at if marking as paid
+      if (status === 'PAID') {
+        updateData.paid_at = new Date().toISOString();
+      }
 
-            const { data, error } = await supabase
-                .from('invoices')
-                .update(updateData)
-                .eq('id', id)
-                .select()
-                .single();
+      const { data, error } = await supabase
+        .from('invoices')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
 
-            if (error) throw error;
-            return data as unknown as InvoiceWithRelations;
-        },
-        onSuccess: (data: InvoiceWithRelations) => {
-            queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
-            queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(data.id) });
-            toast.success(`Invoice marked as ${data.status}`);
-        },
-        onError: (error: Error) => {
-            toast.error(`Failed to update invoice: ${error.message}`);
-        },
-    });
+      if (error) throw error;
+      return data as unknown as InvoiceWithRelations;
+    },
+    onSuccess: (data: InvoiceWithRelations) => {
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(data.id) });
+      toast.success(`Invoice marked as ${data.status}`);
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to update invoice: ${error.message}`);
+    },
+  });
 }
 
 /**
  * Hook to delete an invoice (soft delete via deleted_at).
  */
 export function useDeleteInvoice() {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (id: string) => {
-            const { error } = await supabase
-                .from('invoices')
-                .update({
-                    deleted_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                })
-                .eq('id', id);
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('invoices')
+        .update({
+          deleted_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
 
-            if (error) throw error;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
-            toast.success('Invoice deleted successfully');
-        },
-        onError: (error: Error) => {
-            toast.error(`Failed to delete invoice: ${error.message}`);
-        },
-    });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
+      toast.success('Invoice deleted successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to delete invoice: ${error.message}`);
+    },
+  });
 }

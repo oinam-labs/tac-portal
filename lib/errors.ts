@@ -10,60 +10,60 @@ import { toast } from 'sonner';
 // ============================================================================
 
 export class AppError extends Error {
-    constructor(
-        message: string,
-        public code: string,
-        public statusCode?: number,
-        public meta?: Record<string, unknown>
-    ) {
-        super(message);
-        this.name = 'AppError';
-    }
+  constructor(
+    message: string,
+    public code: string,
+    public statusCode?: number,
+    public meta?: Record<string, unknown>
+  ) {
+    super(message);
+    this.name = 'AppError';
+  }
 }
 
 export class ValidationError extends AppError {
-    constructor(message: string, meta?: Record<string, unknown>) {
-        super(message, 'VALIDATION_ERROR', 400, meta);
-        this.name = 'ValidationError';
-    }
+  constructor(message: string, meta?: Record<string, unknown>) {
+    super(message, 'VALIDATION_ERROR', 400, meta);
+    this.name = 'ValidationError';
+  }
 }
 
 export class AuthenticationError extends AppError {
-    constructor(message: string = 'Authentication required') {
-        super(message, 'AUTH_ERROR', 401);
-        this.name = 'AuthenticationError';
-    }
+  constructor(message: string = 'Authentication required') {
+    super(message, 'AUTH_ERROR', 401);
+    this.name = 'AuthenticationError';
+  }
 }
 
 export class AuthorizationError extends AppError {
-    constructor(message: string = 'Insufficient permissions') {
-        super(message, 'AUTHORIZATION_ERROR', 403);
-        this.name = 'AuthorizationError';
-    }
+  constructor(message: string = 'Insufficient permissions') {
+    super(message, 'AUTHORIZATION_ERROR', 403);
+    this.name = 'AuthorizationError';
+  }
 }
 
 export class NotFoundError extends AppError {
-    constructor(resource: string, identifier?: string) {
-        const message = identifier
-            ? `${resource} with identifier '${identifier}' not found`
-            : `${resource} not found`;
-        super(message, 'NOT_FOUND', 404, { resource, identifier });
-        this.name = 'NotFoundError';
-    }
+  constructor(resource: string, identifier?: string) {
+    const message = identifier
+      ? `${resource} with identifier '${identifier}' not found`
+      : `${resource} not found`;
+    super(message, 'NOT_FOUND', 404, { resource, identifier });
+    this.name = 'NotFoundError';
+  }
 }
 
 export class ConflictError extends AppError {
-    constructor(message: string, meta?: Record<string, unknown>) {
-        super(message, 'CONFLICT_ERROR', 409, meta);
-        this.name = 'ConflictError';
-    }
+  constructor(message: string, meta?: Record<string, unknown>) {
+    super(message, 'CONFLICT_ERROR', 409, meta);
+    this.name = 'ConflictError';
+  }
 }
 
 export class NetworkError extends AppError {
-    constructor(message: string = 'Network request failed') {
-        super(message, 'NETWORK_ERROR', 0);
-        this.name = 'NetworkError';
-    }
+  constructor(message: string = 'Network request failed') {
+    super(message, 'NETWORK_ERROR', 0);
+    this.name = 'NetworkError';
+  }
 }
 
 // ============================================================================
@@ -71,61 +71,64 @@ export class NetworkError extends AppError {
 // ============================================================================
 
 interface PostgresError {
-    code?: string;
-    message?: string;
-    details?: string;
-    statusCode?: number;
+  code?: string;
+  message?: string;
+  details?: string;
+  statusCode?: number;
 }
 
 export const mapSupabaseError = (error: PostgresError): AppError => {
-    // PostgreSQL error codes
-    const pgErrorCodes: Record<string, (error: PostgresError) => AppError> = {
-        '23505': (err) => new ConflictError('A record with this identifier already exists', {
-            constraint: err.details,
-        }),
-        '23503': (err) => new ValidationError('Referenced record does not exist', {
-            constraint: err.details,
-        }),
-        '23502': (err) => new ValidationError('Required field is missing', {
-            column: err.details,
-        }),
-        '42501': () => new AuthorizationError('Insufficient database permissions'),
-        'PGRST116': () => new NotFoundError('Record', 'unknown'),
-    };
+  // PostgreSQL error codes
+  const pgErrorCodes: Record<string, (error: PostgresError) => AppError> = {
+    '23505': (err) =>
+      new ConflictError('A record with this identifier already exists', {
+        constraint: err.details,
+      }),
+    '23503': (err) =>
+      new ValidationError('Referenced record does not exist', {
+        constraint: err.details,
+      }),
+    '23502': (err) =>
+      new ValidationError('Required field is missing', {
+        column: err.details,
+      }),
+    '42501': () => new AuthorizationError('Insufficient database permissions'),
+    PGRST116: () => new NotFoundError('Record', 'unknown'),
+  };
 
-    // Check for PostgreSQL error code
-    if (error.code && pgErrorCodes[error.code]) {
-        return pgErrorCodes[error.code](error);
-    }
+  // Check for PostgreSQL error code
+  if (error.code && pgErrorCodes[error.code]) {
+    return pgErrorCodes[error.code](error);
+  }
 
-    // Check for Supabase-specific errors
-    if (error.message?.includes('JWT')) {
-        return new AuthenticationError('Session expired. Please login again.');
-    }
+  // Check for Supabase-specific errors
+  if (error.message?.includes('JWT')) {
+    return new AuthenticationError('Session expired. Please login again.');
+  }
 
-    if (error.message?.includes('Row Level Security')) {
-        return new AuthorizationError('You do not have permission to access this resource');
-    }
+  if (error.message?.includes('Row Level Security')) {
+    return new AuthorizationError('You do not have permission to access this resource');
+  }
 
-    if (error.message?.includes('duplicate key')) {
-        return new ConflictError('A record with this identifier already exists');
-    }
+  if (error.message?.includes('duplicate key')) {
+    return new ConflictError('A record with this identifier already exists');
+  }
 
-    if (error.message?.includes('violates foreign key')) {
-        return new ValidationError('Referenced record does not exist');
-    }
+  if (error.message?.includes('violates foreign key')) {
+    return new ValidationError('Referenced record does not exist');
+  }
 
-    // Network errors
-    if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
-        return new NetworkError('Unable to connect to server. Please check your internet connection.');
-    }
+  // Network errors
+  if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
+    return new NetworkError('Unable to connect to server. Please check your internet connection.');
+  }
 
-    // Default to generic AppError
-    return new AppError(
-        error.message || 'An unexpected error occurred',
-        error.code || 'UNKNOWN_ERROR',
-        error.statusCode
-    );
+  // Default to generic AppError
+  return new AppError(
+    error.message || 'An unexpected error occurred',
+    error.code || 'UNKNOWN_ERROR',
+    error.statusCode
+  );
 };
 
 // ============================================================================
@@ -133,50 +136,50 @@ export const mapSupabaseError = (error: PostgresError): AppError => {
 // ============================================================================
 
 const ERROR_MESSAGES: Record<string, string> = {
-    // Authentication
-    'AUTH_ERROR': 'Please login to continue',
-    'AUTHORIZATION_ERROR': 'You do not have permission to perform this action',
+  // Authentication
+  AUTH_ERROR: 'Please login to continue',
+  AUTHORIZATION_ERROR: 'You do not have permission to perform this action',
 
-    // Validation
-    'VALIDATION_ERROR': 'Please check your input and try again',
-    'INVALID_AWB': 'Invalid AWB format. Expected format: TAC12345678',
-    'INVALID_STATUS_TRANSITION': 'Cannot change status from current state',
+  // Validation
+  VALIDATION_ERROR: 'Please check your input and try again',
+  INVALID_AWB: 'Invalid AWB format. Expected format: TAC12345678',
+  INVALID_STATUS_TRANSITION: 'Cannot change status from current state',
 
-    // Not Found
-    'NOT_FOUND': 'The requested resource was not found',
-    'SHIPMENT_NOT_FOUND': 'Shipment not found. Please check the AWB number.',
-    'MANIFEST_NOT_FOUND': 'Manifest not found',
-    'INVOICE_NOT_FOUND': 'Invoice not found',
+  // Not Found
+  NOT_FOUND: 'The requested resource was not found',
+  SHIPMENT_NOT_FOUND: 'Shipment not found. Please check the AWB number.',
+  MANIFEST_NOT_FOUND: 'Manifest not found',
+  INVOICE_NOT_FOUND: 'Invoice not found',
 
-    // Conflicts
-    'CONFLICT_ERROR': 'This operation conflicts with existing data',
-    'DUPLICATE_AWB': 'A shipment with this AWB already exists',
-    'MANIFEST_CLOSED': 'Cannot modify a closed manifest',
-    'SHIPMENT_ALREADY_MANIFESTED': 'This shipment is already on a manifest',
+  // Conflicts
+  CONFLICT_ERROR: 'This operation conflicts with existing data',
+  DUPLICATE_AWB: 'A shipment with this AWB already exists',
+  MANIFEST_CLOSED: 'Cannot modify a closed manifest',
+  SHIPMENT_ALREADY_MANIFESTED: 'This shipment is already on a manifest',
 
-    // Network
-    'NETWORK_ERROR': 'Connection error. Please check your internet and try again.',
-    'OFFLINE': 'You are currently offline. Changes will sync when connection is restored.',
+  // Network
+  NETWORK_ERROR: 'Connection error. Please check your internet and try again.',
+  OFFLINE: 'You are currently offline. Changes will sync when connection is restored.',
 
-    // Business Logic
-    'ROUTE_MISMATCH': 'Shipment route does not match manifest route',
-    'WEIGHT_LIMIT_EXCEEDED': 'Total weight exceeds manifest capacity',
-    'INVALID_HUB': 'Invalid hub selection',
+  // Business Logic
+  ROUTE_MISMATCH: 'Shipment route does not match manifest route',
+  WEIGHT_LIMIT_EXCEEDED: 'Total weight exceeds manifest capacity',
+  INVALID_HUB: 'Invalid hub selection',
 
-    // Default
-    'UNKNOWN_ERROR': 'An unexpected error occurred. Please try again.',
+  // Default
+  UNKNOWN_ERROR: 'An unexpected error occurred. Please try again.',
 };
 
 export const getErrorMessage = (error: Error | AppError | string): string => {
-    if (typeof error === 'string') {
-        return ERROR_MESSAGES[error] || error;
-    }
+  if (typeof error === 'string') {
+    return ERROR_MESSAGES[error] || error;
+  }
 
-    if (error instanceof AppError) {
-        return ERROR_MESSAGES[error.code] || error.message;
-    }
+  if (error instanceof AppError) {
+    return ERROR_MESSAGES[error.code] || error.message;
+  }
 
-    return error.message || ERROR_MESSAGES.UNKNOWN_ERROR;
+  return error.message || ERROR_MESSAGES.UNKNOWN_ERROR;
 };
 
 // ============================================================================
@@ -184,32 +187,32 @@ export const getErrorMessage = (error: Error | AppError | string): string => {
 // ============================================================================
 
 export const showErrorToast = (error: Error | AppError | string, title?: string) => {
-    const message = getErrorMessage(error);
-    toast.error(title || 'Error', {
-        description: message,
-        duration: 5000,
-    });
+  const message = getErrorMessage(error);
+  toast.error(title || 'Error', {
+    description: message,
+    duration: 5000,
+  });
 };
 
 export const showSuccessToast = (message: string, title?: string) => {
-    toast.success(title || 'Success', {
-        description: message,
-        duration: 3000,
-    });
+  toast.success(title || 'Success', {
+    description: message,
+    duration: 3000,
+  });
 };
 
 export const showWarningToast = (message: string, title?: string) => {
-    toast.warning(title || 'Warning', {
-        description: message,
-        duration: 4000,
-    });
+  toast.warning(title || 'Warning', {
+    description: message,
+    duration: 4000,
+  });
 };
 
 export const showInfoToast = (message: string, title?: string) => {
-    toast.info(title || 'Info', {
-        description: message,
-        duration: 3000,
-    });
+  toast.info(title || 'Info', {
+    description: message,
+    duration: 3000,
+  });
 };
 
 // ============================================================================
@@ -217,15 +220,16 @@ export const showInfoToast = (message: string, title?: string) => {
 // ============================================================================
 
 export const handleMutationError = (error: unknown, context?: string) => {
-    console.error(`[Mutation Error${context ? ` - ${context}` : ''}]:`, error);
+  console.error(`[Mutation Error${context ? ` - ${context}` : ''}]:`, error);
 
-    const appError = error instanceof Error
-        ? mapSupabaseError(error)
-        : new AppError('An unexpected error occurred', 'UNKNOWN_ERROR');
+  const appError =
+    error instanceof Error
+      ? mapSupabaseError(error)
+      : new AppError('An unexpected error occurred', 'UNKNOWN_ERROR');
 
-    showErrorToast(appError);
+  showErrorToast(appError);
 
-    return appError;
+  return appError;
 };
 
 // ============================================================================
@@ -233,24 +237,24 @@ export const handleMutationError = (error: unknown, context?: string) => {
 // ============================================================================
 
 export const shouldRetry = (error: AppError): boolean => {
-    // Retry on network errors
-    if (error instanceof NetworkError) return true;
+  // Retry on network errors
+  if (error instanceof NetworkError) return true;
 
-    // Retry on 5xx server errors
-    if (error.statusCode && error.statusCode >= 500) return true;
+  // Retry on 5xx server errors
+  if (error.statusCode && error.statusCode >= 500) return true;
 
-    // Don't retry on client errors (4xx)
-    return false;
+  // Don't retry on client errors (4xx)
+  return false;
 };
 
 export const getRetryDelay = (attemptNumber: number): number => {
-    // Exponential backoff: 1s, 2s, 4s, 8s, 16s
-    return Math.min(1000 * Math.pow(2, attemptNumber), 16000);
+  // Exponential backoff: 1s, 2s, 4s, 8s, 16s
+  return Math.min(1000 * Math.pow(2, attemptNumber), 16000);
 };
 
 /**
  * Usage Examples:
- * 
+ *
  * // In a mutation
  * try {
  *   await createShipment(data);
@@ -258,13 +262,13 @@ export const getRetryDelay = (attemptNumber: number): number => {
  * } catch (error) {
  *   handleMutationError(error, 'Create Shipment');
  * }
- * 
+ *
  * // In a component
  * if (error) {
  *   const appError = mapSupabaseError(error);
  *   showErrorToast(appError);
  * }
- * 
+ *
  * // Custom error
  * throw new ValidationError('AWB format is invalid', { awb: inputValue });
  */

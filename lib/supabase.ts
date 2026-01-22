@@ -1,39 +1,41 @@
-import { createClient } from '@supabase/supabase-js'
-import type { Database } from './database.types'
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from './database.types';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase credentials not configured. Using mock data.')
+  console.warn('Supabase credentials not configured. Using mock data.');
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
 // Helper to check if Supabase is configured
 export const isSupabaseConfigured = () => {
-  return Boolean(supabaseUrl && supabaseAnonKey)
-}
+  return Boolean(supabaseUrl && supabaseAnonKey);
+};
 
 // Auth helpers
 export const signIn = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
-  })
-  if (error) throw error
-  return data
-}
+  });
+  if (error) throw error;
+  return data;
+};
 
 export const signOut = async () => {
-  const { error } = await supabase.auth.signOut()
-  if (error) throw error
-}
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+};
 
 export const getCurrentUser = async () => {
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
-}
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user;
+};
 
 // Realtime subscription helper
 export const subscribeToTable = <T>(
@@ -53,9 +55,9 @@ export const subscribeToTable = <T>(
       },
       (payload) => callback(payload.new as T)
     )
-    .subscribe()
+    .subscribe();
 
   return () => {
-    supabase.removeChannel(channel)
-  }
-}
+    supabase.removeChannel(channel);
+  };
+};

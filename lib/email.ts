@@ -10,30 +10,30 @@ import { supabase } from './supabase';
 // ============================================================================
 
 interface EmailOptions {
-    to: string | string[];
-    subject: string;
-    html: string;
-    attachments?: Array<{
-        filename: string;
-        content: string; // Base64 encoded
-    }>;
+  to: string | string[];
+  subject: string;
+  html: string;
+  attachments?: Array<{
+    filename: string;
+    content: string; // Base64 encoded
+  }>;
 }
 
 interface InvoiceEmailData {
-    customerEmail: string;
-    customerName: string;
-    invoiceNumber: string;
-    amount: number;
-    dueDate: string;
-    pdfBase64?: string;
+  customerEmail: string;
+  customerName: string;
+  invoiceNumber: string;
+  amount: number;
+  dueDate: string;
+  pdfBase64?: string;
 }
 
 interface ShipmentNotificationData {
-    customerEmail: string;
-    customerName: string;
-    awbNumber: string;
-    status: string;
-    trackingUrl: string;
+  customerEmail: string;
+  customerName: string;
+  awbNumber: string;
+  status: string;
+  trackingUrl: string;
 }
 
 // ============================================================================
@@ -41,9 +41,9 @@ interface ShipmentNotificationData {
 // ============================================================================
 
 const emailTemplates = {
-    invoiceCreated: (data: InvoiceEmailData) => ({
-        subject: `Invoice ${data.invoiceNumber} from TAC Cargo`,
-        html: `
+  invoiceCreated: (data: InvoiceEmailData) => ({
+    subject: `Invoice ${data.invoiceNumber} from TAC Cargo`,
+    html: `
       <!DOCTYPE html>
       <html>
       <head>
@@ -97,11 +97,11 @@ const emailTemplates = {
       </body>
       </html>
     `,
-    }),
+  }),
 
-    shipmentUpdate: (data: ShipmentNotificationData) => ({
-        subject: `Shipment Update: ${data.awbNumber} - ${data.status.replace(/_/g, ' ')}`,
-        html: `
+  shipmentUpdate: (data: ShipmentNotificationData) => ({
+    subject: `Shipment Update: ${data.awbNumber} - ${data.status.replace(/_/g, ' ')}`,
+    html: `
       <!DOCTYPE html>
       <html>
       <head>
@@ -147,7 +147,7 @@ const emailTemplates = {
       </body>
       </html>
     `,
-    }),
+  }),
 };
 
 // ============================================================================
@@ -157,54 +157,62 @@ const emailTemplates = {
 /**
  * Send email via Supabase Edge Function (Resend)
  */
-export const sendEmail = async (options: EmailOptions): Promise<{ success: boolean; error?: string }> => {
-    try {
-        const { error } = await supabase.functions.invoke('send-email', {
-            body: options,
-        });
+export const sendEmail = async (
+  options: EmailOptions
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const { error } = await supabase.functions.invoke('send-email', {
+      body: options,
+    });
 
-        if (error) {
-            console.error('[Email] Failed to send:', error);
-            return { success: false, error: error.message };
-        }
-
-        return { success: true };
-    } catch (error) {
-        console.error('[Email] Exception:', error);
-        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    if (error) {
+      console.error('[Email] Failed to send:', error);
+      return { success: false, error: error.message };
     }
+
+    return { success: true };
+  } catch (error) {
+    console.error('[Email] Exception:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
 };
 
 /**
  * Send invoice email with PDF attachment
  */
-export const sendInvoiceEmail = async (data: InvoiceEmailData): Promise<{ success: boolean; error?: string }> => {
-    const template = emailTemplates.invoiceCreated(data);
+export const sendInvoiceEmail = async (
+  data: InvoiceEmailData
+): Promise<{ success: boolean; error?: string }> => {
+  const template = emailTemplates.invoiceCreated(data);
 
-    return sendEmail({
-        to: data.customerEmail,
-        subject: template.subject,
-        html: template.html,
-        attachments: data.pdfBase64 ? [
-            {
-                filename: `invoice-${data.invoiceNumber}.pdf`,
-                content: data.pdfBase64,
-            },
-        ] : undefined,
-    });
+  return sendEmail({
+    to: data.customerEmail,
+    subject: template.subject,
+    html: template.html,
+    attachments: data.pdfBase64
+      ? [
+          {
+            filename: `invoice-${data.invoiceNumber}.pdf`,
+            content: data.pdfBase64,
+          },
+        ]
+      : undefined,
+  });
 };
 
 /**
  * Send shipment update notification
  */
-export const sendShipmentNotification = async (data: ShipmentNotificationData): Promise<{ success: boolean; error?: string }> => {
-    const template = emailTemplates.shipmentUpdate(data);
+export const sendShipmentNotification = async (
+  data: ShipmentNotificationData
+): Promise<{ success: boolean; error?: string }> => {
+  const template = emailTemplates.shipmentUpdate(data);
 
-    return sendEmail({
-        to: data.customerEmail,
-        subject: template.subject,
-        html: template.html,
-    });
+  return sendEmail({
+    to: data.customerEmail,
+    subject: template.subject,
+    html: template.html,
+  });
 };
 
 // ============================================================================
@@ -215,7 +223,7 @@ export const sendShipmentNotification = async (data: ShipmentNotificationData): 
  * Check if email service is configured
  */
 export const isEmailConfigured = (): boolean => {
-    // Email is configured if the Resend feature flag is enabled
-    // This should be checked before attempting to send emails
-    return import.meta.env.VITE_RESEND_CONFIGURED === 'true';
+  // Email is configured if the Resend feature flag is enabled
+  // This should be checked before attempting to send emails
+  return import.meta.env.VITE_RESEND_CONFIGURED === 'true';
 };

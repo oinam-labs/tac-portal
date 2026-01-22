@@ -4,15 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { Card, Input, Button } from '../components/ui/CyberComponents';
 import { StatusBadge } from '../components/domain/StatusBadge';
-import {
-  Package,
-  Search,
-  MapPin,
-  Truck,
-  Plane,
-  Clock,
-  ArrowRight
-} from 'lucide-react';
+import { Package, Search, MapPin, Truck, Plane, Clock, ArrowRight } from 'lucide-react';
 
 interface ShipmentRecord {
   awb_number: string;
@@ -51,11 +43,13 @@ export function PublicTracking() {
       // Fetch shipment
       const { data: shipment, error: shipmentError } = await supabase
         .from('shipments')
-        .select(`
+        .select(
+          `
           *,
           origin_hub:hubs!shipments_origin_hub_id_fkey(code, name),
           destination_hub:hubs!shipments_destination_hub_id_fkey(code, name)
-        `)
+        `
+        )
         .eq('awb_number', awb)
         .single();
 
@@ -64,16 +58,21 @@ export function PublicTracking() {
       // Fetch tracking events
       const { data: events, error: eventsError } = await supabase
         .from('tracking_events')
-        .select(`
+        .select(
+          `
           *,
           hub:hubs(code, name)
-        `)
+        `
+        )
         .eq('awb_number', awb)
         .order('event_time', { ascending: false });
 
       if (eventsError) throw eventsError;
 
-      return { shipment: shipment as unknown as ShipmentRecord, events: (events || []) as unknown as TrackingEventRecord[] };
+      return {
+        shipment: shipment as unknown as ShipmentRecord,
+        events: (events || []) as unknown as TrackingEventRecord[],
+      };
     },
     enabled: !!awb,
   });
@@ -135,7 +134,8 @@ export function PublicTracking() {
             <Package className="w-12 h-12 text-destructive mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">Shipment Not Found</h3>
             <p className="text-muted-foreground">
-              We couldn't find a shipment with AWB: <span className="font-mono text-primary">{awb}</span>
+              We couldn't find a shipment with AWB:{' '}
+              <span className="font-mono text-primary">{awb}</span>
             </p>
             <p className="text-sm text-muted-foreground/70 mt-2">
               Please check the AWB number and try again.
@@ -161,7 +161,9 @@ export function PublicTracking() {
             <Card className="p-6 bg-card/80 border-border">
               <div className="flex items-start justify-between mb-6">
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">AWB Number</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                    AWB Number
+                  </p>
                   <h2 className="text-2xl font-mono font-bold text-cyan-400">
                     {data.shipment.awb_number}
                   </h2>
@@ -205,7 +207,9 @@ export function PublicTracking() {
                 </div>
                 <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-xs text-muted-foreground mb-1">Weight</p>
-                  <p className="text-lg font-semibold text-white">{data.shipment.total_weight} kg</p>
+                  <p className="text-lg font-semibold text-white">
+                    {data.shipment.total_weight} kg
+                  </p>
                 </div>
                 <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-xs text-muted-foreground mb-1">Mode</p>
@@ -233,13 +237,21 @@ export function PublicTracking() {
                   {data.events.map((e, idx) => (
                     <div key={e.id} className="flex gap-4">
                       <div className="flex flex-col items-center">
-                        <div className={`w-3 h-3 rounded-full ${idx === 0 ? 'bg-primary' : 'bg-muted-foreground'}`} />
-                        {idx < data.events.length - 1 && <div className="w-0.5 flex-1 bg-border mt-1" />}
+                        <div
+                          className={`w-3 h-3 rounded-full ${idx === 0 ? 'bg-primary' : 'bg-muted-foreground'}`}
+                        />
+                        {idx < data.events.length - 1 && (
+                          <div className="w-0.5 flex-1 bg-border mt-1" />
+                        )}
                       </div>
                       <div className="flex-1 pb-4">
-                        <p className="font-semibold text-white">{e.event_code.replace(/_/g, ' ')}</p>
+                        <p className="font-semibold text-white">
+                          {e.event_code.replace(/_/g, ' ')}
+                        </p>
                         <p className="text-sm text-muted-foreground">{e.hub?.name || 'System'}</p>
-                        <p className="text-xs text-muted-foreground/70">{e.event_time ? new Date(e.event_time).toLocaleString() : 'N/A'}</p>
+                        <p className="text-xs text-muted-foreground/70">
+                          {e.event_time ? new Date(e.event_time).toLocaleString() : 'N/A'}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -274,11 +286,9 @@ export function PublicTracking() {
       {/* Footer */}
       <footer className="border-t border-border mt-12 py-6">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            © 2026 TAC Cargo. All rights reserved.
-          </p>
+          <p className="text-sm text-muted-foreground">© 2026 TAC Cargo. All rights reserved.</p>
         </div>
       </footer>
     </div>
   );
-};
+}

@@ -1,10 +1,6 @@
 {
   "extends": "stylelint-config-standard",
-  "ignoreFiles": [
-    "**/node_modules/**",
-    "**/dist/**",
-    "**/*.min.css"
-  ],
+  "ignoreFiles": ["**/node_modules/**", "**/dist/**", "**/*.min.css"],
   "rules": {
     "color-named": "never",
     "color-no-hex": true,
@@ -16,11 +12,7 @@
     "at-rule-no-unknown": [
       true,
       {
-        "ignoreAtRules": [
-          "source",
-          "custom-variant",
-          "theme"
-        ]
+        "ignoreAtRules": ["source", "custom-variant", "theme"]
       }
     ],
     "media-feature-name-value-no-unknown": null

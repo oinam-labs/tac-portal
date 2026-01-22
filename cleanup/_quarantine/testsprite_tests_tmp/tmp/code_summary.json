@@ -1,171 +1,134 @@
 {
-    "tech_stack": [
-        "TypeScript",
-        "React 19",
-        "Vite",
-        "react-router-dom",
-        "Supabase (Auth + Postgres + RLS)",
-        "TanStack React Query",
-        "Zustand",
-        "Tailwind CSS v4",
-        "Radix UI",
-        "shadcn/ui",
-        "pdf-lib",
-        "jsbarcode",
-        "bwip-js",
-        "ZXing",
-        "Sentry",
-        "Playwright",
-        "Vitest"
-    ],
-    "features": [
-        {
-            "name": "Authentication",
-            "description": "Supabase-based authentication with role-based access control (RBAC). Supports roles: ADMIN, MANAGER, OPS_STAFF, WAREHOUSE_STAFF, FINANCE_STAFF, SUPPORT",
-            "files": [
-                "store/authStore.ts",
-                "lib/supabase.ts",
-                "App.tsx"
-            ]
-        },
-        {
-            "name": "Dashboard",
-            "description": "Main dashboard with KPIs, charts, and quick actions for logistics operations",
-            "files": [
-                "pages/Dashboard.tsx"
-            ]
-        },
-        {
-            "name": "Shipments",
-            "description": "CRUD operations for shipments with AWB generation, status tracking, and customer association",
-            "files": [
-                "pages/Shipments.tsx",
-                "lib/services/shipmentService.ts",
-                "lib/schemas/shipment.schema.ts"
-            ]
-        },
-        {
-            "name": "Manifests",
-            "description": "Manifest creation, shipment assignment, dispatch workflow (OPEN -> CLOSED -> DEPARTED -> ARRIVED)",
-            "files": [
-                "pages/Manifests.tsx",
-                "app/(protected)/manifests/create/page.tsx",
-                "lib/services/manifestService.ts"
-            ]
-        },
-        {
-            "name": "Scanning",
-            "description": "Barcode/QR scanning with idempotent shipment-to-manifest assignment. Supports ZXing scanner integration",
-            "files": [
-                "pages/Scanning.tsx",
-                "lib/scanParser.ts"
-            ]
-        },
-        {
-            "name": "Invoices",
-            "description": "Invoice creation, management, PDF generation with barcode. Status workflow: DRAFT -> ISSUED -> PAID/CANCELLED",
-            "files": [
-                "pages/Finance.tsx",
-                "lib/services/invoiceService.ts",
-                "lib/pdf-generator.ts"
-            ]
-        },
-        {
-            "name": "Customers",
-            "description": "Customer management with GSTIN, address, and billing information",
-            "files": [
-                "pages/Customers.tsx",
-                "lib/services/customerService.ts",
-                "lib/schemas/customers.schema.ts"
-            ]
-        },
-        {
-            "name": "Tracking",
-            "description": "Internal and public shipment tracking with event history",
-            "files": [
-                "pages/Tracking.tsx",
-                "pages/PublicTracking.tsx",
-                "lib/services/trackingService.ts",
-                "lib/tracking-service.ts"
-            ]
-        },
-        {
-            "name": "Exceptions",
-            "description": "Exception handling for shipments with assignment, resolution workflow, and severity levels",
-            "files": [
-                "pages/Exceptions.tsx",
-                "lib/services/exceptionService.ts"
-            ]
-        },
-        {
-            "name": "Inventory",
-            "description": "Warehouse inventory management and stock tracking",
-            "files": [
-                "pages/Inventory.tsx"
-            ]
-        },
-        {
-            "name": "Analytics",
-            "description": "Business analytics with charts and metrics for operations performance",
-            "files": [
-                "pages/Analytics.tsx"
-            ]
-        },
-        {
-            "name": "Management",
-            "description": "Staff, hub, and organization management (ADMIN only)",
-            "files": [
-                "pages/Management.tsx",
-                "lib/services/staffService.ts",
-                "lib/services/orgService.ts"
-            ]
-        },
-        {
-            "name": "PrintLabel",
-            "description": "Shipping label generation and printing with barcode",
-            "files": [
-                "pages/PrintLabel.tsx",
-                "lib/pdf-generator.ts"
-            ]
-        },
-        {
-            "name": "Notifications",
-            "description": "User notification system for alerts and updates",
-            "files": [
-                "pages/Notifications.tsx",
-                "lib/notifications/"
-            ]
-        },
-        {
-            "name": "Settings",
-            "description": "User preferences and application settings",
-            "files": [
-                "pages/Settings.tsx"
-            ]
-        },
-        {
-            "name": "ShiftReport",
-            "description": "Shift-based operational reporting for warehouse staff",
-            "files": [
-                "pages/ShiftReport.tsx",
-                "lib/services/shiftReportService.ts"
-            ]
-        },
-        {
-            "name": "AuditService",
-            "description": "Audit logging for critical operations and compliance",
-            "files": [
-                "lib/services/auditService.ts"
-            ]
-        },
-        {
-            "name": "ErrorHandling",
-            "description": "Centralized error handling with Sentry integration and user-friendly error messages",
-            "files": [
-                "lib/errors.ts",
-                "lib/sentry.ts",
-                "components/ui/error-boundary.tsx"
-            ]
-        }
-    ]
+  "tech_stack": [
+    "TypeScript",
+    "React 19",
+    "Vite",
+    "react-router-dom",
+    "Supabase (Auth + Postgres + RLS)",
+    "TanStack React Query",
+    "Zustand",
+    "Tailwind CSS v4",
+    "Radix UI",
+    "shadcn/ui",
+    "pdf-lib",
+    "jsbarcode",
+    "bwip-js",
+    "ZXing",
+    "Sentry",
+    "Playwright",
+    "Vitest"
+  ],
+  "features": [
+    {
+      "name": "Authentication",
+      "description": "Supabase-based authentication with role-based access control (RBAC). Supports roles: ADMIN, MANAGER, OPS_STAFF, WAREHOUSE_STAFF, FINANCE_STAFF, SUPPORT",
+      "files": ["store/authStore.ts", "lib/supabase.ts", "App.tsx"]
+    },
+    {
+      "name": "Dashboard",
+      "description": "Main dashboard with KPIs, charts, and quick actions for logistics operations",
+      "files": ["pages/Dashboard.tsx"]
+    },
+    {
+      "name": "Shipments",
+      "description": "CRUD operations for shipments with AWB generation, status tracking, and customer association",
+      "files": [
+        "pages/Shipments.tsx",
+        "lib/services/shipmentService.ts",
+        "lib/schemas/shipment.schema.ts"
+      ]
+    },
+    {
+      "name": "Manifests",
+      "description": "Manifest creation, shipment assignment, dispatch workflow (OPEN -> CLOSED -> DEPARTED -> ARRIVED)",
+      "files": [
+        "pages/Manifests.tsx",
+        "app/(protected)/manifests/create/page.tsx",
+        "lib/services/manifestService.ts"
+      ]
+    },
+    {
+      "name": "Scanning",
+      "description": "Barcode/QR scanning with idempotent shipment-to-manifest assignment. Supports ZXing scanner integration",
+      "files": ["pages/Scanning.tsx", "lib/scanParser.ts"]
+    },
+    {
+      "name": "Invoices",
+      "description": "Invoice creation, management, PDF generation with barcode. Status workflow: DRAFT -> ISSUED -> PAID/CANCELLED",
+      "files": ["pages/Finance.tsx", "lib/services/invoiceService.ts", "lib/pdf-generator.ts"]
+    },
+    {
+      "name": "Customers",
+      "description": "Customer management with GSTIN, address, and billing information",
+      "files": [
+        "pages/Customers.tsx",
+        "lib/services/customerService.ts",
+        "lib/schemas/customers.schema.ts"
+      ]
+    },
+    {
+      "name": "Tracking",
+      "description": "Internal and public shipment tracking with event history",
+      "files": [
+        "pages/Tracking.tsx",
+        "pages/PublicTracking.tsx",
+        "lib/services/trackingService.ts",
+        "lib/tracking-service.ts"
+      ]
+    },
+    {
+      "name": "Exceptions",
+      "description": "Exception handling for shipments with assignment, resolution workflow, and severity levels",
+      "files": ["pages/Exceptions.tsx", "lib/services/exceptionService.ts"]
+    },
+    {
+      "name": "Inventory",
+      "description": "Warehouse inventory management and stock tracking",
+      "files": ["pages/Inventory.tsx"]
+    },
+    {
+      "name": "Analytics",
+      "description": "Business analytics with charts and metrics for operations performance",
+      "files": ["pages/Analytics.tsx"]
+    },
+    {
+      "name": "Management",
+      "description": "Staff, hub, and organization management (ADMIN only)",
+      "files": [
+        "pages/Management.tsx",
+        "lib/services/staffService.ts",
+        "lib/services/orgService.ts"
+      ]
+    },
+    {
+      "name": "PrintLabel",
+      "description": "Shipping label generation and printing with barcode",
+      "files": ["pages/PrintLabel.tsx", "lib/pdf-generator.ts"]
+    },
+    {
+      "name": "Notifications",
+      "description": "User notification system for alerts and updates",
+      "files": ["pages/Notifications.tsx", "lib/notifications/"]
+    },
+    {
+      "name": "Settings",
+      "description": "User preferences and application settings",
+      "files": ["pages/Settings.tsx"]
+    },
+    {
+      "name": "ShiftReport",
+      "description": "Shift-based operational reporting for warehouse staff",
+      "files": ["pages/ShiftReport.tsx", "lib/services/shiftReportService.ts"]
+    },
+    {
+      "name": "AuditService",
+      "description": "Audit logging for critical operations and compliance",
+      "files": ["lib/services/auditService.ts"]
+    },
+    {
+      "name": "ErrorHandling",
+      "description": "Centralized error handling with Sentry integration and user-friendly error messages",
+      "files": ["lib/errors.ts", "lib/sentry.ts", "components/ui/error-boundary.tsx"]
+    }
+  ]
 }

@@ -1,19 +1,15 @@
 {
-    "compilerOptions": {
-        "allowJs": true,
-        "lib": [
-            "deno.window"
-        ],
-        "strict": true
-    },
-    "imports": {
-        "@supabase/supabase-js": "jsr:@supabase/supabase-js@2"
-    },
-    "lint": {
-        "rules": {
-            "exclude": [
-                "no-explicit-any"
-            ]
-        }
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": ["deno.window"],
+    "strict": true
+  },
+  "imports": {
+    "@supabase/supabase-js": "jsr:@supabase/supabase-js@2"
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["no-explicit-any"]
     }
+  }
 }

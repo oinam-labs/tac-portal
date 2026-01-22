@@ -13,97 +13,103 @@ type TrackingEvent = Database['public']['Tables']['tracking_events']['Row'];
 type TrackingEventInsert = Database['public']['Tables']['tracking_events']['Insert'];
 
 export interface TrackingEventWithRelations extends TrackingEvent {
-    hub?: { id: string; code: string; name: string };
-    actor?: { id: string; full_name: string };
+  hub?: { id: string; code: string; name: string };
+  actor?: { id: string; full_name: string };
 }
 
 export const trackingService = {
-    async getByShipmentId(shipmentId: string): Promise<TrackingEventWithRelations[]> {
-        const orgId = orgService.getCurrentOrgId();
+  async getByShipmentId(shipmentId: string): Promise<TrackingEventWithRelations[]> {
+    const orgId = orgService.getCurrentOrgId();
 
-        const { data, error } = await supabase
-            .from('tracking_events')
-            .select(`
+    const { data, error } = await supabase
+      .from('tracking_events')
+      .select(
+        `
         *,
         hub:hubs(id, code, name),
         actor:staff(id, full_name)
-      `)
-            .eq('shipment_id', shipmentId)
-            .eq('org_id', orgId)
-            .order('event_time', { ascending: false });
+      `
+      )
+      .eq('shipment_id', shipmentId)
+      .eq('org_id', orgId)
+      .order('event_time', { ascending: false });
 
-        if (error) throw mapSupabaseError(error);
-        return (data ?? []) as unknown as TrackingEventWithRelations[];
-    },
+    if (error) throw mapSupabaseError(error);
+    return (data ?? []) as unknown as TrackingEventWithRelations[];
+  },
 
-    async getByAwb(awb: string): Promise<TrackingEventWithRelations[]> {
-        const orgId = orgService.getCurrentOrgId();
+  async getByAwb(awb: string): Promise<TrackingEventWithRelations[]> {
+    const orgId = orgService.getCurrentOrgId();
 
-        const { data, error } = await supabase
-            .from('tracking_events')
-            .select(`
+    const { data, error } = await supabase
+      .from('tracking_events')
+      .select(
+        `
         *,
         hub:hubs(id, code, name),
         actor:staff(id, full_name)
-      `)
-            .eq('awb_number', awb)
-            .eq('org_id', orgId)
-            .order('event_time', { ascending: false });
+      `
+      )
+      .eq('awb_number', awb)
+      .eq('org_id', orgId)
+      .order('event_time', { ascending: false });
 
-        if (error) throw mapSupabaseError(error);
-        return (data ?? []) as unknown as TrackingEventWithRelations[];
-    },
+    if (error) throw mapSupabaseError(error);
+    return (data ?? []) as unknown as TrackingEventWithRelations[];
+  },
 
-    async create(event: Omit<TrackingEventInsert, 'org_id'>): Promise<TrackingEvent> {
-        const orgId = orgService.getCurrentOrgId();
+  async create(event: Omit<TrackingEventInsert, 'org_id'>): Promise<TrackingEvent> {
+    const orgId = orgService.getCurrentOrgId();
 
-        const { data, error } = await supabase
-            .from('tracking_events')
-            .insert({
-                ...event,
-                org_id: orgId,
-            } as any)
-            .select()
-            .single();
+    const { data, error } = await supabase
+      .from('tracking_events')
+      .insert({
+        ...event,
+        org_id: orgId,
+      } as any)
+      .select()
+      .single();
 
-        if (error) throw mapSupabaseError(error);
-        return data as TrackingEvent;
-    },
+    if (error) throw mapSupabaseError(error);
+    return data as TrackingEvent;
+  },
 
-    async createScanEvent(
-        shipmentId: string,
-        awb: string,
-        eventCode: string,
-        hubId: string,
-        staffId: string,
-        meta?: Record<string, any>
-    ): Promise<TrackingEvent> {
-        return this.create({
-            shipment_id: shipmentId,
-            awb_number: awb,
-            event_code: eventCode,
-            hub_id: hubId,
-            actor_staff_id: staffId,
-            source: 'SCAN',
-            meta: meta ?? {},
-        });
-    },
+  async createScanEvent(
+    shipmentId: string,
+    awb: string,
+    eventCode: string,
+    hubId: string,
+    staffId: string,
+    meta?: Record<string, any>
+  ): Promise<TrackingEvent> {
+    return this.create({
+      shipment_id: shipmentId,
+      awb_number: awb,
+      event_code: eventCode,
+      hub_id: hubId,
+      actor_staff_id: staffId,
+      source: 'SCAN',
+      meta: meta ?? {},
+    });
+  },
 
-    async getRecentEvents(limit: number = 50): Promise<TrackingEventWithRelations[]> {
-        const orgId = orgService.getCurrentOrgId();
+  async getRecentEvents(limit: number = 50): Promise<TrackingEventWithRelations[]> {
+    const orgId = orgService.getCurrentOrgId();
 
-        const { data, error } = await supabase
-            .from('tracking_events')
-            .select(`
+    const { data, error } = await supabase
+      .from('tracking_events')
+      .select(
+        `
         *,
         hub:hubs(id, code, name),
         actor:staff(id, full_name)
-      `)
-            .eq('org_id', orgId)
-            .order('event_time', { ascending: false })
-            .limit(limit);
+      `
+      )
+      .eq('org_id', orgId)
+      .order('event_time', { ascending: false })
+      .limit(limit);
 
-        if (error) throw mapSupabaseError(error);
-        return (data ?? []) as unknown as TrackingEventWithRelations[];
-    },
+    if (error) throw mapSupabaseError(error);
+    return (data ?? []) as unknown as TrackingEventWithRelations[];
+  },
 };

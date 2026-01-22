@@ -23,7 +23,8 @@ export interface CustomerAddress {
 export const customerKeys = {
   all: ['customers'] as const,
   lists: () => [...customerKeys.all, 'list'] as const,
-  list: (filters?: { search?: string; limit?: number }) => [...customerKeys.lists(), filters] as const,
+  list: (filters?: { search?: string; limit?: number }) =>
+    [...customerKeys.lists(), filters] as const,
   details: () => [...customerKeys.all, 'detail'] as const,
   detail: (id: string) => [...customerKeys.details(), id] as const,
 };
@@ -87,11 +88,7 @@ export function useCustomer(id: string | null) {
   return useQuery({
     queryKey: customerKeys.detail(id ?? ''),
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('id', id!)
-        .single();
+      const { data, error } = await supabase.from('customers').select('*').eq('id', id!).single();
 
       if (error) throw error;
       return data as Customer;
@@ -124,8 +121,7 @@ export function useCreateCustomer() {
       };
 
       // Type assertion needed due to Supabase client type inference limitations
-      const { data, error } = await (supabase
-        .from('customers') as ReturnType<typeof supabase.from>)
+      const { data, error } = await (supabase.from('customers') as ReturnType<typeof supabase.from>)
         .insert(insertData)
         .select()
         .single();
@@ -150,7 +146,15 @@ export function useUpdateCustomer() {
     mutationFn: async ({ id, data }: { id: string; data: Partial<Customer> }) => {
       // Extract only valid update fields
       const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
-      const allowedFields = ['name', 'phone', 'email', 'gstin', 'address', 'billing_address', 'credit_limit'];
+      const allowedFields = [
+        'name',
+        'phone',
+        'email',
+        'gstin',
+        'address',
+        'billing_address',
+        'credit_limit',
+      ];
       for (const key of allowedFields) {
         if (key in data) {
           updateData[key] = data[key as keyof typeof data];
@@ -158,8 +162,9 @@ export function useUpdateCustomer() {
       }
 
       // Type assertion needed due to Supabase client type inference limitations
-      const { data: result, error } = await (supabase
-        .from('customers') as ReturnType<typeof supabase.from>)
+      const { data: result, error } = await (
+        supabase.from('customers') as ReturnType<typeof supabase.from>
+      )
         .update(updateData)
         .eq('id', id)
         .select()
@@ -188,8 +193,7 @@ export function useDeleteCustomer() {
   return useMutation({
     mutationFn: async (id: string) => {
       // Type assertion needed due to Supabase client type inference limitations
-      const { error } = await (supabase
-        .from('customers') as ReturnType<typeof supabase.from>)
+      const { error } = await (supabase.from('customers') as ReturnType<typeof supabase.from>)
         .update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
         .eq('id', id);
 
@@ -205,4 +209,3 @@ export function useDeleteCustomer() {
     },
   });
 }
-

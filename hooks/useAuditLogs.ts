@@ -24,10 +24,12 @@ export function useAuditLogs(options?: { limit?: number; entityType?: string }) 
     queryFn: async () => {
       let query = supabase
         .from('audit_logs')
-        .select(`
+        .select(
+          `
           *,
           staff:staff(full_name, email)
-        `)
+        `
+        )
         .order('created_at', { ascending: false });
 
       if (options?.entityType) {

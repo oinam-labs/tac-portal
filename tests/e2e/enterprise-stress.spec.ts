@@ -8,302 +8,319 @@ import { test, expect } from '@playwright/test';
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
 test.describe('Enterprise Stress Tests', () => {
-    test.describe('Scanning Idempotency Stress', () => {
-        test('should handle 20 rapid duplicate AWB scans creating only ONE manifest item', async ({ page }) => {
-            await page.goto(`${BASE_URL}/#/scanning`);
-            await page.waitForLoadState('networkidle');
+  test.describe('Scanning Idempotency Stress', () => {
+    test('should handle 20 rapid duplicate AWB scans creating only ONE manifest item', async ({
+      page,
+    }) => {
+      await page.goto(`${BASE_URL}/#/scanning`);
+      await page.waitForLoadState('networkidle');
 
-            // Find scan input
-            const scanInput = page.getByPlaceholder(/awb|scan|barcode/i).first();
+      // Find scan input
+      const scanInput = page.getByPlaceholder(/awb|scan|barcode/i).first();
 
-            if (await scanInput.isVisible({ timeout: 5000 })) {
-                const testAwb = `TAC${Date.now().toString().slice(-8)}`;
+      if (await scanInput.isVisible({ timeout: 5000 })) {
+        const testAwb = `TAC${Date.now().toString().slice(-8)}`;
 
-                // Rapid-fire 20 scans of the same AWB
-                const scanPromises: Promise<void>[] = [];
-                for (let i = 0; i < 20; i++) {
-                    scanPromises.push((async () => {
-                        await scanInput.fill(testAwb);
-                        await scanInput.press('Enter');
-                        await page.waitForTimeout(50); // 50ms between scans
-                    })());
-                }
+        // Rapid-fire 20 scans of the same AWB
+        const scanPromises: Promise<void>[] = [];
+        for (let i = 0; i < 20; i++) {
+          scanPromises.push(
+            (async () => {
+              await scanInput.fill(testAwb);
+              await scanInput.press('Enter');
+              await page.waitForTimeout(50); // 50ms between scans
+            })()
+          );
+        }
 
-                // Wait for all scans to complete
-                await Promise.all(scanPromises);
-                await page.waitForTimeout(2000);
+        // Wait for all scans to complete
+        await Promise.all(scanPromises);
+        await page.waitForTimeout(2000);
 
-                // Verify page is still functional (no crash)
-                await expect(page.locator('body')).toContainText(/(Scanning|Dashboard|TAC)/i);
+        // Verify page is still functional (no crash)
+        await expect(page.locator('body')).toContainText(/(Scanning|Dashboard|TAC)/i);
 
-                // Check for duplicate warning/info messages OR verify UI stability
-                const duplicateMessages = page.locator('text=/already|duplicate|exists|scanned/i');
-                const messageCount = await duplicateMessages.count();
+        // Check for duplicate warning/info messages OR verify UI stability
+        const duplicateMessages = page.locator('text=/already|duplicate|exists|scanned/i');
+        const messageCount = await duplicateMessages.count();
 
-                // Idempotency check: Either duplicate warnings shown OR page remained stable
-                // If no duplicate warnings, verify the scan queue/list doesn't have 20 entries
-                if (messageCount === 0) {
-                    // Fallback: verify page didn't create 20 separate items (idempotency)
-                    const scanItems = page.locator('[data-testid="scan-item"], .scan-item, tr');
-                    const itemCount = await scanItems.count();
-                    // Should not have 20+ items from duplicate scans
-                    expect(itemCount).toBeLessThan(20);
-                } else {
-                    // Duplicate warnings were shown - idempotency working
-                    expect(messageCount).toBeGreaterThan(0);
-                }
-            }
-        });
-
-        test('should maintain UI responsiveness during rapid scanning', async ({ page }) => {
-            await page.goto(`${BASE_URL}/#/scanning`);
-            await page.waitForLoadState('networkidle');
-
-            const startTime = Date.now();
-
-            // Perform 10 rapid scans with different AWBs
-            const scanInput = page.getByPlaceholder(/awb|scan|barcode/i).first();
-
-            if (await scanInput.isVisible({ timeout: 5000 })) {
-                for (let i = 0; i < 10; i++) {
-                    const awb = `TAC${(10000000 + i).toString()}`;
-                    await scanInput.fill(awb);
-                    await scanInput.press('Enter');
-                }
-            }
-
-            const endTime = Date.now();
-            const duration = endTime - startTime;
-
-            // UI should remain responsive - 10 scans in under 10 seconds
-            expect(duration).toBeLessThan(10000);
-
-            // Page should still be functional
-            await expect(page.locator('body')).toBeVisible();
-        });
+        // Idempotency check: Either duplicate warnings shown OR page remained stable
+        // If no duplicate warnings, verify the scan queue/list doesn't have 20 entries
+        if (messageCount === 0) {
+          // Fallback: verify page didn't create 20 separate items (idempotency)
+          const scanItems = page.locator('[data-testid="scan-item"], .scan-item, tr');
+          const itemCount = await scanItems.count();
+          // Should not have 20+ items from duplicate scans
+          expect(itemCount).toBeLessThan(20);
+        } else {
+          // Duplicate warnings were shown - idempotency working
+          expect(messageCount).toBeGreaterThan(0);
+        }
+      }
     });
 
-    test.describe('Invoice & PDF Contract Tests', () => {
-        test('should render Finance/Invoice page without errors', async ({ page }) => {
-            const consoleErrors: string[] = [];
-            page.on('console', msg => {
-                if (msg.type() === 'error') {
-                    consoleErrors.push(msg.text());
-                }
-            });
+    test('should maintain UI responsiveness during rapid scanning', async ({ page }) => {
+      await page.goto(`${BASE_URL}/#/scanning`);
+      await page.waitForLoadState('networkidle');
 
-            await page.goto(`${BASE_URL}/#/finance`);
-            await page.waitForLoadState('networkidle');
+      const startTime = Date.now();
 
-            // Verify finance page loads
-            await expect(page.locator('body')).toContainText(/(Finance|Invoice|Dashboard)/i, { timeout: 15000 });
+      // Perform 10 rapid scans with different AWBs
+      const scanInput = page.getByPlaceholder(/awb|scan|barcode/i).first();
 
-            // Filter out network errors (expected in test env)
-            const criticalErrors = consoleErrors.filter(
-                err => !err.includes('Failed to fetch') &&
-                    !err.includes('NetworkError') &&
-                    !err.includes('supabase')
-            );
+      if (await scanInput.isVisible({ timeout: 5000 })) {
+        for (let i = 0; i < 10; i++) {
+          const awb = `TAC${(10000000 + i).toString()}`;
+          await scanInput.fill(awb);
+          await scanInput.press('Enter');
+        }
+      }
 
-            expect(criticalErrors.length).toBe(0);
-        });
+      const endTime = Date.now();
+      const duration = endTime - startTime;
 
-        test('should display invoice list with correct columns', async ({ page }) => {
-            await page.goto(`${BASE_URL}/#/finance`);
-            await page.waitForLoadState('networkidle');
+      // UI should remain responsive - 10 scans in under 10 seconds
+      expect(duration).toBeLessThan(10000);
 
-            // Should have invoice-related content visible
-            await expect(page.locator('body')).toContainText(/(Finance|Invoice|Create)/i, { timeout: 15000 });
-        });
+      // Page should still be functional
+      await expect(page.locator('body')).toBeVisible();
+    });
+  });
 
-        test('should handle invoice creation form validation', async ({ page }) => {
-            await page.goto(`${BASE_URL}/#/finance`);
-            await page.waitForLoadState('networkidle');
+  test.describe('Invoice & PDF Contract Tests', () => {
+    test('should render Finance/Invoice page without errors', async ({ page }) => {
+      const consoleErrors: string[] = [];
+      page.on('console', (msg) => {
+        if (msg.type() === 'error') {
+          consoleErrors.push(msg.text());
+        }
+      });
 
-            // Look for create invoice button
-            const createButton = page.getByRole('button', { name: /create|new|add/i });
+      await page.goto(`${BASE_URL}/#/finance`);
+      await page.waitForLoadState('networkidle');
 
-            if (await createButton.isVisible({ timeout: 5000 })) {
-                await createButton.click();
-                await page.waitForTimeout(500);
+      // Verify finance page loads
+      await expect(page.locator('body')).toContainText(/(Finance|Invoice|Dashboard)/i, {
+        timeout: 15000,
+      });
 
-                // Try to submit empty form
-                const submitButton = page.getByRole('button', { name: /save|submit|create/i });
-                if (await submitButton.isVisible({ timeout: 3000 })) {
-                    await submitButton.click();
+      // Filter out network errors (expected in test env)
+      const criticalErrors = consoleErrors.filter(
+        (err) =>
+          !err.includes('Failed to fetch') &&
+          !err.includes('NetworkError') &&
+          !err.includes('supabase')
+      );
 
-                    // Should show validation errors - verify form completes without crash
-                    await page.waitForTimeout(500);
-                    // Form validation should work
-                    expect(true).toBe(true); // Test completed without crash
-                }
-            }
-        });
+      expect(criticalErrors.length).toBe(0);
     });
 
-    test.describe('Manifest Workflow Tests', () => {
-        test('should load manifests page', async ({ page }) => {
-            await page.goto(`${BASE_URL}/#/manifests`);
-            await page.waitForLoadState('networkidle');
+    test('should display invoice list with correct columns', async ({ page }) => {
+      await page.goto(`${BASE_URL}/#/finance`);
+      await page.waitForLoadState('networkidle');
 
-            await expect(page.locator('body')).toContainText(/(Manifest|Dashboard|TAC)/i, { timeout: 15000 });
-        });
-
-        test('should enforce manifest status workflow order', async ({ page }) => {
-            await page.goto(`${BASE_URL}/#/manifests`);
-            await page.waitForLoadState('networkidle');
-
-            // Verify status filter or manifest list is available
-            const statusFilter = page.getByRole('combobox');
-            if (await statusFilter.first().isVisible({ timeout: 5000 })) {
-                await statusFilter.first().click();
-
-                // Verify combobox opened - page handles status options
-            }
-
-            // Page should remain functional
-            await expect(page.locator('body')).toBeVisible();
-        });
+      // Should have invoice-related content visible
+      await expect(page.locator('body')).toContainText(/(Finance|Invoice|Create)/i, {
+        timeout: 15000,
+      });
     });
 
-    test.describe('Shipment Status Transition Tests', () => {
-        test('should load shipments page', async ({ page }) => {
-            await page.goto(`${BASE_URL}/#/shipments`);
-            await page.waitForLoadState('networkidle');
+    test('should handle invoice creation form validation', async ({ page }) => {
+      await page.goto(`${BASE_URL}/#/finance`);
+      await page.waitForLoadState('networkidle');
 
-            await expect(page.locator('body')).toContainText(/(Shipment|AWB|Dashboard)/i, { timeout: 15000 });
-        });
+      // Look for create invoice button
+      const createButton = page.getByRole('button', { name: /create|new|add/i });
 
-        test('should display shipment status correctly', async ({ page }) => {
-            await page.goto(`${BASE_URL}/#/shipments`);
-            await page.waitForLoadState('networkidle');
+      if (await createButton.isVisible({ timeout: 5000 })) {
+        await createButton.click();
+        await page.waitForTimeout(500);
 
-            // Page should be functional with or without data
-            await expect(page.locator('body')).toBeVisible();
-        });
+        // Try to submit empty form
+        const submitButton = page.getByRole('button', { name: /save|submit|create/i });
+        if (await submitButton.isVisible({ timeout: 3000 })) {
+          await submitButton.click();
+
+          // Should show validation errors - verify form completes without crash
+          await page.waitForTimeout(500);
+          // Form validation should work
+          expect(true).toBe(true); // Test completed without crash
+        }
+      }
+    });
+  });
+
+  test.describe('Manifest Workflow Tests', () => {
+    test('should load manifests page', async ({ page }) => {
+      await page.goto(`${BASE_URL}/#/manifests`);
+      await page.waitForLoadState('networkidle');
+
+      await expect(page.locator('body')).toContainText(/(Manifest|Dashboard|TAC)/i, {
+        timeout: 15000,
+      });
     });
 
-    test.describe('Exception Handling Tests', () => {
-        test('should load exceptions page', async ({ page }) => {
-            await page.goto(`${BASE_URL}/#/exceptions`);
-            await page.waitForLoadState('networkidle');
+    test('should enforce manifest status workflow order', async ({ page }) => {
+      await page.goto(`${BASE_URL}/#/manifests`);
+      await page.waitForLoadState('networkidle');
 
-            await expect(page.locator('body')).toContainText(/(Exception|Issue|Dashboard)/i, { timeout: 15000 });
-        });
+      // Verify status filter or manifest list is available
+      const statusFilter = page.getByRole('combobox');
+      if (await statusFilter.first().isVisible({ timeout: 5000 })) {
+        await statusFilter.first().click();
 
-        test('should display exception severity levels', async ({ page }) => {
-            await page.goto(`${BASE_URL}/#/exceptions`);
-            await page.waitForLoadState('networkidle');
+        // Verify combobox opened - page handles status options
+      }
 
-            // Look for severity filters or indicators
-            const severityFilter = page.getByRole('combobox');
-            if (await severityFilter.first().isVisible({ timeout: 5000 })) {
-                await severityFilter.first().click();
+      // Page should remain functional
+      await expect(page.locator('body')).toBeVisible();
+    });
+  });
 
-                // Verify page handles severity options (combobox opened)
-            }
+  test.describe('Shipment Status Transition Tests', () => {
+    test('should load shipments page', async ({ page }) => {
+      await page.goto(`${BASE_URL}/#/shipments`);
+      await page.waitForLoadState('networkidle');
 
-            await expect(page.locator('body')).toBeVisible();
-        });
+      await expect(page.locator('body')).toContainText(/(Shipment|AWB|Dashboard)/i, {
+        timeout: 15000,
+      });
     });
 
-    test.describe('Error Recovery Tests', () => {
-        test('should handle network errors gracefully', async ({ page, context }) => {
-            await page.goto(`${BASE_URL}/#/dashboard`);
-            await page.waitForLoadState('networkidle');
+    test('should display shipment status correctly', async ({ page }) => {
+      await page.goto(`${BASE_URL}/#/shipments`);
+      await page.waitForLoadState('networkidle');
 
-            // Simulate offline mode
-            await context.setOffline(true);
+      // Page should be functional with or without data
+      await expect(page.locator('body')).toBeVisible();
+    });
+  });
 
-            // Try to navigate
-            await page.goto(`${BASE_URL}/#/shipments`);
-            await page.waitForTimeout(2000);
+  test.describe('Exception Handling Tests', () => {
+    test('should load exceptions page', async ({ page }) => {
+      await page.goto(`${BASE_URL}/#/exceptions`);
+      await page.waitForLoadState('networkidle');
 
-            // Go back online
-            await context.setOffline(false);
-            await page.reload();
-            await page.waitForLoadState('networkidle');
-
-            // Page should recover
-            await expect(page.locator('body')).toContainText(/(Shipment|Dashboard|TAC)/i, { timeout: 15000 });
-        });
-
-        test('should display user-friendly error messages', async ({ page }) => {
-            await page.goto(`${BASE_URL}/#/dashboard`);
-            await page.waitForLoadState('networkidle');
-
-            // Verify no raw Supabase errors are displayed
-            const rawErrors = page.locator('text=/PGRST|PostgrestError|supabase.*error/i');
-            const errorCount = await rawErrors.count();
-
-            // Should not expose raw database errors to users
-            expect(errorCount).toBe(0);
-        });
+      await expect(page.locator('body')).toContainText(/(Exception|Issue|Dashboard)/i, {
+        timeout: 15000,
+      });
     });
 
-    test.describe('Multi-Tab Concurrency Tests', () => {
-        test('should handle operations in multiple tabs', async ({ context }) => {
-            // Open two tabs
-            const page1 = await context.newPage();
-            const page2 = await context.newPage();
+    test('should display exception severity levels', async ({ page }) => {
+      await page.goto(`${BASE_URL}/#/exceptions`);
+      await page.waitForLoadState('networkidle');
 
-            // Navigate both to dashboard
-            await page1.goto(`${BASE_URL}/#/dashboard`);
-            await page2.goto(`${BASE_URL}/#/dashboard`);
+      // Look for severity filters or indicators
+      const severityFilter = page.getByRole('combobox');
+      if (await severityFilter.first().isVisible({ timeout: 5000 })) {
+        await severityFilter.first().click();
 
-            await page1.waitForLoadState('networkidle');
-            await page2.waitForLoadState('networkidle');
+        // Verify page handles severity options (combobox opened)
+      }
 
-            // Both should work independently (increased timeout for Firefox)
-            await expect(page1.locator('body')).toContainText(/(Dashboard|TAC)/i, { timeout: 15000 });
-            await expect(page2.locator('body')).toContainText(/(Dashboard|TAC)/i, { timeout: 15000 });
-
-            // Navigate to different pages
-            await page1.goto(`${BASE_URL}/#/shipments`);
-            await page2.goto(`${BASE_URL}/#/manifests`);
-
-            await page1.waitForLoadState('networkidle');
-            await page2.waitForLoadState('networkidle');
-
-            // Both should function correctly
-            await expect(page1.locator('body')).toBeVisible();
-            await expect(page2.locator('body')).toBeVisible();
-
-            await page1.close();
-            await page2.close();
-        });
+      await expect(page.locator('body')).toBeVisible();
     });
+  });
+
+  test.describe('Error Recovery Tests', () => {
+    test('should handle network errors gracefully', async ({ page, context }) => {
+      await page.goto(`${BASE_URL}/#/dashboard`);
+      await page.waitForLoadState('networkidle');
+
+      // Simulate offline mode
+      await context.setOffline(true);
+
+      // Try to navigate
+      await page.goto(`${BASE_URL}/#/shipments`);
+      await page.waitForTimeout(2000);
+
+      // Go back online
+      await context.setOffline(false);
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+
+      // Page should recover
+      await expect(page.locator('body')).toContainText(/(Shipment|Dashboard|TAC)/i, {
+        timeout: 15000,
+      });
+    });
+
+    test('should display user-friendly error messages', async ({ page }) => {
+      await page.goto(`${BASE_URL}/#/dashboard`);
+      await page.waitForLoadState('networkidle');
+
+      // Verify no raw Supabase errors are displayed
+      const rawErrors = page.locator('text=/PGRST|PostgrestError|supabase.*error/i');
+      const errorCount = await rawErrors.count();
+
+      // Should not expose raw database errors to users
+      expect(errorCount).toBe(0);
+    });
+  });
+
+  test.describe('Multi-Tab Concurrency Tests', () => {
+    test('should handle operations in multiple tabs', async ({ context }) => {
+      // Open two tabs
+      const page1 = await context.newPage();
+      const page2 = await context.newPage();
+
+      // Navigate both to dashboard
+      await page1.goto(`${BASE_URL}/#/dashboard`);
+      await page2.goto(`${BASE_URL}/#/dashboard`);
+
+      await page1.waitForLoadState('networkidle');
+      await page2.waitForLoadState('networkidle');
+
+      // Both should work independently (increased timeout for Firefox)
+      await expect(page1.locator('body')).toContainText(/(Dashboard|TAC)/i, { timeout: 15000 });
+      await expect(page2.locator('body')).toContainText(/(Dashboard|TAC)/i, { timeout: 15000 });
+
+      // Navigate to different pages
+      await page1.goto(`${BASE_URL}/#/shipments`);
+      await page2.goto(`${BASE_URL}/#/manifests`);
+
+      await page1.waitForLoadState('networkidle');
+      await page2.waitForLoadState('networkidle');
+
+      // Both should function correctly
+      await expect(page1.locator('body')).toBeVisible();
+      await expect(page2.locator('body')).toBeVisible();
+
+      await page1.close();
+      await page2.close();
+    });
+  });
 });
 
 test.describe('Performance Tests', () => {
-    test('should render dashboard within acceptable time', async ({ page }) => {
-        const startTime = Date.now();
+  test('should render dashboard within acceptable time', async ({ page }) => {
+    const startTime = Date.now();
 
-        await page.goto(`${BASE_URL}/#/dashboard`);
-        await page.waitForLoadState('networkidle');
+    await page.goto(`${BASE_URL}/#/dashboard`);
+    await page.waitForLoadState('networkidle');
 
-        const loadTime = Date.now() - startTime;
+    const loadTime = Date.now() - startTime;
 
-        // Dashboard should load within 10 seconds
-        expect(loadTime).toBeLessThan(10000);
+    // Dashboard should load within 10 seconds
+    expect(loadTime).toBeLessThan(10000);
 
-        await expect(page.locator('body')).toContainText(/(Dashboard|TAC)/i);
-    });
+    await expect(page.locator('body')).toContainText(/(Dashboard|TAC)/i);
+  });
 
-    test('should handle rapid navigation without memory leaks', async ({ page }) => {
-        const routes = ['/dashboard', '/shipments', '/manifests', '/finance', '/customers'];
+  test('should handle rapid navigation without memory leaks', async ({ page }) => {
+    const routes = ['/dashboard', '/shipments', '/manifests', '/finance', '/customers'];
 
-        for (let i = 0; i < 3; i++) {
-            for (const route of routes) {
-                await page.goto(`${BASE_URL}/#${route}`);
-                await page.waitForTimeout(200);
-            }
-        }
+    for (let i = 0; i < 3; i++) {
+      for (const route of routes) {
+        await page.goto(`${BASE_URL}/#${route}`);
+        await page.waitForTimeout(200);
+      }
+    }
 
-        // Page should still be responsive after rapid navigation
-        await page.goto(`${BASE_URL}/#/dashboard`);
-        await page.waitForLoadState('networkidle');
+    // Page should still be responsive after rapid navigation
+    await page.goto(`${BASE_URL}/#/dashboard`);
+    await page.waitForLoadState('networkidle');
 
-        await expect(page.locator('body')).toContainText(/(Dashboard|TAC)/i, { timeout: 15000 });
-    });
+    await expect(page.locator('body')).toContainText(/(Dashboard|TAC)/i, { timeout: 15000 });
+  });
 });

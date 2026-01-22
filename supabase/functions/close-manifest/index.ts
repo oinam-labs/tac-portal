@@ -2,7 +2,7 @@
 /**
  * Close Manifest Edge Function
  * Atomic operation to close a manifest and update all related shipments
- * 
+ *
  * This function:
  * 1. Validates the manifest exists and is in OPEN status
  * 2. Updates manifest status to CLOSED
@@ -11,216 +11,223 @@
  * 5. Calculates and updates manifest totals
  */
 
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
+import { createClient } from 'jsr:@supabase/supabase-js@2';
 interface CloseManifestRequest {
-    manifest_id: string;
-    staff_id?: string;
-    notes?: string;
+  manifest_id: string;
+  staff_id?: string;
+  notes?: string;
 }
 
 interface CloseManifestResponse {
-    success: boolean;
-    manifest?: {
-        id: string;
-        manifest_no: string;
-        status: string;
-        total_shipments: number;
-        total_packages: number;
-        total_weight: number;
-    };
-    shipments_updated: number;
-    tracking_events_created: number;
-    error?: string;
+  success: boolean;
+  manifest?: {
+    id: string;
+    manifest_no: string;
+    status: string;
+    total_shipments: number;
+    total_packages: number;
+    total_weight: number;
+  };
+  shipments_updated: number;
+  tracking_events_created: number;
+  error?: string;
 }
 
 interface ManifestShipment {
-    id: string;
-    awb_number: string;
-    package_count: number | null;
-    total_weight: number | null;
-    status: string;
+  id: string;
+  awb_number: string;
+  package_count: number | null;
+  total_weight: number | null;
+  status: string;
 }
 
 interface ManifestItem {
-    shipment_id: string;
-    shipment: ManifestShipment | null;
+  shipment_id: string;
+  shipment: ManifestShipment | null;
 }
 
 Deno.serve(async (req: Request): Promise<Response> => {
-    // CORS headers
-    const corsHeaders = {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-    };
+  // CORS headers
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
 
-    // Handle CORS preflight
-    if (req.method === "OPTIONS") {
-        return new Response(null, { headers: corsHeaders });
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    // Parse request body
+    const { manifest_id, staff_id, notes }: CloseManifestRequest = await req.json();
+
+    if (!manifest_id) {
+      return new Response(JSON.stringify({ success: false, error: 'manifest_id is required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    try {
-        // Parse request body
-        const { manifest_id, staff_id, notes }: CloseManifestRequest = await req.json();
+    // Create Supabase client with service role for full access
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-        if (!manifest_id) {
-            return new Response(
-                JSON.stringify({ success: false, error: "manifest_id is required" }),
-                { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-        }
+    // 1. Fetch manifest and validate
+    const { data: manifest, error: manifestError } = await supabase
+      .from('manifests')
+      .select('*')
+      .eq('id', manifest_id)
+      .single();
 
-        // Create Supabase client with service role for full access
-        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    if (manifestError || !manifest) {
+      return new Response(JSON.stringify({ success: false, error: 'Manifest not found' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-        // 1. Fetch manifest and validate
-        const { data: manifest, error: manifestError } = await supabase
-            .from("manifests")
-            .select("*")
-            .eq("id", manifest_id)
-            .single();
+    if (manifest.status !== 'OPEN') {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Cannot close manifest with status '${manifest.status}'. Only OPEN manifests can be closed.`,
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-        if (manifestError || !manifest) {
-            return new Response(
-                JSON.stringify({ success: false, error: "Manifest not found" }),
-                { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-        }
-
-        if (manifest.status !== "OPEN") {
-            return new Response(
-                JSON.stringify({
-                    success: false,
-                    error: `Cannot close manifest with status '${manifest.status}'. Only OPEN manifests can be closed.`
-                }),
-                { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-        }
-
-        // 2. Get all shipments linked to this manifest
-        const { data: manifestItems, error: itemsError } = await supabase
-            .from("manifest_items")
-            .select(`
+    // 2. Get all shipments linked to this manifest
+    const { data: manifestItems, error: itemsError } = await supabase
+      .from('manifest_items')
+      .select(
+        `
         shipment_id,
         shipment:shipments(id, awb_number, package_count, total_weight, status)
-      `)
-            .eq("manifest_id", manifest_id);
+      `
+      )
+      .eq('manifest_id', manifest_id);
 
-        if (itemsError) {
-            throw new Error(`Failed to fetch manifest items: ${itemsError.message}`);
-        }
-
-        const shipments: ManifestShipment[] = (manifestItems || [])
-            .map((item: ManifestItem) => item.shipment)
-            .filter((s): s is ManifestShipment => s !== null);
-
-        // 3. Calculate totals
-        const totalShipments = shipments.length;
-        const totalPackages = shipments.reduce((sum: number, s: ManifestShipment) => sum + (s.package_count || 0), 0);
-        const totalWeight = shipments.reduce((sum: number, s: ManifestShipment) => sum + (s.total_weight || 0), 0);
-
-        // 4. Update manifest status to CLOSED
-        const { error: updateManifestError } = await supabase
-            .from("manifests")
-            .update({
-                status: "CLOSED",
-                total_shipments: totalShipments,
-                total_packages: totalPackages,
-                total_weight: totalWeight,
-                closed_at: new Date().toISOString(),
-                closed_by_staff_id: staff_id || null,
-                notes: notes || manifest.notes,
-                updated_at: new Date().toISOString(),
-            })
-            .eq("id", manifest_id);
-
-        if (updateManifestError) {
-            throw new Error(`Failed to update manifest: ${updateManifestError.message}`);
-        }
-
-        // 5. Update all shipments to IN_TRANSIT
-        let shipmentsUpdated = 0;
-        const shipmentIds = shipments.map((s: ManifestShipment) => s.id);
-
-        if (shipmentIds.length > 0) {
-            const { error: updateShipmentsError, count } = await supabase
-                .from("shipments")
-                .update({
-                    status: "IN_TRANSIT",
-                    manifest_id: manifest_id,
-                    updated_at: new Date().toISOString(),
-                })
-                .in("id", shipmentIds);
-
-            if (updateShipmentsError) {
-                throw new Error(`Failed to update shipments: ${updateShipmentsError.message}`);
-            }
-            shipmentsUpdated = count || shipmentIds.length;
-        }
-
-        // 6. Create tracking events for each shipment
-        let trackingEventsCreated = 0;
-        const trackingEvents = shipments.map((s: ManifestShipment) => ({
-            org_id: manifest.org_id,
-            shipment_id: s.id,
-            awb_number: s.awb_number,
-            event_code: "IN_TRANSIT",
-            event_time: new Date().toISOString(),
-            hub_id: manifest.from_hub_id,
-            actor_staff_id: staff_id || null,
-            source: "SYSTEM",
-            meta: {
-                manifest_id: manifest_id,
-                manifest_no: manifest.manifest_no,
-                action: "MANIFEST_CLOSED",
-            },
-        }));
-
-        if (trackingEvents.length > 0) {
-            const { error: trackingError, count } = await supabase
-                .from("tracking_events")
-                .insert(trackingEvents);
-
-            if (trackingError) {
-                console.error("Failed to create tracking events:", trackingError);
-                // Don't fail the entire operation for tracking events
-            } else {
-                trackingEventsCreated = count || trackingEvents.length;
-            }
-        }
-
-        // 7. Return success response
-        const response: CloseManifestResponse = {
-            success: true,
-            manifest: {
-                id: manifest.id,
-                manifest_no: manifest.manifest_no,
-                status: "CLOSED",
-                total_shipments: totalShipments,
-                total_packages: totalPackages,
-                total_weight: totalWeight,
-            },
-            shipments_updated: shipmentsUpdated,
-            tracking_events_created: trackingEventsCreated,
-        };
-
-        return new Response(JSON.stringify(response), {
-            status: 200,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-
-    } catch (error) {
-        console.error("Close manifest error:", error);
-
-        return new Response(
-            JSON.stringify({
-                success: false,
-                error: error instanceof Error ? error.message : "Internal server error"
-            }),
-            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+    if (itemsError) {
+      throw new Error(`Failed to fetch manifest items: ${itemsError.message}`);
     }
+
+    const shipments: ManifestShipment[] = (manifestItems || [])
+      .map((item: ManifestItem) => item.shipment)
+      .filter((s): s is ManifestShipment => s !== null);
+
+    // 3. Calculate totals
+    const totalShipments = shipments.length;
+    const totalPackages = shipments.reduce(
+      (sum: number, s: ManifestShipment) => sum + (s.package_count || 0),
+      0
+    );
+    const totalWeight = shipments.reduce(
+      (sum: number, s: ManifestShipment) => sum + (s.total_weight || 0),
+      0
+    );
+
+    // 4. Update manifest status to CLOSED
+    const { error: updateManifestError } = await supabase
+      .from('manifests')
+      .update({
+        status: 'CLOSED',
+        total_shipments: totalShipments,
+        total_packages: totalPackages,
+        total_weight: totalWeight,
+        closed_at: new Date().toISOString(),
+        closed_by_staff_id: staff_id || null,
+        notes: notes || manifest.notes,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', manifest_id);
+
+    if (updateManifestError) {
+      throw new Error(`Failed to update manifest: ${updateManifestError.message}`);
+    }
+
+    // 5. Update all shipments to IN_TRANSIT
+    let shipmentsUpdated = 0;
+    const shipmentIds = shipments.map((s: ManifestShipment) => s.id);
+
+    if (shipmentIds.length > 0) {
+      const { error: updateShipmentsError, count } = await supabase
+        .from('shipments')
+        .update({
+          status: 'IN_TRANSIT',
+          manifest_id: manifest_id,
+          updated_at: new Date().toISOString(),
+        })
+        .in('id', shipmentIds);
+
+      if (updateShipmentsError) {
+        throw new Error(`Failed to update shipments: ${updateShipmentsError.message}`);
+      }
+      shipmentsUpdated = count || shipmentIds.length;
+    }
+
+    // 6. Create tracking events for each shipment
+    let trackingEventsCreated = 0;
+    const trackingEvents = shipments.map((s: ManifestShipment) => ({
+      org_id: manifest.org_id,
+      shipment_id: s.id,
+      awb_number: s.awb_number,
+      event_code: 'IN_TRANSIT',
+      event_time: new Date().toISOString(),
+      hub_id: manifest.from_hub_id,
+      actor_staff_id: staff_id || null,
+      source: 'SYSTEM',
+      meta: {
+        manifest_id: manifest_id,
+        manifest_no: manifest.manifest_no,
+        action: 'MANIFEST_CLOSED',
+      },
+    }));
+
+    if (trackingEvents.length > 0) {
+      const { error: trackingError, count } = await supabase
+        .from('tracking_events')
+        .insert(trackingEvents);
+
+      if (trackingError) {
+        console.error('Failed to create tracking events:', trackingError);
+        // Don't fail the entire operation for tracking events
+      } else {
+        trackingEventsCreated = count || trackingEvents.length;
+      }
+    }
+
+    // 7. Return success response
+    const response: CloseManifestResponse = {
+      success: true,
+      manifest: {
+        id: manifest.id,
+        manifest_no: manifest.manifest_no,
+        status: 'CLOSED',
+        total_shipments: totalShipments,
+        total_packages: totalPackages,
+        total_weight: totalWeight,
+      },
+      shipments_updated: shipmentsUpdated,
+      tracking_events_created: trackingEventsCreated,
+    };
+
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Close manifest error:', error);
+
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error instanceof Error ? error.message : 'Internal server error',
+      }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
 });

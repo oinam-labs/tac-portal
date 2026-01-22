@@ -1,23 +1,20 @@
-import { cn } from '@/lib/utils'
-import { Shipment } from '@/types'
-import { StatusBadge } from './StatusBadge'
-import { format } from 'date-fns'
-import {
-  Package, Plane, Truck, Clock,
-  ArrowRight, Weight, ChevronRight
-} from 'lucide-react'
+import { cn } from '@/lib/utils';
+import { Shipment } from '@/types';
+import { StatusBadge } from './StatusBadge';
+import { format } from 'date-fns';
+import { Package, Plane, Truck, Clock, ArrowRight, Weight, ChevronRight } from 'lucide-react';
 
 interface ShipmentCardProps {
-  shipment: Shipment
-  onClick?: () => void
-  className?: string
-  compact?: boolean
+  shipment: Shipment;
+  onClick?: () => void;
+  className?: string;
+  compact?: boolean;
 }
 
 const MODE_ICONS = {
   AIR: Plane,
   TRUCK: Truck,
-}
+};
 
 // Map hub codes to display names (handles both old string format and new code format)
 const HUB_CODE_MAP: Record<string, { code: string; name: string }> = {
@@ -29,27 +26,27 @@ const HUB_CODE_MAP: Record<string, { code: string; name: string }> = {
   DEL: { code: 'DEL', name: 'Delhi' },
   GAU: { code: 'GAU', name: 'Guwahati' },
   CCU: { code: 'CCU', name: 'Kolkata' },
-}
+};
 
-const DEFAULT_HUB = { code: 'UNK', name: 'Unknown' }
+const DEFAULT_HUB = { code: 'UNK', name: 'Unknown' };
 
 // Helper to resolve hub display info from various input formats
 function getHubDisplay(hub: string | undefined | null): { code: string; name: string } {
-  if (!hub) return DEFAULT_HUB
-  return HUB_CODE_MAP[hub] || { code: hub.substring(0, 3).toUpperCase(), name: hub }
+  if (!hub) return DEFAULT_HUB;
+  return HUB_CODE_MAP[hub] || { code: hub.substring(0, 3).toUpperCase(), name: hub };
 }
 
 export function ShipmentCard({ shipment, onClick, className, compact = false }: ShipmentCardProps) {
-  const ModeIcon = MODE_ICONS[shipment.mode] || Truck
-  const origin = getHubDisplay(shipment.originHub)
-  const dest = getHubDisplay(shipment.destinationHub)
+  const ModeIcon = MODE_ICONS[shipment.mode] || Truck;
+  const origin = getHubDisplay(shipment.originHub);
+  const dest = getHubDisplay(shipment.destinationHub);
 
   if (compact) {
     return (
       <div
         onClick={onClick}
         className={cn(
-          "flex items-center gap-4 p-3 rounded-lg border border-white/5 bg-cyber-surface/50 hover:bg-cyber-surface hover:border-cyber-accent/30 transition-all cursor-pointer group",
+          'flex items-center gap-4 p-3 rounded-lg border border-white/5 bg-cyber-surface/50 hover:bg-cyber-surface hover:border-cyber-accent/30 transition-all cursor-pointer group',
           className
         )}
       >
@@ -73,39 +70,47 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
 
         <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-cyber-accent transition-colors" />
       </div>
-    )
+    );
   }
 
   return (
     <div
       onClick={onClick}
       className={cn(
-        "relative overflow-hidden rounded-xl border border-white/10 bg-cyber-card/80 backdrop-blur-sm p-5 transition-all hover:border-cyber-accent/30 hover:shadow-lg hover:shadow-cyber-accent/5 cursor-pointer group",
+        'relative overflow-hidden rounded-xl border border-white/10 bg-cyber-card/80 backdrop-blur-sm p-5 transition-all hover:border-cyber-accent/30 hover:shadow-lg hover:shadow-cyber-accent/5 cursor-pointer group',
         className
       )}
     >
       {/* Mode indicator strip */}
-      <div className={cn(
-        "absolute left-0 top-0 bottom-0 w-1",
-        shipment.mode === 'AIR' ? 'bg-primary' : 'bg-[oklch(var(--status-in-transit-bg))]'
-      )} />
+      <div
+        className={cn(
+          'absolute left-0 top-0 bottom-0 w-1',
+          shipment.mode === 'AIR' ? 'bg-primary' : 'bg-[oklch(var(--status-in-transit-bg))]'
+        )}
+      />
 
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className={cn(
-            "p-2.5 rounded-lg",
-            shipment.mode === 'AIR' ? 'bg-primary/10' : 'bg-[oklch(var(--status-in-transit-bg))]/20'
-          )}>
-            <ModeIcon className={cn(
-              "w-5 h-5",
-              shipment.mode === 'AIR' ? 'text-primary' : 'text-[oklch(var(--status-in-transit-fg))]'
-            )} />
+          <div
+            className={cn(
+              'p-2.5 rounded-lg',
+              shipment.mode === 'AIR'
+                ? 'bg-primary/10'
+                : 'bg-[oklch(var(--status-in-transit-bg))]/20'
+            )}
+          >
+            <ModeIcon
+              className={cn(
+                'w-5 h-5',
+                shipment.mode === 'AIR'
+                  ? 'text-primary'
+                  : 'text-[oklch(var(--status-in-transit-fg))]'
+              )}
+            />
           </div>
           <div>
-            <h3 className="font-mono font-bold text-white text-lg tracking-wide">
-              {shipment.awb}
-            </h3>
+            <h3 className="font-mono font-bold text-white text-lg tracking-wide">{shipment.awb}</h3>
             <p className="text-sm text-muted-foreground">{shipment.customerName}</p>
           </div>
         </div>
@@ -153,15 +158,17 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
 
       {/* Service Level Badge */}
       <div className="absolute top-4 right-4">
-        <span className={cn(
-          "text-xs font-bold px-2 py-0.5 rounded",
-          shipment.serviceLevel === 'EXPRESS'
-            ? 'badge--in-transit'
-            : 'bg-muted text-muted-foreground'
-        )}>
+        <span
+          className={cn(
+            'text-xs font-bold px-2 py-0.5 rounded',
+            shipment.serviceLevel === 'EXPRESS'
+              ? 'badge--in-transit'
+              : 'bg-muted text-muted-foreground'
+          )}
+        >
           {shipment.serviceLevel}
         </span>
       </div>
     </div>
-  )
+  );
 }

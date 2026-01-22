@@ -1,15 +1,21 @@
-import React from 'react'
-import { cn } from '@/lib/utils'
-import { format } from 'date-fns'
-import { TrackingEvent, HubLocation } from '@/types'
+import React from 'react';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { TrackingEvent, HubLocation } from '@/types';
 import {
-  Package, Truck, MapPin, CheckCircle, AlertTriangle,
-  ArrowRight, Clock, Building2
-} from 'lucide-react'
+  Package,
+  Truck,
+  MapPin,
+  CheckCircle,
+  AlertTriangle,
+  ArrowRight,
+  Clock,
+  Building2,
+} from 'lucide-react';
 
 interface TrackingTimelineProps {
-  events: TrackingEvent[]
-  className?: string
+  events: TrackingEvent[];
+  className?: string;
 }
 
 const EVENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -25,7 +31,7 @@ const EVENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> =
   RTO: ArrowRight,
   EXCEPTION: AlertTriangle,
   DEFAULT: Clock,
-}
+};
 
 /**
  * Event colors using semantic status tokens from globals.css
@@ -44,36 +50,38 @@ const EVENT_COLORS: Record<string, string> = {
   RTO: 'bg-[oklch(var(--status-exception-bg))]',
   EXCEPTION: 'bg-[oklch(var(--status-exception-bg))]',
   DEFAULT: 'bg-muted',
-}
+};
 
 const HUB_NAMES: Record<HubLocation, string> = {
   IMPHAL: 'Imphal Hub',
   NEW_DELHI: 'New Delhi Hub',
-}
+};
 
 export function TrackingTimeline({ events, className }: TrackingTimelineProps) {
   const sortedEvents = [...events].sort(
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  )
+  );
 
   return (
-    <div className={cn("space-y-0", className)}>
+    <div className={cn('space-y-0', className)}>
       {sortedEvents.map((event, index) => {
-        const Icon = EVENT_ICONS[event.eventCode] || EVENT_ICONS.DEFAULT
-        const color = EVENT_COLORS[event.eventCode] || EVENT_COLORS.DEFAULT
-        const isFirst = index === 0
-        const isLast = index === sortedEvents.length - 1
+        const Icon = EVENT_ICONS[event.eventCode] || EVENT_ICONS.DEFAULT;
+        const color = EVENT_COLORS[event.eventCode] || EVENT_COLORS.DEFAULT;
+        const isFirst = index === 0;
+        const isLast = index === sortedEvents.length - 1;
 
         return (
           <div key={event.id} className="relative flex gap-4">
             {/* Timeline line */}
             <div className="flex flex-col items-center">
-              <div className={cn(
-                "w-10 h-10 rounded-full flex items-center justify-center z-10 border-2 border-cyber-bg",
-                color,
-                isFirst && "ring-4 ring-opacity-30",
-                isFirst && color.replace('bg-', 'ring-')
-              )}>
+              <div
+                className={cn(
+                  'w-10 h-10 rounded-full flex items-center justify-center z-10 border-2 border-cyber-bg',
+                  color,
+                  isFirst && 'ring-4 ring-opacity-30',
+                  isFirst && color.replace('bg-', 'ring-')
+                )}
+              >
                 <Icon className="w-5 h-5 text-white" />
               </div>
               {!isLast && (
@@ -82,21 +90,21 @@ export function TrackingTimeline({ events, className }: TrackingTimelineProps) {
             </div>
 
             {/* Event content */}
-            <div className={cn(
-              "flex-1 pb-8",
-              isFirst && "pt-0",
-              !isFirst && "pt-1"
-            )}>
-              <div className={cn(
-                "rounded-lg p-4 transition-all",
-                isFirst ? "bg-cyber-card border border-white/10" : "bg-transparent"
-              )}>
+            <div className={cn('flex-1 pb-8', isFirst && 'pt-0', !isFirst && 'pt-1')}>
+              <div
+                className={cn(
+                  'rounded-lg p-4 transition-all',
+                  isFirst ? 'bg-cyber-card border border-white/10' : 'bg-transparent'
+                )}
+              >
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className={cn(
-                      "font-semibold",
-                      isFirst ? "text-foreground" : "text-muted-foreground"
-                    )}>
+                    <p
+                      className={cn(
+                        'font-semibold',
+                        isFirst ? 'text-foreground' : 'text-muted-foreground'
+                      )}
+                    >
                       {event.description || event.eventCode.replace(/_/g, ' ')}
                     </p>
                     {event.hubId && (
@@ -118,16 +126,14 @@ export function TrackingTimeline({ events, className }: TrackingTimelineProps) {
 
                 {event.meta && Object.keys(event.meta).length > 0 && (
                   <div className="mt-2 pt-2 border-t border-white/5">
-                    <p className="text-xs text-muted-foreground">
-                      {JSON.stringify(event.meta)}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{JSON.stringify(event.meta)}</p>
                   </div>
                 )}
               </div>
             </div>
           </div>
-        )
+        );
       })}
     </div>
-  )
+  );
 }

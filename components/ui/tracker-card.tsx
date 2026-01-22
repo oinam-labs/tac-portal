@@ -1,8 +1,8 @@
-import React from "react";
-import { motion } from "@/lib/motion";
-import { CheckCircle2, QrCode, Package } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { ThemeAwareQRCode } from "@/components/ui/qr-code";
+import React from 'react';
+import { motion } from '@/lib/motion';
+import { CheckCircle2, QrCode, Package } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ThemeAwareQRCode } from '@/components/ui/qr-code';
 
 // Props interface for type safety and reusability
 export interface PackageTrackerCardProps {
@@ -23,10 +23,10 @@ const PackageImageContainer = ({ children }: { children: React.ReactNode }) => (
     {/* Animated background to simulate a conveyor belt */}
     <div
       className={cn(
-        "absolute inset-0 z-0 h-full w-full",
-        "bg-muted/30",
-        "bg-[size:80px_80px]",
-        "bg-gradient-to-r from-transparent via-[hsl(var(--muted)/0.3)] to-transparent"
+        'absolute inset-0 z-0 h-full w-full',
+        'bg-muted/30',
+        'bg-[size:80px_80px]',
+        'bg-gradient-to-r from-transparent via-[hsl(var(--muted)/0.3)] to-transparent'
         // "animate-conveyor-belt" // Removed custom animation for simplicity, using framer motion instead
       )}
       style={{
@@ -39,13 +39,13 @@ const PackageImageContainer = ({ children }: { children: React.ReactNode }) => (
     {/* Moving conveyor effect */}
     <motion.div
       className="absolute inset-0 opacity-20"
-      initial={{ backgroundPosition: "0px 0px" }}
-      animate={{ backgroundPosition: "100px 0px" }}
-      transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+      initial={{ backgroundPosition: '0px 0px' }}
+      animate={{ backgroundPosition: '100px 0px' }}
+      transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
       style={{
-        backgroundImage: "linear-gradient(90deg, transparent 50%, #000 50%)",
-        backgroundSize: "20px 2px",
-        top: "80%"
+        backgroundImage: 'linear-gradient(90deg, transparent 50%, #000 50%)',
+        backgroundSize: '20px 2px',
+        top: '80%',
       }}
     />
     <div className="relative z-10">{children}</div>
@@ -69,7 +69,7 @@ export const PackageTrackerCard = ({
       opacity: 1,
       y: 0,
       transition: {
-        type: "spring",
+        type: 'spring',
         stiffness: 100,
         damping: 15,
         staggerChildren: 0.1,
@@ -88,8 +88,8 @@ export const PackageTrackerCard = ({
       initial="hidden"
       animate="visible"
       className={cn(
-        "bg-card text-card-foreground w-full max-w-sm overflow-hidden rounded-3xl border shadow-lg relative",
-        className,
+        'bg-card text-card-foreground w-full max-w-sm overflow-hidden rounded-3xl border shadow-lg relative',
+        className
       )}
     >
       {/* Top Section */}
@@ -110,7 +110,7 @@ export const PackageTrackerCard = ({
           {packageImage || (
             <motion.div
               animate={{ y: [0, -5, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             >
               <Package className="w-20 h-20 text-primary stroke-[1.5]" />
             </motion.div>
@@ -122,9 +122,7 @@ export const PackageTrackerCard = ({
       <div className="p-6 relative z-20 bg-card/80 backdrop-blur-sm">
         <motion.div variants={itemVariants} className="flex items-center gap-2">
           {destinationFlag}
-          <span className="text-muted-foreground text-sm font-medium">
-            {destination}
-          </span>
+          <span className="text-muted-foreground text-sm font-medium">{destination}</span>
         </motion.div>
 
         <motion.h2

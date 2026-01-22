@@ -16,261 +16,271 @@ type ShipmentInsert = Database['public']['Tables']['shipments']['Insert'];
 type ShipmentUpdate = Database['public']['Tables']['shipments']['Update'];
 
 export interface ShipmentWithRelations extends Shipment {
-    customer?: {
-        id: string;
-        name: string;
-        phone: string;
-        email: string | null;
-    };
-    origin_hub?: {
-        id: string;
-        code: string;
-        name: string;
-    };
-    destination_hub?: {
-        id: string;
-        code: string;
-        name: string;
-    };
-    invoice?: {
-        id: string;
-        invoice_no: string;
-        status: string;
-        total: number;
-    };
+  customer?: {
+    id: string;
+    name: string;
+    phone: string;
+    email: string | null;
+  };
+  origin_hub?: {
+    id: string;
+    code: string;
+    name: string;
+  };
+  destination_hub?: {
+    id: string;
+    code: string;
+    name: string;
+  };
+  invoice?: {
+    id: string;
+    invoice_no: string;
+    status: string;
+    total: number;
+  };
 }
 
 export interface ShipmentFilters {
-    status?: string;
-    originHubId?: string;
-    destinationHubId?: string;
-    customerId?: string;
-    search?: string;
-    limit?: number;
+  status?: string;
+  originHubId?: string;
+  destinationHubId?: string;
+  customerId?: string;
+  search?: string;
+  limit?: number;
 }
 
 export const shipmentService = {
-    async list(filters?: ShipmentFilters): Promise<ShipmentWithRelations[]> {
-        const orgId = orgService.getCurrentOrgId();
+  async list(filters?: ShipmentFilters): Promise<ShipmentWithRelations[]> {
+    const orgId = orgService.getCurrentOrgId();
 
-        let query = supabase
-            .from('shipments')
-            .select(`
+    let query = supabase
+      .from('shipments')
+      .select(
+        `
         *,
         customer:customers(id, name, phone, email),
         origin_hub:hubs!shipments_origin_hub_id_fkey(id, code, name),
         destination_hub:hubs!shipments_destination_hub_id_fkey(id, code, name),
         invoice:invoices(id, invoice_no, status, total)
-      `)
-            .eq('org_id', orgId)
-            .is('deleted_at', null)
-            .order('created_at', { ascending: false });
+      `
+      )
+      .eq('org_id', orgId)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false });
 
-        if (filters?.status) {
-            query = query.eq('status', filters.status);
-        }
-        if (filters?.originHubId) {
-            query = query.eq('origin_hub_id', filters.originHubId);
-        }
-        if (filters?.destinationHubId) {
-            query = query.eq('destination_hub_id', filters.destinationHubId);
-        }
-        if (filters?.customerId) {
-            query = query.eq('customer_id', filters.customerId);
-        }
-        if (filters?.search) {
-            query = query.or(`awb_number.ilike.%${filters.search}%,receiver_name.ilike.%${filters.search}%,sender_name.ilike.%${filters.search}%`);
-        }
-        if (filters?.limit) {
-            query = query.limit(filters.limit);
-        }
+    if (filters?.status) {
+      query = query.eq('status', filters.status);
+    }
+    if (filters?.originHubId) {
+      query = query.eq('origin_hub_id', filters.originHubId);
+    }
+    if (filters?.destinationHubId) {
+      query = query.eq('destination_hub_id', filters.destinationHubId);
+    }
+    if (filters?.customerId) {
+      query = query.eq('customer_id', filters.customerId);
+    }
+    if (filters?.search) {
+      query = query.or(
+        `awb_number.ilike.%${filters.search}%,receiver_name.ilike.%${filters.search}%,sender_name.ilike.%${filters.search}%`
+      );
+    }
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
 
-        const { data, error } = await query;
-        if (error) throw mapSupabaseError(error);
-        return (data ?? []) as unknown as ShipmentWithRelations[];
-    },
+    const { data, error } = await query;
+    if (error) throw mapSupabaseError(error);
+    return (data ?? []) as unknown as ShipmentWithRelations[];
+  },
 
-    async getById(id: string): Promise<ShipmentWithRelations> {
-        const orgId = orgService.getCurrentOrgId();
+  async getById(id: string): Promise<ShipmentWithRelations> {
+    const orgId = orgService.getCurrentOrgId();
 
-        const { data, error } = await supabase
-            .from('shipments')
-            .select(`
+    const { data, error } = await supabase
+      .from('shipments')
+      .select(
+        `
         *,
         customer:customers(id, name, phone, email),
         origin_hub:hubs!shipments_origin_hub_id_fkey(id, code, name),
         destination_hub:hubs!shipments_destination_hub_id_fkey(id, code, name),
         invoice:invoices(id, invoice_no, status, total)
-      `)
-            .eq('id', id)
-            .eq('org_id', orgId)
-            .single();
+      `
+      )
+      .eq('id', id)
+      .eq('org_id', orgId)
+      .single();
 
-        if (error) throw mapSupabaseError(error);
-        return data as unknown as ShipmentWithRelations;
-    },
+    if (error) throw mapSupabaseError(error);
+    return data as unknown as ShipmentWithRelations;
+  },
 
-    async getByAwb(awb: string): Promise<ShipmentWithRelations | null> {
-        const orgId = orgService.getCurrentOrgId();
+  async getByAwb(awb: string): Promise<ShipmentWithRelations | null> {
+    const orgId = orgService.getCurrentOrgId();
 
-        const { data, error } = await supabase
-            .from('shipments')
-            .select(`
+    const { data, error } = await supabase
+      .from('shipments')
+      .select(
+        `
         *,
         customer:customers(id, name, phone, email),
         origin_hub:hubs!shipments_origin_hub_id_fkey(id, code, name),
         destination_hub:hubs!shipments_destination_hub_id_fkey(id, code, name),
         invoice:invoices(id, invoice_no, status, total)
-      `)
-            .eq('awb_number', awb)
-            .eq('org_id', orgId)
-            .maybeSingle();
+      `
+      )
+      .eq('awb_number', awb)
+      .eq('org_id', orgId)
+      .maybeSingle();
 
-        if (error) throw mapSupabaseError(error);
-        return data as unknown as ShipmentWithRelations | null;
-    },
+    if (error) throw mapSupabaseError(error);
+    return data as unknown as ShipmentWithRelations | null;
+  },
 
-    async create(shipment: Omit<ShipmentInsert, 'org_id'>): Promise<Shipment> {
-        return trackApiCall('/shipments', 'POST', async () => {
-            const orgId = orgService.getCurrentOrgId();
+  async create(shipment: Omit<ShipmentInsert, 'org_id'>): Promise<Shipment> {
+    return trackApiCall('/shipments', 'POST', async () => {
+      const orgId = orgService.getCurrentOrgId();
 
-            // Generate AWB if not provided
-            let awbNumber = shipment.awb_number;
-            if (!awbNumber) {
-                const { data: awbData } = await (supabase.rpc as any)('generate_awb_number', { p_org_id: orgId });
-                awbNumber = awbData || `TAC${Date.now()}`;
-            }
-
-            const { data, error } = await (supabase
-                .from('shipments') as any)
-                .insert({
-                    ...shipment,
-                    org_id: orgId,
-                    awb_number: awbNumber,
-                })
-                .select()
-                .single();
-
-            if (error) throw mapSupabaseError(error);
-
-            addBreadcrumb(`Shipment created: ${awbNumber}`, 'shipment', 'info');
-            return data as Shipment;
+      // Generate AWB if not provided
+      let awbNumber = shipment.awb_number;
+      if (!awbNumber) {
+        const { data: awbData } = await (supabase.rpc as any)('generate_awb_number', {
+          p_org_id: orgId,
         });
-    },
+        awbNumber = awbData || `TAC${Date.now()}`;
+      }
 
-    async update(id: string, updates: ShipmentUpdate): Promise<Shipment> {
-        const orgId = orgService.getCurrentOrgId();
+      const { data, error } = await (supabase.from('shipments') as any)
+        .insert({
+          ...shipment,
+          org_id: orgId,
+          awb_number: awbNumber,
+        })
+        .select()
+        .single();
 
-        const { data, error } = await (supabase
-            .from('shipments') as any)
-            .update({
-                ...updates,
-                updated_at: new Date().toISOString(),
-            })
-            .eq('id', id)
-            .eq('org_id', orgId)
-            .select()
-            .single();
+      if (error) throw mapSupabaseError(error);
 
-        if (error) throw mapSupabaseError(error);
-        return data as Shipment;
-    },
+      addBreadcrumb(`Shipment created: ${awbNumber}`, 'shipment', 'info');
+      return data as Shipment;
+    });
+  },
 
-    async updateStatus(
-        id: string,
-        status: Shipment['status'],
-        meta?: { description?: string; hubId?: string }
-    ): Promise<Shipment> {
-        const orgId = orgService.getCurrentOrgId();
+  async update(id: string, updates: ShipmentUpdate): Promise<Shipment> {
+    const orgId = orgService.getCurrentOrgId();
 
-        // Fetch current shipment to validate status transition
-        const { data: current, error: fetchError } = await supabase
-            .from('shipments')
-            .select('status, awb_number')
-            .eq('id', id)
-            .eq('org_id', orgId)
-            .single();
+    const { data, error } = await (supabase.from('shipments') as any)
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .eq('org_id', orgId)
+      .select()
+      .single();
 
-        if (fetchError) throw mapSupabaseError(fetchError);
+    if (error) throw mapSupabaseError(error);
+    return data as Shipment;
+  },
 
-        // Validate status transition using business rules
-        const currentStatus = current.status as ShipmentStatusType;
-        const newStatus = status as ShipmentStatusType;
+  async updateStatus(
+    id: string,
+    status: Shipment['status'],
+    meta?: { description?: string; hubId?: string }
+  ): Promise<Shipment> {
+    const orgId = orgService.getCurrentOrgId();
 
-        if (!isValidStatusTransition(currentStatus, newStatus)) {
-            throw new ValidationError(
-                `Invalid status transition from ${currentStatus} to ${newStatus}`,
-                { currentStatus, newStatus, shipmentId: id }
-            );
-        }
+    // Fetch current shipment to validate status transition
+    const { data: current, error: fetchError } = await supabase
+      .from('shipments')
+      .select('status, awb_number')
+      .eq('id', id)
+      .eq('org_id', orgId)
+      .single();
 
-        const { data, error } = await (supabase
-            .from('shipments') as any)
-            .update({
-                status,
-                updated_at: new Date().toISOString(),
-            })
-            .eq('id', id)
-            .eq('org_id', orgId)
-            .select()
-            .single();
+    if (fetchError) throw mapSupabaseError(fetchError);
 
-        if (error) throw mapSupabaseError(error);
+    // Validate status transition using business rules
+    const currentStatus = current.status as ShipmentStatusType;
+    const newStatus = status as ShipmentStatusType;
 
-        // Create tracking event for audit trail
-        await (supabase.from('tracking_events') as any).insert({
-            org_id: orgId,
-            shipment_id: id,
-            awb_number: current.awb_number,
-            event_code: status,
-            hub_id: meta?.hubId,
-            source: 'SYSTEM',
-            meta: {
-                description: meta?.description,
-                previous_status: currentStatus,
-            },
-        });
+    if (!isValidStatusTransition(currentStatus, newStatus)) {
+      throw new ValidationError(`Invalid status transition from ${currentStatus} to ${newStatus}`, {
+        currentStatus,
+        newStatus,
+        shipmentId: id,
+      });
+    }
 
-        addBreadcrumb(`Status updated: ${current.awb_number} ${currentStatus} → ${newStatus}`, 'shipment', 'info');
-        return data as Shipment;
-    },
+    const { data, error } = await (supabase.from('shipments') as any)
+      .update({
+        status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .eq('org_id', orgId)
+      .select()
+      .single();
 
-    async delete(id: string): Promise<void> {
-        const orgId = orgService.getCurrentOrgId();
+    if (error) throw mapSupabaseError(error);
 
-        const { error } = await (supabase
-            .from('shipments') as any)
-            .update({ deleted_at: new Date().toISOString() })
-            .eq('id', id)
-            .eq('org_id', orgId);
+    // Create tracking event for audit trail
+    await (supabase.from('tracking_events') as any).insert({
+      org_id: orgId,
+      shipment_id: id,
+      awb_number: current.awb_number,
+      event_code: status,
+      hub_id: meta?.hubId,
+      source: 'SYSTEM',
+      meta: {
+        description: meta?.description,
+        previous_status: currentStatus,
+      },
+    });
 
-        if (error) throw mapSupabaseError(error);
-    },
+    addBreadcrumb(
+      `Status updated: ${current.awb_number} ${currentStatus} → ${newStatus}`,
+      'shipment',
+      'info'
+    );
+    return data as Shipment;
+  },
 
-    async getStats(): Promise<{
-        total: number;
-        inTransit: number;
-        delivered: number;
-        exceptions: number;
-    }> {
-        const orgId = orgService.getCurrentOrgId();
+  async delete(id: string): Promise<void> {
+    const orgId = orgService.getCurrentOrgId();
 
-        const { data, error } = await (supabase
-            .from('shipments') as any)
-            .select('status')
-            .eq('org_id', orgId)
-            .is('deleted_at', null);
+    const { error } = await (supabase.from('shipments') as any)
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('org_id', orgId);
 
-        if (error) throw mapSupabaseError(error);
+    if (error) throw mapSupabaseError(error);
+  },
 
-        const shipments = (data || []) as { status: string }[];
-        const stats = {
-            total: shipments.length,
-            inTransit: shipments.filter(s => s.status === 'IN_TRANSIT').length,
-            delivered: shipments.filter(s => s.status === 'DELIVERED').length,
-            exceptions: shipments.filter(s => s.status === 'EXCEPTION').length,
-        };
+  async getStats(): Promise<{
+    total: number;
+    inTransit: number;
+    delivered: number;
+    exceptions: number;
+  }> {
+    const orgId = orgService.getCurrentOrgId();
 
-        return stats;
-    },
+    const { data, error } = await (supabase.from('shipments') as any)
+      .select('status')
+      .eq('org_id', orgId)
+      .is('deleted_at', null);
+
+    if (error) throw mapSupabaseError(error);
+
+    const shipments = (data || []) as { status: string }[];
+    const stats = {
+      total: shipments.length,
+      inTransit: shipments.filter((s) => s.status === 'IN_TRANSIT').length,
+      delivered: shipments.filter((s) => s.status === 'DELIVERED').length,
+      exceptions: shipments.filter((s) => s.status === 'EXCEPTION').length,
+    };
+
+    return stats;
+  },
 };

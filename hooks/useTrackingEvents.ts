@@ -30,10 +30,12 @@ export function useTrackingEvents(awbNumber: string | null) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('tracking_events')
-        .select(`
+        .select(
+          `
           *,
           hub:hubs(code, name)
-        `)
+        `
+        )
         .eq('awb_number', awbNumber!)
         .order('event_time', { ascending: false });
 

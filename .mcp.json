@@ -1,11 +1,11 @@
 {
-    "mcpServers": {
-        "sentry": {
-            "url": "https://mcp.sentry.dev/sse",
-            "headers": {
-                "Authorization": "Bearer ${SENTRY_AUTH_TOKEN}"
-            },
-            "description": "Sentry MCP Server - Access issues, errors, projects, and AI-powered fixes"
-        }
+  "mcpServers": {
+    "sentry": {
+      "url": "https://mcp.sentry.dev/sse",
+      "headers": {
+        "Authorization": "Bearer ${SENTRY_AUTH_TOKEN}"
+      },
+      "description": "Sentry MCP Server - Access issues, errors, projects, and AI-powered fixes"
     }
+  }
 }

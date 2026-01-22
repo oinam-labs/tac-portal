@@ -78,18 +78,12 @@
       {
         "name": "Authentication",
         "description": "Supabase-based authentication with role-based access control (RBAC). Supports roles: ADMIN, MANAGER, OPS_STAFF, WAREHOUSE_STAFF, FINANCE_STAFF, SUPPORT",
-        "files": [
-          "store/authStore.ts",
-          "lib/supabase.ts",
-          "App.tsx"
-        ]
+        "files": ["store/authStore.ts", "lib/supabase.ts", "App.tsx"]
       },
       {
         "name": "Dashboard",
         "description": "Main dashboard with KPIs, charts, and quick actions for logistics operations",
-        "files": [
-          "pages/Dashboard.tsx"
-        ]
+        "files": ["pages/Dashboard.tsx"]
       },
       {
         "name": "Shipments",
@@ -112,19 +106,12 @@
       {
         "name": "Scanning",
         "description": "Barcode/QR scanning with idempotent shipment-to-manifest assignment. Supports ZXing scanner integration",
-        "files": [
-          "pages/Scanning.tsx",
-          "lib/scanParser.ts"
-        ]
+        "files": ["pages/Scanning.tsx", "lib/scanParser.ts"]
       },
       {
         "name": "Invoices",
         "description": "Invoice creation, management, PDF generation with barcode. Status workflow: DRAFT -> ISSUED -> PAID/CANCELLED",
-        "files": [
-          "pages/Finance.tsx",
-          "lib/services/invoiceService.ts",
-          "lib/pdf-generator.ts"
-        ]
+        "files": ["pages/Finance.tsx", "lib/services/invoiceService.ts", "lib/pdf-generator.ts"]
       },
       {
         "name": "Customers",
@@ -148,24 +135,17 @@
       {
         "name": "Exceptions",
         "description": "Exception handling for shipments with assignment, resolution workflow, and severity levels",
-        "files": [
-          "pages/Exceptions.tsx",
-          "lib/services/exceptionService.ts"
-        ]
+        "files": ["pages/Exceptions.tsx", "lib/services/exceptionService.ts"]
       },
       {
         "name": "Inventory",
         "description": "Warehouse inventory management and stock tracking",
-        "files": [
-          "pages/Inventory.tsx"
-        ]
+        "files": ["pages/Inventory.tsx"]
       },
       {
         "name": "Analytics",
         "description": "Business analytics with charts and metrics for operations performance",
-        "files": [
-          "pages/Analytics.tsx"
-        ]
+        "files": ["pages/Analytics.tsx"]
       },
       {
         "name": "Management",
@@ -179,49 +159,32 @@
       {
         "name": "PrintLabel",
         "description": "Shipping label generation and printing with barcode",
-        "files": [
-          "pages/PrintLabel.tsx",
-          "lib/pdf-generator.ts"
-        ]
+        "files": ["pages/PrintLabel.tsx", "lib/pdf-generator.ts"]
       },
       {
         "name": "Notifications",
         "description": "User notification system for alerts and updates",
-        "files": [
-          "pages/Notifications.tsx",
-          "lib/notifications/"
-        ]
+        "files": ["pages/Notifications.tsx", "lib/notifications/"]
       },
       {
         "name": "Settings",
         "description": "User preferences and application settings",
-        "files": [
-          "pages/Settings.tsx"
-        ]
+        "files": ["pages/Settings.tsx"]
       },
       {
         "name": "ShiftReport",
         "description": "Shift-based operational reporting for warehouse staff",
-        "files": [
-          "pages/ShiftReport.tsx",
-          "lib/services/shiftReportService.ts"
-        ]
+        "files": ["pages/ShiftReport.tsx", "lib/services/shiftReportService.ts"]
       },
       {
         "name": "AuditService",
         "description": "Audit logging for critical operations and compliance",
-        "files": [
-          "lib/services/auditService.ts"
-        ]
+        "files": ["lib/services/auditService.ts"]
       },
       {
         "name": "ErrorHandling",
         "description": "Centralized error handling with Sentry integration and user-friendly error messages",
-        "files": [
-          "lib/errors.ts",
-          "lib/sentry.ts",
-          "components/ui/error-boundary.tsx"
-        ]
+        "files": ["lib/errors.ts", "lib/sentry.ts", "components/ui/error-boundary.tsx"]
       }
     ]
   }

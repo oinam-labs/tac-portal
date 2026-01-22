@@ -13,7 +13,8 @@ import { getOrCreateDefaultOrg } from '../lib/org-helper';
 export const shipmentKeys = {
   all: ['shipments'] as const,
   lists: () => [...shipmentKeys.all, 'list'] as const,
-  list: (filters?: { limit?: number; status?: string }) => [...shipmentKeys.lists(), filters] as const,
+  list: (filters?: { limit?: number; status?: string }) =>
+    [...shipmentKeys.lists(), filters] as const,
   details: () => [...shipmentKeys.all, 'detail'] as const,
   detail: (id: string) => [...shipmentKeys.details(), id] as const,
   byAwb: (awb: string) => [...shipmentKeys.all, 'awb', awb] as const,
@@ -52,12 +53,14 @@ export function useShipments(options?: { limit?: number; status?: string }) {
     queryFn: async () => {
       let query = supabase
         .from('shipments')
-        .select(`
+        .select(
+          `
           *,
           customer:customers(name, phone),
           origin_hub:hubs!shipments_origin_hub_id_fkey(code, name),
           destination_hub:hubs!shipments_destination_hub_id_fkey(code, name)
-        `)
+        `
+        )
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
@@ -82,12 +85,14 @@ export function useShipmentByAWB(awb: string | null) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('shipments')
-        .select(`
+        .select(
+          `
           *,
           customer:customers(name, phone, email, address),
           origin_hub:hubs!shipments_origin_hub_id_fkey(code, name, address),
           destination_hub:hubs!shipments_destination_hub_id_fkey(code, name, address)
-        `)
+        `
+        )
         .eq('awb_number', awb!)
         .single();
 
@@ -253,4 +258,3 @@ export function useFindShipmentByAwb() {
     },
   });
 }
-

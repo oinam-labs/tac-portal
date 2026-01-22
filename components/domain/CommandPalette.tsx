@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useShipments } from '@/hooks/useShipments'
+import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useShipments } from '@/hooks/useShipments';
 import {
   Command,
   CommandEmpty,
@@ -10,17 +10,27 @@ import {
   CommandList,
   CommandSeparator,
   CommandShortcut,
-} from '@/components/ui/command'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+} from '@/components/ui/command';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
-  Package, LayoutDashboard, Truck, ScanLine, FileText,
-  Users, Settings, BarChart3, AlertTriangle, Warehouse,
-  Search, Plus, Clock
-} from 'lucide-react'
+  Package,
+  LayoutDashboard,
+  Truck,
+  ScanLine,
+  FileText,
+  Users,
+  Settings,
+  BarChart3,
+  AlertTriangle,
+  Warehouse,
+  Search,
+  Plus,
+  Clock,
+} from 'lucide-react';
 
 interface CommandPaletteProps {
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const NAVIGATION_ITEMS = [
@@ -35,69 +45,72 @@ const NAVIGATION_ITEMS = [
   { name: 'Customers', path: '/customers', icon: Users },
   { name: 'Analytics', path: '/analytics', icon: BarChart3 },
   { name: 'Settings', path: '/settings', icon: Settings },
-]
+];
 
 const QUICK_ACTIONS = [
   { name: 'Create Shipment', action: 'create-shipment', icon: Plus },
   { name: 'Scan Package', action: 'scan-package', icon: ScanLine },
   { name: 'Create Invoice', action: 'create-invoice', icon: FileText },
   { name: 'New Manifest', action: 'new-manifest', icon: Truck },
-]
+];
 
 export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPaletteProps) {
-  const [internalOpen, setInternalOpen] = useState(false)
-  const navigate = useNavigate()
-  const { data: shipments = [] } = useShipments()
+  const [internalOpen, setInternalOpen] = useState(false);
+  const navigate = useNavigate();
+  const { data: shipments = [] } = useShipments();
 
-  const open = controlledOpen ?? internalOpen
-  const setOpen = onOpenChange ?? setInternalOpen
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
 
   // Keyboard shortcut handler
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        setOpen(!open)
+        e.preventDefault();
+        setOpen(!open);
       }
-    }
+    };
 
-    document.addEventListener('keydown', down)
-    return () => document.removeEventListener('keydown', down)
-  }, [open, setOpen])
+    document.addEventListener('keydown', down);
+    return () => document.removeEventListener('keydown', down);
+  }, [open, setOpen]);
 
-  const handleSelect = useCallback((value: string) => {
-    setOpen(false)
+  const handleSelect = useCallback(
+    (value: string) => {
+      setOpen(false);
 
-    // Check if it's a navigation path
-    if (value.startsWith('/')) {
-      navigate(value)
-      return
-    }
+      // Check if it's a navigation path
+      if (value.startsWith('/')) {
+        navigate(value);
+        return;
+      }
 
-    // Handle quick actions
-    switch (value) {
-      case 'create-shipment':
-        navigate('/shipments?action=create')
-        break
-      case 'scan-package':
-        navigate('/scanning')
-        break
-      case 'create-invoice':
-        navigate('/finance?action=create')
-        break
-      case 'new-manifest':
-        navigate('/manifests?action=create')
-        break
-      default:
-        // If it looks like an AWB, navigate to tracking
-        if (value.startsWith('TAC') || value.match(/^[A-Z]{2,3}\d+/)) {
-          navigate(`/tracking?awb=${value}`)
-        }
-    }
-  }, [navigate, setOpen])
+      // Handle quick actions
+      switch (value) {
+        case 'create-shipment':
+          navigate('/shipments?action=create');
+          break;
+        case 'scan-package':
+          navigate('/scanning');
+          break;
+        case 'create-invoice':
+          navigate('/finance?action=create');
+          break;
+        case 'new-manifest':
+          navigate('/manifests?action=create');
+          break;
+        default:
+          // If it looks like an AWB, navigate to tracking
+          if (value.startsWith('TAC') || value.match(/^[A-Z]{2,3}\d+/)) {
+            navigate(`/tracking?awb=${value}`);
+          }
+      }
+    },
+    [navigate, setOpen]
+  );
 
   // Get recent shipments for quick access
-  const recentShipments = shipments.slice(0, 5)
+  const recentShipments = shipments.slice(0, 5);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -109,7 +122,9 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
               <div className="py-6 text-center">
                 <Search className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
                 <p className="text-muted-foreground">No results found</p>
-                <p className="text-xs text-muted-foreground mt-1">Try searching for an AWB or action</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Try searching for an AWB or action
+                </p>
               </div>
             </CommandEmpty>
 
@@ -160,9 +175,7 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
                 >
                   <item.icon className="mr-2 h-4 w-4 text-muted-foreground" />
                   <span>{item.name}</span>
-                  {item.shortcut && (
-                    <CommandShortcut>{item.shortcut}</CommandShortcut>
-                  )}
+                  {item.shortcut && <CommandShortcut>{item.shortcut}</CommandShortcut>}
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -170,16 +183,16 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
         </Command>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 // Hook for programmatic control
 export function useCommandPalette() {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
-  const toggle = useCallback(() => setOpen(o => !o), [])
-  const show = useCallback(() => setOpen(true), [])
-  const hide = useCallback(() => setOpen(false), [])
+  const toggle = useCallback(() => setOpen((o) => !o), []);
+  const show = useCallback(() => setOpen(true), []);
+  const hide = useCallback(() => setOpen(false), []);
 
-  return { open, setOpen, toggle, show, hide }
+  return { open, setOpen, toggle, show, hide };
 }

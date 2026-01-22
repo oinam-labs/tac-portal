@@ -1,21 +1,21 @@
-import { useEffect, useRef } from 'react'
-import JsBarcode from 'jsbarcode'
-import QRCode from 'qrcode.react'
-import { Shipment, HubLocation } from '@/types'
-import { format } from 'date-fns'
+import { useEffect, useRef } from 'react';
+import JsBarcode from 'jsbarcode';
+import QRCode from 'qrcode.react';
+import { Shipment, HubLocation } from '@/types';
+import { format } from 'date-fns';
 
 interface ShippingLabelProps {
-  shipment: Shipment
-  packageIndex?: number
+  shipment: Shipment;
+  packageIndex?: number;
 }
 
 const HUB_INFO: Record<HubLocation, { code: string; name: string; sortCode: string }> = {
   IMPHAL: { code: 'IXB', name: 'Imphal Hub', sortCode: 'IMP-01' },
   NEW_DELHI: { code: 'DEL', name: 'New Delhi Hub', sortCode: 'DEL-01' },
-}
+};
 
 export function ShippingLabel({ shipment, packageIndex = 1 }: ShippingLabelProps) {
-  const barcodeRef = useRef<SVGSVGElement>(null)
+  const barcodeRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     if (barcodeRef.current && shipment.awb) {
@@ -28,12 +28,12 @@ export function ShippingLabel({ shipment, packageIndex = 1 }: ShippingLabelProps
         font: 'monospace',
         textMargin: 4,
         margin: 0,
-      })
+      });
     }
-  }, [shipment.awb])
+  }, [shipment.awb]);
 
-  const origin = HUB_INFO[shipment.originHub]
-  const dest = HUB_INFO[shipment.destinationHub]
+  const origin = HUB_INFO[shipment.originHub];
+  const dest = HUB_INFO[shipment.destinationHub];
 
   const qrData = JSON.stringify({
     awb: shipment.awb,
@@ -41,13 +41,10 @@ export function ShippingLabel({ shipment, packageIndex = 1 }: ShippingLabelProps
     from: origin.code,
     to: dest.code,
     wt: shipment.totalWeight.chargeable,
-  })
+  });
 
   return (
-    <div
-      className="bg-white text-black p-4 font-sans"
-      style={{ width: '4in', height: '6in' }}
-    >
+    <div className="bg-white text-black p-4 font-sans" style={{ width: '4in', height: '6in' }}>
       {/* Header */}
       <div className="text-center border-b-2 border-black pb-2 mb-3">
         <h1 className="text-2xl font-black tracking-tight">TAC CARGO</h1>
@@ -82,7 +79,9 @@ export function ShippingLabel({ shipment, packageIndex = 1 }: ShippingLabelProps
       <div className="flex justify-between items-center border border-border rounded p-2 mb-3">
         <div>
           <p className="text-xs text-muted-foreground">PACKAGE</p>
-          <p className="text-xl font-bold">{packageIndex} of {shipment.totalPackageCount}</p>
+          <p className="text-xl font-bold">
+            {packageIndex} of {shipment.totalPackageCount}
+          </p>
         </div>
         <div className="text-right">
           <p className="text-xs text-muted-foreground">WEIGHT</p>
@@ -97,12 +96,7 @@ export function ShippingLabel({ shipment, packageIndex = 1 }: ShippingLabelProps
       {/* QR Code & Consignee */}
       <div className="flex gap-3">
         <div className="flex-shrink-0">
-          <QRCode
-            value={qrData}
-            size={80}
-            level="M"
-            renderAs="svg"
-          />
+          <QRCode value={qrData} size={80} level="M" renderAs="svg" />
         </div>
         <div className="flex-1 border-l border-border pl-3">
           <p className="text-xs text-muted-foreground mb-1">DELIVER TO:</p>
@@ -112,9 +106,7 @@ export function ShippingLabel({ shipment, packageIndex = 1 }: ShippingLabelProps
           <p className="text-xs text-muted-foreground leading-tight mt-1">
             {shipment.consignee?.address || 'Address on file'}
           </p>
-          <p className="text-xs font-mono mt-1">
-            📞 {shipment.consignee?.phone || 'N/A'}
-          </p>
+          <p className="text-xs font-mono mt-1">📞 {shipment.consignee?.phone || 'N/A'}</p>
         </div>
       </div>
 
@@ -125,7 +117,7 @@ export function ShippingLabel({ shipment, packageIndex = 1 }: ShippingLabelProps
         <span>www.tac-cargo.com</span>
       </div>
     </div>
-  )
+  );
 }
 
 // Print-optimized version
@@ -140,5 +132,5 @@ export function PrintableLabel({ shipment, packageIndex }: ShippingLabelProps) {
       `}</style>
       <ShippingLabel shipment={shipment} packageIndex={packageIndex} />
     </div>
-  )
+  );
 }

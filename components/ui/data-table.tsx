@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   ColumnDef,
   flexRender,
@@ -10,10 +10,10 @@ import {
   getFilteredRowModel,
   ColumnFiltersState,
   RowSelectionState,
-} from '@tanstack/react-table'
-import { cn } from '@/lib/utils'
-import { Button } from './button'
-import { Input } from './input'
+} from '@tanstack/react-table';
+import { cn } from '@/lib/utils';
+import { Button } from './button';
+import { Input } from './input';
 import {
   ChevronLeft,
   ChevronRight,
@@ -21,26 +21,19 @@ import {
   ChevronsRight,
   ArrowUpDown,
   Search,
-  GripVertical
-} from 'lucide-react'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from './table'
+  GripVertical,
+} from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './table';
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
-  searchKey?: string
-  searchPlaceholder?: string
-  pageSize?: number
-  className?: string
-  enableSelection?: boolean
-  enableRowDrag?: boolean
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  searchKey?: string;
+  searchPlaceholder?: string;
+  pageSize?: number;
+  className?: string;
+  enableSelection?: boolean;
+  enableRowDrag?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -53,14 +46,14 @@ export function DataTable<TData, TValue>({
   enableSelection = true,
   enableRowDrag = true,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [globalFilter, setGlobalFilter] = React.useState('')
-  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = React.useState('');
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
   // Enhance columns with selection and drag handles if enabled
   const tableColumns = React.useMemo(() => {
-    const enhancedColumns = [...columns]
+    const enhancedColumns = [...columns];
 
     if (enableSelection) {
       enhancedColumns.unshift({
@@ -85,24 +78,22 @@ export function DataTable<TData, TValue>({
         ),
         enableSorting: false,
         enableHiding: false,
-      })
+      });
     }
 
     if (enableRowDrag) {
       enhancedColumns.unshift({
         id: 'drag',
         header: '',
-        cell: () => (
-          <GripVertical className="h-4 w-4 text-muted-foreground/50 cursor-grab" />
-        ),
+        cell: () => <GripVertical className="h-4 w-4 text-muted-foreground/50 cursor-grab" />,
         enableSorting: false,
         enableHiding: false,
         size: 30,
-      })
+      });
     }
 
-    return enhancedColumns
-  }, [columns, enableSelection, enableRowDrag])
+    return enhancedColumns;
+  }, [columns, enableSelection, enableRowDrag]);
 
   const table = useReactTable({
     data,
@@ -126,10 +117,10 @@ export function DataTable<TData, TValue>({
         pageSize,
       },
     },
-  })
+  });
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn('space-y-4', className)}>
       {/* Search */}
       {searchKey && (
         <div className="flex items-center gap-2">
@@ -138,9 +129,7 @@ export function DataTable<TData, TValue>({
             <Input
               placeholder={searchPlaceholder}
               value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ''}
-              onChange={(event) =>
-                table.getColumn(searchKey)?.setFilterValue(event.target.value)
-              }
+              onChange={(event) => table.getColumn(searchKey)?.setFilterValue(event.target.value)}
               className="pl-9 bg-background"
             />
           </div>
@@ -159,22 +148,18 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder ? null : (
                         <div
                           className={cn(
-                            "flex items-center gap-1",
-                            header.column.getCanSort() && "cursor-pointer select-none hover:text-foreground"
+                            'flex items-center gap-1',
+                            header.column.getCanSort() &&
+                              'cursor-pointer select-none hover:text-foreground'
                           )}
                           onClick={header.column.getToggleSortingHandler()}
                         >
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                          {header.column.getCanSort() && (
-                            <ArrowUpDown className="w-3 h-3" />
-                          )}
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {header.column.getCanSort() && <ArrowUpDown className="w-3 h-3" />}
                         </div>
                       )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -182,10 +167,7 @@ export function DataTable<TData, TValue>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -195,10 +177,7 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={tableColumns.length}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={tableColumns.length} className="h-24 text-center">
                   No results found.
                 </TableCell>
               </TableRow>
@@ -210,7 +189,8 @@ export function DataTable<TData, TValue>({
       {/* Pagination */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{' '}
+          Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}{' '}
+          to{' '}
           {Math.min(
             (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
             table.getFilteredRowModel().rows.length
@@ -256,5 +236,5 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
     </div>
-  )
+  );
 }

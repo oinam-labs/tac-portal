@@ -14,79 +14,64 @@ type Hub = Database['public']['Tables']['hubs']['Row'];
 let currentOrgId: string | null = null;
 
 export const orgService = {
-    setCurrentOrg(orgId: string) {
-        currentOrgId = orgId;
-    },
+  setCurrentOrg(orgId: string) {
+    currentOrgId = orgId;
+  },
 
-    clearCurrentOrg() {
-        currentOrgId = null;
-    },
+  clearCurrentOrg() {
+    currentOrgId = null;
+  },
 
-    getCurrentOrgId(): string {
-        if (!currentOrgId) {
-            throw new Error('Organization context not set. Call setCurrentOrg first.');
-        }
-        return currentOrgId;
-    },
+  getCurrentOrgId(): string {
+    if (!currentOrgId) {
+      throw new Error('Organization context not set. Call setCurrentOrg first.');
+    }
+    return currentOrgId;
+  },
 
-    /**
-     * Safe version that returns null instead of throwing
-     */
-    tryGetCurrentOrgId(): string | null {
-        return currentOrgId;
-    },
+  /**
+   * Safe version that returns null instead of throwing
+   */
+  tryGetCurrentOrgId(): string | null {
+    return currentOrgId;
+  },
 
-    async getOrgs(): Promise<Org[]> {
-        const { data, error } = await supabase
-            .from('orgs')
-            .select('*')
-            .order('name');
+  async getOrgs(): Promise<Org[]> {
+    const { data, error } = await supabase.from('orgs').select('*').order('name');
 
-        if (error) throw mapSupabaseError(error);
-        return data ?? [];
-    },
+    if (error) throw mapSupabaseError(error);
+    return data ?? [];
+  },
 
-    async getOrg(id: string): Promise<Org> {
-        const { data, error } = await supabase
-            .from('orgs')
-            .select('*')
-            .eq('id', id)
-            .single();
+  async getOrg(id: string): Promise<Org> {
+    const { data, error } = await supabase.from('orgs').select('*').eq('id', id).single();
 
-        if (error) throw mapSupabaseError(error);
-        return data;
-    },
+    if (error) throw mapSupabaseError(error);
+    return data;
+  },
 
-    async getHubs(): Promise<Hub[]> {
-        const { data, error } = await supabase
-            .from('hubs')
-            .select('*')
-            .eq('is_active', true)
-            .order('name');
+  async getHubs(): Promise<Hub[]> {
+    const { data, error } = await supabase
+      .from('hubs')
+      .select('*')
+      .eq('is_active', true)
+      .order('name');
 
-        if (error) throw mapSupabaseError(error);
-        return data ?? [];
-    },
+    if (error) throw mapSupabaseError(error);
+    return data ?? [];
+  },
 
-    async getHub(id: string): Promise<Hub> {
-        const { data, error } = await supabase
-            .from('hubs')
-            .select('*')
-            .eq('id', id)
-            .single();
+  async getHub(id: string): Promise<Hub> {
+    const { data, error } = await supabase.from('hubs').select('*').eq('id', id).single();
 
-        if (error) throw mapSupabaseError(error);
-        return data;
-    },
+    if (error) throw mapSupabaseError(error);
+    return data;
+  },
 
-    async getHubByCode(code: 'IMPHAL' | 'NEW_DELHI'): Promise<Hub> {
-        const { data, error } = await supabase
-            .from('hubs')
-            .select('*')
-            .eq('code', code)
-            .single();
+  async getHubByCode(code: 'IMPHAL' | 'NEW_DELHI'): Promise<Hub> {
+    const { data, error } = await supabase.from('hubs').select('*').eq('code', code).single();
 
-        if (error) throw mapSupabaseError(error);
-        return data;
-    },
+    if (error) throw mapSupabaseError(error);
+    return data;
+  },
 };

@@ -1,29 +1,29 @@
 /**
  * Motion Components Wrapper
- * 
+ *
  * This module exports properly typed motion/react components
  * to fix compatibility issues with TypeScript strict mode.
- * 
+ *
  * Use these instead of importing directly from 'motion/react'
  */
 
 import {
-    motion as framerMotion,
-    AnimatePresence,
-    MotionConfig,
-    LayoutGroup,
-    useAnimation,
-    useInView,
-    useMotionValue,
-    useMotionTemplate,
-    useSpring,
-    useTransform,
-    useScroll,
-    type Variants,
-    type Transition,
-    type TargetAndTransition,
-    type HTMLMotionProps,
-    type MotionProps,
+  motion as framerMotion,
+  AnimatePresence,
+  MotionConfig,
+  LayoutGroup,
+  useAnimation,
+  useInView,
+  useMotionValue,
+  useMotionTemplate,
+  useSpring,
+  useTransform,
+  useScroll,
+  type Variants,
+  type Transition,
+  type TargetAndTransition,
+  type HTMLMotionProps,
+  type MotionProps,
 } from 'motion/react';
 
 // Simple type assertion to bypass strict type checking for motion components
@@ -33,21 +33,21 @@ export const motion = framerMotion as any;
 
 // Re-export utilities with proper types
 export {
-    AnimatePresence,
-    MotionConfig,
-    LayoutGroup,
-    useAnimation,
-    useInView,
-    useMotionValue,
-    useMotionTemplate,
-    useSpring,
-    useTransform,
-    useScroll,
-    type Variants,
-    type Transition,
-    type TargetAndTransition,
-    type HTMLMotionProps,
-    type MotionProps,
+  AnimatePresence,
+  MotionConfig,
+  LayoutGroup,
+  useAnimation,
+  useInView,
+  useMotionValue,
+  useMotionTemplate,
+  useSpring,
+  useTransform,
+  useScroll,
+  type Variants,
+  type Transition,
+  type TargetAndTransition,
+  type HTMLMotionProps,
+  type MotionProps,
 };
 
 // Export the original motion for explicit typing needs

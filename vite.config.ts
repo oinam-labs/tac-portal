@@ -13,7 +13,7 @@ export default defineConfig(() => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
-      }
+      },
     },
     build: {
       rollupOptions: {
@@ -24,11 +24,11 @@ export default defineConfig(() => {
             'vendor-data': ['@tanstack/react-query', 'zustand', 'zod', '@hookform/resolvers'],
             'vendor-charts': ['recharts'],
             'vendor-utils': ['date-fns'],
-            'vendor-sentry': ['@sentry/react']
-          }
-        }
+            'vendor-sentry': ['@sentry/react'],
+          },
+        },
       },
-      chunkSizeWarningLimit: 1000
-    }
+      chunkSizeWarningLimit: 1000,
+    },
   };
 });

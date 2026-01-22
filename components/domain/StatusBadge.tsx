@@ -1,13 +1,13 @@
-import { cn } from '@/lib/utils'
-import { ShipmentStatus, ManifestStatus, InvoiceStatus, ExceptionSeverity } from '@/types'
+import { cn } from '@/lib/utils';
+import { ShipmentStatus, ManifestStatus, InvoiceStatus, ExceptionSeverity } from '@/types';
 
-type StatusType = ShipmentStatus | ManifestStatus | InvoiceStatus | ExceptionSeverity | string
+type StatusType = ShipmentStatus | ManifestStatus | InvoiceStatus | ExceptionSeverity | string;
 
 interface StatusBadgeProps {
-  status: StatusType
-  size?: 'sm' | 'md' | 'lg'
-  className?: string
-  showDot?: boolean
+  status: StatusType;
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+  showDot?: boolean;
 }
 
 /**
@@ -54,34 +54,33 @@ const STATUS_CLASS_MAP: Record<string, { class: string; animate?: boolean }> = {
 
   // Default fallback
   DEFAULT: { class: 'badge--cancelled' },
-}
+};
 
 const SIZE_CLASSES = {
   sm: 'text-xs px-2 py-0.5',
   md: 'text-xs px-2.5 py-1',
   lg: 'text-sm px-3 py-1.5',
-}
+};
 
 export function StatusBadge({ status, size = 'md', className, showDot = true }: StatusBadgeProps) {
-  const config = STATUS_CLASS_MAP[status] || STATUS_CLASS_MAP.DEFAULT
-  const displayText = status.replace(/_/g, ' ')
+  const config = STATUS_CLASS_MAP[status] || STATUS_CLASS_MAP.DEFAULT;
+  const displayText = status.replace(/_/g, ' ');
 
   return (
-    <span className={cn(
-      "inline-flex items-center gap-1.5 rounded-md font-medium",
-      config.class,
-      SIZE_CLASSES[size],
-      className
-    )}>
+    <span
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-md font-medium',
+        config.class,
+        SIZE_CLASSES[size],
+        className
+      )}
+    >
       {showDot && (
         <span
-          className={cn(
-            "w-1.5 h-1.5 rounded-full bg-current",
-            config.animate && "animate-pulse"
-          )}
+          className={cn('w-1.5 h-1.5 rounded-full bg-current', config.animate && 'animate-pulse')}
         />
       )}
       <span className="capitalize">{displayText.toLowerCase()}</span>
     </span>
-  )
+  );
 }

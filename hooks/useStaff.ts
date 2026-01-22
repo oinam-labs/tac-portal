@@ -23,7 +23,14 @@ export interface Staff {
   auth_user_id: string | null;
   email: string;
   full_name: string;
-  role: 'ADMIN' | 'MANAGER' | 'WAREHOUSE_IMPHAL' | 'WAREHOUSE_DELHI' | 'OPS' | 'INVOICE' | 'SUPPORT';
+  role:
+    | 'ADMIN'
+    | 'MANAGER'
+    | 'WAREHOUSE_IMPHAL'
+    | 'WAREHOUSE_DELHI'
+    | 'OPS'
+    | 'INVOICE'
+    | 'SUPPORT';
   hub_id: string | null;
   is_active: boolean;
   created_at: string;
@@ -37,10 +44,12 @@ export function useStaff(options?: { hubId?: string }) {
     queryFn: async () => {
       let query = supabase
         .from('staff')
-        .select(`
+        .select(
+          `
           *,
           hub:hubs(code, name)
-        `)
+        `
+        )
         .order('full_name', { ascending: true });
 
       if (options?.hubId) {
