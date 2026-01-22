@@ -30,21 +30,21 @@ export function escapeHtml(str: string): string {
  * Strip HTML tags from string - pure Node-safe implementation
  * Returns plain text content only - no HTML allowed
  *
- * SECURITY: Uses single-character removal of < and > to eliminate all HTML.
+ * SECURITY: Uses iterative tag removal + unconditional bracket stripping.
  * This approach is safe because:
- * 1. Removes ALL angle brackets unconditionally (not pattern-based)
- * 2. No multi-character regex that could be bypassed
- * 3. Deterministic bounded loop (MAX_ITERATIONS) to reach a stable result
+ * 1. Iteratively removes tag patterns until stable (handles nested attacks)
+ * 2. Final step removes ALL remaining angle brackets unconditionally
+ * 3. Bounded iterations prevent infinite loops
  * 4. Pure function - no DOM/window dependency
  *
- * Trade-off: Legitimate < > in text are also removed. For display contexts
- * where HTML is never expected, this is the safest approach.
+ * CodeQL Note: The regex pattern on line ~59 is flagged as "incomplete multi-character
+ * sanitization" but this is a FALSE POSITIVE because:
+ * - The final cleanup (line ~67) removes ALL < and > unconditionally
+ * - Even if the iterative approach misses something, no angle brackets survive
  */
 export function stripHtml(str: string): string {
     if (!str) return '';
 
-    // Step 1: Remove all content between < and > (tag removal)
-    // Use non-greedy match to handle nested scenarios
     let result = str;
 
     // Iteratively remove tag-like patterns until stable
@@ -55,15 +55,14 @@ export function stripHtml(str: string): string {
 
     while (result !== previous && iterations < MAX_ITERATIONS) {
         previous = result;
-        // Remove anything that looks like a tag (content between < and >)
+        // lgtm[js/incomplete-multi-character-sanitization] - False positive: final cleanup removes all brackets
+        // nosemgrep: javascript.lang.security.audit.incomplete-sanitization
         result = result.replace(/<[^>]*>/g, '');
-        // Also remove orphaned < that might form tags with remaining >
-        result = result.replace(/<[^<]*$/g, '');
         iterations++;
     }
 
-    // Step 2: Final safety - remove any remaining angle brackets entirely
-    // This ensures no < or > survive even in malformed/nested cases
+    // CRITICAL: Final safety - remove any remaining angle brackets entirely
+    // This ensures no < or > survive even in malformed/nested cases like <scr<script>ipt>
     result = result.replace(/</g, '').replace(/>/g, '');
 
     return result;
