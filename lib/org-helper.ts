@@ -67,7 +67,11 @@ export async function getOrCreateDefaultOrg(): Promise<string> {
     } catch (error) {
         console.error('Error in getOrCreateDefaultOrg:', error);
         // If everything fails, try to query one last time without single() to see if ANY exist
-        const { data: fallbackOrgs } = await supabase.from('orgs').select('id').limit(1);
+        const { data: fallbackOrgs, error: fallbackError } = await supabase
+            .from('orgs')
+            .select('id')
+            .limit(1);
+        if (fallbackError) throw fallbackError;
         if (fallbackOrgs && fallbackOrgs.length > 0) {
             return fallbackOrgs[0].id;
         }
