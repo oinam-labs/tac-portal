@@ -31,16 +31,16 @@ export enum HubCode {
 
 export enum ShipmentStatus {
     CREATED = 'CREATED',
+    PICKUP_SCHEDULED = 'PICKUP_SCHEDULED',
     PICKED_UP = 'PICKED_UP',
-    RECEIVED_AT_ORIGIN_HUB = 'RECEIVED_AT_ORIGIN_HUB',
-    LOADED_FOR_LINEHAUL = 'LOADED_FOR_LINEHAUL',
-    IN_TRANSIT_TO_DESTINATION = 'IN_TRANSIT_TO_DESTINATION',
-    RECEIVED_AT_DEST_HUB = 'RECEIVED_AT_DEST_HUB',
+    RECEIVED_AT_ORIGIN = 'RECEIVED_AT_ORIGIN',
+    IN_TRANSIT = 'IN_TRANSIT',
+    RECEIVED_AT_DEST = 'RECEIVED_AT_DEST',
     OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY',
     DELIVERED = 'DELIVERED',
-    EXCEPTION_RAISED = 'EXCEPTION_RAISED',
-    EXCEPTION_RESOLVED = 'EXCEPTION_RESOLVED',
     CANCELLED = 'CANCELLED',
+    RTO = 'RTO',
+    EXCEPTION = 'EXCEPTION',
 }
 
 export enum ManifestStatus {
@@ -135,45 +135,44 @@ export enum TrackingEventSource {
 
 export const SHIPMENT_STATUS_TRANSITIONS: Record<ShipmentStatus, ShipmentStatus[]> = {
     [ShipmentStatus.CREATED]: [
+        ShipmentStatus.PICKUP_SCHEDULED,
+        ShipmentStatus.CANCELLED,
+    ],
+    [ShipmentStatus.PICKUP_SCHEDULED]: [
         ShipmentStatus.PICKED_UP,
-        ShipmentStatus.RECEIVED_AT_ORIGIN_HUB,
         ShipmentStatus.CANCELLED,
     ],
     [ShipmentStatus.PICKED_UP]: [
-        ShipmentStatus.RECEIVED_AT_ORIGIN_HUB,
-        ShipmentStatus.EXCEPTION_RAISED,
+        ShipmentStatus.RECEIVED_AT_ORIGIN,
+        ShipmentStatus.EXCEPTION,
     ],
-    [ShipmentStatus.RECEIVED_AT_ORIGIN_HUB]: [
-        ShipmentStatus.LOADED_FOR_LINEHAUL,
-        ShipmentStatus.EXCEPTION_RAISED,
+    [ShipmentStatus.RECEIVED_AT_ORIGIN]: [
+        ShipmentStatus.IN_TRANSIT,
+        ShipmentStatus.EXCEPTION,
     ],
-    [ShipmentStatus.LOADED_FOR_LINEHAUL]: [
-        ShipmentStatus.IN_TRANSIT_TO_DESTINATION,
-        ShipmentStatus.EXCEPTION_RAISED,
+    [ShipmentStatus.IN_TRANSIT]: [
+        ShipmentStatus.RECEIVED_AT_DEST,
+        ShipmentStatus.EXCEPTION,
     ],
-    [ShipmentStatus.IN_TRANSIT_TO_DESTINATION]: [
-        ShipmentStatus.RECEIVED_AT_DEST_HUB,
-        ShipmentStatus.EXCEPTION_RAISED,
-    ],
-    [ShipmentStatus.RECEIVED_AT_DEST_HUB]: [
+    [ShipmentStatus.RECEIVED_AT_DEST]: [
         ShipmentStatus.OUT_FOR_DELIVERY,
-        ShipmentStatus.EXCEPTION_RAISED,
+        ShipmentStatus.EXCEPTION,
     ],
     [ShipmentStatus.OUT_FOR_DELIVERY]: [
         ShipmentStatus.DELIVERED,
-        ShipmentStatus.EXCEPTION_RAISED,
+        ShipmentStatus.RTO,
+        ShipmentStatus.EXCEPTION,
     ],
-    [ShipmentStatus.DELIVERED]: [],
-    [ShipmentStatus.EXCEPTION_RAISED]: [
-        ShipmentStatus.EXCEPTION_RESOLVED,
+    [ShipmentStatus.DELIVERED]: [], // Terminal state
+    [ShipmentStatus.CANCELLED]: [], // Terminal state
+    [ShipmentStatus.RTO]: [
+        ShipmentStatus.RECEIVED_AT_ORIGIN, // Can re-enter flow
+    ],
+    [ShipmentStatus.EXCEPTION]: [
+        ShipmentStatus.RECEIVED_AT_ORIGIN,
+        ShipmentStatus.RECEIVED_AT_DEST,
         ShipmentStatus.CANCELLED,
     ],
-    [ShipmentStatus.EXCEPTION_RESOLVED]: [
-        ShipmentStatus.RECEIVED_AT_ORIGIN_HUB,
-        ShipmentStatus.RECEIVED_AT_DEST_HUB,
-        ShipmentStatus.OUT_FOR_DELIVERY,
-    ],
-    [ShipmentStatus.CANCELLED]: [],
 };
 
 export const isValidShipmentTransition = (

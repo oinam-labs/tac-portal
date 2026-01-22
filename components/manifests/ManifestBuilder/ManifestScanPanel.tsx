@@ -174,7 +174,7 @@ export function ManifestScanPanel({
                                 {scanner.lastResult.awb_number && (
                                     <p className="text-xs mt-1 opacity-80 font-mono">
                                         {scanner.lastResult.awb_number}
-                                        {scanner.lastResult.consignee_name && ` • ${scanner.lastResult.consignee_name}`}
+                                        {scanner.lastResult.receiver_name && ` • ${scanner.lastResult.receiver_name}`}
                                     </p>
                                 )}
                             </div>

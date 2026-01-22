@@ -137,7 +137,7 @@ export const Scanning: React.FC = () => {
             }
 
             if (scanMode === 'RECEIVE') {
-                const newStatus = shipment.status === 'CREATED' ? 'RECEIVED' : 'RECEIVED_AT_DEST';
+                const newStatus = shipment.status === 'CREATED' ? 'RECEIVED_AT_ORIGIN' : 'RECEIVED_AT_DEST';
                 await updateStatus.mutateAsync({ id: shipment.id, status: newStatus });
                 addScanResult(awb, 'SUCCESS', `Status updated to ${newStatus}`);
 
@@ -151,7 +151,7 @@ export const Scanning: React.FC = () => {
                 });
 
                 // Update shipment status
-                await updateStatus.mutateAsync({ id: shipment.id, status: 'LOADED_FOR_LINEHAUL' });
+                await updateStatus.mutateAsync({ id: shipment.id, status: 'IN_TRANSIT' });
                 addScanResult(awb, 'SUCCESS', `Loaded to ${activeManifest.manifest_no}`);
 
             } else if (scanMode === 'VERIFY_MANIFEST') {

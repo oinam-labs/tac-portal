@@ -11,21 +11,19 @@ export type ServiceLevel = 'STANDARD' | 'EXPRESS';
 
 export type PaymentMode = 'PAID' | 'TO_PAY' | 'TBB';
 
-// PRD Exact Status Codes
+// Canonical Shipment Status Codes (aligned with DB CHECK constraint)
 export type ShipmentStatus =
     | 'CREATED'
+    | 'PICKUP_SCHEDULED'
     | 'PICKED_UP'
-    | 'RECEIVED_AT_ORIGIN_HUB'
-    | 'LOADED_FOR_LINEHAUL'
-    | 'IN_TRANSIT_TO_DESTINATION'
-    | 'RECEIVED_AT_DEST_HUB'
+    | 'RECEIVED_AT_ORIGIN'
+    | 'IN_TRANSIT'
+    | 'RECEIVED_AT_DEST'
     | 'OUT_FOR_DELIVERY'
     | 'DELIVERED'
-    | 'RETURNED'
     | 'CANCELLED'
-    | 'DAMAGED'
-    | 'EXCEPTION_RAISED'
-    | 'EXCEPTION_RESOLVED';
+    | 'RTO'
+    | 'EXCEPTION';
 
 export type ManifestStatus = 'OPEN' | 'CLOSED' | 'DEPARTED' | 'ARRIVED';
 

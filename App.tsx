@@ -25,7 +25,6 @@ const Finance = lazy(() => import('./pages/Finance').then(module => ({ default: 
 const Analytics = lazy(() => import('./pages/Analytics').then(module => ({ default: module.Analytics })));
 const Tracking = lazy(() => import('./pages/Tracking').then(module => ({ default: module.Tracking })));
 const Manifests = lazy(() => import('./pages/Manifests').then(module => ({ default: module.Manifests })));
-const CreateManifestPage = lazy(() => import('./app/(protected)/manifests/create/page').then(module => ({ default: module.default })));
 const Scanning = lazy(() => import('./pages/Scanning').then(module => ({ default: module.Scanning })));
 const Inventory = lazy(() => import('./pages/Inventory').then(module => ({ default: module.Inventory })));
 const Exceptions = lazy(() => import('./pages/Exceptions').then(module => ({ default: module.Exceptions })));
@@ -329,7 +328,6 @@ const App: React.FC = () => {
                                             {/* Operations Routes */}
                                             <Route path="/shipments" element={<ProtectedRoute><DashboardLayout><Shipments /></DashboardLayout></ProtectedRoute>} />
                                             <Route path="/tracking" element={<ProtectedRoute><DashboardLayout><Tracking /></DashboardLayout></ProtectedRoute>} />
-                                            <Route path="/manifests/create" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF']}><CreateManifestPage /></ProtectedRoute>} />
                                             <Route path="/manifests" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF']}><DashboardLayout><Manifests /></DashboardLayout></ProtectedRoute>} />
                                             <Route path="/scanning" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}><DashboardLayout><Scanning /></DashboardLayout></ProtectedRoute>} />
                                             <Route path="/inventory" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}><DashboardLayout><Inventory /></DashboardLayout></ProtectedRoute>} />

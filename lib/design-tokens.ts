@@ -6,18 +6,16 @@ import { ShipmentStatus } from '../types';
  */
 export const STATUS_COLORS: Partial<Record<ShipmentStatus, string>> = {
     'CREATED': 'badge--created',
+    'PICKUP_SCHEDULED': 'badge--created',
     'PICKED_UP': 'badge--manifested',
-    'RECEIVED_AT_ORIGIN_HUB': 'badge--manifested',
-    'LOADED_FOR_LINEHAUL': 'badge--in-transit',
-    'IN_TRANSIT_TO_DESTINATION': 'badge--in-transit',
-    'RECEIVED_AT_DEST_HUB': 'badge--arrived',
+    'RECEIVED_AT_ORIGIN': 'badge--manifested',
+    'IN_TRANSIT': 'badge--in-transit',
+    'RECEIVED_AT_DEST': 'badge--arrived',
     'OUT_FOR_DELIVERY': 'badge--in-transit',
     'DELIVERED': 'badge--delivered',
-    'EXCEPTION_RAISED': 'badge--exception',
-    'DAMAGED': 'badge--exception',
-    'RETURNED': 'badge--returned',
     'CANCELLED': 'badge--cancelled',
-    'EXCEPTION_RESOLVED': 'badge--delivered'
+    'RTO': 'badge--returned',
+    'EXCEPTION': 'badge--exception',
 };
 
 export const ANIMATION_VARIANTS = {

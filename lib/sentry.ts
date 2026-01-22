@@ -145,6 +145,14 @@ export const initSentry = () => {
       'ComboSearch is not defined',
       // React DevTools
       'ResizeObserver loop limit exceeded',
+      // React Query / Fetch cancellation (expected during navigation)
+      'AbortError',
+      'signal is aborted without reason',
+      'The operation was aborted',
+      'Request was cancelled',
+      // Network errors (transient)
+      'NetworkError when attempting to fetch resource',
+      'Load failed',
     ],
   });
 

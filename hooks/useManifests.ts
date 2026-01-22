@@ -14,7 +14,9 @@ export interface ManifestItemWithRelations {
     shipment: {
         id: string;
         awb_number: string;
-        consignee_name: string;
+        receiver_name: string;
+        receiver_phone?: string;
+        sender_name?: string;
         destination_hub_id: string;
         package_count: number;
         total_weight: number;

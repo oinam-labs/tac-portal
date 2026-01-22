@@ -14,15 +14,16 @@ interface TrackingTimelineProps {
 
 const EVENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   CREATED: Package,
+  PICKUP_SCHEDULED: Clock,
   PICKED_UP: Truck,
-  RECEIVED_AT_ORIGIN_HUB: Building2,
-  LOADED_FOR_LINEHAUL: ArrowRight,
-  IN_TRANSIT_TO_DESTINATION: Truck,
-  RECEIVED_AT_DEST_HUB: Building2,
+  RECEIVED_AT_ORIGIN: Building2,
+  IN_TRANSIT: Truck,
+  RECEIVED_AT_DEST: Building2,
   OUT_FOR_DELIVERY: Truck,
   DELIVERED: CheckCircle,
-  EXCEPTION_RAISED: AlertTriangle,
-  EXCEPTION_RESOLVED: CheckCircle,
+  CANCELLED: AlertTriangle,
+  RTO: ArrowRight,
+  EXCEPTION: AlertTriangle,
   DEFAULT: Clock,
 }
 
@@ -32,15 +33,16 @@ const EVENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> =
  */
 const EVENT_COLORS: Record<string, string> = {
   CREATED: 'bg-[oklch(var(--status-created-bg))]',
+  PICKUP_SCHEDULED: 'bg-[oklch(var(--status-created-bg))]',
   PICKED_UP: 'bg-[oklch(var(--status-manifested-bg))]',
-  RECEIVED_AT_ORIGIN_HUB: 'bg-[oklch(var(--status-manifested-bg))]',
-  LOADED_FOR_LINEHAUL: 'bg-[oklch(var(--status-in-transit-bg))]',
-  IN_TRANSIT_TO_DESTINATION: 'bg-[oklch(var(--status-in-transit-bg))]',
-  RECEIVED_AT_DEST_HUB: 'bg-[oklch(var(--status-arrived-bg))]',
+  RECEIVED_AT_ORIGIN: 'bg-[oklch(var(--status-manifested-bg))]',
+  IN_TRANSIT: 'bg-[oklch(var(--status-in-transit-bg))]',
+  RECEIVED_AT_DEST: 'bg-[oklch(var(--status-arrived-bg))]',
   OUT_FOR_DELIVERY: 'bg-[oklch(var(--status-in-transit-bg))]',
   DELIVERED: 'bg-[oklch(var(--status-delivered-bg))]',
-  EXCEPTION_RAISED: 'bg-[oklch(var(--status-exception-bg))]',
-  EXCEPTION_RESOLVED: 'bg-[oklch(var(--status-delivered-bg))]',
+  CANCELLED: 'bg-[oklch(var(--status-exception-bg))]',
+  RTO: 'bg-[oklch(var(--status-exception-bg))]',
+  EXCEPTION: 'bg-[oklch(var(--status-exception-bg))]',
   DEFAULT: 'bg-muted',
 }
 

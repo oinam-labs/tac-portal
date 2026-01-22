@@ -35,10 +35,11 @@ export interface ManifestItemWithShipment extends ManifestItem {
     shipment?: {
         id: string;
         awb_number: string;
-        consignee_name: string;
-        consignor_name?: string;
-        receiver_name?: string;
+        receiver_name: string;
+        receiver_phone?: string;
+        receiver_address?: Record<string, unknown>;
         sender_name?: string;
+        sender_phone?: string;
         receiver_city?: string;
         sender_city?: string;
         total_weight: number;
@@ -59,11 +60,15 @@ export function mapManifestItemWithShipment(item: any): ManifestItemWithShipment
         ...item,
         shipment: item.shipment ? {
             ...item.shipment,
-            consignee_name: item.shipment.receiver_name,
-            consignor_name: item.shipment.sender_name,
-            package_count: item.shipment.total_packages,
+            // Map to expected interface names (columns use receiver_*/sender_* names)
+            receiver_name: item.shipment.receiver_name,
+            receiver_phone: item.shipment.receiver_phone,
+            receiver_address: item.shipment.receiver_address,
+            sender_name: item.shipment.sender_name,
+            sender_phone: item.shipment.sender_phone,
+            package_count: item.shipment.package_count,
+            total_weight: item.shipment.total_weight,
             receiver_city: item.shipment.receiver_address?.city,
-            sender_city: item.shipment.sender_address?.city,
         } : undefined,
     };
 }
@@ -83,8 +88,8 @@ export interface ScanResponse {
     message: string;
     shipment_id?: string;
     awb_number?: string;
-    consignee_name?: string;
-    consignor_name?: string;
+    receiver_name?: string;
+    sender_name?: string;
     total_packages?: number;
     total_weight?: number;
     manifest_item_id?: string;
@@ -226,7 +231,7 @@ export const manifestService = {
             .from('manifest_items')
             .select(`
         *,
-        shipment:shipments(id, awb_number, consignee_name, total_weight, package_count)
+        shipment:shipments(id, awb_number, receiver_name, total_weight, package_count)
       `)
             .eq('manifest_id', manifestId)
             .eq('org_id', orgId);
@@ -283,7 +288,7 @@ export const manifestService = {
             .from('shipments') as any)
             .update({
                 manifest_id: manifestId,
-                status: 'LOADED_FOR_LINEHAUL',
+                status: 'IN_TRANSIT',
                 updated_at: new Date().toISOString(),
             })
             .eq('id', shipmentId);
@@ -631,7 +636,7 @@ export const manifestService = {
             }
 
             // Validate status
-            const validStatuses = ['RECEIVED', 'CREATED', 'PICKED_UP', 'RECEIVED_AT_ORIGIN_HUB'];
+            const validStatuses = ['CREATED', 'PICKED_UP', 'RECEIVED_AT_ORIGIN'];
             if (validateStatus && !validStatuses.includes(shipment.status)) {
                 return {
                     success: false,
@@ -676,8 +681,8 @@ export const manifestService = {
                 message: 'Shipment added to manifest',
                 shipment_id: shipment.id,
                 awb_number: shipment.awb_number,
-                consignee_name: shipment.receiver_name,
-                consignor_name: shipment.sender_name,
+                receiver_name: shipment.receiver_name,
+                sender_name: shipment.sender_name,
                 total_packages: shipment.total_packages,
                 total_weight: shipment.total_weight,
                 manifest_item_id: newItem.id,
@@ -890,25 +895,27 @@ export const manifestService = {
                     id,
                     awb_number,
                     receiver_name,
-                    sender_name,
+                    receiver_phone,
                     receiver_address,
-                    sender_address,
+                    sender_name,
+                    sender_phone,
                     total_weight,
-                    total_packages,
-                    cod_amount,
+                    package_count,
+                    chargeable_weight,
+                    declared_value,
                     status,
-                    payment_mode,
-                    service_type,
-                    special_instructions
+                    service_level,
+                    special_instructions,
+                    destination_hub_id
                 )
             `)
             .eq('manifest_id', manifestId)
             .eq('org_id', orgId)
-            .order('created_at', { ascending: false });
+            .order('scanned_at', { ascending: false });
 
         if (error) throw mapSupabaseError(error);
 
-        // Map to expected format with consignee/consignor names
+        // Map to expected format with receiver/sender names
         return ((data ?? []) as any[]).map(mapManifestItemWithShipment);
     },
 

@@ -15,20 +15,18 @@ interface StatusBadgeProps {
  * Uses semantic status tokens from globals.css
  */
 const STATUS_CLASS_MAP: Record<string, { class: string; animate?: boolean }> = {
-  // Shipment Statuses
+  // Shipment Statuses (canonical)
   CREATED: { class: 'badge--created' },
+  PICKUP_SCHEDULED: { class: 'badge--created' },
   PICKED_UP: { class: 'badge--manifested' },
-  RECEIVED_AT_ORIGIN_HUB: { class: 'badge--manifested' },
-  LOADED_FOR_LINEHAUL: { class: 'badge--in-transit' },
-  IN_TRANSIT_TO_DESTINATION: { class: 'badge--in-transit', animate: true },
-  RECEIVED_AT_DEST_HUB: { class: 'badge--arrived' },
+  RECEIVED_AT_ORIGIN: { class: 'badge--manifested' },
+  IN_TRANSIT: { class: 'badge--in-transit', animate: true },
+  RECEIVED_AT_DEST: { class: 'badge--arrived' },
   OUT_FOR_DELIVERY: { class: 'badge--in-transit', animate: true },
   DELIVERED: { class: 'badge--delivered' },
-  RETURNED: { class: 'badge--returned' },
   CANCELLED: { class: 'badge--cancelled' },
-  DAMAGED: { class: 'badge--exception' },
-  EXCEPTION_RAISED: { class: 'badge--exception', animate: true },
-  EXCEPTION_RESOLVED: { class: 'badge--delivered' },
+  RTO: { class: 'badge--returned' },
+  EXCEPTION: { class: 'badge--exception', animate: true },
 
   // Manifest Statuses
   DRAFT: { class: 'badge--created' },

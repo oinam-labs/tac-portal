@@ -92,7 +92,7 @@ export const ManifestDetails: React.FC = () => {
                             {items?.map(item => (
                                 <tr key={item.id}>
                                     <Td className="font-mono font-bold">{item.shipment.awb_number}</Td>
-                                    <Td>{item.shipment.consignee_name}</Td>
+                                    <Td>{item.shipment.receiver_name}</Td>
                                     <Td>{item.shipment.package_count}</Td>
                                     <Td>{item.shipment.total_weight} kg</Td>
                                     <Td className="text-right text-xs text-muted-foreground">

@@ -290,7 +290,6 @@ export function ManifestSettingsForm({
                                         <TimePicker
                                             value={watchedValues.etd}
                                             onChange={(time) => form.setValue("etd", time)}
-                                            placeholder="Departure time"
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -300,7 +299,6 @@ export function ManifestSettingsForm({
                                         <TimePicker
                                             value={watchedValues.eta}
                                             onChange={(time) => form.setValue("eta", time)}
-                                            placeholder="Arrival time"
                                         />
                                     </div>
                                 </div>

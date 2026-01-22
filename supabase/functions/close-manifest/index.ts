@@ -6,7 +6,7 @@
  * This function:
  * 1. Validates the manifest exists and is in OPEN status
  * 2. Updates manifest status to CLOSED
- * 3. Updates all linked shipments to LOADED_FOR_LINEHAUL
+ * 3. Updates all linked shipments to IN_TRANSIT
  * 4. Creates tracking events for each shipment
  * 5. Calculates and updates manifest totals
  */
@@ -141,7 +141,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
             throw new Error(`Failed to update manifest: ${updateManifestError.message}`);
         }
 
-        // 5. Update all shipments to LOADED_FOR_LINEHAUL
+        // 5. Update all shipments to IN_TRANSIT
         let shipmentsUpdated = 0;
         const shipmentIds = shipments.map((s: ManifestShipment) => s.id);
 
@@ -149,7 +149,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
             const { error: updateShipmentsError, count } = await supabase
                 .from("shipments")
                 .update({
-                    status: "LOADED_FOR_LINEHAUL",
+                    status: "IN_TRANSIT",
                     manifest_id: manifest_id,
                     updated_at: new Date().toISOString(),
                 })
@@ -167,7 +167,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
             org_id: manifest.org_id,
             shipment_id: s.id,
             awb_number: s.awb_number,
-            event_code: "LOADED_FOR_LINEHAUL",
+            event_code: "IN_TRANSIT",
             event_time: new Date().toISOString(),
             hub_id: manifest.from_hub_id,
             actor_staff_id: staff_id || null,

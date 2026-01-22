@@ -76,7 +76,6 @@ export function DatePicker({
 interface TimePickerProps {
     value?: string
     onChange?: (time: string) => void
-    placeholder?: string
     disabled?: boolean
     className?: string
     use24Hour?: boolean

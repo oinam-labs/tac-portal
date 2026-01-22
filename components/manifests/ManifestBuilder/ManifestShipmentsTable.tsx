@@ -53,9 +53,8 @@ export function ManifestShipmentsTable({
             if (!shipment) return false
             return (
                 shipment.awb_number?.toLowerCase().includes(query) ||
-                shipment.consignee_name?.toLowerCase().includes(query) ||
-                shipment.consignor_name?.toLowerCase().includes(query) ||
-                shipment.receiver_name?.toLowerCase().includes(query)
+                shipment.receiver_name?.toLowerCase().includes(query) ||
+                shipment.sender_name?.toLowerCase().includes(query)
             )
         })
     }, [items, searchQuery])
@@ -79,7 +78,7 @@ export function ManifestShipmentsTable({
                     return (
                         <div className="space-y-0.5">
                             <div className="font-medium truncate max-w-[180px]">
-                                {shipment?.consignee_name || shipment?.receiver_name || "—"}
+                                {shipment?.receiver_name || "—"}
                             </div>
                             {shipment?.receiver_city && (
                                 <div className="text-xs text-muted-foreground">
@@ -98,7 +97,7 @@ export function ManifestShipmentsTable({
                     return (
                         <div className="space-y-0.5">
                             <div className="font-medium truncate max-w-[180px]">
-                                {shipment?.consignor_name || shipment?.sender_name || "—"}
+                                {shipment?.sender_name || "—"}
                             </div>
                             {shipment?.sender_city && (
                                 <div className="text-xs text-muted-foreground">

@@ -75,9 +75,9 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
                 package_count: data.packageCount,
                 total_weight: parseFloat(chargeable.toFixed(2)),
                 // Required DB fields not in form yet:
-                consignee_name: 'Walk-in Customer',
-                consignee_phone: '9999999999',
-                consignee_address: { line1: 'TBD', city: 'TBD' },
+                receiver_name: 'Walk-in Customer',
+                receiver_phone: '9999999999',
+                receiver_address: { line1: 'TBD', city: 'TBD' },
                 special_instructions: `Dims: ${data.dimL}x${data.dimW}x${data.dimH}`
             });
 
