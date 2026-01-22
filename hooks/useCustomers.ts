@@ -2,9 +2,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 import { getOrCreateDefaultOrg } from '../lib/org-helper';
+import type { Json } from '../lib/database.types';
 
-// Type helper to work around Supabase client type inference issues
-const db = supabase as any;
+/**
+ * Address structure for customers
+ */
+export interface CustomerAddress {
+  street?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
+  country?: string;
+  [key: string]: string | undefined;
+}
 
 /**
  * Query key factory for customers.
@@ -26,9 +36,9 @@ export interface Customer {
   phone: string;
   email: string | null;
   gstin: string | null;
-  type: 'INDIVIDUAL' | 'BUSINESS';
-  address: any;
-  billing_address: any | null;
+  type: 'INDIVIDUAL' | 'BUSINESS' | 'CORPORATE';
+  address: CustomerAddress | Json;
+  billing_address: CustomerAddress | Json | null;
   credit_limit: number;
   created_at: string;
   updated_at: string;
@@ -100,19 +110,23 @@ export function useCreateCustomer() {
       phone: string;
       email?: string;
       gstin?: string;
-      type?: 'INDIVIDUAL' | 'BUSINESS';
-      address: any;
-      billing_address?: any;
+      type?: 'INDIVIDUAL' | 'BUSINESS' | 'CORPORATE';
+      address: CustomerAddress | Json;
+      billing_address?: CustomerAddress | Json;
       credit_limit?: number;
     }) => {
       const orgId = await getOrCreateDefaultOrg();
 
-      const { data, error } = await db
-        .from('customers')
-        .insert({
-          ...customer,
-          org_id: orgId,
-        })
+      const insertData = {
+        ...customer,
+        org_id: orgId,
+        type: customer.type || 'INDIVIDUAL', // Must be uppercase: INDIVIDUAL, BUSINESS, or CORPORATE
+      };
+
+      // Type assertion needed due to Supabase client type inference limitations
+      const { data, error } = await (supabase
+        .from('customers') as ReturnType<typeof supabase.from>)
+        .insert(insertData)
         .select()
         .single();
 
@@ -134,9 +148,19 @@ export function useUpdateCustomer() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Customer> }) => {
-      const { data: result, error } = await db
-        .from('customers')
-        .update({ ...data, updated_at: new Date().toISOString() })
+      // Extract only valid update fields
+      const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      const allowedFields = ['name', 'phone', 'email', 'gstin', 'address', 'billing_address', 'credit_limit'];
+      for (const key of allowedFields) {
+        if (key in data) {
+          updateData[key] = data[key as keyof typeof data];
+        }
+      }
+
+      // Type assertion needed due to Supabase client type inference limitations
+      const { data: result, error } = await (supabase
+        .from('customers') as ReturnType<typeof supabase.from>)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
@@ -163,12 +187,10 @@ export function useDeleteCustomer() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await db
-        .from('customers')
-        .update({
-          deleted_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+      // Type assertion needed due to Supabase client type inference limitations
+      const { error } = await (supabase
+        .from('customers') as ReturnType<typeof supabase.from>)
+        .update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
         .eq('id', id);
 
       if (error) throw error;

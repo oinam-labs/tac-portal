@@ -259,7 +259,9 @@ const App: React.FC = () => {
     }, [initialize]);
 
     useEffect(() => {
-        console.log('[Theme] Switching to:', theme);
+        if (import.meta.env.DEV) {
+            console.log('[Theme] Switching to:', theme);
+        }
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
             document.documentElement.classList.remove('light');
@@ -267,12 +269,18 @@ const App: React.FC = () => {
             document.documentElement.classList.remove('dark');
             document.documentElement.classList.add('light');
         }
-        console.log('[Theme] HTML classes:', document.documentElement.className);
     }, [theme]);
 
     return (
         <QueryClientProvider client={queryClient}>
             <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                {/* Skip to main content link for accessibility (WCAG 2.4.1) */}
+                <a
+                    href="#main-content"
+                    className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                    Skip to main content
+                </a>
                 <div className="min-h-screen">
                     <SentryErrorBoundary fallback={({ error, resetError }) => (
                         <div className="min-h-screen flex items-center justify-center bg-cyber-bg p-4">
@@ -292,46 +300,48 @@ const App: React.FC = () => {
                         }>
                             <ErrorBoundary>
                                 <PageTransition>
-                                    <Routes>
-                                        {/* Public Landing Page */}
-                                        <Route path="/" element={<Landing />} />
+                                    <main id="main-content" tabIndex={-1} className="outline-none">
+                                        <Routes>
+                                            {/* Public Landing Page */}
+                                            <Route path="/" element={<Landing />} />
 
-                                        {/* Public Tracking Page */}
-                                        <Route path="/track" element={<PublicTracking />} />
-                                        <Route path="/track/:awb" element={<PublicTracking />} />
+                                            {/* Public Tracking Page */}
+                                            <Route path="/track" element={<PublicTracking />} />
+                                            <Route path="/track/:awb" element={<PublicTracking />} />
 
-                                        <Route path="/login" element={<Login />} />
+                                            <Route path="/login" element={<Login />} />
 
 
-                                        {/* Dashboard Routes (Protected) */}
-                                        <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />
-                                        <Route path="/analytics" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF']}><DashboardLayout><Analytics /></DashboardLayout></ProtectedRoute>} />
+                                            {/* Dashboard Routes (Protected) */}
+                                            <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />
+                                            <Route path="/analytics" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF']}><DashboardLayout><Analytics /></DashboardLayout></ProtectedRoute>} />
 
-                                        {/* Operations Routes */}
-                                        <Route path="/shipments" element={<ProtectedRoute><DashboardLayout><Shipments /></DashboardLayout></ProtectedRoute>} />
-                                        <Route path="/tracking" element={<ProtectedRoute><DashboardLayout><Tracking /></DashboardLayout></ProtectedRoute>} />
-                                        <Route path="/manifests/create" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF']}><CreateManifestPage /></ProtectedRoute>} />
-                                        <Route path="/manifests" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF']}><DashboardLayout><Manifests /></DashboardLayout></ProtectedRoute>} />
-                                        <Route path="/scanning" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}><DashboardLayout><Scanning /></DashboardLayout></ProtectedRoute>} />
-                                        <Route path="/inventory" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}><DashboardLayout><Inventory /></DashboardLayout></ProtectedRoute>} />
-                                        <Route path="/exceptions" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF', 'WAREHOUSE_STAFF']}><DashboardLayout><Exceptions /></DashboardLayout></ProtectedRoute>} />
+                                            {/* Operations Routes */}
+                                            <Route path="/shipments" element={<ProtectedRoute><DashboardLayout><Shipments /></DashboardLayout></ProtectedRoute>} />
+                                            <Route path="/tracking" element={<ProtectedRoute><DashboardLayout><Tracking /></DashboardLayout></ProtectedRoute>} />
+                                            <Route path="/manifests/create" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF']}><CreateManifestPage /></ProtectedRoute>} />
+                                            <Route path="/manifests" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF']}><DashboardLayout><Manifests /></DashboardLayout></ProtectedRoute>} />
+                                            <Route path="/scanning" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}><DashboardLayout><Scanning /></DashboardLayout></ProtectedRoute>} />
+                                            <Route path="/inventory" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}><DashboardLayout><Inventory /></DashboardLayout></ProtectedRoute>} />
+                                            <Route path="/exceptions" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF', 'WAREHOUSE_STAFF']}><DashboardLayout><Exceptions /></DashboardLayout></ProtectedRoute>} />
 
-                                        {/* Business Routes */}
-                                        <Route path="/finance" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF']}><DashboardLayout><Finance /></DashboardLayout></ProtectedRoute>} />
-                                        <Route path="/customers" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF', 'OPS_STAFF']}><DashboardLayout><Customers /></DashboardLayout></ProtectedRoute>} />
-                                        <Route path="/management" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}><DashboardLayout><Management /></DashboardLayout></ProtectedRoute>} />
+                                            {/* Business Routes */}
+                                            <Route path="/finance" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF']}><DashboardLayout><Finance /></DashboardLayout></ProtectedRoute>} />
+                                            <Route path="/customers" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF', 'OPS_STAFF']}><DashboardLayout><Customers /></DashboardLayout></ProtectedRoute>} />
+                                            <Route path="/management" element={<ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}><DashboardLayout><Management /></DashboardLayout></ProtectedRoute>} />
 
-                                        {/* System Routes */}
-                                        <Route path="/settings" element={<ProtectedRoute><DashboardLayout><Settings /></DashboardLayout></ProtectedRoute>} />
-                                        <Route path="/notifications" element={<ProtectedRoute><DashboardLayout><Notifications /></DashboardLayout></ProtectedRoute>} />
-                                        <Route path="/print/label/:awb" element={<ProtectedRoute><PrintLabel /></ProtectedRoute>} />
+                                            {/* System Routes */}
+                                            <Route path="/settings" element={<ProtectedRoute><DashboardLayout><Settings /></DashboardLayout></ProtectedRoute>} />
+                                            <Route path="/notifications" element={<ProtectedRoute><DashboardLayout><Notifications /></DashboardLayout></ProtectedRoute>} />
+                                            <Route path="/print/label/:awb" element={<ProtectedRoute><PrintLabel /></ProtectedRoute>} />
 
-                                        {/* Dev Routes (ADMIN only) */}
-                                        <Route path="/dev/ui-kit" element={<ProtectedRoute allowedRoles={['ADMIN']}><DevUIKit /></ProtectedRoute>} />
+                                            {/* Dev Routes (ADMIN only) */}
+                                            <Route path="/dev/ui-kit" element={<ProtectedRoute allowedRoles={['ADMIN']}><DevUIKit /></ProtectedRoute>} />
 
-                                        {/* Catch all */}
-                                        <Route path="*" element={<Navigate to="/" replace />} />
-                                    </Routes>
+                                            {/* Catch all */}
+                                            <Route path="*" element={<Navigate to="/" replace />} />
+                                        </Routes>
+                                    </main>
                                 </PageTransition>
                             </ErrorBoundary>
                         </Suspense>

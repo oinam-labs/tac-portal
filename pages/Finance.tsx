@@ -21,15 +21,17 @@ import { getInvoicesColumns } from '@/components/finance/invoices.columns';
 // Utils
 import { formatCurrency } from '@/lib/utils';
 import { generateEnterpriseInvoice } from '@/lib/pdf-generator';
+import { HUBS } from '@/lib/constants';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Invoice, Shipment } from '@/types';
+import { HubLocation, Invoice, Shipment, ShipmentMode, ServiceLevel, PaymentMode } from '@/types';
+import { logger } from '@/lib/logger';
 
 export const Finance: React.FC = () => {
     const navigate = useNavigate();
 
     // Use Supabase hooks for invoices
-    const { data: invoicesData = [] } = useInvoices();
+    const { data: invoicesData = [], refetch: refetchInvoices } = useInvoices();
     const updateStatusMutation = useUpdateInvoiceStatus();
 
     // Modal state
@@ -38,63 +40,223 @@ export const Finance: React.FC = () => {
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [rowToDelete, setRowToDelete] = useState<Invoice | null>(null);
 
-    // Helper to get shipment from Supabase
+    // Helper to get shipment from Supabase (include hub + customer relations for label mapping)
     const getShipment = async (awb: string) => {
-        const { data } = await supabase
+        const { data, error } = await supabase
             .from('shipments')
-            .select('*')
+            .select(`
+                *,
+                customer:customers(name),
+                origin_hub:hubs!shipments_origin_hub_id_fkey(code),
+                destination_hub:hubs!shipments_destination_hub_id_fkey(code)
+            `)
             .eq('awb_number', awb)
-            .single();
-        return data;
+            .maybeSingle(); // Use maybeSingle to avoid error when no rows
+
+        if (error) {
+            console.warn('Shipment fetch error:', error);
+            return null;
+        }
+        return data as any;
+    };
+
+    const formatAddress = (address: any) => {
+        if (!address) return '';
+        if (typeof address === 'string') return address;
+        const { line1, line2, city, state, zip } = address as Record<string, string | undefined>;
+        return [line1, line2, city, state, zip].filter(Boolean).join(', ');
+    };
+
+    const resolveHubLocation = (
+        row: any,
+        type: 'origin' | 'destination'
+    ): HubLocation => {
+        const hubId = type === 'origin' ? row.origin_hub_id : row.destination_hub_id;
+        const hubCode = type === 'origin' ? row.origin_hub?.code : row.destination_hub?.code;
+
+        const byUuid = Object.values(HUBS).find((hub) => hub.uuid === hubId)?.id;
+        const byCode = Object.values(HUBS).find((hub) => hub.code === hubCode)?.id;
+
+        return (byUuid || byCode || 'IMPHAL') as HubLocation;
+    };
+
+    const resolveMode = (value?: string | null): ShipmentMode => {
+        if (!value) return 'TRUCK';
+        return value.toUpperCase() === 'AIR' ? 'AIR' : 'TRUCK';
+    };
+
+    const resolveServiceLevel = (value?: string | null): ServiceLevel => {
+        if (!value) return 'STANDARD';
+        const upper = value.toUpperCase();
+        if (upper === 'EXPRESS' || upper === 'PRIORITY' || upper === 'STANDARD') {
+            return upper as ServiceLevel;
+        }
+        return 'STANDARD';
+    };
+
+    const mapShipmentForLabel = (row: any): Shipment => {
+        const originHub = resolveHubLocation(row, 'origin');
+        const destinationHub = resolveHubLocation(row, 'destination');
+        const weight = Number(row.total_weight ?? 0);
+
+        return {
+            id: row.id,
+            awb: row.awb_number || row.awb,
+            customerId: row.customer_id,
+            customerName: row.customer?.name || row.receiver_name || 'Unknown',
+            originHub,
+            destinationHub,
+            mode: resolveMode(row.service_type),
+            serviceLevel: resolveServiceLevel(row.service_type),
+            totalPackageCount: row.total_packages ?? 1,
+            totalWeight: {
+                dead: weight,
+                volumetric: 0,
+                chargeable: weight,
+            },
+            status: row.status ?? 'CREATED',
+            createdAt: row.created_at || new Date().toISOString(),
+            updatedAt: row.updated_at || row.created_at || new Date().toISOString(),
+            eta: 'TBD',
+            consignor: {
+                name: row.sender_name || 'SENDER',
+                phone: row.sender_phone || '',
+                address: formatAddress(row.sender_address),
+            },
+            consignee: {
+                name: row.receiver_name || 'RECIPIENT',
+                phone: row.receiver_phone || '',
+                address: formatAddress(row.receiver_address),
+            },
+            contentsDescription: row.contents || 'General Cargo',
+            paymentMode: (row.payment_mode as PaymentMode) || 'TO_PAY',
+        };
     };
 
     const handleDownloadInvoice = async (inv: Invoice, e?: React.MouseEvent) => {
         e?.stopPropagation();
+        logger.debug('[Invoice] handleDownloadInvoice called', { id: inv.id, awb: inv.awb });
         try {
             toast.info('Generating invoice PDF...');
-            const shipment = inv.awb ? await getShipment(inv.awb) : null;
-            const fullInvoice = { ...inv, ...(shipment ? { consignor: (shipment as any).consignor, consignee: (shipment as any).consignee } : {}) };
+            const shipmentRow = inv.awb ? await getShipment(inv.awb) : null;
+            logger.debug('[Invoice] Shipment row from DB', { found: !!shipmentRow });
 
+            // Use DB shipment data or fall back to invoice line_items
+            const lineItems = (inv as any).line_items || (inv as any).financials || {};
+            logger.debug('[Invoice] Line items', { lineItems });
+
+            const consignor = shipmentRow
+                ? { name: shipmentRow.sender_name, phone: shipmentRow.sender_phone, address: formatAddress(shipmentRow.sender_address) }
+                : (lineItems.consignor || (inv as any).consignor || {});
+            const consignee = shipmentRow
+                ? { name: shipmentRow.receiver_name, phone: shipmentRow.receiver_phone, address: formatAddress(shipmentRow.receiver_address) }
+                : (lineItems.consignee || (inv as any).consignee || {});
+
+            logger.debug('[Invoice] Parties', { consignor, consignee });
+
+            const fullInvoice = { ...inv, consignor, consignee };
+            logger.debug('[Invoice] Full invoice object', { invoiceId: fullInvoice.id });
+
+            logger.debug('[Invoice] Calling generateEnterpriseInvoice');
             const url = await generateEnterpriseInvoice(fullInvoice as Invoice);
+            logger.debug('[Invoice] PDF generated');
+
             const link = document.createElement('a');
             link.href = url;
             link.download = `INVOICE-${inv.invoiceNumber}.pdf`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            logger.debug('[Invoice] Download triggered');
 
             window.open(url, '_blank');
+            logger.debug('[Invoice] Opened in new tab');
             toast.success('Invoice downloaded!');
         } catch (error) {
-            console.error('Invoice generation error:', error);
+            console.error('[Invoice] Invoice generation error:', error);
             toast.error('Failed to generate invoice PDF');
         }
     };
 
+    // Build shipment data from invoice line_items when no DB shipment exists
+    const buildShipmentFromInvoice = (inv: Invoice): Shipment => {
+        logger.debug('[Label] Building shipment from invoice', { id: inv.id, awb: inv.awb });
+        const lineItems = (inv as any).line_items || (inv as any).financials || {};
+        logger.debug('[Label] Line items', { lineItems });
+        const consignor = lineItems.consignor || (inv as any).consignor || {};
+        const consignee = lineItems.consignee || (inv as any).consignee || {};
+        logger.debug('[Label] Parties', { consignor, consignee });
+
+        return {
+            id: inv.id,
+            awb: inv.awb || 'TAC00000000',
+            customerId: inv.customerId || '',
+            customerName: consignee.name || inv.customerName || 'Unknown',
+            originHub: 'NEW_DELHI' as HubLocation,
+            destinationHub: 'IMPHAL' as HubLocation,
+            mode: 'TRUCK' as ShipmentMode,
+            serviceLevel: 'STANDARD' as ServiceLevel,
+            totalPackageCount: 1,
+            totalWeight: { dead: 0, volumetric: 0, chargeable: 0 },
+            status: 'CREATED',
+            createdAt: inv.createdAt || new Date().toISOString(),
+            updatedAt: inv.createdAt || new Date().toISOString(),
+            eta: 'TBD',
+            consignor: {
+                name: consignor.name || 'SENDER',
+                phone: consignor.phone || '',
+                address: consignor.address || '',
+                city: consignor.city,
+                state: consignor.state,
+            },
+            consignee: {
+                name: consignee.name || 'RECIPIENT',
+                phone: consignee.phone || '',
+                address: consignee.address || '',
+                city: consignee.city,
+                state: consignee.state,
+            },
+            contentsDescription: 'General Cargo',
+            paymentMode: (inv.paymentMode as PaymentMode) || 'TO_PAY',
+        };
+    };
+
     const handleDownloadLabel = async (inv: Invoice, e?: React.MouseEvent) => {
         e?.stopPropagation();
+        logger.debug('[Label] handleDownloadLabel called', { id: inv.id, awb: inv.awb });
         try {
-            const shipment = inv.awb ? await getShipment(inv.awb) : null;
-            if (!shipment) {
-                toast.error('No shipment data found');
+            // Check if we have an AWB
+            if (!inv.awb) {
+                console.error('[Label] No AWB found on invoice');
+                toast.error('No AWB number found for this invoice');
                 return;
             }
 
-            localStorage.setItem('print_shipping_label', JSON.stringify(shipment));
+            const shipmentRow = await getShipment(inv.awb);
+            logger.debug('[Label] Shipment row from DB', { found: !!shipmentRow });
 
-            const width = 500;
-            const height = 700;
-            const left = (window.screen.width - width) / 2;
-            const top = (window.screen.height - height) / 2;
+            // Use DB shipment if exists, otherwise build from invoice data
+            const shipment = shipmentRow
+                ? mapShipmentForLabel(shipmentRow)
+                : buildShipmentFromInvoice(inv);
 
-            window.open(
-                `#/print/label/${(shipment as any).awb_number || (shipment as any).awb}`,
-                'PrintLabel',
-                `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-            );
+            logger.debug('[Label] Shipment object built', { awb: shipment.awb, consignee: shipment.consignee?.name });
+
+            // Store shipment data using BOTH localStorage and sessionStorage for reliability
+            // (Firefox Enhanced Tracking Protection can block localStorage in popups)
+            const storageKey = `print_shipping_label_${shipment.awb}`;
+            const dataStr = JSON.stringify(shipment);
+            localStorage.setItem(storageKey, dataStr);
+            sessionStorage.setItem(storageKey, dataStr);
+            logger.debug('[Label] Data stored', { storageKey });
+
+            // Navigate to label page in new tab (more reliable than popup)
+            window.open(`#/print/label/${shipment.awb}`, '_blank');
+
+            toast.success('Label opened in new tab!');
         } catch (error) {
             console.error('Label error:', error);
-            toast.error('Failed to open label');
+            toast.error('Failed to generate label');
         }
     };
 
@@ -141,7 +303,8 @@ Thank you for choosing TAC Cargo.`;
         if (invoice) {
             setSuccessData({ invoice, shipment });
         }
-        // React Query will auto-refetch
+        // Explicitly refetch to ensure table updates
+        refetchInvoices();
     };
 
     const handleDelete = async () => {
@@ -177,7 +340,7 @@ Thank you for choosing TAC Cargo.`;
                             fuelSurcharge: 0,
                             handlingFee: 0,
                             insurance: 0,
-                            tax: { cgst: 0, sgst: 0, igst: 0, total: row.tax?.total ?? 0 },
+                            tax: { cgst: 0, sgst: 0, igst: 0, total: row.tax_amount ?? 0 },
                             discount: 0,
                             totalAmount: row.total, // DB column name
                             advancePaid: 0,
@@ -209,7 +372,7 @@ Thank you for choosing TAC Cargo.`;
                             fuelSurcharge: 0,
                             handlingFee: 0,
                             insurance: 0,
-                            tax: { cgst: 0, sgst: 0, igst: 0, total: row.tax?.total ?? 0 },
+                            tax: { cgst: 0, sgst: 0, igst: 0, total: row.tax_amount ?? 0 },
                             discount: 0,
                             totalAmount: row.total, // DB column name
                             advancePaid: 0,

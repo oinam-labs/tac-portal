@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { ShippingLabel, ShippingLabelData } from '../components/shipping/ShippingLabel';
 import { Shipment, HubLocation } from '../types';
 import { HUBS } from '../lib/constants';
+import { logger } from '../lib/logger';
 
 // Service level code mapping for enterprise standardization
 const SERVICE_LEVEL_CODES: Record<string, string> = {
@@ -101,50 +102,81 @@ export const PrintLabel: React.FC = () => {
     const { awb } = useParams();
     const [data, setData] = useState<ShippingLabelData | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
 
     useEffect(() => {
-        try {
-            // Try per-AWB key first (new format), then fallback to legacy key
-            const perAwbKey = `print_shipping_label_${awb}`;
-            const legacyKey = 'print_shipping_label';
+        const loadShipmentData = () => {
+            try {
+                // Try per-AWB key first (new format), then fallback to legacy key
+                const perAwbKey = `print_shipping_label_${awb}`;
+                const legacyKey = 'print_shipping_label';
 
-            let stored = localStorage.getItem(perAwbKey);
-            let usedKey = perAwbKey;
+                logger.debug('[PrintLabel] Attempt', { attempt: retryCount + 1, awb });
 
-            if (!stored) {
-                stored = localStorage.getItem(legacyKey);
-                usedKey = legacyKey;
+                // Try localStorage first, then sessionStorage (Firefox ETP may block localStorage in new tabs)
+                let stored = localStorage.getItem(perAwbKey) || sessionStorage.getItem(perAwbKey);
+                let usedKey = perAwbKey;
+                let usedStorage: 'localStorage' | 'sessionStorage' = localStorage.getItem(perAwbKey) ? 'localStorage' : 'sessionStorage';
+
+                logger.debug('[PrintLabel] Per-AWB key result', { found: !!stored, storage: usedStorage });
+
+                if (!stored) {
+                    stored = localStorage.getItem(legacyKey) || sessionStorage.getItem(legacyKey);
+                    usedKey = legacyKey;
+                    usedStorage = localStorage.getItem(legacyKey) ? 'localStorage' : 'sessionStorage';
+                    logger.debug('[PrintLabel] Legacy key result', { found: !!stored, storage: usedStorage });
+                }
+
+                // Debug: List all storage keys containing 'label'
+                const localKeys = Object.keys(localStorage).filter(k => k.includes('label'));
+                const sessionKeys = Object.keys(sessionStorage).filter(k => k.includes('label'));
+                logger.debug('[PrintLabel] Storage keys', { localKeys, sessionKeys });
+
+                if (!stored) {
+                    // Retry up to 3 times with delay (handles race condition)
+                    if (retryCount < 3) {
+                        logger.debug('[PrintLabel] Data not found, retrying in 300ms');
+                        setTimeout(() => setRetryCount(c => c + 1), 300);
+                        return;
+                    }
+                    setError('No shipment data found. Please generate label from Invoices dashboard.');
+                    return;
+                }
+
+                const parsed = JSON.parse(stored);
+                logger.debug('[PrintLabel] Parsed data', { awb: parsed.awb });
+
+                // Validate shipment data before processing
+                if (!validateShipmentForLabel(parsed)) {
+                    logger.warn('[PrintLabel] Validation failed', {
+                        awb: parsed.awb,
+                        originHub: parsed.originHub,
+                        destinationHub: parsed.destinationHub,
+                        totalWeight: parsed.totalWeight
+                    });
+                    setError('Invalid shipment data. Missing required fields (AWB, hubs, or weight).');
+                    return;
+                }
+
+                const shipment = parsed as Shipment;
+
+                // Warn if AWB mismatch but still process (stale data scenario)
+                if (shipment.awb !== awb) {
+                    console.warn(`AWB mismatch: URL has ${awb}, storage has ${shipment.awb}. Using stored data.`);
+                }
+
+                setData(mapShipmentToLabel(shipment));
+
+                // Clean up localStorage after reading to prevent PII lingering
+                localStorage.removeItem(usedKey);
+            } catch (e) {
+                console.error('Failed to load shipment:', e);
+                setError('Failed to parse shipment data. Please try generating the label again.');
             }
+        };
 
-            if (!stored) {
-                setError('No shipment data found. Please generate label from Invoices dashboard.');
-                return;
-            }
-
-            const parsed = JSON.parse(stored);
-
-            // Validate shipment data before processing
-            if (!validateShipmentForLabel(parsed)) {
-                setError('Invalid shipment data. Missing required fields (AWB, hubs, or weight).');
-                return;
-            }
-
-            const shipment = parsed as Shipment;
-
-            // Warn if AWB mismatch but still process (stale data scenario)
-            if (shipment.awb !== awb) {
-                console.warn(`AWB mismatch: URL has ${awb}, storage has ${shipment.awb}. Using stored data.`);
-            }
-
-            setData(mapShipmentToLabel(shipment));
-
-            // Clean up localStorage after reading to prevent PII lingering
-            localStorage.removeItem(usedKey);
-        } catch (e) {
-            console.error('Failed to load shipment:', e);
-            setError('Failed to parse shipment data. Please try generating the label again.');
-        }
-    }, [awb]);
+        loadShipmentData();
+    }, [awb, retryCount]);
 
     // Auto print when loaded - MUST be before any conditional returns!
     useEffect(() => {

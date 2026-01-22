@@ -6,6 +6,7 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import globals from 'globals';
+import reactHooks from 'eslint-plugin-react-hooks';
 
 export default tseslint.config(
     // Base JavaScript recommended config
@@ -21,15 +22,21 @@ export default tseslint.config(
             'node_modules/**',
             '*.config.js',
             '*.config.ts',
+            '*.cjs',
+            '.eslintrc.*.cjs',
             'vite.config.ts',
             'playwright.config.ts',
             'supabase/functions/**', // Edge functions use Deno runtime
+            'scripts/**/*.mjs', // Node.js scripts
         ],
     },
 
     // TypeScript and JavaScript files
     {
         files: ['**/*.{ts,tsx,js,jsx}'],
+        plugins: {
+            'react-hooks': reactHooks,
+        },
         languageOptions: {
             ecmaVersion: 'latest',
             sourceType: 'module',
@@ -49,9 +56,16 @@ export default tseslint.config(
             'react/react-in-jsx-scope': 'off',
             'react/prop-types': 'off',
 
+            // React Hooks rules
+            'react-hooks/rules-of-hooks': 'error',
+            'react-hooks/exhaustive-deps': 'warn',
+
             // TypeScript rules 
             '@typescript-eslint/no-explicit-any': 'warn',
             '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+            '@typescript-eslint/ban-ts-comment': ['warn', { 'ts-ignore': 'allow-with-description' }],
+            '@typescript-eslint/no-empty-object-type': 'off',
+            '@typescript-eslint/no-require-imports': 'off',
 
             // Console rules
             'no-console': ['warn', { allow: ['warn', 'error'] }],

@@ -4,9 +4,10 @@
  */
 
 import { supabase } from '@/lib/supabase';
-import { mapSupabaseError } from '@/lib/errors';
+import { mapSupabaseError, ValidationError } from '@/lib/errors';
 import { orgService } from './orgService';
 import { trackApiCall, addBreadcrumb } from '@/lib/sentry';
+import { isValidStatusTransition, type ShipmentStatusType } from '@/lib/schemas/shipment.schema';
 import type { Database } from '@/lib/database.types';
 
 type Shipment = Database['public']['Tables']['shipments']['Row'];
@@ -181,6 +182,27 @@ export const shipmentService = {
     ): Promise<Shipment> {
         const orgId = orgService.getCurrentOrgId();
 
+        // Fetch current shipment to validate status transition
+        const { data: current, error: fetchError } = await supabase
+            .from('shipments')
+            .select('status, awb_number')
+            .eq('id', id)
+            .eq('org_id', orgId)
+            .single();
+
+        if (fetchError) throw mapSupabaseError(fetchError);
+
+        // Validate status transition using business rules
+        const currentStatus = current.status as ShipmentStatusType;
+        const newStatus = status as ShipmentStatusType;
+
+        if (!isValidStatusTransition(currentStatus, newStatus)) {
+            throw new ValidationError(
+                `Invalid status transition from ${currentStatus} to ${newStatus}`,
+                { currentStatus, newStatus, shipmentId: id }
+            );
+        }
+
         const { data, error } = await (supabase
             .from('shipments') as any)
             .update({
@@ -194,17 +216,21 @@ export const shipmentService = {
 
         if (error) throw mapSupabaseError(error);
 
-        // Create tracking event
+        // Create tracking event for audit trail
         await (supabase.from('tracking_events') as any).insert({
             org_id: orgId,
             shipment_id: id,
-            awb_number: (data as any).awb_number,
+            awb_number: current.awb_number,
             event_code: status,
             hub_id: meta?.hubId,
             source: 'SYSTEM',
-            meta: { description: meta?.description },
+            meta: {
+                description: meta?.description,
+                previous_status: currentStatus,
+            },
         });
 
+        addBreadcrumb(`Status updated: ${current.awb_number} ${currentStatus} → ${newStatus}`, 'shipment', 'info');
         return data as Shipment;
     },
 

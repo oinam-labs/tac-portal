@@ -9,10 +9,8 @@ import { supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 import type { UserRole } from '@/types';
 
-// Cast to any because generated Supabase types don't include staff table
-// TODO: Regenerate Supabase types to include all tables
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as any;
+// Staff table types are defined in lib/database.types.ts
+// Using the properly typed supabase client
 
 export interface StaffUser {
     id: string;
@@ -100,7 +98,9 @@ export const useAuthStore = create<AuthState>()(
 
                     // Set up auth state change listener
                     supabase.auth.onAuthStateChange(async (event, newSession) => {
-                        console.log('[Auth] State changed:', event);
+                        if (import.meta.env.DEV) {
+                            console.log('[Auth] State changed:', event);
+                        }
 
                         if (event === 'SIGNED_OUT' || !newSession) {
                             set({ session: null, user: null, isAuthenticated: false });
@@ -174,7 +174,7 @@ export const useAuthStore = create<AuthState>()(
                     }
 
                     // Update last login time
-                    await db
+                    await supabase
                         .from('staff')
                         .update({ updated_at: new Date().toISOString() })
                         .eq('id', staffUser.id);
@@ -200,6 +200,21 @@ export const useAuthStore = create<AuthState>()(
             signOut: async () => {
                 try {
                     set({ isLoading: true });
+
+                    // Clear sensitive localStorage data (Issue #23 - GDPR compliance)
+                    const sensitiveKeyPrefixes = [
+                        'invoice_draft',
+                        'shipment_',
+                        'print_',
+                        'label_',
+                        'tac-',
+                    ];
+                    Object.keys(localStorage).forEach(key => {
+                        if (sensitiveKeyPrefixes.some(prefix => key.startsWith(prefix))) {
+                            localStorage.removeItem(key);
+                        }
+                    });
+
                     await supabase.auth.signOut();
                     set({
                         session: null,
@@ -210,7 +225,13 @@ export const useAuthStore = create<AuthState>()(
                     });
                 } catch (error) {
                     console.error('[Auth] Sign out error:', error);
-                    // Force clear state even on error
+                    // Force clear state even on error - also clear localStorage
+                    Object.keys(localStorage).forEach(key => {
+                        if (key.startsWith('invoice_draft') || key.startsWith('shipment_') ||
+                            key.startsWith('print_') || key.startsWith('label_') || key.startsWith('tac-')) {
+                            localStorage.removeItem(key);
+                        }
+                    });
                     set({
                         session: null,
                         user: null,
@@ -238,7 +259,7 @@ export const useAuthStore = create<AuthState>()(
  */
 async function fetchStaffByAuthId(authUserId: string): Promise<StaffUser | null> {
     try {
-        const { data, error } = await db
+        const { data, error } = await supabase
             .from('staff')
             .select(`
                 id,
@@ -261,14 +282,14 @@ async function fetchStaffByAuthId(authUserId: string): Promise<StaffUser | null>
 
         return {
             id: data.id,
-            authUserId: data.auth_user_id,
+            authUserId: data.auth_user_id ?? '',
             email: data.email,
             fullName: data.full_name,
             role: data.role as UserRole,
             hubId: data.hub_id,
             hubCode: data.hub?.code || null,
             orgId: data.org_id,
-            isActive: data.is_active
+            isActive: data.is_active ?? true
         };
     } catch (error) {
         console.error('[Auth] fetchStaffByAuthId error:', error);

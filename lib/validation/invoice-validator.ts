@@ -9,7 +9,7 @@ import type { Invoice, Customer } from '@/types';
 // Validation patterns
 export const AWB_PATTERN = /^TAC\d{8}$/;
 export const GSTIN_PATTERN = /^\d{2}[A-Z]{5}\d{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-export const INVOICE_NO_PATTERN = /^INV-\d{4,}$/;
+export const INVOICE_NO_PATTERN = /^INV-\d{4}-\d{4,}$/;
 
 // Validation error interface
 export interface ValidationError {

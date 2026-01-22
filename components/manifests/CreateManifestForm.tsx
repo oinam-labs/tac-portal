@@ -216,15 +216,15 @@ export const CreateManifestForm: React.FC = () => {
                                                 <Checkbox checked={selectedShipmentIds.includes(s.id)} onCheckedChange={() => toggleShipment(s.id)} />
                                             </Td>
                                             <Td className="font-mono font-bold">{s.awb_number}</Td>
-                                            <Td>{s.package_count}</Td>
+                                            <Td>{s.total_packages}</Td>
                                             <Td>{s.total_weight} kg</Td>
                                             <Td>
-                                                <span className={`text-[10px] px-2 py-0.5 rounded ${s.service_level === 'EXPRESS' ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-500'}`}>
-                                                    {s.service_level}
+                                                <span className={`text-[10px] px-2 py-0.5 rounded ${s.service_type === 'EXPRESS' ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                                                    {s.service_type}
                                                 </span>
                                             </Td>
                                             <Td className="text-right text-xs text-muted-foreground">
-                                                {new Date(s.created_at).toLocaleDateString()}
+                                                {s.created_at ? new Date(s.created_at).toLocaleDateString() : 'N/A'}
                                             </Td>
                                         </tr>
                                     ))}

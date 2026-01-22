@@ -35,6 +35,14 @@ jobs:
           languages: ${{ matrix.language }}
           # Custom queries for additional security checks
           queries: security-extended,security-and-quality
+          # Exclude build artifacts and node_modules from scanning
+          config: |
+            paths-ignore:
+              - dist
+              - build
+              - node_modules
+              - '**/*.min.js'
+              - '.archive'
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

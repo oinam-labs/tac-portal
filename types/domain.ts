@@ -267,8 +267,7 @@ export const hasPermission = (
     const rolePerms = ROLE_PERMISSIONS[role];
     if (!rolePerms) return false;
 
-    // @ts-ignore - dynamic permission check
-    return rolePerms[permission] === true || rolePerms.modules?.includes('*');
+    return (rolePerms as Record<string, unknown>)[permission] === true || rolePerms.modules?.includes('*');
 };
 
 export const canAccessModule = (role: UserRole, module: string): boolean => {

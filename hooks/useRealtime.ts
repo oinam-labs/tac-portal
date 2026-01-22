@@ -28,7 +28,9 @@ export function useRealtimeShipments() {
                     table: 'shipments',
                 },
                 (payload) => {
-                    console.log('[Realtime] Shipment changed:', payload.eventType, payload.new);
+                    if (import.meta.env.DEV) {
+                        console.log('[Realtime] Shipment changed:', payload.eventType);
+                    }
 
                     // Invalidate shipments queries
                     queryClient.invalidateQueries({ queryKey: queryKeys.shipments.all });
@@ -42,7 +44,9 @@ export function useRealtimeShipments() {
                 }
             )
             .subscribe((status) => {
-                console.log('[Realtime] Shipments subscription:', status);
+                if (import.meta.env.DEV) {
+                    console.log('[Realtime] Shipments subscription:', status);
+                }
             });
 
         return () => {
@@ -70,7 +74,9 @@ export function useRealtimeManifests() {
                     table: 'manifests',
                 },
                 (payload) => {
-                    console.log('[Realtime] Manifest changed:', payload.eventType);
+                    if (import.meta.env.DEV) {
+                        console.log('[Realtime] Manifest changed:', payload.eventType);
+                    }
                     queryClient.invalidateQueries({ queryKey: queryKeys.manifests.all });
                 }
             )
@@ -101,8 +107,10 @@ export function useRealtimeTracking(awb?: string) {
                     table: 'tracking_events',
                     filter: `awb_number=eq.${awb}`,
                 },
-                (payload) => {
-                    console.log('[Realtime] New tracking event:', payload.new);
+                () => {
+                    if (import.meta.env.DEV) {
+                        console.log('[Realtime] New tracking event for:', awb);
+                    }
                     queryClient.invalidateQueries({ queryKey: queryKeys.tracking.byAwb(awb) });
                 }
             )
@@ -133,7 +141,9 @@ export function useRealtimeExceptions() {
                     table: 'exceptions',
                 },
                 (payload) => {
-                    console.log('[Realtime] Exception changed:', payload.eventType);
+                    if (import.meta.env.DEV) {
+                        console.log('[Realtime] Exception changed:', payload.eventType);
+                    }
                     queryClient.invalidateQueries({ queryKey: queryKeys.exceptions.all });
                 }
             )

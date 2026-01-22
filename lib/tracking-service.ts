@@ -28,9 +28,9 @@ interface ShipmentQueryResult {
 }
 
 interface TrackingEventResult {
-    status: string;
+    event_code: string;
     notes: string | null;
-    created_at: string;
+    created_at: string | null;
 }
 
 /**
@@ -65,7 +65,7 @@ export const getTrackingInfo = async (trackingNumber: string): Promise<{ success
             // Get tracking events for this shipment
             const { data: events, error: eventsError } = await supabase
                 .from('tracking_events')
-                .select('status, notes, created_at')
+                .select('event_code, notes, created_at')
                 .eq('shipment_id', s.id)
                 .order('created_at', { ascending: false });
 
@@ -86,9 +86,9 @@ export const getTrackingInfo = async (trackingNumber: string): Promise<{ success
                         destination: s.destination_hub?.name || 'Destination Hub'
                     },
                     events: ((events || []) as TrackingEventResult[]).map(e => ({
-                        status: e.status,
+                        status: e.event_code,
                         description: e.notes,
-                        created_at: e.created_at
+                        created_at: e.created_at || new Date().toISOString()
                     }))
                 }
             };

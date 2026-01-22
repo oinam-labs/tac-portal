@@ -17,12 +17,11 @@ import {
 interface ShipmentRecord {
   awb_number: string;
   status: string;
-  mode: 'AIR' | 'TRUCK';
-  service_level: string;
-  package_count: number;
+  service_type: string;
+  total_packages: number;
   total_weight: number;
-  consignee_name: string;
-  consignee_phone: string;
+  receiver_name: string;
+  receiver_phone: string;
   origin_hub?: { code: string; name: string } | null;
   destination_hub?: { code: string; name: string } | null;
 }
@@ -30,7 +29,7 @@ interface ShipmentRecord {
 interface TrackingEventRecord {
   id: string;
   event_code: string;
-  event_time: string;
+  event_time: string | null;
   hub?: { code: string; name: string } | null;
 }
 
@@ -74,7 +73,7 @@ export function PublicTracking() {
 
       if (eventsError) throw eventsError;
 
-      return { shipment, events: events || [] };
+      return { shipment: shipment as unknown as ShipmentRecord, events: (events || []) as unknown as TrackingEventRecord[] };
     },
     enabled: !!awb,
   });
@@ -181,7 +180,7 @@ export function PublicTracking() {
                 </div>
                 <div className="flex-1 flex items-center justify-center">
                   <div className="h-0.5 flex-1 bg-border" />
-                  {data.shipment.mode === 'AIR' ? (
+                  {data.shipment.service_type === 'EXPRESS' ? (
                     <Plane className="w-6 h-6 text-cyan-400 mx-2" />
                   ) : (
                     <Truck className="w-6 h-6 text-cyan-400 mx-2" />
@@ -202,7 +201,7 @@ export function PublicTracking() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-xs text-muted-foreground mb-1">Packages</p>
-                  <p className="text-lg font-semibold text-white">{data.shipment.package_count}</p>
+                  <p className="text-lg font-semibold text-white">{data.shipment.total_packages}</p>
                 </div>
                 <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-xs text-muted-foreground mb-1">Weight</p>
@@ -211,13 +210,13 @@ export function PublicTracking() {
                 <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-xs text-muted-foreground mb-1">Mode</p>
                   <p className="text-lg font-semibold text-white flex items-center gap-2">
-                    {data.shipment.mode === 'AIR' ? <Plane className="w-4 h-4" /> : <Truck className="w-4 h-4" />}
-                    {data.shipment.mode}
+                    <Truck className="w-4 h-4" />
+                    {data.shipment.service_type}
                   </p>
                 </div>
                 <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-xs text-muted-foreground mb-1">Service</p>
-                  <p className="text-lg font-semibold text-white">{data.shipment.service_level}</p>
+                  <p className="text-lg font-semibold text-white">{data.shipment.service_type}</p>
                 </div>
               </div>
             </Card>
@@ -240,7 +239,7 @@ export function PublicTracking() {
                       <div className="flex-1 pb-4">
                         <p className="font-semibold text-white">{e.event_code.replace(/_/g, ' ')}</p>
                         <p className="text-sm text-muted-foreground">{e.hub?.name || 'System'}</p>
-                        <p className="text-xs text-muted-foreground/70">{new Date(e.event_time).toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground/70">{e.event_time ? new Date(e.event_time).toLocaleString() : 'N/A'}</p>
                       </div>
                     </div>
                   ))}
@@ -258,12 +257,12 @@ export function PublicTracking() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Consignee Name</p>
-                  <p className="text-white font-medium">{data.shipment.consignee_name}</p>
+                  <p className="text-white font-medium">{data.shipment.receiver_name}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Contact</p>
                   <p className="text-white font-medium">
-                    {data.shipment.consignee_phone?.replace(/(\d{2})(\d+)(\d{2})/, '$1****$3')}
+                    {data.shipment.receiver_phone?.replace(/(\d{2})(\d+)(\d{2})/, '$1****$3')}
                   </p>
                 </div>
               </div>
