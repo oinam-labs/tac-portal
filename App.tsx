@@ -254,8 +254,20 @@ const App: React.FC = () => {
 
     // Initialize auth on app startup
     useEffect(() => {
-        initialize();
-    }, [initialize]);
+        let cleanup: (() => void) | undefined;
+        
+        initialize().then((cleanupFn) => {
+            cleanup = cleanupFn;
+        });
+
+        // Cleanup function to unsubscribe from auth state changes
+        return () => {
+            if (cleanup) {
+                cleanup();
+            }
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Empty array - only run once on mount
 
     useEffect(() => {
         console.log('[Theme] Switching to:', theme);

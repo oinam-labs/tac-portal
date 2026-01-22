@@ -33,7 +33,7 @@ interface AuthState {
     error: string | null;
 
     // Actions
-    initialize: () => Promise<void>;
+    initialize: () => Promise<() => void>;
     signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
     signOut: () => Promise<void>;
     clearError: () => void;
@@ -58,12 +58,12 @@ export const useAuthStore = create<AuthState>()(
                     if (sessionError) {
                         console.error('[Auth] Session error:', sessionError);
                         set({ isLoading: false, isAuthenticated: false, session: null, user: null });
-                        return;
+                        return () => {}; // Return no-op cleanup function
                     }
 
                     if (!session) {
                         set({ isLoading: false, isAuthenticated: false, session: null, user: null });
-                        return;
+                        return () => {}; // Return no-op cleanup function
                     }
 
                     // Fetch staff record linked to this auth user
@@ -72,7 +72,7 @@ export const useAuthStore = create<AuthState>()(
                     if (!staffUser) {
                         console.warn('[Auth] No staff record found for user:', session.user.email);
                         set({ isLoading: false, isAuthenticated: false, session: null, user: null });
-                        return;
+                        return () => {}; // Return no-op cleanup function
                     }
 
                     if (!staffUser.isActive) {
@@ -85,7 +85,7 @@ export const useAuthStore = create<AuthState>()(
                             user: null,
                             error: 'Your account has been deactivated. Please contact an administrator.'
                         });
-                        return;
+                        return () => {}; // Return no-op cleanup function
                     }
 
                     set({
@@ -97,29 +97,45 @@ export const useAuthStore = create<AuthState>()(
                     });
 
                     // Set up auth state change listener
-                    supabase.auth.onAuthStateChange(async (event, newSession) => {
+                    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
                         console.log('[Auth] State changed:', event);
 
-                        if (event === 'SIGNED_OUT' || !newSession) {
-                            set({ session: null, user: null, isAuthenticated: false });
-                            return;
-                        }
-
-                        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                            const staff = await fetchStaffByAuthId(newSession.user.id);
-                            if (staff && staff.isActive) {
-                                set({
-                                    session: newSession,
-                                    user: staff,
-                                    isAuthenticated: true
-                                });
+                        try {
+                            if (event === 'SIGNED_OUT' || !newSession) {
+                                set({ session: null, user: null, isAuthenticated: false });
+                                return;
                             }
+
+                            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                                const staff = await fetchStaffByAuthId(newSession.user.id);
+                                if (staff && staff.isActive) {
+                                    set({
+                                        session: newSession,
+                                        user: staff,
+                                        isAuthenticated: true
+                                    });
+                                }
+                            }
+                        } catch (error) {
+                            // Handle AbortError and other errors gracefully
+                            if (error instanceof Error && error.name === 'AbortError') {
+                                console.log('[Auth] Request aborted during auth state change');
+                                return;
+                            }
+                            console.error('[Auth] Error in auth state change handler:', error);
                         }
                     });
+
+                    // Return cleanup function to unsubscribe from auth state changes
+                    return () => {
+                        console.log('[Auth] Cleaning up auth state listener');
+                        subscription.unsubscribe();
+                    };
 
                 } catch (error) {
                     console.error('[Auth] Initialize error:', error);
                     set({ isLoading: false, isAuthenticated: false, error: 'Failed to initialize authentication' });
+                    return () => {}; // Return no-op cleanup function
                 }
             },
 
