@@ -1,0 +1,114 @@
+{
+    "audit_date": "2026-01-22",
+    "audit_revision": "2026-01-22-v2",
+    "revision_note": "Fixed after CodeRabbit review - expanded search to include .jsx and .css files",
+    "summary": {
+        "total_dependencies": 66,
+        "potentially_unused": 3,
+        "confirmed_used": 63
+    },
+    "unused_dependencies": [
+        {
+            "name": "@openrouter/sdk",
+            "type": "dependency",
+            "evidence": "No imports found in any source file",
+            "recommendation": "SAFE TO REMOVE - AI SDK not integrated"
+        },
+        {
+            "name": "react-use-measure",
+            "type": "dependency",
+            "evidence": "No imports found in any source file",
+            "recommendation": "SAFE TO REMOVE - measurement hook unused"
+        },
+        {
+            "name": "gsap",
+            "type": "dependency",
+            "evidence": "No imports found in any source file",
+            "recommendation": "SAFE TO REMOVE - animation library unused (motion is used instead)"
+        }
+    ],
+    "previously_flagged_but_in_use": [
+        {
+            "name": "fuse.js",
+            "used_in": "components/finance/MultiStepCreateInvoice.tsx",
+            "status": "IN USE - search library"
+        },
+        {
+            "name": "embla-carousel-react",
+            "used_in": "components/ui/carousel.tsx",
+            "status": "IN USE - carousel component"
+        },
+        {
+            "name": "embla-carousel-autoplay",
+            "used_in": "components/ui/loading-carousel.tsx",
+            "status": "IN USE - carousel autoplay"
+        },
+        {
+            "name": "react-markdown",
+            "used_in": "components/landing-new/tac-bot.tsx",
+            "status": "IN USE - markdown rendering"
+        },
+        {
+            "name": "dompurify",
+            "used_in": "components/domain/NotesPanel.tsx",
+            "status": "IN USE - HTML sanitization"
+        },
+        {
+            "name": "@tiptap/* (12 packages)",
+            "used_in": "components/ui/rich-text-editor.tsx",
+            "status": "IN USE - rich text editor"
+        },
+        {
+            "name": "@base-ui/react",
+            "used_in": "components/optics/button.jsx",
+            "status": "IN USE - UI primitives"
+        },
+        {
+            "name": "tw-animate-css",
+            "used_in": "globals.css",
+            "status": "IN USE - Tailwind animation plugin"
+        }
+    ],
+    "confirmed_used": [
+        "@base-ui/react",
+        "@hookform/resolvers",
+        "@radix-ui/*",
+        "@sentry/react",
+        "@supabase/supabase-js",
+        "@tailwindcss/vite",
+        "@tanstack/react-query",
+        "@tanstack/react-table",
+        "@tiptap/*",
+        "@zxing/library",
+        "bwip-js",
+        "class-variance-authority",
+        "clsx",
+        "cmdk",
+        "date-fns",
+        "dompurify",
+        "embla-carousel-autoplay",
+        "embla-carousel-react",
+        "fuse.js",
+        "jsbarcode",
+        "lucide-react",
+        "motion",
+        "pdf-lib",
+        "qrcode",
+        "qrcode.react",
+        "react",
+        "react-dom",
+        "react-hook-form",
+        "react-markdown",
+        "react-router-dom",
+        "react-to-print",
+        "recharts",
+        "sonner",
+        "tailwind-merge",
+        "tailwindcss",
+        "tw-animate-css",
+        "uuid",
+        "zod",
+        "zustand"
+    ],
+    "dev_dependencies_status": "All devDependencies appear to be used by build/test tooling"
+}

@@ -1,0 +1,31 @@
+
+Count Name            TotalSizeMB
+----- ----            -----------
+  127 .tsx                   0.86
+  114 .md                    1.22
+   98 .ts                    0.50
+   21 .json                  0.86
+   18 .py                    0.10
+   16 .png                  53.49
+    8 .sql                   0.07
+    8 .txt                   5.83
+    6 .yml                   0.02
+    5 .csv                   5.83
+    4 .log                   0.02
+    4 .html                  0.57
+    2 .svg                   0.00
+    2 .example               0.00
+    2 .css                   0.02
+    2 .ps1                   0.01
+    1 .sh                    0.00
+    1 .mjs                   0.00
+    1 .prettierignore        0.00
+    1 .windsurfrules         0.00
+    1 .local                 0.00
+    1 .jsx                   0.01
+    1 .js                    0.00
+    1 .jpeg                  7.42
+    1 .gitignore             0.00
+    1 .prettierrc            0.00
+    1 .codeqlignore          0.00
+
