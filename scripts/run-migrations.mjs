@@ -8,7 +8,7 @@
 
 import { config } from 'dotenv';
 import { readFileSync, readdirSync } from 'fs';
-import { resolve, join } from 'path';
+import { resolve, join, normalize, basename } from 'path';
 
 // Load environment variables
 config({ path: '.env.local' });
@@ -79,9 +79,23 @@ function getProjectRef() {
  */
 async function runMigration(filename) {
     const migrationsDir = resolve(process.cwd(), 'supabase/migrations');
-    const filepath = join(migrationsDir, filename);
 
-    console.log(`\n📄 Running migration: ${filename}`);
+    // Security: Validate filename to prevent path traversal
+    const sanitizedFilename = basename(normalize(filename));
+    if (sanitizedFilename !== filename || filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+        console.error(`❌ Invalid filename (possible path traversal): ${filename}`);
+        return false;
+    }
+
+    const filepath = join(migrationsDir, sanitizedFilename);
+
+    // Security: Verify resolved path is within migrations directory
+    if (!filepath.startsWith(migrationsDir)) {
+        console.error(`❌ Path traversal detected: ${filename}`);
+        return false;
+    }
+
+    console.log(`\n📄 Running migration: ${sanitizedFilename}`);
     console.log('─'.repeat(50));
 
     const sql = readFileSync(filepath, 'utf-8');

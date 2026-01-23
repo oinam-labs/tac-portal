@@ -34,11 +34,13 @@ function Code128Svg({ value }: { value: string }) {
     if (!svgRef.current) return;
 
     try {
-      // Clear previous content
-      svgRef.current.innerHTML = '';
+      // Clear previous content safely
+      while (svgRef.current.firstChild) {
+        svgRef.current.removeChild(svgRef.current.firstChild);
+      }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const svg = (bwipjs as any).toSVG({
+      const svgString = (bwipjs as any).toSVG({
         bcid: 'code128',
         text: value,
         scale: 2, // controls density
@@ -48,11 +50,24 @@ function Code128Svg({ value }: { value: string }) {
         backgroundcolor: 'FFFFFF',
       });
 
-      svgRef.current.innerHTML = svg;
+      // Security: Parse SVG safely using DOMParser instead of innerHTML
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(svgString, 'image/svg+xml');
+      const svgElement = doc.documentElement;
+
+      // Verify it's actually an SVG element before inserting
+      if (svgElement && svgElement.tagName.toLowerCase() === 'svg') {
+        svgRef.current.appendChild(document.importNode(svgElement, true));
+      }
     } catch (e) {
       console.error(e);
       if (svgRef.current) {
-        svgRef.current.innerHTML = `<div style="font-size:12px;color:#b00;">Barcode error</div>`;
+        // Use textContent for error message to prevent XSS
+        const errorDiv = document.createElement('div');
+        errorDiv.style.fontSize = '12px';
+        errorDiv.style.color = '#b00';
+        errorDiv.textContent = 'Barcode error';
+        svgRef.current.appendChild(errorDiv);
       }
     }
   }, [value]);
