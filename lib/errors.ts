@@ -252,6 +252,74 @@ export const getRetryDelay = (attemptNumber: number): number => {
   return Math.min(1000 * Math.pow(2, attemptNumber), 16000);
 };
 
+// ============================================================================
+// JSON ERROR RESPONSE HELPER (for API consistency)
+// ============================================================================
+
+/**
+ * Convert any error to a JSON-serializable format.
+ * This ensures all error responses are valid JSON for API consumers (including TestSprite).
+ */
+export interface ErrorResponse {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    statusCode?: number;
+    details?: Record<string, unknown>;
+  };
+}
+
+export const toErrorResponse = (error: Error | AppError | unknown): ErrorResponse => {
+  if (error instanceof AppError) {
+    return {
+      success: false,
+      error: {
+        code: error.code,
+        message: error.message,
+        statusCode: error.statusCode,
+        details: error.meta,
+      },
+    };
+  }
+
+  if (error instanceof Error) {
+    return {
+      success: false,
+      error: {
+        code: 'UNKNOWN_ERROR',
+        message: error.message,
+      },
+    };
+  }
+
+  return {
+    success: false,
+    error: {
+      code: 'UNKNOWN_ERROR',
+      message: String(error) || 'An unexpected error occurred',
+    },
+  };
+};
+
+/**
+ * Safely parse JSON and return structured error if parsing fails.
+ * Prevents "Extra data" JSON parse errors in API tests.
+ */
+export const safeJsonParse = <T = unknown>(
+  text: string
+): { success: true; data: T } | { success: false; error: string } => {
+  try {
+    const data = JSON.parse(text);
+    return { success: true, data };
+  } catch (e) {
+    return {
+      success: false,
+      error: `Invalid JSON: ${e instanceof Error ? e.message : 'Parse error'}`,
+    };
+  }
+};
+
 /**
  * Usage Examples:
  *
@@ -271,4 +339,7 @@ export const getRetryDelay = (attemptNumber: number): number => {
  *
  * // Custom error
  * throw new ValidationError('AWB format is invalid', { awb: inputValue });
+ *
+ * // For API responses (ensures valid JSON)
+ * return toErrorResponse(error);
  */

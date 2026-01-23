@@ -359,19 +359,25 @@ export const Scanning: React.FC = () => {
         {/* Manual Entry & Log */}
         <div className="flex flex-col gap-6 min-h-0">
           <Card>
-            <form onSubmit={handleScanSubmit} className="flex gap-4">
+            <form onSubmit={handleScanSubmit} className="flex gap-4" data-testid="scan-form">
               <Input
                 placeholder={
                   (scanMode === 'LOAD_MANIFEST' || scanMode === 'VERIFY_MANIFEST') &&
-                  !activeManifest
+                    !activeManifest
                     ? 'Scan Manifest Ref...'
                     : 'Scan AWB...'
                 }
                 value={currentCode}
                 onChange={(e) => setCurrentCode(e.target.value)}
+                onInput={(e) => setCurrentCode((e.target as HTMLInputElement).value)}
                 autoFocus
+                autoComplete="off"
+                data-testid="scan-input"
+                aria-label="Scan input field"
+                id="scan-input"
+                name="scan-input"
               />
-              <Button type="submit" disabled={!currentCode}>
+              <Button type="submit" disabled={!currentCode} data-testid="scan-submit-button">
                 Process
               </Button>
             </form>

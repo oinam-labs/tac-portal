@@ -17,38 +17,31 @@ test.describe('Production Readiness - Domain Enforcement', () => {
         // Check Dashboard
         await page.goto(`${BASE_URL}/#/dashboard`);
         await page.waitForLoadState('networkidle');
-
-        const bodyText = await page.locator('body').textContent();
-        expect(bodyText).not.toContain('IXA');
+        await expect(page.locator('body')).not.toContainText('IXA');
 
         // Check Manifests
         await page.goto(`${BASE_URL}/#/manifests`);
         await page.waitForLoadState('networkidle');
-
-        const manifestText = await page.locator('body').textContent();
-        expect(manifestText).not.toContain('IXA');
+        await expect(page.locator('body')).not.toContainText('IXA');
 
         // Check Shipments
         await page.goto(`${BASE_URL}/#/shipments`);
         await page.waitForLoadState('networkidle');
-
-        const shipmentText = await page.locator('body').textContent();
-        expect(shipmentText).not.toContain('IXA');
+        await expect(page.locator('body')).not.toContainText('IXA');
     });
 
-    test('should only show valid hub codes: DEL, GAU, CCU, IMF', async ({ page }) => {
+    test('should show Imphal Hub with IMF code in manifest creation', async ({ page }) => {
         await page.goto(`${BASE_URL}/#/manifests`);
 
         // Click create manifest to see hub dropdowns
         const createBtn = page.getByRole('button', { name: /create|new/i }).first();
-        if (await createBtn.isVisible({ timeout: 5000 })) {
-            await createBtn.click();
-            await page.waitForTimeout(500);
+        await expect(createBtn).toBeVisible({ timeout: 5000 });
+        await createBtn.click();
+        await page.waitForTimeout(500);
 
-            // Check for IMF (Imphal)
-            const imphalOption = page.getByText(/Imphal Hub.*IMF/i);
-            await expect(imphalOption).toBeVisible({ timeout: 3000 });
-        }
+        // Check for IMF (Imphal)
+        const imphalOption = page.getByText(/Imphal Hub.*IMF/i);
+        await expect(imphalOption).toBeVisible({ timeout: 3000 });
     });
 });
 
@@ -114,31 +107,25 @@ test.describe('Production Readiness - Empty States', () => {
 });
 
 test.describe('Production Readiness - Critical User Flows', () => {
-    test('Invoice → Label → Manifest flow should work end-to-end', async ({ page }) => {
-        // Step 1: Navigate to Invoices
+    test('Invoice creation smoke check', async ({ page }) => {
+        // Smoke test: verify invoice creation UI is accessible
+        // Full E2E flow requires manual QA (see PRODUCTION_READINESS_CHECKLIST.md)
         await page.goto(`${BASE_URL}/#/invoices`);
         await page.waitForLoadState('networkidle');
 
-        // Look for invoice creation button
+        // Verify invoice creation button exists
         const createInvoiceBtn = page.getByRole('button', { name: /create|new.*invoice/i }).first();
-
-        if (await createInvoiceBtn.isVisible({ timeout: 3000 })) {
-            // Invoice creation is available
-            expect(await createInvoiceBtn.isVisible()).toBeTruthy();
-        }
+        await expect(createInvoiceBtn).toBeVisible({ timeout: 5000 });
     });
 
-    test('Shipment label printing should work from Shipment Details', async ({ page }) => {
+    test('Shipment page should not show label generation error', async ({ page }) => {
+        // Verify the forbidden error message is not displayed
         await page.goto(`${BASE_URL}/#/shipments`);
         await page.waitForLoadState('networkidle');
 
         // Should not show error: "No shipment data found. Please generate label from Invoices dashboard."
         const forbiddenError = page.getByText(/no shipment data found.*generate label from invoices/i);
-
-        // Wait a bit to ensure no error appears
-        await page.waitForTimeout(1000);
-
-        expect(await forbiddenError.isVisible()).toBe(false);
+        await expect(forbiddenError).not.toBeVisible();
     });
 
     test('Manifest creation should not crash React', async ({ page }) => {
@@ -176,25 +163,17 @@ test.describe('Production Readiness - Critical User Flows', () => {
         await page.goto(`${BASE_URL}/#/manifests`);
 
         const createBtn = page.getByRole('button', { name: /create|new/i }).first();
-        if (await createBtn.isVisible({ timeout: 3000 })) {
-            await createBtn.click();
-            await page.waitForTimeout(500);
+        await expect(createBtn).toBeVisible({ timeout: 5000 });
+        await createBtn.click();
+        await page.waitForTimeout(500);
 
-            // Look for origin hub dropdown
-            const originSelect = page.locator('select, [role="combobox"]').first();
-            if (await originSelect.isVisible({ timeout: 2000 })) {
-                await originSelect.click();
-                await page.waitForTimeout(300);
+        // Should show "Imphal Hub (IMF)" not "Imphal Hub (IXA)"
+        const imphalIMF = page.getByText(/Imphal Hub.*\(IMF\)/i);
+        await expect(imphalIMF).toBeVisible({ timeout: 3000 });
 
-                // Should show "Imphal Hub (IMF)" not "Imphal Hub (IXA)"
-                const imphalIMF = page.getByText(/Imphal Hub.*\(IMF\)/i);
-                await expect(imphalIMF).toBeVisible({ timeout: 3000 });
-
-                // Should NOT show IXA
-                const imphalIXA = page.getByText(/Imphal Hub.*\(IXA\)/i);
-                expect(await imphalIXA.isVisible()).toBe(false);
-            }
-        }
+        // Should NOT show IXA
+        const imphalIXA = page.getByText(/Imphal Hub.*\(IXA\)/i);
+        await expect(imphalIXA).not.toBeVisible();
     });
 });
 

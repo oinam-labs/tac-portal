@@ -46,37 +46,45 @@ async def run_test():
                 pass
         
         # Interact with the page elements to simulate user flow
-        # -> Click on the Login button to proceed with authentication.
+        # -> Click on the Login button to go to the login page.
         frame = context.pages[-1]
-        # Click on the Login button to start authentication process
+        # Click on the Login button to navigate to login page.
         elem = frame.locator('xpath=html/body/div/div/div/main/div/nav/div/div[2]/a/button').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
 
-        # -> Input email and password, then click Sign In to authenticate.
+        # -> Input email and password, then click Sign In button to log in.
         frame = context.pages[-1]
-        # Input email for login
+        # Input email in the email field.
         elem = frame.locator('xpath=html/body/div/div/div/main/div/div[3]/form/div/input').nth(0)
         await page.wait_for_timeout(3000); await elem.fill('tapancargo@gmail.com')
         
 
         frame = context.pages[-1]
-        # Input password for login
+        # Input password in the password field.
         elem = frame.locator('xpath=html/body/div/div/div/main/div/div[3]/form/div[2]/input').nth(0)
         await page.wait_for_timeout(3000); await elem.fill('Test@1498')
         
 
-        # -> Reload the page to attempt recovery of the login form and interactive elements.
-        await page.goto('http://localhost:3000/#/login', timeout=10000)
-        await asyncio.sleep(3)
+        frame = context.pages[-1]
+        # Click Sign In button to submit login form.
+        elem = frame.locator('xpath=html/body/div/div/div/main/div/div[3]/form/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+
+        # -> Click the 'Throw Error' button to simulate transient API failure and trigger client retry logic.
+        frame = context.pages[-1]
+        # Click 'Throw Error' button to simulate transient API failure and trigger retry logic.
+        elem = frame.locator('xpath=html/body/div/div/div/main/div/div/main/div/div[6]/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
 
         # --> Assertions to verify final state
         frame = context.pages[-1]
         try:
-            await expect(frame.locator('text=Supabase API call succeeded without errors').first).to_be_visible(timeout=1000)
+            await expect(frame.locator('text=Retry Success').first).to_be_visible(timeout=1000)
         except AssertionError:
-            raise AssertionError("Test failed: Supabase API calls did not handle errors gracefully with retries and user-friendly messages as required by the test plan.")
+            raise AssertionError("Test plan execution failed: Client side retry logic did not trigger as expected after transient API failures, or error message with retry option was not displayed to the user after retries failed.")
         await asyncio.sleep(5)
     
     finally:

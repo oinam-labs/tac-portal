@@ -171,7 +171,7 @@ export function ManifestSettingsForm({
                 Origin Hub <span className="text-destructive">*</span>
               </Label>
               <Select
-                value={watchedValues.fromHubId}
+                value={watchedValues.fromHubId || undefined}
                 onValueChange={(val) => form.setValue('fromHubId', val, { shouldValidate: true })}
               >
                 <SelectTrigger
@@ -199,7 +199,7 @@ export function ManifestSettingsForm({
                 Destination Hub <span className="text-destructive">*</span>
               </Label>
               <Select
-                value={watchedValues.toHubId}
+                value={watchedValues.toHubId || undefined}
                 onValueChange={(val) => form.setValue('toHubId', val, { shouldValidate: true })}
               >
                 <SelectTrigger

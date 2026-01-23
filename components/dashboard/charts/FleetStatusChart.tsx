@@ -123,10 +123,9 @@ export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({ isLoading:
         </div>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 leading-none font-medium text-foreground">
-          Fleet utilization up by 12.3% <TrendingUp className="h-4 w-4 text-cyber-success" />
+        <div className="leading-none text-muted-foreground">
+          Showing top {fleetChartData.length} routes by manifest count
         </div>
-        <div className="leading-none text-muted-foreground">Comparing to previous period</div>
       </CardFooter>
     </Card>
   );

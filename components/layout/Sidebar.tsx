@@ -145,6 +145,8 @@ export const Sidebar: React.FC = () => {
                     key={item.label}
                     to={item.path}
                     title={sidebarCollapsed ? item.label : ''}
+                    data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                    aria-label={item.label}
                     className={({ isActive }) => `
                                             flex items-center px-3 py-2 rounded-lg transition-all duration-200 group
                                             ${isActive
@@ -153,7 +155,7 @@ export const Sidebar: React.FC = () => {
                       }
                                         `}
                   >
-                    <item.icon className={`w-5 h-5 ${sidebarCollapsed ? 'mx-auto' : 'mr-3'}`} />
+                    <item.icon className={`w-5 h-5 ${sidebarCollapsed ? 'mx-auto' : 'mr-3'}`} aria-hidden="true" />
                     {!sidebarCollapsed && <span className="font-medium text-sm">{item.label}</span>}
                   </NavLink>
                 ))}

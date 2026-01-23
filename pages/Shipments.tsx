@@ -106,7 +106,10 @@ export const Shipments: React.FC = () => {
             <Button variant="ghost">
               <Download className="w-4 h-4 mr-2" /> Export
             </Button>
-            <Button onClick={() => setIsCreateModalOpen(true)}>
+            <Button
+              onClick={() => setIsCreateModalOpen(true)}
+              data-testid="new-shipment-button"
+            >
               <Plus className="w-4 h-4 mr-2" /> New Shipment
             </Button>
           </div>
@@ -118,6 +121,7 @@ export const Shipments: React.FC = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         title="Create New Shipment"
+        data-testid="create-shipment-modal"
       >
         <CreateShipmentForm
           onSuccess={() => setIsCreateModalOpen(false)}

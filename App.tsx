@@ -170,7 +170,7 @@ const Login: React.FC = () => {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+          <div data-testid="login-error-message" className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
             {error}
           </div>
         )}
@@ -185,6 +185,7 @@ const Login: React.FC = () => {
               placeholder="Enter your email"
               disabled={isLoading}
               autoComplete="email"
+              data-testid="login-email-input"
             />
           </div>
           <div>
@@ -196,9 +197,10 @@ const Login: React.FC = () => {
               placeholder="Enter your password"
               disabled={isLoading}
               autoComplete="current-password"
+              data-testid="login-password-input"
             />
           </div>
-          <Button type="submit" className="w-full mt-4" size="lg" disabled={isLoading}>
+          <Button type="submit" className="w-full mt-4" size="lg" disabled={isLoading} data-testid="login-submit-button">
             {isLoading ? 'Signing in...' : 'Sign In'}
           </Button>
         </form>
