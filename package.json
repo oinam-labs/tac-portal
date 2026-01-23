@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "audit:hub-codes": "node scripts/audit-hub-codes.js",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
