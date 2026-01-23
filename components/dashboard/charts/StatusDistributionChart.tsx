@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import {
   Card,
@@ -11,14 +11,7 @@ import {
 import { TrendingUp } from 'lucide-react';
 
 import { ChartSkeleton } from '../../ui/skeleton';
-
-// Data would typically come from API/Props
-const statusChartData = [
-  { status: 'inTransit', count: 450, fill: 'var(--color-inTransit)' },
-  { status: 'delivered', count: 300, fill: 'var(--color-delivered)' },
-  { status: 'pending', count: 200, fill: 'var(--color-pending)' },
-  { status: 'exception', count: 50, fill: 'var(--color-exception)' },
-];
+import { useShipments } from '../../../hooks/useShipments';
 
 const COLORS = {
   primary: '#22d3ee',
@@ -30,10 +23,49 @@ const COLORS = {
 
 const STATUS_COLORS = [COLORS.primary, COLORS.success, COLORS.warning, COLORS.danger];
 
-export const StatusDistributionChart: React.FC<{ isLoading?: boolean }> = ({ isLoading }) => {
+export const StatusDistributionChart: React.FC<{ isLoading?: boolean }> = ({ isLoading: externalLoading }) => {
+  const { data: shipments = [], isLoading: shipmentsLoading } = useShipments();
+  const isLoading = externalLoading || shipmentsLoading;
+
+  const statusChartData = useMemo(() => {
+    const inTransit = shipments.filter((s) =>
+      ['IN_TRANSIT_TO_DESTINATION', 'LOADED_FOR_LINEHAUL', 'RECEIVED_AT_ORIGIN_HUB'].includes(s.status)
+    ).length;
+    const delivered = shipments.filter((s) => s.status === 'DELIVERED').length;
+    const pending = shipments.filter((s) => s.status === 'PENDING').length;
+    const exception = shipments.filter((s) => s.status === 'EXCEPTION').length;
+
+    return [
+      { status: 'inTransit', count: inTransit, fill: 'var(--color-inTransit)' },
+      { status: 'delivered', count: delivered, fill: 'var(--color-delivered)' },
+      { status: 'pending', count: pending, fill: 'var(--color-pending)' },
+      { status: 'exception', count: exception, fill: 'var(--color-exception)' },
+    ].filter((item) => item.count > 0);
+  }, [shipments]);
+
   if (isLoading) return <ChartSkeleton />;
 
   const totalShipments = statusChartData.reduce((acc, curr) => acc + curr.count, 0);
+
+  if (totalShipments === 0) {
+    return (
+      <Card className="flex flex-col h-full">
+        <CardHeader className="items-center pb-0">
+          <CardTitle className="flex items-center gap-2">
+            <span className="w-1 h-6 bg-cyber-purple rounded-full shadow-neon-purple"></span>
+            Status Distribution
+          </CardTitle>
+          <CardDescription>Current shipment status breakdown</CardDescription>
+        </CardHeader>
+        <CardContent className="flex-1 flex items-center justify-center">
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No shipments yet</p>
+            <p className="text-sm text-muted-foreground mt-1">Create your first shipment to see status distribution</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="flex flex-col h-full">
