@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { flushSync } from 'react-dom';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -223,20 +224,26 @@ export function ManifestBuilderWizard({
     }
   };
 
-  const handleCloseManifest = async (status: 'OPEN' | 'CLOSED') => {
+  const handleCloseManifest = async (status: ManifestStatus) => {
     if (!builder.manifest) return;
 
     setIsSaving(true);
     try {
-      if (status === 'CLOSED') {
-        await builder.closeManifest(currentStaff?.id);
-      } else if (status === 'OPEN') {
-        await builder.updateStatus('OPEN', currentStaff?.id);
-      }
-
-      onComplete?.(builder.manifest.id);
-      onOpenChange(false);
-    } finally {
+      await builder.updateStatus(status);
+      toast.success('Manifest closed successfully!');
+      // Use flushSync to ensure state updates complete
+      flushSync(() => {
+        setShowCloseConfirm(false);
+        setIsSaving(false);
+      });
+      // Delay closing to allow AlertDialog portal cleanup
+      setTimeout(() => {
+        onOpenChange(false);
+        onComplete?.(builder.manifest!.id);
+      }, 50);
+    } catch (error) {
+      toast.error('Failed to close manifest');
+      console.error('Error closing manifest:', error);
       setIsSaving(false);
     }
   };
@@ -245,13 +252,26 @@ export function ManifestBuilderWizard({
     if (builder.items.length > 0 && currentStep > 1) {
       setShowCancelConfirm(true);
     } else {
-      onOpenChange(false);
+      // Use flushSync to ensure cleanup completes
+      flushSync(() => {
+        setShowCloseConfirm(false);
+        setShowCancelConfirm(false);
+      });
+      setTimeout(() => {
+        onOpenChange(false);
+      }, 50);
     }
   };
 
   const confirmCancel = () => {
-    setShowCancelConfirm(false);
-    onOpenChange(false);
+    // Use flushSync to ensure state updates complete before unmounting
+    flushSync(() => {
+      setShowCancelConfirm(false);
+    });
+    // Small delay to allow AlertDialog portal to cleanup
+    setTimeout(() => {
+      onOpenChange(false);
+    }, 50);
   };
 
   return (
