@@ -6,10 +6,10 @@
 
 ## The Alerts You're Seeing (Stale)
 
-```
+```text
 ❌ #3414 - File data in outbound network request (line 54)
 ❌ #3413 - File data in outbound network request (line 40)
-Timestamp: 19 hours ago (before our fixes)
+Timestamp: 2026-01-23 05:00 IST (before our fixes)
 ```
 
 ---
@@ -67,20 +67,20 @@ for (const pattern of sensitivePatterns) {
 
 ### CodeQL Scanning Timeline
 
-```
-19:00 hours ago  │  CodeQL scanned old code
-                 │  Found issues at lines 40, 54
-                 │  Created alerts #3413, #3414
-                 ▼
-00:39 IST today  │  We pushed commit 2c6b26f
-                 │  Added security validation
-                 ▼
-00:47 IST        │  GitHub webhook triggered
-01:07 IST        │  ⏳ CodeQL still analyzing...
-(NOW)            │     (Can take 15-30 min)
-                 ▼
-~01:15 IST       │  ✅ Expected: scan completes
-(estimated)      │  Alerts close automatically
+```text
+2026-01-23 05:00 IST  │  CodeQL scanned old code
+                      │  Found issues at lines 40, 54
+                      │  Created alerts #3413, #3414
+                      ▼
+2026-01-24 00:39 IST  │  We pushed commit 2c6b26f
+                      │  Added security validation
+                      ▼
+2026-01-24 00:47 IST  │  GitHub webhook triggered
+2026-01-24 01:07 IST  │  ⏳ CodeQL still analyzing...
+                      │     (Can take 15-30 min)
+                      ▼
+2026-01-24 01:15 IST  │  ✅ Expected: scan completes
+(estimated)           │  Alerts close automatically
 ```
 
 ### Why It Takes Time
@@ -96,7 +96,7 @@ for (const pattern of sensitivePatterns) {
 
 ### Option 1: View on GitHub
 
-Visit: https://github.com/oinam-labs/tac-portal/blob/main/scripts/run-migrations.mjs
+Visit: [scripts/run-migrations.mjs on GitHub](https://github.com/oinam-labs/tac-portal/blob/main/scripts/run-migrations.mjs)
 
 **Look for lines 104-123** - you'll see the security validation code.
 
@@ -108,7 +108,7 @@ git log --oneline -10
 ```
 
 You should see:
-```
+```text
 71de7f1 feat: implement optional improvements
 582c8d6 fix(ci): skip E2E tests  
 a1d6740 docs: add security analysis
@@ -124,7 +124,7 @@ You'll see the validation code.
 
 ### Option 3: Check GitHub Actions
 
-Visit: https://github.com/oinam-labs/tac-portal/actions/workflows/codeql.yml
+Visit: [CodeQL workflow on GitHub Actions](https://github.com/oinam-labs/tac-portal/actions/workflows/codeql.yml)
 
 Look for:
 - **Running** workflows (CodeQL is analyzing)
@@ -165,15 +165,15 @@ But **wait first** - CodeQL is usually smart enough.
 
 | Time | Event |
 |------|-------|
-| 19 hours ago | CodeQL detected issues (old code) |
-| 12:39am today | Pushed security fixes (commit 2c6b26f) |
-| 12:47am | User reported alerts (still showing old scan) |
-| 12:50am | User reported alerts again (scanning in progress) |
-| 1:07am | User reported alerts again (still scanning) |
-| **~1:15am** | **Expected: Alerts auto-close** |
+| 2026-01-23 05:00 IST | CodeQL detected issues (old code) |
+| 2026-01-24 00:39 IST | Pushed security fixes (commit 2c6b26f) |
+| 2026-01-24 00:47 IST | User reported alerts (still showing old scan) |
+| 2026-01-24 00:50 IST | User reported alerts again (scanning in progress) |
+| 2026-01-24 01:07 IST | User reported alerts again (still scanning) |
+| **2026-01-24 01:15 IST** | **Expected: Alerts auto-close** |
 
 ---
 
-**Bottom Line**: Your codebase is secure. CodeQL just hasn't caught up yet. Give it another 10-15 minutes.
+**Bottom Line**: Your codebase is secure. CodeQL just hasn't caught up yet. The scanning process typically completes within 15-30 minutes of pushing changes.
 
-**Check again at 1:20am IST** - alerts should be gone by then.
+**Expected resolution**: Alerts should auto-close once the CodeQL scan completes and detects the security validation code.

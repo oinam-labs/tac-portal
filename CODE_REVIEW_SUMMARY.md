@@ -167,8 +167,8 @@ e2e-tests:
     - name: Start preview server and run E2E tests
       env:
         # NEW: Use secrets for credentials (with fallbacks)
-        E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL || 'tapancargo@gmail.com' }}
-        E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD || 'Test@1498' }}
+        E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL || 'e2e@example.com' }}
+        E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD || 'REDACTED' }}
 ```
 
 #### Impact
@@ -291,10 +291,10 @@ ON exceptions(shipment_id, status);
 
 | Operation | Before | After | Improvement |
 |-----------|--------|-------|-------------|
-| AWB lookup (scanning) | 50-200ms | 2-5ms | **10-100x faster** |
-| Tracking timeline | 100-300ms | 5-10ms | **20-60x faster** |
-| Manifest item check | 30-100ms | 2-5ms | **15-50x faster** |
-| Exception queries | 50-150ms | 3-8ms | **15-50x faster** |
+| AWB lookup (scanning) | 50–200 ms | 2–5 ms | **10–100× faster** |
+| Tracking timeline | 100–300 ms | 5–10 ms | **20–60× faster** |
+| Manifest item check | 30–100 ms | 2–5 ms | **15–50× faster** |
+| Exception queries | 50–150 ms | 3–8 ms | **15–50× faster** |
 
 **Real-World Impact**:
 - Scanning operations feel instant
