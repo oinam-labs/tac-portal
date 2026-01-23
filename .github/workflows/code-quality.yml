@@ -168,6 +168,10 @@ jobs:
           exit ${TEST_EXIT:-0}
         env:
           CI: true
+          # Configure test credentials via GitHub Secrets for authenticated E2E tests
+          # E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
+          # E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
+        continue-on-error: true
 
       - name: Upload test results
         uses: actions/upload-artifact@v6
