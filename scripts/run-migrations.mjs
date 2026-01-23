@@ -8,7 +8,7 @@
 
 import { config } from 'dotenv';
 import { readFileSync, readdirSync } from 'fs';
-import { resolve, join, normalize, basename } from 'path';
+import { resolve, join, normalize, basename, sep } from 'path';
 
 // Load environment variables
 config({ path: '.env.local' });
@@ -88,10 +88,13 @@ async function runMigration(filename) {
         return false;
     }
 
-    const filepath = join(migrationsDir, sanitizedFilename);
+    // Security: Use resolve for absolute path and normalize
+    const filepath = resolve(migrationsDir, sanitizedFilename);
+    const normalizedFilepath = normalize(filepath);
+    const normalizedMigrationsDir = normalize(migrationsDir);
 
     // Security: Verify resolved path is within migrations directory
-    if (!filepath.startsWith(migrationsDir)) {
+    if (!normalizedFilepath.startsWith(normalizedMigrationsDir + sep) && normalizedFilepath !== normalizedMigrationsDir) {
         console.error(`❌ Path traversal detected: ${filename}`);
         return false;
     }

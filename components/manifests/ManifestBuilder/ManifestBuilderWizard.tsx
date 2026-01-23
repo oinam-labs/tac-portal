@@ -108,6 +108,16 @@ export function ManifestBuilderWizard({
     };
   }, []);
 
+  // Utility to close any open Select/Popover portals by blurring active element
+  const closeNestedPortals = React.useCallback(() => {
+    // Blur any focused element to close Select dropdowns
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    // Small delay to allow portal animations to complete
+    return new Promise<void>((resolve) => setTimeout(resolve, 16));
+  }, []);
+
   // Form Data State
   const [setupData, setSetupData] = React.useState<ManifestSettingsValues>({
     fromHubId: '',
@@ -248,10 +258,12 @@ export function ManifestBuilderWizard({
     }
   };
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     if (builder.items.length > 0 && currentStep > 1) {
       setShowCancelConfirm(true);
     } else {
+      // Close any open Select/Popover portals first
+      await closeNestedPortals();
       // Use flushSync to ensure cleanup completes
       flushSync(() => {
         setShowCloseConfirm(false);
@@ -263,7 +275,9 @@ export function ManifestBuilderWizard({
     }
   };
 
-  const confirmCancel = () => {
+  const confirmCancel = async () => {
+    // Close any open Select/Popover portals first
+    await closeNestedPortals();
     // Use flushSync to ensure state updates complete before unmounting
     flushSync(() => {
       setShowCancelConfirm(false);
