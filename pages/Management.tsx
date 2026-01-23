@@ -49,11 +49,14 @@ const staffFormSchema = z.object({
 
 type StaffFormValues = z.infer<typeof staffFormSchema>;
 
+// Sentinel value for "no hub" / global access
+const GLOBAL_HUB_VALUE = '__GLOBAL__';
+
 const defaultFormValues: StaffFormValues = {
   full_name: '',
   email: '',
   role: 'OPS',
-  hub_id: '',
+  hub_id: GLOBAL_HUB_VALUE,
 };
 
 export const Management: React.FC = () => {
@@ -97,21 +100,24 @@ export const Management: React.FC = () => {
   // Form default values for editing
   const formDefaultValues: StaffFormValues = activeRow
     ? {
-        full_name: activeRow.full_name,
-        email: activeRow.email,
-        role: activeRow.role,
-        hub_id: activeRow.hub_id ?? '',
-      }
+      full_name: activeRow.full_name,
+      email: activeRow.email,
+      role: activeRow.role,
+      hub_id: activeRow.hub_id || GLOBAL_HUB_VALUE,
+    }
     : defaultFormValues;
 
   // Handlers
   const handleUpsert = async (values: StaffFormValues) => {
+    // Convert sentinel value back to null/undefined for database
+    const hubId = values.hub_id === GLOBAL_HUB_VALUE ? undefined : values.hub_id;
+
     if (mode === 'create') {
       await createMutation.mutateAsync({
         full_name: values.full_name,
         email: values.email,
         role: values.role,
-        hub_id: values.hub_id || undefined,
+        hub_id: hubId,
       });
     } else if (activeRow) {
       await updateMutation.mutateAsync({
@@ -120,7 +126,7 @@ export const Management: React.FC = () => {
           full_name: values.full_name,
           email: values.email,
           role: values.role,
-          hub_id: values.hub_id || null,
+          hub_id: hubId || null,
         },
       });
     }
@@ -251,7 +257,7 @@ export const Management: React.FC = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Global / HQ</SelectItem>
+                        <SelectItem value={GLOBAL_HUB_VALUE}>Global / HQ</SelectItem>
                         {Object.values(HUBS).map((h) => (
                           <SelectItem key={h.id} value={h.id}>
                             {h.name}

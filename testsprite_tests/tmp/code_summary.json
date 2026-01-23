@@ -1,0 +1,160 @@
+{
+    "tech_stack": [
+        "TypeScript",
+        "React 19",
+        "Vite",
+        "Tailwind CSS v4",
+        "Supabase (Auth, Postgres, Row Level Security)",
+        "TanStack React Query",
+        "Zustand",
+        "React Router DOM",
+        "Radix UI",
+        "shadcn/ui",
+        "Framer Motion",
+        "pdf-lib",
+        "Playwright",
+        "Vitest",
+        "Sentry"
+    ],
+    "features": [
+        {
+            "name": "Authentication",
+            "description": "Role-based authentication using Supabase Auth with JWT tokens. Supports roles: ADMIN, MANAGER, OPS_STAFF, WAREHOUSE_STAFF, FINANCE_STAFF, SUPPORT",
+            "files": [
+                "lib/supabase.ts",
+                "lib/auth.ts",
+                "components/auth/LoginForm.tsx",
+                "components/auth/AuthGuard.tsx",
+                "pages/Login.tsx"
+            ]
+        },
+        {
+            "name": "Dashboard",
+            "description": "Main dashboard with KPIs, quick actions, and real-time activity feed",
+            "files": [
+                "pages/Dashboard.tsx",
+                "components/dashboard/DashboardStats.tsx",
+                "components/dashboard/QuickActions.tsx",
+                "components/dashboard/ActivityFeed.tsx"
+            ]
+        },
+        {
+            "name": "Shipments Management",
+            "description": "Create, track, and manage shipments with AWB number generation and status lifecycle",
+            "files": [
+                "pages/Shipments.tsx",
+                "pages/ShipmentDetail.tsx",
+                "lib/services/shipmentService.ts",
+                "components/shipments/ShipmentForm.tsx",
+                "components/shipments/ShipmentList.tsx",
+                "components/shipments/ShipmentStatusBadge.tsx"
+            ]
+        },
+        {
+            "name": "Manifests Management",
+            "description": "Create manifests, assign shipments, and manage manifest status workflow (DRAFT → OPEN → CLOSED → DEPARTED → ARRIVED)",
+            "files": [
+                "pages/Manifests.tsx",
+                "pages/ManifestDetail.tsx",
+                "lib/services/manifestService.ts",
+                "components/manifests/ManifestForm.tsx",
+                "components/manifests/ManifestList.tsx",
+                "components/manifests/ManifestStatusBadge.tsx"
+            ]
+        },
+        {
+            "name": "Scanning Module",
+            "description": "Barcode scanning with offline queue support, duplicate detection, and sync functionality",
+            "files": [
+                "pages/Scanning.tsx",
+                "lib/services/scanningService.ts",
+                "components/scanning/BarcodeScanner.tsx",
+                "components/scanning/ScanQueue.tsx",
+                "lib/offline-queue.ts"
+            ]
+        },
+        {
+            "name": "Invoices Management",
+            "description": "Create invoices with tax calculations, issue invoices, and generate PDF documents",
+            "files": [
+                "pages/Invoices.tsx",
+                "pages/InvoiceDetail.tsx",
+                "lib/services/invoiceService.ts",
+                "lib/pdf-generator.ts",
+                "components/invoices/InvoiceForm.tsx",
+                "components/invoices/InvoiceList.tsx"
+            ]
+        },
+        {
+            "name": "Customers Management",
+            "description": "Manage customer records with contact information and billing details",
+            "files": [
+                "pages/Customers.tsx",
+                "pages/CustomerDetail.tsx",
+                "lib/services/customerService.ts",
+                "components/customers/CustomerForm.tsx",
+                "components/customers/CustomerList.tsx"
+            ]
+        },
+        {
+            "name": "Tracking",
+            "description": "Real-time shipment tracking with event history and status updates",
+            "files": [
+                "pages/Tracking.tsx",
+                "lib/services/trackingService.ts",
+                "components/tracking/TrackingTimeline.tsx",
+                "components/tracking/TrackingSearch.tsx"
+            ]
+        },
+        {
+            "name": "Exceptions Handling",
+            "description": "Handle and resolve shipment exceptions with workflow for resolution",
+            "files": [
+                "pages/Exceptions.tsx",
+                "lib/services/exceptionService.ts",
+                "components/exceptions/ExceptionList.tsx",
+                "components/exceptions/ExceptionDetail.tsx"
+            ]
+        },
+        {
+            "name": "Analytics",
+            "description": "Business analytics and reporting with charts and metrics",
+            "files": [
+                "pages/Analytics.tsx",
+                "components/analytics/Charts.tsx",
+                "components/analytics/MetricsCards.tsx"
+            ]
+        },
+        {
+            "name": "Management (Admin)",
+            "description": "Staff and organization management for ADMIN users",
+            "files": [
+                "pages/Management.tsx",
+                "components/management/StaffList.tsx",
+                "components/management/RoleManagement.tsx"
+            ]
+        },
+        {
+            "name": "Error Handling",
+            "description": "Centralized error handling with user-friendly messages and toast notifications",
+            "files": [
+                "lib/errors.ts",
+                "components/ui/toast.tsx"
+            ]
+        },
+        {
+            "name": "PDF Generation",
+            "description": "Generate PDF documents for shipment labels and invoices with barcodes",
+            "files": [
+                "lib/pdf-generator.ts"
+            ]
+        },
+        {
+            "name": "Hubs Management",
+            "description": "Manage hub/location records for origin and destination routing",
+            "files": [
+                "lib/services/hubService.ts"
+            ]
+        }
+    ]
+}

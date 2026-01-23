@@ -40,7 +40,7 @@ export const QuickActions: React.FC = () => {
   // Keyboard shortcuts could be implemented here via useHotkeys later
 
   return (
-    <Card className="mb-6">
+    <Card data-testid="quick-actions" className="mb-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div>
           <h3 className="text-lg font-bold text-foreground">Quick Actions</h3>
@@ -51,6 +51,7 @@ export const QuickActions: React.FC = () => {
             <Button
               key={action.label}
               variant="secondary"
+              data-testid={`quick-action-${action.label.toLowerCase().replace(/\s+/g, '-')}`}
               className="bg-muted border border-transparent hover:border-cyber-accent/50 transition-all group"
               onClick={action.onClick}
             >

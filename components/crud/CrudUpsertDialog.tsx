@@ -101,7 +101,7 @@ export function CrudUpsertDialog<TSchema extends z.ZodTypeAny>({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto" data-testid={`${mode}-dialog`}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
@@ -117,10 +117,11 @@ export function CrudUpsertDialog<TSchema extends z.ZodTypeAny>({
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={isLoading}
+                data-testid="dialog-cancel-button"
               >
                 {cancelLabel}
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading} data-testid="dialog-submit-button">
                 {isLoading ? 'Saving...' : buttonLabel}
               </Button>
             </DialogFooter>

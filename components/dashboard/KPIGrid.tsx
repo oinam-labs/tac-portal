@@ -70,7 +70,7 @@ const KPICard = React.memo(({ kpi, index }: KPICardProps) => {
         ease: [0.25, 0.1, 0.25, 1],
       }}
     >
-      <Card className="relative overflow-hidden group hover:shadow-md transition-all duration-300 border-border/50 hover:border-primary/20 bg-card/50 backdrop-blur-sm">
+      <Card data-testid={`kpi-card-${kpi.label.toLowerCase().replace(/\s+/g, '-')}`} className="relative overflow-hidden group hover:shadow-md transition-all duration-300 border-border/50 hover:border-primary/20 bg-card/50 backdrop-blur-sm">
         {/* Background Icon */}
         <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity pointer-events-none">
           <kpi.icon className="w-24 h-24" />
@@ -197,7 +197,7 @@ export const KPIGrid: React.FC<KPIGridProps> = ({ isLoading: externalLoading = f
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+    <div data-testid="kpi-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
       {kpis.map((kpi, index) => (
         <KPICard key={kpi.label} kpi={kpi} index={index} />
       ))}

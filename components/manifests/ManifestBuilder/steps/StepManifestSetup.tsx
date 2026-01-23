@@ -147,7 +147,7 @@ export function StepManifestSetup({
                   Origin Hub <span className="text-destructive">*</span>
                 </Label>
                 <Select
-                  value={form.watch('fromHubId') || ''}
+                  value={form.watch('fromHubId') || undefined}
                   onValueChange={(val) =>
                     form.setValue('fromHubId', val, {
                       shouldValidate: true,
@@ -178,7 +178,7 @@ export function StepManifestSetup({
                   Destination Hub <span className="text-destructive">*</span>
                 </Label>
                 <Select
-                  value={form.watch('toHubId') || ''}
+                  value={form.watch('toHubId') || undefined}
                   onValueChange={(val) =>
                     form.setValue('toHubId', val, {
                       shouldValidate: true,
@@ -300,7 +300,7 @@ export function StepManifestSetup({
                   <Label>Dispatch Time</Label>
                   <div className="flex gap-2">
                     <Select
-                      value={form.watch('dispatchHour') || ''}
+                      value={form.watch('dispatchHour') || undefined}
                       onValueChange={(v) =>
                         form.setValue('dispatchHour', v, { shouldDirty: true, shouldTouch: true })
                       }
@@ -317,7 +317,7 @@ export function StepManifestSetup({
                       </SelectContent>
                     </Select>
                     <Select
-                      value={form.watch('dispatchMinute') || ''}
+                      value={form.watch('dispatchMinute') || undefined}
                       onValueChange={(v) =>
                         form.setValue('dispatchMinute', v, { shouldDirty: true, shouldTouch: true })
                       }
@@ -334,7 +334,7 @@ export function StepManifestSetup({
                       </SelectContent>
                     </Select>
                     <Select
-                      value={form.watch('dispatchPeriod') || ''}
+                      value={form.watch('dispatchPeriod') || undefined}
                       onValueChange={(v) =>
                         form.setValue('dispatchPeriod', v as 'AM' | 'PM', {
                           shouldDirty: true,
@@ -440,7 +440,7 @@ export function StepManifestSetup({
                     <Label>ETD</Label>
                     <div className="flex gap-2">
                       <Select
-                        value={form.watch('etdHour') || ''}
+                        value={form.watch('etdHour') || undefined}
                         onValueChange={(v) =>
                           form.setValue('etdHour', v, { shouldDirty: true, shouldTouch: true })
                         }
@@ -457,7 +457,7 @@ export function StepManifestSetup({
                         </SelectContent>
                       </Select>
                       <Select
-                        value={form.watch('etdMinute') || ''}
+                        value={form.watch('etdMinute') || undefined}
                         onValueChange={(v) =>
                           form.setValue('etdMinute', v, { shouldDirty: true, shouldTouch: true })
                         }
@@ -474,7 +474,7 @@ export function StepManifestSetup({
                         </SelectContent>
                       </Select>
                       <Select
-                        value={form.watch('etdPeriod') || ''}
+                        value={form.watch('etdPeriod') || undefined}
                         onValueChange={(v) =>
                           form.setValue('etdPeriod', v as 'AM' | 'PM', {
                             shouldDirty: true,
@@ -499,7 +499,7 @@ export function StepManifestSetup({
                     <Label>ETA</Label>
                     <div className="flex gap-2">
                       <Select
-                        value={form.watch('etaHour') || ''}
+                        value={form.watch('etaHour') || undefined}
                         onValueChange={(v) =>
                           form.setValue('etaHour', v, { shouldDirty: true, shouldTouch: true })
                         }
@@ -516,7 +516,7 @@ export function StepManifestSetup({
                         </SelectContent>
                       </Select>
                       <Select
-                        value={form.watch('etaMinute') || ''}
+                        value={form.watch('etaMinute') || undefined}
                         onValueChange={(v) =>
                           form.setValue('etaMinute', v, { shouldDirty: true, shouldTouch: true })
                         }
@@ -533,7 +533,7 @@ export function StepManifestSetup({
                         </SelectContent>
                       </Select>
                       <Select
-                        value={form.watch('etaPeriod') || ''}
+                        value={form.watch('etaPeriod') || undefined}
                         onValueChange={(v) =>
                           form.setValue('etaPeriod', v as 'AM' | 'PM', {
                             shouldDirty: true,

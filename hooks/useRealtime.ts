@@ -3,8 +3,9 @@
  * Subscribe to Supabase realtime changes for live updates
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
 import { isFeatureEnabled } from '@/config/features';
@@ -12,12 +13,19 @@ import { logger } from '@/lib/logger';
 
 /**
  * Subscribe to realtime changes for shipments
+ * Uses ref to prevent duplicate subscriptions during React Strict Mode
  */
 export function useRealtimeShipments() {
   const queryClient = useQueryClient();
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const isSubscribedRef = useRef(false);
 
   useEffect(() => {
     if (!isFeatureEnabled('realtimeTracking')) return;
+
+    // Prevent duplicate subscriptions
+    if (isSubscribedRef.current) return;
+    isSubscribedRef.current = true;
 
     const channel = supabase
       .channel('shipments-realtime')
@@ -47,20 +55,33 @@ export function useRealtimeShipments() {
         logger.debug('[Realtime] Shipments subscription', { status });
       });
 
+    channelRef.current = channel;
+
     return () => {
-      supabase.removeChannel(channel);
+      isSubscribedRef.current = false;
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [queryClient]);
 }
 
 /**
  * Subscribe to realtime changes for manifests
+ * Uses ref to prevent duplicate subscriptions during React Strict Mode
  */
 export function useRealtimeManifests() {
   const queryClient = useQueryClient();
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const isSubscribedRef = useRef(false);
 
   useEffect(() => {
     if (!isFeatureEnabled('realtimeTracking')) return;
+
+    // Prevent duplicate subscriptions
+    if (isSubscribedRef.current) return;
+    isSubscribedRef.current = true;
 
     const channel = supabase
       .channel('manifests-realtime')
@@ -78,20 +99,42 @@ export function useRealtimeManifests() {
       )
       .subscribe();
 
+    channelRef.current = channel;
+
     return () => {
-      supabase.removeChannel(channel);
+      isSubscribedRef.current = false;
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [queryClient]);
 }
 
 /**
  * Subscribe to realtime changes for tracking events
+ * Uses ref to prevent duplicate subscriptions during React Strict Mode
  */
 export function useRealtimeTracking(awb?: string) {
   const queryClient = useQueryClient();
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const isSubscribedRef = useRef(false);
+  const currentAwbRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (!isFeatureEnabled('realtimeTracking') || !awb) return;
+
+    // Clean up previous channel if AWB changed
+    if (currentAwbRef.current !== awb && channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+      isSubscribedRef.current = false;
+    }
+
+    // Prevent duplicate subscriptions
+    if (isSubscribedRef.current && currentAwbRef.current === awb) return;
+    isSubscribedRef.current = true;
+    currentAwbRef.current = awb;
 
     const channel = supabase
       .channel(`tracking-${awb}`)
@@ -110,20 +153,34 @@ export function useRealtimeTracking(awb?: string) {
       )
       .subscribe();
 
+    channelRef.current = channel;
+
     return () => {
-      supabase.removeChannel(channel);
+      isSubscribedRef.current = false;
+      currentAwbRef.current = undefined;
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [queryClient, awb]);
 }
 
 /**
  * Subscribe to realtime changes for exceptions
+ * Uses ref to prevent duplicate subscriptions during React Strict Mode
  */
 export function useRealtimeExceptions() {
   const queryClient = useQueryClient();
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const isSubscribedRef = useRef(false);
 
   useEffect(() => {
     if (!isFeatureEnabled('realtimeTracking')) return;
+
+    // Prevent duplicate subscriptions
+    if (isSubscribedRef.current) return;
+    isSubscribedRef.current = true;
 
     const channel = supabase
       .channel('exceptions-realtime')
@@ -141,8 +198,14 @@ export function useRealtimeExceptions() {
       )
       .subscribe();
 
+    channelRef.current = channel;
+
     return () => {
-      supabase.removeChannel(channel);
+      isSubscribedRef.current = false;
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [queryClient]);
 }

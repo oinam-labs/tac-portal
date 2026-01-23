@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   BarChart,
   Bar,
@@ -20,26 +20,65 @@ import {
 import { TrendingUp } from 'lucide-react';
 import { useStore } from '../../../store';
 import { ChartSkeleton } from '../../ui/skeleton';
-
-// Data would typically come from API/Props
-const fleetChartData = [
-  { route: 'DXB-SIN', active: 186, idle: 80 },
-  { route: 'SIN-HKG', active: 305, idle: 200 },
-  { route: 'HKG-NRT', active: 237, idle: 120 },
-  { route: 'NRT-LAX', active: 73, idle: 190 },
-  { route: 'LAX-JFK', active: 209, idle: 130 },
-];
+import { useManifests } from '../../../hooks/useManifests';
 
 const COLORS = {
   primary: '#22d3ee',
   secondary: '#c084fc',
 };
 
-export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({ isLoading }) => {
+export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({ isLoading: externalLoading }) => {
   const { theme } = useStore();
   const isDark = theme === 'dark';
+  const { data: manifests = [], isLoading: manifestsLoading } = useManifests();
+  const isLoading = externalLoading || manifestsLoading;
+
+  const fleetChartData = useMemo(() => {
+    const routeMap = new Map<string, { active: number; idle: number }>();
+
+    manifests.forEach((manifest) => {
+      const route = `${manifest.from_hub?.code || 'UNK'}-${manifest.to_hub?.code || 'UNK'}`;
+      const existing = routeMap.get(route) || { active: 0, idle: 0 };
+
+      if (manifest.status === 'CLOSED') {
+        existing.idle += 1;
+      } else {
+        existing.active += 1;
+      }
+
+      routeMap.set(route, existing);
+    });
+
+    return Array.from(routeMap.entries())
+      .map(([route, counts]) => ({
+        route,
+        ...counts,
+      }))
+      .sort((a, b) => (b.active + b.idle) - (a.active + a.idle))
+      .slice(0, 5);
+  }, [manifests]);
 
   if (isLoading) return <ChartSkeleton height={200} />;
+
+  if (fleetChartData.length === 0) {
+    return (
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <span className="w-1 h-6 bg-cyber-success rounded-full"></span>
+            Current Fleet Status
+          </CardTitle>
+          <CardDescription>Active vs idle fleet by route</CardDescription>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-muted-foreground">No manifests created</p>
+            <p className="text-sm text-muted-foreground mt-1">Create your first manifest to track fleet status</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Tooltip styles
   const tooltipStyle = {
@@ -84,10 +123,9 @@ export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({ isLoading 
         </div>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 leading-none font-medium text-foreground">
-          Fleet utilization up by 12.3% <TrendingUp className="h-4 w-4 text-cyber-success" />
+        <div className="leading-none text-muted-foreground">
+          Showing top {fleetChartData.length} routes by manifest count
         </div>
-        <div className="leading-none text-muted-foreground">Comparing to previous period</div>
       </CardFooter>
     </Card>
   );

@@ -1,423 +1,495 @@
 [
   {
     "id": "TC001",
-    "title": "Role-based authentication success",
-    "description": "Verify users can successfully log in with valid credentials and are granted access permissions matching their roles.",
-    "category": "functional",
+    "title": "Role-based Authentication and Authorization",
+    "description": "Verify that users of all defined roles (ADMIN, MANAGER, OPS_STAFF, WAREHOUSE_STAFF, FINANCE_STAFF, SUPPORT) can log in and access only permitted modules and UI components, with route guards and RLS policies enforcing access control.",
+    "category": "security",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to login page"
-      },
-      {
-        "type": "action",
-        "description": "Input valid username and password for each role (ADMIN, MANAGER, OPS_STAFF, WAREHOUSE_STAFF, FINANCE_STAFF, SUPPORT)"
-      },
-      {
-        "type": "action",
-        "description": "Click login button"
+        "description": "Attempt login with valid credentials for each user role"
       },
       {
         "type": "assertion",
-        "description": "Verify login is successful and user is redirected to dashboard"
+        "description": "Verify successful login and role-specific UI rendering"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to restricted routes and modules for each role"
       },
       {
         "type": "assertion",
-        "description": "Verify user can only access UI components and routes allowed for their role"
+        "description": "Verify route guards prevent unauthorized access and UI does not display forbidden features"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to access unauthorized data via API calls"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify Supabase RLS policies enforce tenant isolation and role-based data access"
       }
     ]
   },
   {
     "id": "TC002",
-    "title": "Role-based authentication failure",
-    "description": "Verify that login is denied for invalid credentials or unauthorized roles.",
-    "category": "error handling",
+    "title": "Shipment Creation and Lifecycle Status Transitions",
+    "description": "Test shipment CRUD operations including AWB generation, association with customers, and status transitions through lifecycle stages with valid business rules.",
+    "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to login page"
-      },
-      {
-        "type": "action",
-        "description": "Input invalid username or password"
-      },
-      {
-        "type": "action",
-        "description": "Click login button"
+        "description": "Create a new shipment with required details and linked customer"
       },
       {
         "type": "assertion",
-        "description": "Verify login is rejected with appropriate error message"
+        "description": "Verify shipment is created with unique AWB and initial status"
+      },
+      {
+        "type": "action",
+        "description": "Update shipment status following defined workflow stages"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify status changes persist and disallow invalid transitions"
+      },
+      {
+        "type": "action",
+        "description": "Retrieve and verify shipment details including customer association"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm all shipment data matches input and updates"
+      },
+      {
+        "type": "action",
+        "description": "Delete the shipment"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify shipment is removed and audit log captures the delete operation"
       }
     ]
   },
   {
     "id": "TC003",
-    "title": "Dashboard real-time KPI and activity display",
-    "description": "Validate that the dashboard shows accurate KPIs, charts, and recent activity filtered by user role with real-time updates.",
+    "title": "Manifest Creation and Dispatch Workflow",
+    "description": "Ensure manifests can be created, shipments assigned via scanning or manual selection, and dispatch workflow stages (OPEN, CLOSED, DEPARTED, ARRIVED) progress correctly with shipment counts accuracy and no duplicates.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as a MANAGER user"
+        "description": "Create a new manifest and assign multiple shipments manually"
       },
       {
         "type": "assertion",
-        "description": "Verify KPIs, charts, and recent activities relevant to user role are displayed"
+        "description": "Verify manifest reflects correct shipment count and no duplicate shipments assigned"
       },
       {
         "type": "action",
-        "description": "Trigger backend data changes (e.g., add shipment or manifest update)"
+        "description": "Perform barcode/QR scanning to assign shipments to manifest"
       },
       {
         "type": "assertion",
-        "description": "Verify dashboard components reflect updates in real-time using Supabase Realtime subscriptions"
+        "description": "Verify scanned shipments are linked idempotently without duplication"
+      },
+      {
+        "type": "action",
+        "description": "Progress manifest status through OPEN, CLOSED, DEPARTED, and ARRIVED stages"
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure status transitions are valid, persist, and latest stage is visible"
+      },
+      {
+        "type": "action",
+        "description": "Attempt invalid status transition on manifest"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm transition is rejected and error handled appropriately"
       }
     ]
   },
   {
     "id": "TC004",
-    "title": "Shipment creation with AWB generation",
-    "description": "Verify users can create shipments with proper customer association and unique Air Way Bill (AWB) generation.",
+    "title": "Offline Barcode/QR Scanning Queue and Synchronization",
+    "description": "Validate warehouse staff can scan barcodes/QR codes offline with queued scans persisting locally, and synchronization with Supabase backend occurs automatically when connectivity is restored without data loss or corruption.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as OPS_STAFF"
+        "description": "Simulate offline mode on the device"
       },
       {
         "type": "action",
-        "description": "Navigate to Shipments page"
-      },
-      {
-        "type": "action",
-        "description": "Fill in new shipment details including customer linkage"
-      },
-      {
-        "type": "action",
-        "description": "Submit shipment creation form"
+        "description": "Perform multiple barcode/QR scans linking shipments to manifests"
       },
       {
         "type": "assertion",
-        "description": "Verify shipment record is created with unique AWB number"
+        "description": "Verify scans are queued locally and acknowledged in the UI"
+      },
+      {
+        "type": "action",
+        "description": "Restore network connectivity"
       },
       {
         "type": "assertion",
-        "description": "Verify shipment initial status matches business rules (e.g., CREATED or PENDING)"
+        "description": "Verify queued scans synchronize with backend and update manifest/shipment statuses correctly"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm no duplicate or missing scan data after sync"
       }
     ]
   },
   {
     "id": "TC005",
-    "title": "Shipment status lifecycle progression",
-    "description": "Verify shipment status progresses only through valid status transitions and each change is audit logged.",
+    "title": "Invoice Creation, Tax Calculations, PDF Generation and Status Workflow",
+    "description": "Verify invoice creation with correct GST and tax calculations, PDF generation embedding barcode, and status workflow progression (DRAFT to ISSUED to PAID or CANCELLED) while ensuring correctness and uniqueness per organization.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Create a shipment in CREATED status"
+        "description": "Create an invoice with shipment and customer billing info"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify GST, taxes, and discounts are calculated accurately"
       },
       {
         "type": "action",
-        "description": "Attempt valid status transition sequence (e.g., CREATED -> IN_TRANSIT -> DELIVERED)"
+        "description": "Generate invoice PDF with embedded barcode"
       },
       {
         "type": "assertion",
-        "description": "Verify each status update succeeds"
+        "description": "Confirm PDF is downloadable, barcode is valid and scannable"
       },
       {
         "type": "action",
-        "description": "Attempt invalid status transition (e.g., DELIVERED -> CREATED)"
+        "description": "Progress invoice status from DRAFT to ISSUED"
       },
       {
         "type": "assertion",
-        "description": "Verify the invalid transition is rejected with error"
+        "description": "Verify status update is persisted and restrictions on edits after ISSUED"
+      },
+      {
+        "type": "action",
+        "description": "Mark invoice as PAID"
       },
       {
         "type": "assertion",
-        "description": "Verify audit logs capture each valid status change with user and timestamp"
+        "description": "Confirm status changes appropriately and audit log records payment"
+      },
+      {
+        "type": "action",
+        "description": "Cancel invoice and verify status"
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure invoice cannot be modified after cancellation"
       }
     ]
   },
   {
     "id": "TC006",
-    "title": "Manifest creation and shipment assignment",
-    "description": "Validate manifest creation, assigning shipments (via manual selection or scanning), and ensure dispatch workflow status transitions are enforced.",
+    "title": "Exception Handling and Resolution Workflow",
+    "description": "Test creating exception records with linked shipments, proper severity tagging (DAMAGED, LOST, DELAYED, etc.), and verify resolution workflow updates state across the system with audit trails.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as MANAGER"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to Manifests page and create a new manifest"
-      },
-      {
-        "type": "action",
-        "description": "Assign multiple valid shipments to the manifest"
+        "description": "Create exceptions linked to shipments specifying type and severity"
       },
       {
         "type": "assertion",
-        "description": "Verify shipments are correctly linked to the manifest with no duplicates"
+        "description": "Verify exceptions are recorded with correct details and linked accurately"
       },
       {
         "type": "action",
-        "description": "Change manifest status through dispatch workflow (OPEN -> CLOSED -> DEPARTED -> ARRIVED)"
+        "description": "Update exception status through resolution workflow steps"
       },
       {
         "type": "assertion",
-        "description": "Verify status transitions succeed only in valid order"
+        "description": "Ensure state updates reflect in shipment status and exception module"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to delete or modify resolved exceptions"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that resolved exceptions are protected from deletion or inappropriate edits"
       }
     ]
   },
   {
     "id": "TC007",
-    "title": "Barcode and QR code scanning offline queue and synchronization",
-    "description": "Test barcode scanning functionality that supports offline scan queueing and automatic synchronization with backend when online.",
-    "category": "functional",
+    "title": "Invoice and Shipment Audit Logging",
+    "description": "Verify that all critical operations on shipments, invoices, manifests, and exceptions are captured in audit logs with correct actor identity, timestamps, and before/after state and that logs are viewable and exportable by authorized users.",
+    "category": "security",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as WAREHOUSE_STAFF"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to Scanning page"
-      },
-      {
-        "type": "action",
-        "description": "Switch application to offline mode"
-      },
-      {
-        "type": "action",
-        "description": "Scan multiple barcode and QR codes for shipments and manifests"
+        "description": "Perform create, update, and delete operations on shipments and invoices"
       },
       {
         "type": "assertion",
-        "description": "Verify scans are queued locally without errors"
+        "description": "Verify audit logs are generated with correct operation details, actor info, and timestamps"
       },
       {
         "type": "action",
-        "description": "Switch application back to online mode"
+        "description": "Access audit log viewer as authorized user"
       },
       {
         "type": "assertion",
-        "description": "Verify queued scans synchronize to Supabase without data loss or corruption"
+        "description": "Confirm logs are displayed correctly and can be filtered/exported"
+      },
+      {
+        "type": "action",
+        "description": "Attempt audit log access as unauthorized user"
       },
       {
         "type": "assertion",
-        "description": "Verify shipment and manifest statuses update accordingly in backend"
+        "description": "Ensure access is denied"
       }
     ]
   },
   {
     "id": "TC008",
-    "title": "Duplicate barcode scan detection",
-    "description": "Verify system detects duplicate barcode scans and prevents redundant shipment-to-manifest linking or status updates.",
+    "title": "Error Handling with Sentry Integration",
+    "description": "Simulate API failures and unexpected exceptions to verify that errors are captured by Sentry including session replay, user friendly error messages are shown in UI, and error boundaries prevent app crashes.",
     "category": "error handling",
-    "priority": "Medium",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Scan a barcode of a shipment and assign to manifest"
+        "description": "Force backend API errors for major features (shipments, manifests, invoices)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify proper error messages are shown to users and UI remains responsive"
       },
       {
         "type": "action",
-        "description": "Attempt to scan the same barcode again in same or different session"
+        "description": "Raise unhandled exceptions in UI components"
       },
       {
         "type": "assertion",
-        "description": "Verify system identifies the duplicate scan and prevents duplicate assignment"
+        "description": "Confirm error boundaries catch exceptions and display fallback UI"
+      },
+      {
+        "type": "action",
+        "description": "Check Sentry dashboard for captured errors and session replay details"
       },
       {
         "type": "assertion",
-        "description": "Verify appropriate warning or error message is displayed to user"
+        "description": "Ensure errors are logged with correct context and no sensitive data leaked"
       }
     ]
   },
   {
     "id": "TC009",
-    "title": "Invoice creation with tax and discount calculations",
-    "description": "Test invoice creation workflow including GST tax, discount application, and correct total calculation and persistence.",
+    "title": "Dashboard Real-time KPI and Data Updates",
+    "description": "Verify that the main dashboard displays up-to-date KPIs, charts, and recent activities filtered by user role and organization, reflecting real-time data via Supabase Realtime subscriptions with timely resource cleanup.",
     "category": "functional",
-    "priority": "High",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as FINANCE_STAFF"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to Invoice creation page"
-      },
-      {
-        "type": "action",
-        "description": "Create a new invoice with line items, applying GST and discounts"
-      },
-      {
-        "type": "action",
-        "description": "Save and issue the invoice"
+        "description": "Log in as different roles and navigate to dashboard"
       },
       {
         "type": "assertion",
-        "description": "Verify the invoice total including taxes and discounts matches expected calculation"
+        "description": "Verify dashboard widgets reflect correct and role-filtered data"
+      },
+      {
+        "type": "action",
+        "description": "Trigger shipment and manifest updates in backend"
       },
       {
         "type": "assertion",
-        "description": "Verify invoice status transitions from DRAFT to ISSUED"
+        "description": "Confirm real-time dashboard updates correctly within expected latency"
+      },
+      {
+        "type": "action",
+        "description": "Navigate away from dashboard"
       },
       {
         "type": "assertion",
-        "description": "Verify unique invoice number is generated per organization"
+        "description": "Ensure realtime subscriptions are terminated properly to avoid resource leaks"
       }
     ]
   },
   {
     "id": "TC010",
-    "title": "Invoice PDF generation with embedded barcode",
-    "description": "Ensure invoices generate as PDFs with embedded barcode and correct billing and invoice details.",
-    "category": "functional",
+    "title": "UI Loading, Empty, and Error States on Paginated Tables",
+    "description": "Validate that paginated tables and forms (shipments, manifests, invoices, customers) display consistent loading indicators, empty states when no data is present, and error states with retry options when API calls fail.",
+    "category": "ui",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Open an issued invoice"
+        "description": "Load paginated table with valid data"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify table displays data and normal pagination controls"
       },
       {
         "type": "action",
-        "description": "Generate and download invoice PDF"
+        "description": "Simulate no data scenario by filtering to empty result set"
       },
       {
         "type": "assertion",
-        "description": "Verify PDF includes correct invoice data: line items, totals, customer billing info"
+        "description": "Confirm empty state message and UI elements are shown"
+      },
+      {
+        "type": "action",
+        "description": "Simulate backend API failure on table data fetch"
       },
       {
         "type": "assertion",
-        "description": "Verify PDF contains barcode representation of invoice number"
+        "description": "Verify error message with retry button is displayed and retry triggers re-fetch"
       }
     ]
   },
   {
     "id": "TC011",
-    "title": "Exception handling and resolution workflow",
-    "description": "Test creation of shipment exceptions with types and severity, linking to shipments and confirming resolution updates propagate correctly.",
+    "title": "Customer Management CRUD with GSTIN Validation",
+    "description": "Test full CRUD operations on customers including validation of GSTIN, addresses, and billing information, ensuring data correctness and proper error feedback on invalid inputs.",
     "category": "functional",
-    "priority": "High",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as OPS_STAFF"
+        "description": "Create a customer with valid GSTIN, address, and billing info"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify customer record is created and data stored correctly"
       },
       {
         "type": "action",
-        "description": "Create an exception record for a shipment with type (DAMAGED, LOST, DELAYED) and severity level"
+        "description": "Update customer details with valid and invalid GSTIN"
       },
       {
         "type": "assertion",
-        "description": "Verify exception is linked to correct shipment and persists with required data"
+        "description": "Confirm updates succeed with valid data and reject invalid GSTIN input with proper error messages"
       },
       {
         "type": "action",
-        "description": "Update exception resolution status"
+        "description": "Retrieve and verify customer data"
       },
       {
         "type": "assertion",
-        "description": "Verify shipment and exception status reflects resolution updates consistently"
+        "description": "Ensure retrieved data matches stored information"
+      },
+      {
+        "type": "action",
+        "description": "Delete customer record"
       },
       {
         "type": "assertion",
-        "description": "Verify audit logs capture exception lifecycle events"
+        "description": "Verify deletion is successful and audit log entry is created"
       }
     ]
   },
   {
     "id": "TC012",
-    "title": "Inventory management with bin location and aging analysis",
-    "description": "Validate warehouse stock tracking supports CRUD operations, bin location assignment, and stock aging analysis display.",
+    "title": "Shipment Internal and Public Tracking Event History",
+    "description": "Validate internal and public shipment tracking modules display comprehensive event history with timestamps and statuses, ensuring data security and role-based visibility.",
     "category": "functional",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as WAREHOUSE_STAFF"
+        "description": "Access internal tracking page and select a shipment"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify full event history with accurate timestamps and status changes is displayed"
       },
       {
         "type": "action",
-        "description": "Create, read, update, and delete inventory stock records with bin location data"
+        "description": "Access public tracking interface with valid shipment identifier"
       },
       {
         "type": "assertion",
-        "description": "Verify stock quantities and bin locations update correctly"
+        "description": "Confirm event history is visible with appropriate limited data for public users"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to access restricted tracking data publicly"
       },
       {
         "type": "assertion",
-        "description": "Verify inventory aging analysis charts and reports display accurate aging metrics"
+        "description": "Ensure unauthorized data is not exposed"
       }
     ]
   },
   {
     "id": "TC013",
-    "title": "Internal and public shipment tracking event history",
-    "description": "Verify shipment tracking pages show correct event history timeline with real-time updates internally and publicly.",
+    "title": "Inventory Management CRUD and Aging Analysis",
+    "description": "Test creation, update, retrieval, and deletion of inventory items with bin locations and verify aging analysis reports display accurate stock aging metrics.",
     "category": "functional",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as OPS_STAFF and view shipment tracking internal page"
+        "description": "Add new inventory stock item with bin location details"
       },
       {
         "type": "assertion",
-        "description": "Verify event history timeline is complete and accurate"
+        "description": "Verify item is created with correct attributes"
       },
       {
         "type": "action",
-        "description": "Access public tracking interface for a shipment via public tracking page"
+        "description": "Update stock levels and bin locations"
       },
       {
         "type": "assertion",
-        "description": "Verify public tracking shows permitted event history data"
+        "description": "Confirm updates are persisted"
       },
       {
         "type": "action",
-        "description": "Create new tracking events (e.g., status changes)"
+        "description": "Request aging analysis report"
       },
       {
         "type": "assertion",
-        "description": "Verify event history updates in real-time on both interfaces"
+        "description": "Verify report shows correct aging metrics and highlights aging stock"
+      },
+      {
+        "type": "action",
+        "description": "Delete inventory item"
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure deletion succeeds and audit logs are updated"
       }
     ]
   },
   {
     "id": "TC014",
-    "title": "Admin management of staff roles and organizations",
-    "description": "Ensure ADMIN users can create, update, and delete staff accounts and manage organizational settings securely.",
-    "category": "functional",
-    "priority": "High",
+    "title": "Management Module Staff and Organization CRUD with Authorization",
+    "description": "Validate that ADMIN users can create, update, and delete staff accounts and organizational data with role assignment and that non-admin users are restricted from accessing these functions.",
+    "category": "security",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as ADMIN"
-      },
-      {
-        "type": "action",
-        "description": "Access Management page"
-      },
-      {
-        "type": "action",
-        "description": "Create new staff user with role MANAGER"
+        "description": "Login as ADMIN user and create new staff user assigning role"
       },
       {
         "type": "assertion",
-        "description": "Verify new user is created with correct role and permissions"
+        "description": "Verify staff user is created with assigned role"
       },
       {
         "type": "action",
@@ -425,168 +497,77 @@
       },
       {
         "type": "assertion",
-        "description": "Verify updates persist and access permissions reflect changes"
+        "description": "Confirm updates persist and roles enforce correct access"
       },
       {
         "type": "action",
-        "description": "Delete a staff user"
+        "description": "Login as non-ADMIN user and attempt access to management pages"
       },
       {
         "type": "assertion",
-        "description": "Verify user is removed and cannot access the system"
+        "description": "Ensure access is denied and UI does not present management features"
       }
     ]
   },
   {
     "id": "TC015",
-    "title": "Audit log viewing and export",
-    "description": "Verify audit logs capture all critical CRUD operations with actor, timestamp, and state data; authorized users can view and export logs.",
-    "category": "functional",
-    "priority": "High",
+    "title": "Accessibility Compliance Testing for Major UI Components",
+    "description": "Verify that all major UI components including forms, tables, buttons, and dialogs comply with accessibility standards (keyboard navigation, color contrast, screen reader support).",
+    "category": "ui",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as ADMIN or MANAGER"
-      },
-      {
-        "type": "action",
-        "description": "Access audit log viewer page"
+        "description": "Navigate through UI components using keyboard only"
       },
       {
         "type": "assertion",
-        "description": "Verify logs show CRUD operations with user identity and time"
+        "description": "Verify focus indicators and logical tab order"
       },
       {
         "type": "action",
-        "description": "Filter audit logs by operation type and date range"
+        "description": "Use screen reader to interact with forms and buttons"
       },
       {
         "type": "assertion",
-        "description": "Verify filtering works correctly"
+        "description": "Confirm all controls have proper labels and announcements"
       },
       {
         "type": "action",
-        "description": "Export audit logs to CSV or other formats"
+        "description": "Check color contrast of text and UI elements against WCAG guidelines"
       },
       {
         "type": "assertion",
-        "description": "Verify exported file contains accurate audit log data"
+        "description": "Ensure contrast ratios meet or exceed minimum standards"
       }
     ]
   },
   {
     "id": "TC016",
-    "title": "API error handling and retry logic",
-    "description": "Verify all API calls to Supabase handle errors gracefully with retries and show user-friendly error messages without data leakage.",
+    "title": "API Error Handling and Retry Logic",
+    "description": "Simulate transient API failures and verify client side retry logic triggers appropriately with backoff and errors are surfaced to user only after retries fail.",
     "category": "error handling",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Simulate Supabase API failures (e.g., network or server errors) during shipment CRUD operations"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify API call retry mechanism triggers and handles retries properly"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify user sees informative error notifications without sensitive details"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify no corrupted or partial data is persisted"
-      }
-    ]
-  },
-  {
-    "id": "TC017",
-    "title": "UI consistency for loading, empty, and error states",
-    "description": "Ensure all paginated tables and forms consistently display appropriate loading spinners, empty state messages, and error states.",
-    "category": "ui",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to empty Shipments, Manifests, and Invoices pages"
+        "description": "Mock backend API calls to intermittently fail"
       },
       {
         "type": "assertion",
-        "description": "Verify consistent and accessible empty state UI messages are shown"
+        "description": "Verify client retries calls automatically with appropriate intervals"
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure UI loading state persists during retries"
       },
       {
         "type": "action",
-        "description": "Trigger loading states by simulating slow API responses"
+        "description": "Force final failure after retries"
       },
       {
         "type": "assertion",
-        "description": "Verify loading indicators are visible and consistent"
-      },
-      {
-        "type": "action",
-        "description": "Simulate API errors on form submission or page load"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify error UI is shown with retry options"
-      }
-    ]
-  },
-  {
-    "id": "TC018",
-    "title": "Accessibility compliance for major UI components",
-    "description": "Verify keyboard navigation, color contrast, and screen reader support meet accessibility standards on all main UI components.",
-    "category": "ui",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate through all key pages and components using only keyboard tab and shift-tab"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify focus order is logical and all interactive elements are reachable"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify colors meet WCAG contrast requirements"
-      },
-      {
-        "type": "action",
-        "description": "Use screen reader tools on forms, tables, and controls"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify meaningful labels and ARIA roles are present and correctly announced"
-      }
-    ]
-  },
-  {
-    "id": "TC019",
-    "title": "Real-time data update and resource cleanup",
-    "description": "Confirm real-time subscriptions receive timely updates and resources are unsubscribed or cleaned up when components unmount.",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Open a dashboard or tracking page with real-time updates"
-      },
-      {
-        "type": "action",
-        "description": "Trigger backend data changes (e.g., shipment status update)"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify UI updates in real-time"
-      },
-      {
-        "type": "action",
-        "description": "Navigate away or close the page/component"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify real-time subscriptions are unsubscribed and no memory leaks occur"
+        "description": "Verify user sees clear error message with option to retry manually"
       }
     ]
   }

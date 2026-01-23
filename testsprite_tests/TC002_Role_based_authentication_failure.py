@@ -1,6 +1,18 @@
+"""TC002: Role-based Authentication Failure Test
+
+Verifies that users with invalid credentials are shown appropriate
+error messages and are NOT redirected to the dashboard.
+"""
+
 import asyncio
-from playwright import async_api
-from playwright.async_api import expect
+from playwright.async_api import async_playwright, expect
+
+# Configuration
+BASE_URL = "http://localhost:3000"
+DEFAULT_TIMEOUT = 30000
+INVALID_EMAIL = "invaliduser@example.com"
+INVALID_PASSWORD = "wrongpassword123"
+
 
 async def run_test():
     pw = None
@@ -8,74 +20,73 @@ async def run_test():
     context = None
     
     try:
-        # Start a Playwright session in asynchronous mode
-        pw = await async_api.async_playwright().start()
+        # Start Playwright
+        pw = await async_playwright().start()
         
-        # Launch a Chromium browser in headless mode with custom arguments
+        # Launch browser with proper configuration
         browser = await pw.chromium.launch(
             headless=True,
             args=[
-                "--window-size=1280,720",         # Set the browser window size
-                "--disable-dev-shm-usage",        # Avoid using /dev/shm which can cause issues in containers
-                "--ipc=host",                     # Use host-level IPC for better stability
-                "--single-process"                # Run the browser in a single process mode
+                "--window-size=1280,720",
+                "--disable-dev-shm-usage",
+                "--ipc=host",
             ],
         )
         
-        # Create a new browser context (like an incognito window)
-        context = await browser.new_context()
-        context.set_default_timeout(5000)
+        # Create browser context with proper timeout
+        context = await browser.new_context(
+            viewport={"width": 1280, "height": 720}
+        )
+        context.set_default_timeout(DEFAULT_TIMEOUT)
         
-        # Open a new page in the browser context
+        # Open new page
         page = await context.new_page()
         
-        # Navigate to your target URL and wait until the network request is committed
-        await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
+        # Navigate directly to login page using hash router
+        await page.goto(f"{BASE_URL}/#/login", wait_until="networkidle", timeout=DEFAULT_TIMEOUT)
+        await page.wait_for_load_state("domcontentloaded")
         
-        # Wait for the main page to reach DOMContentLoaded state (optional for stability)
-        try:
-            await page.wait_for_load_state("domcontentloaded", timeout=3000)
-        except async_api.Error:
-            pass
+        # Use stable data-testid selectors for login form
+        email_input = page.locator('[data-testid="login-email-input"]')
+        password_input = page.locator('input[type="password"]')
+        submit_button = page.locator('[data-testid="login-submit-button"]')
         
-        # Iterate through all iframes and wait for them to load as well
-        for frame in page.frames:
-            try:
-                await frame.wait_for_load_state("domcontentloaded", timeout=3000)
-            except async_api.Error:
-                pass
+        # Fill in invalid credentials
+        await email_input.fill(INVALID_EMAIL)
+        await password_input.fill(INVALID_PASSWORD)
         
-        # Interact with the page elements to simulate user flow
-        # -> Click the login button to go to the login page
-        frame = context.pages[-1]
-        # Click the Login button to navigate to the login page
-        elem = frame.locator('xpath=html/body/div/div/div/main/div/nav/div/div[2]/a/button').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        # Submit login form
+        await submit_button.click()
         
-
-        # -> Input invalid username and password
-        frame = context.pages[-1]
-        # Input invalid email in email field
-        elem = frame.locator('xpath=html/body/div/div/div/main/div/div[3]/form/div/input').nth(0)
-        await page.wait_for_timeout(3000); await elem.fill('invaliduser@example.com')
+        # Wait for error message to appear
+        error_message = page.locator('[data-testid="login-error-message"]')
+        await expect(error_message).to_be_visible(timeout=15000)
         
-
-        frame = context.pages[-1]
-        # Input invalid password in password field
-        elem = frame.locator('xpath=html/body/div/div/div/main/div/div[3]/form/div[2]/input').nth(0)
-        await page.wait_for_timeout(3000); await elem.fill('wrongpassword')
+        # CORRECT ASSERTION: Check for actual error message from LoginPage.tsx
+        # The actual error is "Invalid email or password. Please try again."
+        # OR could be "Contact your administrator for account access." if user exists but no staff record
+        error_text = await error_message.inner_text()
         
-
-        frame = context.pages[-1]
-        # Click Sign In button to attempt login with invalid credentials
-        elem = frame.locator('xpath=html/body/div/div/div/main/div/div[3]/form/button').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        # Verify error message contains expected text
+        valid_error_messages = [
+            "Invalid email or password",
+            "Contact your administrator for account access",
+            "Invalid login credentials"
+        ]
         
-
-        # --> Assertions to verify final state
-        frame = context.pages[-1]
-        await expect(frame.locator('text=Contact your administrator for account access').first).to_be_visible(timeout=30000)
-        await asyncio.sleep(5)
+        error_found = any(msg in error_text for msg in valid_error_messages)
+        if not error_found:
+            raise AssertionError(f"Expected authentication error message, got: {error_text}")
+        
+        # Verify user was NOT redirected to dashboard
+        current_url = page.url
+        if "dashboard" in current_url:
+            raise AssertionError("User was incorrectly redirected to dashboard with invalid credentials")
+        
+        print(f"✅ TC002 PASSED: Authentication correctly rejected with message: {error_text}")
+        
+    except Exception as e:
+        raise AssertionError(f"TC002 FAILED: Role-based authentication failure test failed. {str(e)}")
     
     finally:
         if context:
@@ -84,6 +95,7 @@ async def run_test():
             await browser.close()
         if pw:
             await pw.stop()
-            
-asyncio.run(run_test())
-    
+
+
+if __name__ == "__main__":
+    asyncio.run(run_test())

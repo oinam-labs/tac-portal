@@ -28,17 +28,17 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
+    <div data-testid="dashboard-page" className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">Mission Control</h1>
+          <h1 data-testid="dashboard-heading" className="text-3xl font-bold text-foreground tracking-tight">Mission Control</h1>
           <p className="text-muted-foreground mt-1">Real-time logistics overview and operations.</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="ghost" onClick={refreshData}>
+          <Button data-testid="dashboard-refresh-button" variant="ghost" onClick={refreshData}>
             <RefreshCw className="w-4 h-4 mr-2" /> Refresh
           </Button>
-          <Button variant="secondary">Download Report</Button>
+          <Button data-testid="dashboard-download-button" variant="secondary">Download Report</Button>
         </div>
       </div>
 

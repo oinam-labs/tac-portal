@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Box, ArrowRight, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react';
-import { useStore } from '@/store';
+import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,11 +29,18 @@ const DEMO_CREDENTIALS = {
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const login = useStore((s) => s.login);
+  const { signIn, isLoading: authLoading, error: authError, clearError } = useAuthStore();
 
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+
+  // Sync auth error to local state
+  React.useEffect(() => {
+    if (authError) {
+      setLoginError(authError);
+    }
+  }, [authError]);
 
   // Get redirect destination
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard';
@@ -48,30 +55,29 @@ export const LoginPage: React.FC = () => {
   });
 
   const handleSubmit = async (data: LoginFormData) => {
-    setIsLoading(true);
+    setIsSubmitting(true);
     setLoginError(null);
+    clearError();
 
-    // Simulate authentication delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      const result = await signIn(data.email, data.password);
 
-    // Mock authentication check
-    if (data.email === DEMO_CREDENTIALS.email && data.password === DEMO_CREDENTIALS.password) {
-      // Create mock user session
-      login({
-        id: 'admin-001',
-        name: 'Tapan Admin',
-        email: data.email,
-        role: 'ADMIN',
-        assignedHub: 'IMPHAL',
-        active: true,
-        lastLogin: new Date().toISOString(),
-      });
-
-      // Redirect to intended destination
-      navigate(from, { replace: true });
-    } else {
-      setLoginError('Invalid email or password. Please try again.');
-      setIsLoading(false);
+      if (result.success) {
+        // Redirect to intended destination
+        navigate(from, { replace: true });
+      } else {
+        // Show appropriate error message
+        const errorMessage = result.error === 'No staff account found'
+          ? 'Contact your administrator for account access.'
+          : result.error === 'Account deactivated'
+            ? 'Your account has been deactivated. Contact your administrator.'
+            : result.error || 'Invalid email or password. Please try again.';
+        setLoginError(errorMessage);
+      }
+    } catch {
+      setLoginError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -201,9 +207,12 @@ export const LoginPage: React.FC = () => {
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
+                data-testid="login-error-message"
+                role="alert"
+                aria-live="polite"
                 className="flex items-center gap-3 p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive"
               >
-                <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                <AlertCircle className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
                 <span className="text-sm">{loginError}</span>
               </motion.div>
             )}
@@ -216,8 +225,10 @@ export const LoginPage: React.FC = () => {
                 <Input
                   id="email"
                   type="email"
+                  data-testid="login-email-input"
                   placeholder="admin@tac.com"
                   className="pl-10 h-12"
+                  autoComplete="email"
                   {...form.register('email')}
                 />
               </div>
@@ -239,8 +250,10 @@ export const LoginPage: React.FC = () => {
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
+                  data-testid="login-password-input"
                   placeholder="••••••••"
                   className="pl-10 pr-10 h-12"
+                  autoComplete="current-password"
                   {...form.register('password')}
                 />
                 <button
@@ -268,10 +281,11 @@ export const LoginPage: React.FC = () => {
             {/* Submit Button */}
             <Button
               type="submit"
+              data-testid="login-submit-button"
               className="w-full h-12 text-base font-medium"
-              disabled={isLoading}
+              disabled={isSubmitting || authLoading}
             >
-              {isLoading ? (
+              {isSubmitting || authLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Signing in...

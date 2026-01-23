@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   AreaChart,
   Area,
@@ -13,42 +13,56 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../..
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { useStore } from '../../../store';
 import { ChartSkeleton } from '../../ui/skeleton';
-
-// Data would typically come from API/Props
-const trendChartData = [
-  { date: '2024-04-01', inbound: 222, outbound: 150 },
-  { date: '2024-04-02', inbound: 97, outbound: 180 },
-  { date: '2024-04-03', inbound: 167, outbound: 120 },
-  { date: '2024-04-04', inbound: 242, outbound: 260 },
-  { date: '2024-04-05', inbound: 373, outbound: 290 },
-  { date: '2024-04-06', inbound: 301, outbound: 340 },
-  { date: '2024-04-07', inbound: 245, outbound: 180 },
-  { date: '2024-04-08', inbound: 409, outbound: 320 },
-  { date: '2024-04-09', inbound: 59, outbound: 110 },
-  // ... truncated middle data for brevity in component, assume full data set or fetched
-  { date: '2024-06-25', inbound: 141, outbound: 190 },
-  { date: '2024-06-26', inbound: 434, outbound: 380 },
-  { date: '2024-06-27', inbound: 448, outbound: 490 },
-  { date: '2024-06-28', inbound: 149, outbound: 200 },
-  { date: '2024-06-29', inbound: 103, outbound: 160 },
-  { date: '2024-06-30', inbound: 446, outbound: 400 },
-];
+import { useShipments } from '../../../hooks/useShipments';
+import { format, subDays, startOfDay } from 'date-fns';
 
 const COLORS = {
   primary: '#22d3ee',
   secondary: '#c084fc',
 };
 
-export const ShipmentTrendChart: React.FC<{ isLoading?: boolean }> = ({ isLoading }) => {
+export const ShipmentTrendChart: React.FC<{ isLoading?: boolean }> = ({ isLoading: externalLoading }) => {
   const [timeRange, setTimeRange] = useState('90d');
   const { theme } = useStore();
   const isDark = theme === 'dark';
+  const { data: shipments = [], isLoading: shipmentsLoading } = useShipments();
+
+  const isLoading = externalLoading || shipmentsLoading;
+
+  const trendChartData = useMemo(() => {
+    if (!shipments.length) return [];
+
+    const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
+    const dateMap = new Map<string, { inbound: number; outbound: number }>();
+
+    for (let i = 0; i < days; i++) {
+      const date = format(subDays(new Date(), days - i - 1), 'yyyy-MM-dd');
+      dateMap.set(date, { inbound: 0, outbound: 0 });
+    }
+
+    shipments.forEach((shipment) => {
+      const createdDate = format(startOfDay(new Date(shipment.created_at)), 'yyyy-MM-dd');
+      const existing = dateMap.get(createdDate);
+      if (existing) {
+        if (shipment.origin_hub?.code === 'IMF') {
+          existing.outbound += 1;
+        } else if (shipment.destination_hub?.code === 'IMF') {
+          existing.inbound += 1;
+        }
+      }
+    });
+
+    return Array.from(dateMap.entries())
+      .map(([date, counts]) => ({
+        date,
+        ...counts,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }, [shipments, timeRange]);
 
   if (isLoading) return <ChartSkeleton />;
 
-  const filteredData = trendChartData.slice(
-    -(timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90)
-  );
+  const filteredData = trendChartData;
 
   // Tooltip styles
   const tooltipStyle = {

@@ -4,7 +4,7 @@ export const HUBS: Record<HubLocation, Hub & { uuid: string }> = {
   IMPHAL: {
     id: 'IMPHAL',
     name: 'Imphal Hub',
-    code: 'IXA',
+    code: 'IMF',
     address: 'Tulihal Airport Road, Imphal, Manipur 795001',
     sortCode: 'SUR',
     uuid: '00000000-0000-0000-0000-000000000010',

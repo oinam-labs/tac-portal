@@ -202,6 +202,7 @@ export const Manifests: React.FC = () => {
             setIsEnterpriseOpen(true);
           }}
           variant="primary"
+          data-testid="create-manifest-button"
         >
           <Scan className="w-4 h-4 mr-2" /> Create Manifest
         </Button>
@@ -242,6 +243,7 @@ export const Manifests: React.FC = () => {
                 setSelectedManifestId(null);
                 setIsEnterpriseOpen(true);
               }}
+              data-testid="create-manifest-button-empty"
             >
               <Scan className="w-4 h-4 mr-2" /> Create Manifest
             </Button>
