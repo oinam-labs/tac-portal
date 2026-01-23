@@ -7,19 +7,16 @@ import {
   ScanLine,
   CreditCard,
   Settings,
-  LogOut,
   Box,
   AlertTriangle,
   Users,
   Layers,
   ClipboardList,
   Briefcase,
-  MapPin,
 } from 'lucide-react';
 import { useStore } from '../../store';
-import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types';
-import { HUBS } from '../../lib/constants';
+import { UserProfile } from './UserProfile';
 
 interface NavItemDef {
   label: string;
@@ -102,8 +99,7 @@ const NAV_GROUPS: NavGroupDef[] = [
 ];
 
 export const Sidebar: React.FC = () => {
-  const { sidebarCollapsed, user, logout: legacyLogout } = useStore();
-  const { signOut } = useAuthStore();
+  const { sidebarCollapsed, user } = useStore();
 
   const hasAccess = (allowedRoles?: UserRole[]) => {
     if (!allowedRoles) return true;
@@ -112,13 +108,6 @@ export const Sidebar: React.FC = () => {
     if (user.role === 'ADMIN' || user.role === 'MANAGER') return true;
     return allowedRoles.includes(user.role);
   };
-
-  // Safe hub name lookup with fallback
-  const userHub = (() => {
-    if (!user?.assignedHub) return 'Global HQ';
-    const hub = HUBS[user.assignedHub as keyof typeof HUBS];
-    return hub?.name || user.assignedHub || 'Global HQ';
-  })();
 
   return (
     <aside
@@ -158,11 +147,10 @@ export const Sidebar: React.FC = () => {
                     title={sidebarCollapsed ? item.label : ''}
                     className={({ isActive }) => `
                                             flex items-center px-3 py-2 rounded-lg transition-all duration-200 group
-                                            ${
-                                              isActive
-                                                ? 'bg-primary/10 text-primary shadow-sm border border-primary/20'
-                                                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                                            }
+                                            ${isActive
+                        ? 'bg-primary/10 text-primary shadow-sm border border-primary/20'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      }
                                         `}
                   >
                     <item.icon className={`w-5 h-5 ${sidebarCollapsed ? 'mx-auto' : 'mr-3'}`} />
@@ -177,28 +165,7 @@ export const Sidebar: React.FC = () => {
 
       {/* Footer / User */}
       <div className="p-4 border-t border-cyber-border">
-        {!sidebarCollapsed && user && (
-          <div className="mb-3 px-2">
-            <div className="text-xs font-mono text-muted-foreground uppercase">Logged in as</div>
-            <div className="text-sm font-bold text-foreground truncate">{user.name}</div>
-            <div className="text-xs text-primary truncate mb-1">{user.role}</div>
-
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2 bg-muted p-1.5 rounded">
-              <MapPin className="w-3 h-3" />
-              <span className="truncate">{userHub}</span>
-            </div>
-          </div>
-        )}
-        <button
-          onClick={async () => {
-            await signOut();
-            legacyLogout();
-          }}
-          className={`flex items-center w-full px-3 py-2 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
-        >
-          <LogOut className="w-5 h-5" />
-          {!sidebarCollapsed && <span className="ml-3 text-sm font-medium">Sign Out</span>}
-        </button>
+        <UserProfile collapsed={sidebarCollapsed} />
       </div>
     </aside>
   );
