@@ -17,7 +17,6 @@ import {
   CardContent,
   CardFooter,
 } from '../../ui/card';
-import { TrendingUp } from 'lucide-react';
 import { useStore } from '../../../store';
 import { ChartSkeleton } from '../../ui/skeleton';
 import { useManifests } from '../../../hooks/useManifests';
