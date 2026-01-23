@@ -28,6 +28,10 @@ dist-ssr
 playwright-report/
 test-results/
 playwright/.cache/
+
+# Test Coverage
+coverage/
+
 # Generated files
 sentry_report.json
 test_output.txt
