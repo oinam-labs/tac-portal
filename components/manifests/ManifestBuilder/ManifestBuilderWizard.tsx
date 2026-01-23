@@ -91,12 +91,21 @@ export function ManifestBuilderWizard({
   initialManifestId,
 }: ManifestBuilderWizardProps) {
   const navigate = useNavigate();
+  const isMountedRef = React.useRef(true);
   const [currentStep, setCurrentStep] = React.useState(1);
   const [showCloseConfirm, setShowCloseConfirm] = React.useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isStep1Valid, setIsStep1Valid] = React.useState(false);
   const [createdManifestId, setCreatedManifestId] = React.useState<string | null>(null);
+
+  // Track mounted state to prevent updates after unmount
+  React.useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Form Data State
   const [setupData, setSetupData] = React.useState<ManifestSettingsValues>({
@@ -108,7 +117,9 @@ export function ManifestBuilderWizard({
     excludeCod: false,
   });
 
-  const { data: hubs = [] } = useHubs();
+  const { Guard against updates on unmounted component
+      if (!isMountedRef.current) return;
+  //  data: hubs = [] } = useHubs();
   const { data: staffList = [] } = useStaff();
   const currentStaff = staffList.find((s) => s.is_active) || null;
 
@@ -160,20 +171,20 @@ export function ManifestBuilderWizard({
         etd:
           setupData.flightDate && setupData.etdHour
             ? combineDateTimeWithPeriod(
-                setupData.flightDate,
-                setupData.etdHour,
-                setupData.etdMinute,
-                setupData.etdPeriod
-              )
+              setupData.flightDate,
+              setupData.etdHour,
+              setupData.etdMinute,
+              setupData.etdPeriod
+            )
             : undefined,
         eta:
           setupData.flightDate && setupData.etaHour
             ? combineDateTimeWithPeriod(
-                setupData.flightDate,
-                setupData.etaHour,
-                setupData.etaMinute,
-                setupData.etaPeriod
-              )
+              setupData.flightDate,
+              setupData.etaHour,
+              setupData.etaMinute,
+              setupData.etaPeriod
+            )
             : undefined,
         // TRUCK
         vehicleNumber: setupData.vehicleNumber,
@@ -181,11 +192,11 @@ export function ManifestBuilderWizard({
         driverPhone: setupData.driverPhone,
         dispatchAt: setupData.dispatchDate
           ? combineDateTimeWithPeriod(
-              setupData.dispatchDate,
-              setupData.dispatchHour,
-              setupData.dispatchMinute,
-              setupData.dispatchPeriod
-            )
+            setupData.dispatchDate,
+            setupData.dispatchHour,
+            setupData.dispatchMinute,
+            setupData.dispatchPeriod
+          )
           : undefined,
         notes: setupData.notes,
       };
@@ -247,7 +258,7 @@ export function ManifestBuilderWizard({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={handleCancel}>
+      <Dialog key={open ? 'open' : 'closed'} open={open} onOpenChange={handleCancel}>
         <DialogContent className="w-[100vw] h-[100dvh] md:w-[min(1200px,92vw)] md:h-[min(88vh,900px)] md:max-h-[90vh] lg:w-[min(1320px,88vw)] md:rounded-lg rounded-none flex flex-col gap-0 p-0 max-w-none overflow-hidden">
           {/* Header */}
           <DialogHeader className="px-6 py-4 border-b border-border text-left">
