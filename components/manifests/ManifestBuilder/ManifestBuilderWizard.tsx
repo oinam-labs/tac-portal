@@ -117,9 +117,7 @@ export function ManifestBuilderWizard({
     excludeCod: false,
   });
 
-  const { Guard against updates on unmounted component
-      if (!isMountedRef.current) return;
-  //  data: hubs = [] } = useHubs();
+  const { data: hubs = [] } = useHubs();
   const { data: staffList = [] } = useStaff();
   const currentStaff = staffList.find((s) => s.is_active) || null;
 
