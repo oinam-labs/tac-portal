@@ -19,10 +19,10 @@ const MODE_ICONS = {
 // Map hub codes to display names (handles both old string format and new code format)
 const HUB_CODE_MAP: Record<string, { code: string; name: string }> = {
   // Old string format
-  IMPHAL: { code: 'IXA', name: 'Imphal' },
+  IMPHAL: { code: 'IMF', name: 'Imphal' },
   NEW_DELHI: { code: 'DEL', name: 'New Delhi' },
   // New code format from database
-  IXA: { code: 'IXA', name: 'Imphal' },
+  IMF: { code: 'IMF', name: 'Imphal' },
   DEL: { code: 'DEL', name: 'Delhi' },
   GAU: { code: 'GAU', name: 'Guwahati' },
   CCU: { code: 'CCU', name: 'Kolkata' },
