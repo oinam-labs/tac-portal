@@ -214,7 +214,7 @@ export const Scanning: React.FC = () => {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       addScanResult(awb, 'ERROR', errorMessage);
     }
-  }, [scanMode, activeManifest, isOnline, addScan, findShipment, updateStatus, addManifestItem, checkManifestItem, createException, addScanResult]);
+  }, [scanMode, activeManifest, isOnline, addScan, findShipment, findManifest, updateStatus, addManifestItem, checkManifestItem, createException, addScanResult]);
 
   const handleCameraScan = useCallback(
     (result: string) => {
