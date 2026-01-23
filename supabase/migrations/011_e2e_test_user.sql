@@ -30,15 +30,14 @@ ON CONFLICT (id) DO UPDATE SET
     settings = EXCLUDED.settings;
 
 -- Create test hub
-INSERT INTO hubs (id, org_id, code, name, city, state, address, is_active)
+INSERT INTO hubs (id, org_id, code, name, type, address, is_active)
 VALUES (
     '00000000-0000-0000-0000-000000000002'::uuid,
     '00000000-0000-0000-0000-000000000001'::uuid,
     'TEST-HUB',
     'E2E Test Hub',
-    'Test City',
-    'Test State',
-    '123 Test Street',
+    'ORIGIN',
+    '{"city": "Test City", "state": "Test State", "line1": "123 Test Street"}'::jsonb,
     true
 )
 ON CONFLICT (id) DO UPDATE SET
