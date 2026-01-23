@@ -23,9 +23,11 @@ if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
 
 /**
  * Execute SQL against Supabase using the REST API
+ * 
+ * Security Note: SQL content is transmitted over HTTPS to Supabase.
+ * Ensure migration files do not contain sensitive credentials or secrets.
  */
 async function executeSQL(sql, description) {
-    const url = `${SUPABASE_URL}/rest/v1/rpc/exec_sql`;
 
     // First try using the sql endpoint
     const response = await fetch(`${SUPABASE_URL}/rest/v1/`, {
@@ -99,6 +101,27 @@ async function runMigration(filename) {
     console.log('─'.repeat(50));
 
     const sql = readFileSync(filepath, 'utf-8');
+
+    // Security: Validate SQL content before transmission
+    if (sql.length === 0) {
+        console.error(`❌ Empty migration file: ${filename}`);
+        return false;
+    }
+
+    // Security: Check for potential secrets (basic validation)
+    const sensitivePatterns = [
+        /password\s*=\s*['"][^'"]+['"]/gi,
+        /api[_-]?key\s*=\s*['"][^'"]+['"]/gi,
+        /secret\s*=\s*['"][^'"]+['"]/gi
+    ];
+
+    for (const pattern of sensitivePatterns) {
+        if (pattern.test(sql)) {
+            console.warn(`⚠️  Warning: Migration file may contain sensitive data`);
+            console.warn(`   Review ${sanitizedFilename} before running`);
+            break;
+        }
+    }
 
     try {
         await executeSQL(sql, filename);
