@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- Data mapping between Supabase and UI types */
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Card, Button } from '../components/ui/CyberComponents';
 import { DataTable } from '../components/ui/data-table';
 import { StatusBadge } from '../components/domain/StatusBadge';
@@ -24,14 +24,14 @@ export const Manifests: React.FC = () => {
   // Enable realtime updates
   useRealtimeManifests();
 
-  const handleStatusChange = async (id: string, newStatus: 'DEPARTED' | 'ARRIVED') => {
+  const handleStatusChange = useCallback(async (id: string, newStatus: 'DEPARTED' | 'ARRIVED') => {
     await updateStatusMutation.mutateAsync({ id, status: newStatus });
-  };
+  }, [updateStatusMutation]);
 
-  const handleEditManifest = (id: string) => {
+  const handleEditManifest = useCallback((id: string) => {
     setSelectedManifestId(id);
     setIsEnterpriseOpen(true);
-  };
+  }, []);
 
   const columns: ColumnDef<ManifestWithRelations>[] = useMemo(
     () => [
@@ -127,9 +127,8 @@ export const Manifests: React.FC = () => {
           );
         },
       },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     ],
-    []
+    [handleStatusChange, handleEditManifest]
   );
 
   const openCount = manifests.filter((m) =>

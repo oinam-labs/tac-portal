@@ -86,13 +86,13 @@ export const Scanning: React.FC = () => {
     []
   );
 
-  const processScan = async (code: string) => {
+  const processScan = useCallback(async (input: string) => {
     // Parse scan input using the scan parser
     let scanResult;
     try {
-      scanResult = parseScanInput(code);
+      scanResult = parseScanInput(input);
     } catch (e) {
-      addScanResult(code, 'ERROR', e instanceof Error ? e.message : 'Invalid scan format');
+      addScanResult(input, 'ERROR', e instanceof Error ? e.message : 'Invalid scan format');
       return;
     }
 
@@ -102,22 +102,22 @@ export const Scanning: React.FC = () => {
         try {
           // Use hook to find manifest
           const manifest = await findManifest.mutateAsync(
-            scanResult.manifestId || scanResult.manifestNo || code
+            scanResult.manifestId || scanResult.manifestNo || input
           );
 
           if (!manifest) {
-            addScanResult(code, 'ERROR', 'Manifest not found');
+            addScanResult(input, 'ERROR', 'Manifest not found');
             return;
           }
 
           const m = manifest as ManifestLookupResult;
           if (scanMode === 'LOAD_MANIFEST' && m.status !== 'OPEN') {
-            addScanResult(code, 'ERROR', `Manifest is ${m.status}, cannot load.`);
+            addScanResult(input, 'ERROR', `Manifest is ${m.status}, cannot load.`);
             return;
           }
 
           if (scanMode === 'VERIFY_MANIFEST' && m.status !== 'DEPARTED') {
-            addScanResult(code, 'ERROR', `Manifest is ${m.status}, cannot verify.`);
+            addScanResult(input, 'ERROR', `Manifest is ${m.status}, cannot verify.`);
             return;
           }
 
@@ -131,7 +131,7 @@ export const Scanning: React.FC = () => {
           );
         } catch (err) {
           addScanResult(
-            code,
+            input,
             'ERROR',
             err instanceof Error ? err.message : 'Failed to load manifest'
           );
@@ -143,7 +143,7 @@ export const Scanning: React.FC = () => {
     // Handle Shipment scans
     const awb = scanResult.awb;
     if (!awb) {
-      addScanResult(code, 'ERROR', 'No AWB found in scan');
+      addScanResult(input, 'ERROR', 'No AWB found in scan');
       return;
     }
 
@@ -214,14 +214,13 @@ export const Scanning: React.FC = () => {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       addScanResult(awb, 'ERROR', errorMessage);
     }
-  };
+  }, [scanMode, activeManifest, isOnline, addScan, findShipment, updateStatus, addManifestItem, checkManifestItem, createException, addScanResult]);
 
   const handleCameraScan = useCallback(
     (result: string) => {
       processScan(result);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
-    [scanMode, activeManifest, isOnline]
+    [processScan]
   );
 
   const handleScanSubmit = (e: React.FormEvent) => {
