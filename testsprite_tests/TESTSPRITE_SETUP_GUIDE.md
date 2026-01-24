@@ -139,8 +139,8 @@ Key Test Scenarios:
 
 **Authentication Header:**
 ```
-apikey: sb_publishable_KI1Xm0_j_Vz-tiQtdoWgyA__1_IPPwq
-Authorization: Bearer sb_publishable_KI1Xm0_j_Vz-tiQtdoWgyA__1_IPPwq
+apikey: $VITE_SUPABASE_ANON_KEY
+Authorization: Bearer $VITE_SUPABASE_ANON_KEY
 ```
 
 **Extra testing information:**
@@ -150,7 +150,7 @@ Supabase REST API for TAC Cargo Portal
 Base URL: https://xkkhxhgkyavxcfgeojww.supabase.co/rest/v1
 
 Required Headers:
-- apikey: sb_publishable_KI1Xm0_j_Vz-tiQtdoWgyA__1_IPPwq
+- apikey: $VITE_SUPABASE_ANON_KEY
 - Authorization: Bearer <access_token_from_login>
 - Content-Type: application/json
 - Prefer: return=representation
@@ -202,7 +202,7 @@ Supabase Authentication API
 Base URL: https://xkkhxhgkyavxcfgeojww.supabase.co/auth/v1
 
 Required Header:
-- apikey: sb_publishable_KI1Xm0_j_Vz-tiQtdoWgyA__1_IPPwq
+- apikey: $VITE_SUPABASE_ANON_KEY
 
 Endpoints:
 
@@ -240,7 +240,7 @@ Test Scenarios:
 |----------|-------|
 | **Project URL** | `https://xkkhxhgkyavxcfgeojww.supabase.co` |
 | **Project ID** | `xkkhxhgkyavxcfgeojww` |
-| **Anon Key** | `sb_publishable_KI1Xm0_j_Vz-tiQtdoWgyA__1_IPPwq` |
+| **Anon Key** | See `VITE_SUPABASE_ANON_KEY` in `.env.local` |
 | **Region** | Supabase Cloud |
 
 ### REST API Endpoints
@@ -276,7 +276,7 @@ Test Scenarios:
 
 ```bash
 curl -X POST "https://xkkhxhgkyavxcfgeojww.supabase.co/auth/v1/token?grant_type=password" \
-  -H "apikey: sb_publishable_KI1Xm0_j_Vz-tiQtdoWgyA__1_IPPwq" \
+  -H "apikey: $VITE_SUPABASE_ANON_KEY" \
   -H "Content-Type: application/json" \
   -d '{"email": "tapancargo@gmail.com", "password": "Test@1498"}'
 ```
@@ -285,7 +285,7 @@ curl -X POST "https://xkkhxhgkyavxcfgeojww.supabase.co/auth/v1/token?grant_type=
 
 ```bash
 curl "https://xkkhxhgkyavxcfgeojww.supabase.co/rest/v1/shipments?limit=10" \
-  -H "apikey: sb_publishable_KI1Xm0_j_Vz-tiQtdoWgyA__1_IPPwq" \
+  -H "apikey: $VITE_SUPABASE_ANON_KEY" \
   -H "Authorization: Bearer <access_token_from_step_1>" \
   -H "Content-Type: application/json"
 ```
@@ -367,7 +367,7 @@ curl "https://xkkhxhgkyavxcfgeojww.supabase.co/rest/v1/shipments?limit=10" \
 ║                                                                  ║
 ║  SUPABASE API:                                                   ║
 ║  URL: https://xkkhxhgkyavxcfgeojww.supabase.co/rest/v1           ║
-║  API Key: sb_publishable_KI1Xm0_j_Vz-tiQtdoWgyA__1_IPPwq         ║
+║  API Key: See VITE_SUPABASE_ANON_KEY in .env.local               ║
 ║                                                                  ║
 ║  AUTH API:                                                       ║
 ║  URL: https://xkkhxhgkyavxcfgeojww.supabase.co/auth/v1           ║
@@ -397,10 +397,10 @@ TAC Cargo Portal - Full Test Suite
 - **API name:** `TAC Cargo Supabase API`
 - **API endpoint:** `https://xkkhxhgkyavxcfgeojww.supabase.co/rest/v1`
 - **Auth Type:** API Key / Bearer Token
-- **API Key:** `sb_publishable_KI1Xm0_j_Vz-tiQtdoWgyA__1_IPPwq`
+- **API Key:** See `VITE_SUPABASE_ANON_KEY` in `.env.local`
 
 ### API 3: Supabase Auth API
 - **API name:** `TAC Cargo Auth API`
 - **API endpoint:** `https://xkkhxhgkyavxcfgeojww.supabase.co/auth/v1`
 - **Auth Type:** API Key
-- **API Key:** `sb_publishable_KI1Xm0_j_Vz-tiQtdoWgyA__1_IPPwq`
+- **API Key:** See `VITE_SUPABASE_ANON_KEY` in `.env.local`
