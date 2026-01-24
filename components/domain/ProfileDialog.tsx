@@ -32,6 +32,15 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ open, onOpenChange
     const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || '');
     const [isUploading, setIsUploading] = useState(false);
 
+    // Reset form when dialog opens or user changes
+    React.useEffect(() => {
+        if (open && user) {
+            setFullName(user.fullName || '');
+            setAvatarUrl(user.avatarUrl || '');
+            setActiveTab('profile');
+        }
+    }, [open, user]);
+
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;

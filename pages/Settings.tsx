@@ -12,6 +12,8 @@ export const Settings: React.FC = () => {
   const { user } = useAuthStore();
 
   // Form States
+  // Use separate loading states or just one if blocking interactions globally is desired, 
+  // but for tabs, local loading is often better. For now, we'll keep it simple but ensure unique effect triggers.
   const [isLoading, setIsLoading] = useState(false);
   const [terminalName, setTerminalName] = useState('');
   const [timezone, setTimezone] = useState('');
@@ -24,35 +26,45 @@ export const Settings: React.FC = () => {
 
   // Fetch initial data
   useEffect(() => {
+    let mounted = true;
+
     const loadSettings = async () => {
+      // Don't set global loading if we just switched tabs, 
+      // unless we want to block the whole UI. 
+      // Better to have per-section loading, but for this refactor 
+      // we'll ensure we don't race conditions.
+
       try {
         setIsLoading(true);
         if (activeTab === 'GENERAL') {
           const data = await settingsService.getOrgSettings();
-          setTerminalName(data.name);
-          setTimezone(data.settings.timezone || 'UTC');
+          if (mounted) {
+            setTerminalName(data.name);
+            setTimezone(data.settings.timezone || 'UTC');
+          }
         } else if (activeTab === 'SECURITY' && user) {
           const userSettings = await settingsService.getUserSettings(user.id);
-          if (userSettings.notifications?.types) {
+          if (mounted && userSettings.notifications?.types) {
             const notifState = { ...notifications };
-            // Reset all to false first if we were strict, but for now just enable what's present
             userSettings.notifications.types.forEach(type => {
               notifState[type] = true;
             });
             setNotifications(notifState);
           }
         } else if (activeTab === 'AUDIT') {
-          fetchLogs();
+          await fetchLogs();
         }
       } catch (error) {
-        toast.error('Failed to load settings');
+        if (mounted) toast.error('Failed to load settings');
         console.error(error);
       } finally {
-        setIsLoading(false);
+        if (mounted) setIsLoading(false);
       }
     };
 
     loadSettings();
+
+    return () => { mounted = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, user]);
 
@@ -87,6 +99,8 @@ export const Settings: React.FC = () => {
       toast.success('Preferences saved');
     } catch (error) {
       toast.error('Failed to save preference');
+      // Revert on failure
+      setNotifications({ ...notifications, [key]: notifications[key] });
     }
   };
 
@@ -168,9 +182,11 @@ export const Settings: React.FC = () => {
                 { id: 'system_alerts', label: 'System Alerts' },
                 { id: 'driver_updates', label: 'Driver Updates' }
               ].map((item) => (
-                <div
+                <button
                   key={item.id}
-                  className="flex items-center justify-between p-2 rounded hover:bg-muted cursor-pointer"
+                  role="switch"
+                  aria-checked={notifications[item.id]}
+                  className="w-full flex items-center justify-between p-2 rounded hover:bg-muted cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                   onClick={() => toggleNotification(item.id)}
                 >
                   <span className="text-sm text-foreground">{item.label}</span>
@@ -180,7 +196,7 @@ export const Settings: React.FC = () => {
                       : 'left-0.5 bg-muted-foreground'
                       }`}></div>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </Card>
