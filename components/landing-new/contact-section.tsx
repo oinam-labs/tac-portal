@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Check, Loader2, Globe } from 'lucide-react';
+import { Check, Loader2 } from 'lucide-react';
 
 export function ContactSection() {
   const [name, setName] = useState('');
@@ -156,12 +156,13 @@ export function ContactSection() {
               <div className="flex flex-col items-center justify-center overflow-hidden w-full h-full">
                 <article className="relative mx-auto h-[350px] min-h-60 max-w-[450px] overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-b from-primary to-primary/5 p-6 text-3xl tracking-tight text-white md:h-[450px] md:min-h-80 md:p-8 md:text-4xl md:leading-[1.05] lg:text-5xl flex items-center">
                   <div className="relative z-20 font-bold">
-                    Presenting you with the best UI possible.
+                    Seamless logistics solutions for your business excellence.
                   </div>
-                  <div className="absolute -right-20 -bottom-20 z-10 mx-auto flex h-full w-full max-w-[300px] items-center justify-center transition-all duration-700 hover:scale-105 md:-right-28 md:-bottom-28 md:max-w-[550px] opacity-40">
-                    <Globe
-                      className="h-[300px] w-[300px] text-white animate-pulse"
-                      strokeWidth={0.5}
+                  <div className="absolute -right-10 -bottom-10 z-10 mx-auto flex h-full w-full max-w-[300px] items-center justify-center transition-all duration-700 hover:scale-105 md:-right-14 md:-bottom-14 md:max-w-[550px] opacity-80">
+                    <img
+                      src="/contact.png"
+                      alt="Contact Support"
+                      className="h-[350px] w-[350px] object-contain"
                     />
                   </div>
                 </article>

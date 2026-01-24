@@ -18,7 +18,7 @@ import { UserRole, HubLocation } from './types';
 import { Button, Card, Input } from './components/ui/CyberComponents';
 import { CommandPalette } from './components/domain/CommandPalette';
 import { queryClient } from './lib/query-client';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { PageSkeleton } from './components/ui/skeleton';
 import { ErrorBoundary } from './components/ui/error-boundary';
 import { PageTransition } from './components/ui/page-transition';
@@ -76,6 +76,9 @@ const Notifications = lazy(() =>
 const DevUIKit = lazy(() =>
   import('./pages/DevUIKit').then((module) => ({ default: module.DevUIKit }))
 );
+const SentryTest = lazy(() =>
+  import('./pages/SentryTest').then((module) => ({ default: module.SentryTest }))
+);
 
 // Login Page Component with Supabase Auth
 const Login: React.FC = () => {
@@ -84,6 +87,7 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -190,15 +194,26 @@ const Login: React.FC = () => {
           </div>
           <div>
             <label className="block text-xs font-mono text-primary mb-1 uppercase">Password</label>
-            <Input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              disabled={isLoading}
-              autoComplete="current-password"
-              data-testid="login-password-input"
-            />
+            <div className="relative">
+              <Input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                disabled={isLoading}
+                autoComplete="current-password"
+                data-testid="login-password-input"
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
           <Button type="submit" className="w-full mt-4" size="lg" disabled={isLoading} data-testid="login-submit-button">
             {isLoading ? 'Signing in...' : 'Sign In'}
@@ -313,13 +328,25 @@ const App: React.FC = () => {
   // Initialize auth on app startup
   useEffect(() => {
     let cleanup: (() => void) | undefined;
+    let mounted = true;
 
-    initialize().then((cleanupFn) => {
-      cleanup = cleanupFn;
-    });
+    initialize()
+      .then((cleanupFn) => {
+        if (mounted) {
+          cleanup = cleanupFn;
+        } else {
+          // If unmounted before init finishes, call cleanup immediately
+          cleanupFn();
+        }
+      })
+      .catch((error) => {
+        if (error instanceof Error && error.name === 'AbortError') return;
+        console.error('[App] Auth initialization failed:', error);
+      });
 
     // Cleanup function to unsubscribe from auth state changes
     return () => {
+      mounted = false;
       if (cleanup) {
         cleanup();
       }
@@ -328,14 +355,19 @@ const App: React.FC = () => {
   }, []); // Empty array - only run once on mount
 
   useEffect(() => {
-    // Theme switching is silent - no logging needed
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.classList.add('light');
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
+
+    if (theme === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
+
+      root.classList.add(systemTheme);
+      return;
     }
+
+    root.classList.add(theme);
   }, [theme]);
 
   return (
@@ -540,6 +572,14 @@ const App: React.FC = () => {
                         element={
                           <ProtectedRoute allowedRoles={['ADMIN']}>
                             <DevUIKit />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/dev/sentry"
+                        element={
+                          <ProtectedRoute allowedRoles={['ADMIN']}>
+                            <SentryTest />
                           </ProtectedRoute>
                         }
                       />

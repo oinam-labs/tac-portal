@@ -35,13 +35,13 @@ export function StatsCTA() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-card/50 border border-border/50 rounded-3xl p-8 text-center hover:border-primary/20 transition-colors"
+            className="bg-card dark:bg-muted/30 border border-border/50 rounded-3xl p-8 text-center hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300"
           >
-            <div className="bg-primary/10 text-primary w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <div className="bg-primary/10 text-primary w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-primary/20">
               <Package className="w-7 h-7" />
             </div>
-            <div className="text-5xl font-bold text-foreground mb-2">50k+</div>
-            <p className="text-muted-foreground">Shipments Delivered</p>
+            <div className="text-5xl font-bold text-foreground mb-2 tracking-tight">50k+</div>
+            <p className="text-muted-foreground font-medium">Shipments Delivered</p>
           </motion.div>
 
           {/* Stat 2 */}
@@ -50,13 +50,13 @@ export function StatsCTA() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="bg-card/50 border border-border/50 rounded-3xl p-8 text-center hover:border-primary/20 transition-colors"
+            className="bg-card dark:bg-muted/30 border border-border/50 rounded-3xl p-8 text-center hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300"
           >
-            <div className="bg-green-500/10 text-green-500 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <div className="bg-emerald-500/10 text-emerald-500 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-emerald-500/20">
               <ShieldCheck className="w-7 h-7" />
             </div>
-            <div className="text-5xl font-bold text-foreground mb-2">99%</div>
-            <p className="text-muted-foreground">Safe Arrival Rate</p>
+            <div className="text-5xl font-bold text-foreground mb-2 tracking-tight">99%</div>
+            <p className="text-muted-foreground font-medium">Safe Arrival Rate</p>
           </motion.div>
 
           {/* Stat 3 */}
@@ -65,13 +65,13 @@ export function StatsCTA() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="bg-card/50 border border-border/50 rounded-3xl p-8 text-center hover:border-primary/20 transition-colors"
+            className="bg-card dark:bg-muted/30 border border-border/50 rounded-3xl p-8 text-center hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300"
           >
-            <div className="bg-blue-500/10 text-blue-500 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <div className="bg-blue-500/10 text-blue-500 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-blue-500/20">
               <Clock className="w-7 h-7" />
             </div>
-            <div className="text-5xl font-bold text-foreground mb-2">48h</div>
-            <p className="text-muted-foreground">Imphal ↔ Delhi</p>
+            <div className="text-5xl font-bold text-foreground mb-2 tracking-tight">48h</div>
+            <p className="text-muted-foreground font-medium">Imphal ↔ Delhi</p>
           </motion.div>
         </div>
       </div>

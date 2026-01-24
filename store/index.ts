@@ -9,12 +9,13 @@ interface AppState {
   currentNav: NavItem;
   sidebarCollapsed: boolean;
   isAuthenticated: boolean;
-  theme: 'dark' | 'light';
+  theme: 'dark' | 'light' | 'system';
   login: (user: User) => void;
   logout: () => void;
   setNav: (nav: NavItem) => void;
   toggleSidebar: () => void;
   toggleTheme: () => void;
+  setTheme: (theme: 'dark' | 'light' | 'system') => void;
 }
 
 export const useStore = create<AppState>()(
@@ -30,6 +31,7 @@ export const useStore = create<AppState>()(
       setNav: (nav) => set({ currentNav: nav }),
       toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
       toggleTheme: () => set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
+      setTheme: (theme) => set({ theme }),
     }),
     {
       name: 'tac-storage',

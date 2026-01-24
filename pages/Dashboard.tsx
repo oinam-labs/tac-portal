@@ -10,7 +10,6 @@ import { ErrorBoundary, InlineError } from '../components/ui/error-boundary';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../lib/queryKeys';
 import { useRealtimeShipments, useRealtimeExceptions } from '../hooks/useRealtime';
-import { SentryTestButton } from '../components/dev/SentryTestButton';
 
 export const Dashboard: React.FC = () => {
   const queryClient = useQueryClient();
@@ -60,9 +59,6 @@ export const Dashboard: React.FC = () => {
           <RecentActivity />
         </ErrorBoundary>
       </div>
-
-      {/* Sentry Test Button - Only in Development */}
-      {import.meta.env.DEV && <SentryTestButton />}
     </div>
   );
 };

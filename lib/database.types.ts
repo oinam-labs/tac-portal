@@ -704,6 +704,7 @@ export type Database = {
       staff: {
         Row: {
           auth_user_id: string | null;
+          avatar_url: string | null;
           created_at: string | null;
           email: string;
           full_name: string;
@@ -713,6 +714,7 @@ export type Database = {
           org_id: string;
           phone: string | null;
           role: string;
+          settings: Json | null;
           updated_at: string | null;
         };
         Insert: {
@@ -842,8 +844,8 @@ export type Database = {
     Functions: {
       can_access_hub: { Args: { hub_id: string }; Returns: boolean };
       generate_awb_number:
-        | { Args: Record<string, never>; Returns: string }
-        | { Args: { p_org_id: string }; Returns: string };
+      | { Args: Record<string, never>; Returns: string }
+      | { Args: { p_org_id: string }; Returns: string };
       get_current_org_id: { Args: Record<string, never>; Returns: string };
       get_user_hub_id: { Args: Record<string, never>; Returns: string };
       get_user_org_id: { Args: Record<string, never>; Returns: string };

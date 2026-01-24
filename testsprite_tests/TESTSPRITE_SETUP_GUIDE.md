@@ -143,6 +143,8 @@ apikey: $VITE_SUPABASE_ANON_KEY
 Authorization: Bearer $VITE_SUPABASE_ANON_KEY
 ```
 
+> **Note**: TestSprite does not expand environment variables. valid values must be pasted manually. Replace `$VITE_SUPABASE_ANON_KEY` with the actual value from your `.env.local` file.
+
 **Extra testing information:**
 ```
 Supabase REST API for TAC Cargo Portal

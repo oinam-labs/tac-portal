@@ -44,14 +44,14 @@ export function HeroSection() {
               initial="hidden"
               animate="visible"
               variants={fadeUpVariant}
-              className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 backdrop-blur-md"
+              className="inline-flex items-center gap-2.5 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 backdrop-blur-md"
             >
-              <span className="relative flex h-2 w-2">
+              <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
               </span>
-              <span className="text-xs font-mono font-medium text-primary tracking-wide">
-                TRUSTED SINCE 2010 • IMPHAL ↔ DELHI CORRIDOR
+              <span className="text-xs font-mono font-medium text-primary tracking-widest uppercase">
+                Trusted Since 2010 • Imphal ↔ Delhi
               </span>
             </motion.div>
 
@@ -60,7 +60,7 @@ export function HeroSection() {
               initial="hidden"
               animate="visible"
               variants={fadeUpVariant}
-              className="font-sans text-4xl sm:text-6xl font-bold tracking-tighter text-foreground lg:text-8xl leading-[0.9]"
+              className="font-sans text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tighter text-foreground leading-[0.95]"
             >
               Tapan Associate
               <br />

@@ -86,8 +86,12 @@ export function Footer() {
           <p className="text-muted-foreground text-xs">
             © {new Date().getFullYear()} Tapan Associate Cargo. All rights reserved.
           </p>
-          <p className="text-muted-foreground text-xs font-mono">
-            System Status: <span className="text-emerald-500">OPTIMAL</span>
+          <p className="text-muted-foreground text-xs font-mono flex items-center gap-2">
+            System Status:
+            <span className="flex items-center gap-1.5 text-emerald-500 dark:text-emerald-400 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span>
+              OPTIMAL
+            </span>
           </p>
         </div>
       </div>

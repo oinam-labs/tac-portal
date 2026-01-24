@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -14,6 +14,8 @@ import { useStore } from '../../store';
 import { useAuthStore } from '../../store/authStore';
 import { LogOut, User, Settings, CreditCard, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ProfileDialog } from '../domain/ProfileDialog';
+import { useNavigate } from 'react-router-dom';
 
 interface UserProfileProps {
     collapsed?: boolean;
@@ -29,6 +31,8 @@ interface User {
 export const UserProfile: React.FC<UserProfileProps> = ({ collapsed, className }) => {
     const { user: appUser, logout: legacyLogout } = useStore();
     const { user: authUser, signOut } = useAuthStore();
+    const navigate = useNavigate();
+    const [showProfileDialog, setShowProfileDialog] = useState(false);
 
     // Combine user data (prefer auth store but fallback to app store)
     const user = authUser || appUser;
@@ -65,88 +69,105 @@ export const UserProfile: React.FC<UserProfileProps> = ({ collapsed, className }
 
     const displayEmail = user.email || '';
     const displayRole = (user.role || '').replace('_', ' ');
+    const avatarUrl = 'avatarUrl' in user ? user.avatarUrl : undefined;
 
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <button
-                    className={cn(
-                        "flex items-center gap-3 p-2 rounded-lg hover:bg-sidebar-accent transition-all duration-200 outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 w-full",
-                        collapsed ? "justify-center" : "justify-start",
-                        className
-                    )}
+        <>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <button
+                        className={cn(
+                            "flex items-center gap-3 p-1.5 md:p-2 rounded-lg hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-all duration-200 outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 w-full border border-transparent hover:border-sidebar-border/50",
+                            collapsed ? "justify-center" : "justify-between",
+                            className
+                        )}
+                    >
+                        <div className="flex items-center gap-3 overflow-hidden">
+                            <Avatar className="h-8 w-8 border border-border/40 shrink-0 shadow-sm">
+                                <AvatarImage src={avatarUrl || ''} alt={displayName} />
+                                <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">
+                                    {getInitials(displayName)}
+                                </AvatarFallback>
+                            </Avatar>
+
+                            {!collapsed && (
+                                <div className="flex flex-col items-start text-left min-w-0">
+                                    <span className="text-sm font-semibold truncate w-full text-foreground leading-tight">
+                                        {displayName}
+                                    </span>
+                                    <span className="text-[10px] text-muted-foreground truncate w-full leading-tight">
+                                        {displayRole}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+
+                        {!collapsed && (
+                            <ChevronRight className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+                        )}
+                    </button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent
+                    className="w-56 mb-2"
+                    align={collapsed ? "center" : "start"}
+                    side="right"
+                    sideOffset={collapsed ? 20 : 8}
+                    forceMount
                 >
-                    <Avatar className="h-9 w-9 border border-border shrink-0">
-                        <AvatarImage src="" alt={displayName} />
-                        <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">
-                            {getInitials(displayName)}
-                        </AvatarFallback>
-                    </Avatar>
+                    <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-1">
+                            <p className="text-sm font-medium leading-none">{displayName}</p>
+                            <p className="text-xs leading-none text-muted-foreground truncate">
+                                {displayEmail}
+                            </p>
+                        </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
 
-                    {!collapsed && (
-                        <>
-                            <div className="flex flex-col items-start text-left flex-1 min-w-0">
-                                <span className="text-sm font-semibold truncate w-full text-foreground">
-                                    {displayName}
-                                </span>
-                                <span className="text-xs text-muted-foreground truncate w-full">
-                                    {displayRole}
-                                </span>
-                            </div>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground opacity-50" />
-                        </>
-                    )}
-                </button>
-            </DropdownMenuTrigger>
+                    <DropdownMenuGroup>
+                        <DropdownMenuItem
+                            className="cursor-pointer"
+                            onClick={() => setShowProfileDialog(true)}
+                        >
+                            <User className="mr-2 h-4 w-4" />
+                            <span>Profile</span>
+                            <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+                        </DropdownMenuItem>
 
-            <DropdownMenuContent
-                className="w-56 mb-2"
-                align={collapsed ? "center" : "start"}
-                side="right"
-                sideOffset={collapsed ? 20 : 8}
-                forceMount
-            >
-                <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{displayName}</p>
-                        <p className="text-xs leading-none text-muted-foreground truncate">
-                            {displayEmail}
-                        </p>
-                    </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
+                        <DropdownMenuItem className="cursor-pointer">
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            <span>Billing</span>
+                            <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
+                        </DropdownMenuItem>
 
-                <DropdownMenuGroup>
-                    <DropdownMenuItem className="cursor-pointer">
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
-                        <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+                        <DropdownMenuItem
+                            className="cursor-pointer"
+                            onClick={() => navigate('/settings')}
+                        >
+                            <Settings className="mr-2 h-4 w-4" />
+                            <span>Settings</span>
+                            <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
+
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuItem
+                        className="cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-50"
+                        onClick={handleSignOut}
+                    >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Sign out</span>
+                        <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
                     </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
 
-                    <DropdownMenuItem className="cursor-pointer">
-                        <CreditCard className="mr-2 h-4 w-4" />
-                        <span>Billing</span>
-                        <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem className="cursor-pointer">
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Settings</span>
-                        <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-                    </DropdownMenuItem>
-                </DropdownMenuGroup>
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem
-                    className="cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-50"
-                    onClick={handleSignOut}
-                >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Sign out</span>
-                    <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
+            <ProfileDialog
+                open={showProfileDialog}
+                onOpenChange={setShowProfileDialog}
+            />
+        </>
     );
 };

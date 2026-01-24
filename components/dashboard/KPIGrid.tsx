@@ -70,7 +70,7 @@ const KPICard = React.memo(({ kpi, index }: KPICardProps) => {
         ease: [0.25, 0.1, 0.25, 1],
       }}
     >
-      <Card data-testid={`kpi-card-${kpi.label.toLowerCase().replace(/\s+/g, '-')}`} className="relative overflow-hidden group hover:shadow-md transition-all duration-300 border-border/50 hover:border-primary/20 bg-card/50 backdrop-blur-sm">
+      <Card data-testid={`kpi-card-${kpi.label.toLowerCase().replace(/\s+/g, '-')}`} className="relative overflow-hidden group hover:shadow-md transition-all duration-300 border-border hover:border-primary/50 bg-card">
         {/* Background Icon */}
         <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity pointer-events-none">
           <kpi.icon className="w-24 h-24" />

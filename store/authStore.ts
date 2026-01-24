@@ -18,6 +18,7 @@ export interface StaffUser {
   authUserId: string;
   email: string;
   fullName: string;
+  avatarUrl?: string | null;
   role: UserRole;
   hubId: string | null;
   hubCode: string | null;
@@ -37,17 +38,46 @@ interface AuthState {
   initialize: () => Promise<() => void>;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
+  updateProfile: (profile: Partial<StaffUser>) => Promise<void>;
   clearError: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, _get) => ({
+    (set, get) => ({
       session: null,
       user: null,
       isAuthenticated: false,
       isLoading: true,
       error: null,
+
+      updateProfile: async (profile) => {
+        const currentUser = get().user;
+        if (!currentUser) return;
+
+        try {
+          // Optimistic update
+          set({ user: { ...currentUser, ...profile } });
+
+          const updates: any = {};
+          if (profile.fullName) updates.full_name = profile.fullName;
+          if (profile.avatarUrl !== undefined) updates.avatar_url = profile.avatarUrl;
+
+          if (Object.keys(updates).length > 0) {
+            const { error } = await supabase
+              .from('staff')
+              .update(updates)
+              .eq('id', currentUser.id);
+
+            if (error) throw error;
+          }
+        } catch (error) {
+          console.error('[Auth] Update profile error:', error);
+          // Revert on error
+          set({ user: currentUser });
+          throw error;
+        }
+      },
 
       initialize: async () => {
         try {
@@ -62,12 +92,12 @@ export const useAuthStore = create<AuthState>()(
           if (sessionError) {
             console.error('[Auth] Session error:', sessionError);
             set({ isLoading: false, isAuthenticated: false, session: null, user: null });
-            return () => {}; // Return no-op cleanup function
+            return () => { }; // Return no-op cleanup function
           }
 
           if (!session) {
             set({ isLoading: false, isAuthenticated: false, session: null, user: null });
-            return () => {}; // Return no-op cleanup function
+            return () => { }; // Return no-op cleanup function
           }
 
           // Fetch staff record linked to this auth user
@@ -76,7 +106,7 @@ export const useAuthStore = create<AuthState>()(
           if (!staffUser) {
             console.warn('[Auth] No staff record found for user:', session.user.email);
             set({ isLoading: false, isAuthenticated: false, session: null, user: null });
-            return () => {}; // Return no-op cleanup function
+            return () => { }; // Return no-op cleanup function
           }
 
           if (!staffUser.isActive) {
@@ -89,7 +119,7 @@ export const useAuthStore = create<AuthState>()(
               user: null,
               error: 'Your account has been deactivated. Please contact an administrator.',
             });
-            return () => {}; // Return no-op cleanup function
+            return () => { }; // Return no-op cleanup function
           }
 
           // Set organization context for services
@@ -142,13 +172,17 @@ export const useAuthStore = create<AuthState>()(
             subscription.unsubscribe();
           };
         } catch (error) {
+          // Ignore AbortError - this happens when requests are cancelled during navigation or strict mode
+          if (error instanceof Error && error.name === 'AbortError') {
+            return () => { };
+          }
           console.error('[Auth] Initialize error:', error);
           set({
             isLoading: false,
             isAuthenticated: false,
             error: 'Failed to initialize authentication',
           });
-          return () => {}; // Return no-op cleanup function
+          return () => { }; // Return no-op cleanup function
         }
       },
 
@@ -298,6 +332,7 @@ async function fetchStaffByAuthId(authUserId: string): Promise<StaffUser | null>
                 auth_user_id,
                 email,
                 full_name,
+                avatar_url,
                 role,
                 hub_id,
                 org_id,
@@ -318,6 +353,7 @@ async function fetchStaffByAuthId(authUserId: string): Promise<StaffUser | null>
       authUserId: data.auth_user_id ?? '',
       email: data.email,
       fullName: data.full_name,
+      avatarUrl: data.avatar_url,
       role: data.role as UserRole,
       hubId: data.hub_id,
       hubCode: data.hub?.code || null,

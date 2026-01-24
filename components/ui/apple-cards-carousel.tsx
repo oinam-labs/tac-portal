@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useRef, useState, createContext, useContext } from 'react';
-import { ArrowLeft, ArrowRight, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'motion/react';
 import { useOutsideClick } from '@/hooks/use-outside-click';
@@ -21,42 +21,20 @@ export const CarouselContext = createContext<{
   onCardClose: (index: number) => void;
   currentIndex: number;
 }>({
-  onCardClose: () => {},
+  onCardClose: () => { },
   currentIndex: 0,
 });
 
 export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
   const carouselRef = React.useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = React.useState(false);
-  const [canScrollRight, setCanScrollRight] = React.useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     if (carouselRef.current) {
       carouselRef.current.scrollLeft = initialScroll;
-      checkScrollability();
     }
   }, [initialScroll]);
 
-  const checkScrollability = () => {
-    if (carouselRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth);
-    }
-  };
-
-  const scrollLeft = () => {
-    if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: -300, behavior: 'smooth' });
-    }
-  };
-
-  const scrollRight = () => {
-    if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: 300, behavior: 'smooth' });
-    }
-  };
 
   const handleCardClose = (index: number) => {
     if (carouselRef.current) {
@@ -82,7 +60,6 @@ export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
         <div
           className="flex w-full overflow-x-scroll overscroll-x-auto scroll-smooth py-6 [scrollbar-width:none] md:py-10"
           ref={carouselRef}
-          onScroll={checkScrollability}
         >
           <div className="flex flex-row gap-4">
             {items.map((item, index) => (
@@ -106,28 +83,6 @@ export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
                 {item}
               </motion.div>
             ))}
-          </div>
-        </div>
-
-        {/* Navigation arrows - vertically centered */}
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 md:pr-4">
-          <div className="pointer-events-auto flex flex-col gap-2">
-            <button
-              aria-label="Scroll carousel left"
-              className="relative z-40 flex h-10 w-10 items-center justify-center rounded-full bg-muted/90 backdrop-blur-sm shadow-lg disabled:opacity-50"
-              onClick={scrollLeft}
-              disabled={!canScrollLeft}
-            >
-              <ArrowLeft className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
-            </button>
-            <button
-              aria-label="Scroll carousel right"
-              className="relative z-40 flex h-10 w-10 items-center justify-center rounded-full bg-muted/90 backdrop-blur-sm shadow-lg disabled:opacity-50"
-              onClick={scrollRight}
-              disabled={!canScrollRight}
-            >
-              <ArrowRight className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
-            </button>
           </div>
         </div>
       </div>
