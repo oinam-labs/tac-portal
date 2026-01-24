@@ -52,10 +52,10 @@ export const QuickActions: React.FC = () => {
               key={action.label}
               variant="secondary"
               data-testid={`quick-action-${action.label.toLowerCase().replace(/\s+/g, '-')}`}
-              className="bg-muted border border-transparent hover:border-cyber-accent/50 transition-all group"
+              className="bg-background border border-border/60 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all group shadow-sm"
               onClick={action.onClick}
             >
-              <action.icon className={`w-4 h-4 mr-2 ${action.color} group-hover:animate-pulse`} />
+              <action.icon className={`w-4 h-4 mr-2 ${action.color} group-hover:scale-110 transition-transform`} />
               {action.label}
               <span className="ml-2 text-[10px] opacity-40 border border-current px-1 rounded hidden lg:inline-block">
                 {action.shortcut}

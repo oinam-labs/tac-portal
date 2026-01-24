@@ -51,7 +51,7 @@
 }
 
 :root {
-  --background: oklch(0.973 0.0133 286.1503);
+  --background: oklch(0.96 0.005 286.1503);
   --foreground: oklch(0.3015 0.0572 282.4176);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.3015 0.0572 282.4176);
@@ -67,8 +67,8 @@
   --accent-foreground: oklch(0.3015 0.0572 282.4176);
   --destructive: oklch(0.6861 0.2061 14.9941);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.9115 0.0216 285.9625);
-  --input: oklch(0.9115 0.0216 285.9625);
+  --border: oklch(0.87 0.02 286);
+  --input: oklch(0.87 0.02 286);
   --ring: oklch(0.5417 0.179 288.0332);
   --chart-1: oklch(0.5417 0.179 288.0332);
   --chart-2: oklch(0.7042 0.1602 288.988);
@@ -76,22 +76,22 @@
   --chart-4: oklch(0.6356 0.1922 281.8054);
   --chart-5: oklch(0.4509 0.1758 279.3838);
   --radius: 0.5rem;
-  --sidebar: oklch(0.958 0.0133 286.1454);
+  --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.3015 0.0572 282.4176);
   --sidebar-primary: oklch(0.5417 0.179 288.0332);
   --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: oklch(0.9221 0.0373 262.141);
   --sidebar-accent-foreground: oklch(0.3015 0.0572 282.4176);
-  --sidebar-border: oklch(0.9115 0.0216 285.9625);
+  --sidebar-border: oklch(0.87 0.02 286);
   --sidebar-ring: oklch(0.5417 0.179 288.0332);
-  --shadow-2xs: 0px 4px 10px 0px hsl(240 30% 25% / 0.06);
-  --shadow-xs: 0px 4px 10px 0px hsl(240 30% 25% / 0.06);
-  --shadow-sm: 0px 4px 10px 0px hsl(240 30% 25% / 0.12), 0px 1px 2px -1px hsl(240 30% 25% / 0.12);
-  --shadow: 0px 4px 10px 0px hsl(240 30% 25% / 0.12), 0px 1px 2px -1px hsl(240 30% 25% / 0.12);
-  --shadow-md: 0px 4px 10px 0px hsl(240 30% 25% / 0.12), 0px 2px 4px -1px hsl(240 30% 25% / 0.12);
-  --shadow-lg: 0px 4px 10px 0px hsl(240 30% 25% / 0.12), 0px 4px 6px -1px hsl(240 30% 25% / 0.12);
-  --shadow-xl: 0px 4px 10px 0px hsl(240 30% 25% / 0.12), 0px 8px 10px -1px hsl(240 30% 25% / 0.12);
-  --shadow-2xl: 0px 4px 10px 0px hsl(240 30% 25% / 0.3);
+  --shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  --shadow-xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0px 1px 3px 0px rgba(0, 0, 0, 0.1), 0px 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow: 0px 4px 6px -1px rgba(0, 0, 0, 0.1), 0px 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0px 4px 6px -1px rgba(0, 0, 0, 0.1), 0px 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0px 20px 25px -5px rgba(0, 0, 0, 0.1), 0px 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0px 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 .dark {

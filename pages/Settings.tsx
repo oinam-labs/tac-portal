@@ -2,17 +2,93 @@ import React, { useState, useEffect } from 'react';
 import { Card, Button, Input, Table, Th, Td } from '../components/ui/CyberComponents';
 import { Bell, Shield, Globe, Activity } from 'lucide-react';
 import { useAuditStore } from '../store/auditStore';
+import { settingsService } from '../lib/services/settingsService';
+import { useAuthStore } from '../store/authStore';
+import { toast } from 'sonner';
 
 export const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'GENERAL' | 'SECURITY' | 'AUDIT'>('GENERAL');
   const { logs, fetchLogs } = useAuditStore();
+  const { user } = useAuthStore();
 
+  // Form States
+  const [isLoading, setIsLoading] = useState(false);
+  const [terminalName, setTerminalName] = useState('');
+  const [timezone, setTimezone] = useState('');
+  const [notifications, setNotifications] = useState<Record<string, boolean>>({
+    shipment_delays: true,
+    new_orders: true,
+    system_alerts: true,
+    driver_updates: false
+  });
+
+  // Fetch initial data
   useEffect(() => {
-    if (activeTab === 'AUDIT') {
-      fetchLogs();
-    }
+    const loadSettings = async () => {
+      try {
+        setIsLoading(true);
+        if (activeTab === 'GENERAL') {
+          const data = await settingsService.getOrgSettings();
+          setTerminalName(data.name);
+          setTimezone(data.settings.timezone || 'UTC');
+        } else if (activeTab === 'SECURITY' && user) {
+          const userSettings = await settingsService.getUserSettings(user.id);
+          if (userSettings.notifications?.types) {
+            const notifState = { ...notifications };
+            // Reset all to false first if we were strict, but for now just enable what's present
+            userSettings.notifications.types.forEach(type => {
+              notifState[type] = true;
+            });
+            setNotifications(notifState);
+          }
+        } else if (activeTab === 'AUDIT') {
+          fetchLogs();
+        }
+      } catch (error) {
+        toast.error('Failed to load settings');
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSettings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  }, [activeTab, user]);
+
+  const handleSaveGeneral = async () => {
+    try {
+      setIsLoading(true);
+      await settingsService.updateOrgSettings(terminalName, { timezone });
+      toast.success('Organization settings updated');
+    } catch (error) {
+      toast.error('Failed to update settings');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleNotification = async (key: string) => {
+    if (!user) return;
+    const newState = { ...notifications, [key]: !notifications[key] };
+    setNotifications(newState);
+
+    // Auto-save user preferences
+    try {
+      const activeTypes = Object.entries(newState)
+        .filter(([_, active]) => active)
+        .map(([k]) => k);
+
+      await settingsService.updateUserSettings(user.id, {
+        notifications: {
+          types: activeTypes
+        }
+      });
+      toast.success('Preferences saved');
+    } catch (error) {
+      toast.error('Failed to save preference');
+    }
+  };
 
   return (
     <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
@@ -51,16 +127,27 @@ export const Settings: React.FC = () => {
                 <label className="block text-xs font-mono text-muted-foreground mb-1">
                   TERMINAL NAME
                 </label>
-                <Input defaultValue="TAC Cargo HQ - Node 1" />
+                <Input
+                  value={terminalName}
+                  onChange={(e) => setTerminalName(e.target.value)}
+                  disabled={isLoading}
+                />
               </div>
               <div>
                 <label className="block text-xs font-mono text-muted-foreground mb-1">
                   TIMEZONE
                 </label>
-                <Input defaultValue="UTC-5 (Eastern Standard Time)" />
+                <Input
+                  value={timezone}
+                  onChange={(e) => setTimezone(e.target.value)}
+                  placeholder="e.g. UTC, Asia/Kolkata"
+                  disabled={isLoading}
+                />
               </div>
               <div className="pt-2">
-                <Button>Save Changes</Button>
+                <Button onClick={handleSaveGeneral} disabled={isLoading}>
+                  {isLoading ? 'Saving...' : 'Save Changes'}
+                </Button>
               </div>
             </div>
           </Card>
@@ -75,14 +162,23 @@ export const Settings: React.FC = () => {
               <h3 className="font-bold text-foreground">Notifications</h3>
             </div>
             <div className="space-y-3">
-              {['Shipment Delays', 'New Orders', 'System Alerts', 'Driver Updates'].map((item) => (
+              {[
+                { id: 'shipment_delays', label: 'Shipment Delays' },
+                { id: 'new_orders', label: 'New Orders' },
+                { id: 'system_alerts', label: 'System Alerts' },
+                { id: 'driver_updates', label: 'Driver Updates' }
+              ].map((item) => (
                 <div
-                  key={item}
-                  className="flex items-center justify-between p-2 rounded hover:bg-muted"
+                  key={item.id}
+                  className="flex items-center justify-between p-2 rounded hover:bg-muted cursor-pointer"
+                  onClick={() => toggleNotification(item.id)}
                 >
-                  <span className="text-sm text-foreground">{item}</span>
-                  <div className="w-10 h-5 bg-cyber-accent/20 rounded-full relative cursor-pointer">
-                    <div className="absolute right-0.5 top-0.5 w-4 h-4 bg-cyber-accentHover dark:bg-cyber-neon rounded-full shadow-[0_0_5px_#22d3ee]"></div>
+                  <span className="text-sm text-foreground">{item.label}</span>
+                  <div className={`w-10 h-5 rounded-full relative transition-colors ${notifications[item.id] ? 'bg-cyber-accent/20' : 'bg-muted-foreground/20'}`}>
+                    <div className={`absolute top-0.5 w-4 h-4 rounded-full shadow-sm transition-all duration-200 ${notifications[item.id]
+                      ? 'right-0.5 bg-cyber-accentHover dark:bg-cyber-neon shadow-[0_0_5px_#22d3ee]'
+                      : 'left-0.5 bg-muted-foreground'
+                      }`}></div>
                   </div>
                 </div>
               ))}
@@ -98,16 +194,16 @@ export const Settings: React.FC = () => {
               <div className="flex justify-between items-center">
                 <div>
                   <div className="text-sm font-bold text-foreground">Two-Factor Authentication</div>
-                  <div className="text-xs text-muted-foreground">Enabled via Authenticator App</div>
+                  <div className="text-xs text-muted-foreground">Managed via Identity Provider</div>
                 </div>
-                <Button variant="secondary" size="sm">
+                <Button variant="secondary" size="sm" disabled>
                   Configure
                 </Button>
               </div>
               <div className="flex justify-between items-center">
                 <div>
                   <div className="text-sm font-bold text-foreground">API Access Keys</div>
-                  <div className="text-xs text-muted-foreground">Last used 2 hours ago</div>
+                  <div className="text-xs text-muted-foreground">Admin access required</div>
                 </div>
                 <Button variant="secondary" size="sm">
                   Manage Keys

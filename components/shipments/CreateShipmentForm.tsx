@@ -21,6 +21,7 @@ const schema = z
     dimL: z.number().min(1),
     dimW: z.number().min(1),
     dimH: z.number().min(1),
+    specialInstructions: z.string().optional(),
   })
   .refine((data) => data.originHub !== data.destinationHub, {
     message: 'Origin and Destination cannot be the same',
@@ -33,6 +34,9 @@ interface Props {
   onSuccess: () => void;
   onCancel: () => void;
 }
+
+import { Controller } from 'react-hook-form';
+import { RichTextEditor } from '../ui/rich-text-editor';
 
 export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => {
   const { data: customers = [] } = useCustomers();
@@ -48,6 +52,7 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -61,6 +66,7 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
       dimL: 10,
       dimW: 10,
       dimH: 10,
+      specialInstructions: '',
     },
   });
 
@@ -86,7 +92,7 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
         receiver_name: 'Walk-in Customer',
         receiver_phone: '9999999999',
         receiver_address: { line1: 'TBD', city: 'TBD' },
-        special_instructions: `Dims: ${data.dimL}x${data.dimW}x${data.dimH}`,
+        special_instructions: data.specialInstructions || `Dims: ${data.dimL}x${data.dimW}x${data.dimH}`,
       });
 
       onSuccess();
@@ -163,11 +169,10 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
                 key={mode.id}
                 className={`
                                 cursor-pointer border rounded-lg p-2 flex flex-col items-center justify-center text-xs transition-all text-center
-                                ${
-                                  selectedMode === mode.id
-                                    ? 'bg-primary/10 border-primary text-primary'
-                                    : 'border-input hover:bg-muted text-muted-foreground'
-                                }
+                                ${selectedMode === mode.id
+                    ? 'bg-primary/10 border-primary text-primary'
+                    : 'border-input hover:bg-muted text-muted-foreground'
+                  }
                             `}
               >
                 <input type="radio" value={mode.id} {...register('mode')} className="hidden" />
@@ -191,11 +196,10 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
                 key={level.id}
                 className={`
                                 cursor-pointer border rounded-lg p-2 flex flex-col items-center justify-center text-xs transition-all text-center
-                                ${
-                                  selectedService === level.id
-                                    ? 'bg-purple-500/10 border-purple-400 text-purple-600 dark:text-purple-400'
-                                    : 'border-input hover:bg-muted text-muted-foreground'
-                                }
+                                ${selectedService === level.id
+                    ? 'bg-purple-500/10 border-purple-400 text-purple-600 dark:text-purple-400'
+                    : 'border-input hover:bg-muted text-muted-foreground'
+                  }
                             `}
               >
                 <input
@@ -243,6 +247,27 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
             <Input type="number" placeholder="H" {...register('dimH', { valueAsNumber: true })} />
           </div>
         </div>
+      </div>
+
+      {/* Special Instructions (Tiptap) */}
+      <div>
+        <label className="block text-xs font-mono text-muted-foreground mb-1">
+          SPECIAL INSTRUCTIONS
+        </label>
+        <Controller
+          name="specialInstructions"
+          control={control}
+          render={({ field }) => (
+            <RichTextEditor
+              content={field.value}
+              onChange={field.onChange}
+              placeholder="Add handling instructions, branding notes, etc."
+              minHeight="100px"
+              maxHeight="200px"
+              toolbarVariant="minimal"
+            />
+          )}
+        />
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border">

@@ -29,6 +29,16 @@ export const initSentry = () => {
     return;
   }
 
+  // Disable Sentry in development to avoid "Cross-Origin Request Blocked" noise
+  // from ad-blockers preventing connection to ingest.sentry.io
+  const isDev = import.meta.env.DEV;
+  const forceDev = import.meta.env.VITE_ENABLE_SENTRY_DEV === 'true';
+
+  if (isDev && !forceDev) {
+    console.log('[Sentry] Disabled in development to prevent CORS/Ad-block noise. Set VITE_ENABLE_SENTRY_DEV=true to enable.');
+    return;
+  }
+
   Sentry.init({
     dsn,
     environment,
@@ -72,7 +82,9 @@ export const initSentry = () => {
         ]),
 
       // User Feedback widget (optional - users can report issues)
+      // autoInject: false hides the default button - trigger manually via /dev/sentry page
       Sentry.feedbackIntegration({
+        autoInject: false, // Hide floating button by default
         colorScheme: 'dark',
         showBranding: false,
         buttonLabel: 'Report Issue',

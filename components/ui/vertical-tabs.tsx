@@ -11,21 +11,21 @@ const SERVICES = [
     title: 'Air Cargo',
     description:
       'Express air freight services on the Imphal-Delhi corridor. Same-day dispatch with real-time tracking and priority handling for urgent shipments.',
-    image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=1200',
+    image: '/express-air-cargo.png',
   },
   {
     id: '02',
     title: 'Surface Transport',
     description:
       'Reliable ground logistics connecting Northeast India to major cities. Temperature-controlled options available for sensitive cargo.',
-    image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=1200',
+    image: '/express-surface-cargo.png',
   },
   {
     id: '03',
     title: 'Professional Packaging',
     description:
       'Custom packaging solutions for fragile, high-value, and specialized items. Military-grade protection for your precious cargo.',
-    image: 'https://images.unsplash.com/photo-1553413077-190dd305871c?q=80&w=1200',
+    image: '/express-pick-drop.png',
   },
 ];
 
