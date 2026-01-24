@@ -47,6 +47,11 @@ const WIZARD_STEPS = [
   { id: 3, name: 'Review & Finalize' },
 ];
 
+// Delay to allow React batched updates and portal unmounting to complete
+// before closing the main dialog. Should stay in sync with dialog/portal
+// exit animation durations.
+const PORTAL_CLEANUP_DELAY_MS = 150;
+
 function combineDateTimeWithPeriod(
   date: Date,
   hour?: string,
@@ -260,7 +265,7 @@ export function ManifestBuilderWizard({
       setTimeout(() => {
         onOpenChange(false);
         onComplete?.(builder.manifest!.id);
-      }, 150);
+      }, PORTAL_CLEANUP_DELAY_MS);
     } catch (error) {
       toast.error('Failed to close manifest');
       console.error('Error closing manifest:', error);
@@ -280,7 +285,7 @@ export function ManifestBuilderWizard({
       // Allow portals to cleanup before closing main dialog
       setTimeout(() => {
         onOpenChange(false);
-      }, 150);
+      }, PORTAL_CLEANUP_DELAY_MS);
     }
   };
 
@@ -292,7 +297,7 @@ export function ManifestBuilderWizard({
     // Allow AlertDialog portal to cleanup before closing main dialog
     setTimeout(() => {
       onOpenChange(false);
-    }, 150);
+    }, PORTAL_CLEANUP_DELAY_MS);
   };
 
   return (
@@ -316,7 +321,11 @@ export function ManifestBuilderWizard({
           <div className="flex-1 min-h-0 overflow-y-auto bg-background/50">
             <div className="p-4 sm:p-5 md:p-6 lg:p-8">
               {/* Step 1: Manifest Setup - Always mounted, hidden via CSS */}
-              <div className={currentStep === 1 ? 'block' : 'hidden'}>
+              <div
+                className={currentStep === 1 ? 'block' : 'hidden'}
+                aria-hidden={currentStep !== 1}
+                inert={currentStep !== 1 ? true : undefined}
+              >
                 <StepManifestSetup
                   hubs={hubs}
                   data={setupData}
@@ -327,7 +336,11 @@ export function ManifestBuilderWizard({
               </div>
 
               {/* Step 2: Add Shipments - Mounted when manifest exists, hidden via CSS */}
-              <div className={currentStep === 2 ? 'block' : 'hidden'}>
+              <div
+                className={currentStep === 2 ? 'block' : 'hidden'}
+                aria-hidden={currentStep !== 2}
+                inert={currentStep !== 2 ? true : undefined}
+              >
                 {builder.manifest && (
                   <StepAddShipments
                     manifestId={builder.manifest.id}
@@ -348,7 +361,11 @@ export function ManifestBuilderWizard({
               </div>
 
               {/* Step 3: Review & Finalize - Always mounted, hidden via CSS */}
-              <div className={currentStep === 3 ? 'block' : 'hidden'}>
+              <div
+                className={currentStep === 3 ? 'block' : 'hidden'}
+                aria-hidden={currentStep !== 3}
+                inert={currentStep !== 3 ? true : undefined}
+              >
                 <StepReviewFinalize
                   setupData={setupData}
                   shipments={builder.items.map((i) => i.shipment)}
