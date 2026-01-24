@@ -23,10 +23,11 @@ else:
 # SUPABASE CONFIGURATION
 # =============================================================================
 
-# CRITICAL: Replace placeholder URLs with actual Supabase project URL
+# CRITICAL: Set these via environment variables (.env.test or .env.local)
 # The URL format should be: https://<project-id>.supabase.co
-SUPABASE_URL = os.getenv('VITE_SUPABASE_URL', 'https://xkkhxhgkyavxcfgeojww.supabase.co')
-SUPABASE_ANON_KEY = os.getenv('VITE_SUPABASE_ANON_KEY', 'sb_publishable_KI1Xm0_j_Vz-tiQtdoWgyA__1_IPPwq')
+# DO NOT hardcode credentials in source code
+SUPABASE_URL = os.getenv('VITE_SUPABASE_URL', '')
+SUPABASE_ANON_KEY = os.getenv('VITE_SUPABASE_ANON_KEY', '')
 SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY', '')
 
 # Validate configuration

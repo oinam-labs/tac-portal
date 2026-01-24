@@ -12,7 +12,7 @@
  */
 
 import { readFileSync, readdirSync, statSync } from 'fs';
-import { join, relative } from 'path';
+import { join, relative, normalize, resolve, sep } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -55,8 +55,24 @@ function shouldIgnore(filePath) {
     return IGNORE_PATTERNS.some((pattern) => pattern.test(filePath));
 }
 
+/**
+ * Security: Validate that a path stays within the expected base directory
+ * to prevent path traversal attacks.
+ */
+function isPathWithinBase(targetPath, baseDir) {
+    const normalizedTarget = normalize(resolve(targetPath));
+    const normalizedBase = normalize(resolve(baseDir));
+    return normalizedTarget.startsWith(normalizedBase + sep) || normalizedTarget === normalizedBase;
+}
+
 function scanFile(filePath) {
     if (shouldIgnore(filePath)) return;
+
+    // Security: Validate path is within ROOT_DIR to prevent path traversal
+    if (!isPathWithinBase(filePath, ROOT_DIR)) {
+        console.error(`Security: Skipping path outside root: ${filePath}`);
+        return;
+    }
 
     try {
         const content = readFileSync(filePath, 'utf-8');
@@ -112,11 +128,30 @@ function scanFile(filePath) {
 }
 
 function scanDirectory(dirPath) {
+    // Security: Validate directory is within ROOT_DIR
+    if (!isPathWithinBase(dirPath, ROOT_DIR)) {
+        console.error(`Security: Skipping directory outside root: ${dirPath}`);
+        return;
+    }
+
     try {
         const entries = readdirSync(dirPath);
 
         entries.forEach((entry) => {
+            // Security: Reject entries with path traversal attempts
+            if (entry.includes('..') || entry.includes('/') || entry.includes('\\')) {
+                console.error(`Security: Skipping invalid entry name: ${entry}`);
+                return;
+            }
+
             const fullPath = join(dirPath, entry);
+
+            // Security: Validate resolved path stays within ROOT_DIR
+            if (!isPathWithinBase(fullPath, ROOT_DIR)) {
+                console.error(`Security: Skipping path outside root: ${fullPath}`);
+                return;
+            }
+
             const stat = statSync(fullPath);
 
             if (stat.isDirectory()) {
@@ -138,7 +173,20 @@ console.log(`   Forbidden: ${FORBIDDEN_CODE}`);
 console.log(`   Valid: ${VALID_CODES.join(', ')}\n`);
 
 SCAN_DIRS.forEach((dir) => {
-    const fullPath = join(ROOT_DIR, dir);
+    // Security: Validate scan directory names
+    if (dir.includes('..') || dir.startsWith('/') || dir.startsWith('\\')) {
+        console.error(`Security: Skipping invalid scan directory: ${dir}`);
+        return;
+    }
+
+    const fullPath = resolve(ROOT_DIR, dir);
+
+    // Security: Verify path stays within ROOT_DIR
+    if (!isPathWithinBase(fullPath, ROOT_DIR)) {
+        console.error(`Security: Skipping directory outside root: ${fullPath}`);
+        return;
+    }
+
     console.log(`   Scanning ${dir}/`);
     scanDirectory(fullPath);
 });

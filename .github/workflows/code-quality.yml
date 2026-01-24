@@ -128,7 +128,7 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     # Skip E2E tests if Supabase environment is not configured
-    if: vars.VITE_SUPABASE_URL != ''
+    if: ${{ vars.VITE_SUPABASE_URL != '' && vars.VITE_SUPABASE_ANON_KEY != '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -179,8 +179,8 @@ jobs:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
           # Test credentials for E2E tests (non-sensitive test account)
-          E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL || 'tapancargo@gmail.com' }}
-          E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD || 'Test@1498' }}
+          E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
+          E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
 
       - name: Upload test results
         uses: actions/upload-artifact@v6

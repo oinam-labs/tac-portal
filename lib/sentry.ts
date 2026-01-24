@@ -37,11 +37,11 @@ export const initSentry = () => {
     // In production, this should point to a server-side tunnel endpoint
     // https://docs.sentry.io/platforms/javascript/troubleshooting/#using-the-tunnel-option
     ...(import.meta.env.DEV &&
-      {
-        // In dev mode, we'll just let errors through - CORS errors are expected
-        // and don't affect functionality. The browser's privacy protection
-        // blocks direct Sentry requests but errors are still captured locally.
-      }),
+    {
+      // In dev mode, we'll just let errors through - CORS errors are expected
+      // and don't affect functionality. The browser's privacy protection
+      // blocks direct Sentry requests but errors are still captured locally.
+    }),
 
     // Send default PII (IP addresses, user agent)
     // https://docs.sentry.io/platforms/javascript/guides/react/configuration/options/#sendDefaultPii
@@ -63,9 +63,13 @@ export const initSentry = () => {
       }),
 
       // Console logging integration - captures console.log/warn/error as Sentry logs
-      Sentry.consoleLoggingIntegration({
-        levels: ['log', 'warn', 'error'],
-      }),
+      ...(import.meta.env.DEV
+        ? []
+        : [
+          Sentry.consoleLoggingIntegration({
+            levels: ['log', 'warn', 'error'],
+          }),
+        ]),
 
       // User Feedback widget (optional - users can report issues)
       Sentry.feedbackIntegration({
@@ -103,7 +107,7 @@ export const initSentry = () => {
 
       // Filter out non-critical errors
       if (event.exception) {
-        const error = hint.originalException;
+        const error = hint?.originalException;
 
         // In production, filter out test errors from SentryTestButton
         if (import.meta.env.PROD && error instanceof Error) {
@@ -117,8 +121,18 @@ export const initSentry = () => {
         }
 
         // Ignore network errors in development
-        if (import.meta.env.DEV && error instanceof Error) {
-          if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+        if (import.meta.env.DEV) {
+          const errorMessage =
+            error instanceof Error ? error.message : typeof error === 'string' ? error : '';
+          const exceptionMessage = event.exception.values?.[0]?.value ?? event.message ?? '';
+          const message = (errorMessage || exceptionMessage).toLowerCase();
+
+          if (
+            message.includes('networkerror') ||
+            message.includes('failed to fetch') ||
+            message.includes('load failed') ||
+            message.includes('network request failed')
+          ) {
             return null;
           }
         }
@@ -160,11 +174,13 @@ export const initSentry = () => {
 
   // Send verification test log using Sentry.logger (official API)
   // This confirms logs are being sent to Sentry
-  Sentry.logger.info('Sentry initialized successfully', {
-    log_source: 'sentry_init',
-    environment,
-    timestamp: new Date().toISOString(),
-  });
+  if (import.meta.env.PROD) {
+    Sentry.logger.info('Sentry initialized successfully', {
+      log_source: 'sentry_init',
+      environment,
+      timestamp: new Date().toISOString(),
+    });
+  }
 
   // Test log sent via Sentry.logger above
 };

@@ -24,7 +24,7 @@ Sentry has been integrated into the TAC Portal for comprehensive error tracking,
 - Sensitive inputs masked automatically
 
 ### ✅ Logging
-- Console integration (log, warn, error)
+- Console integration (log, warn, error) (production only; disabled in development to reduce console noise)
 - Structured logging with `logger` API
 - Log levels: trace, debug, info, warn, error, fatal
 

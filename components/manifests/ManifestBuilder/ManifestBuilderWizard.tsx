@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { flushSync } from 'react-dom';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -47,6 +46,11 @@ const WIZARD_STEPS = [
   { id: 2, name: 'Add Shipments' },
   { id: 3, name: 'Review & Finalize' },
 ];
+
+// Delay to allow React batched updates and portal unmounting to complete
+// before closing the main dialog. Should stay in sync with dialog/portal
+// exit animation durations.
+const PORTAL_CLEANUP_DELAY_MS = 150;
 
 function combineDateTimeWithPeriod(
   date: Date,
@@ -144,9 +148,16 @@ export function ManifestBuilderWizard({
     },
   });
 
-  // Reset when opening
+  // Track previous open state for detecting close transition
+  const prevOpenRef = React.useRef(open);
+
+  // Reset when opening/closing
   React.useEffect(() => {
-    if (open) {
+    const wasOpen = prevOpenRef.current;
+    prevOpenRef.current = open;
+
+    if (open && !wasOpen) {
+      // Dialog opening - reset state immediately
       if (initialManifestId) {
         setCurrentStep(2);
         // TODO: Load manifest data into setupData if editing existing
@@ -161,6 +172,12 @@ export function ManifestBuilderWizard({
           excludeCod: false,
         });
       }
+    } else if (!open && wasOpen) {
+      // Dialog closing - delay step reset until after portal cleanup
+      queueMicrotask(() => {
+        setCurrentStep(1);
+        setCreatedManifestId(null);
+      });
     }
   }, [open, initialManifestId]);
 
@@ -241,16 +258,14 @@ export function ManifestBuilderWizard({
     try {
       await builder.updateStatus(status);
       toast.success('Manifest closed successfully!');
-      // Use flushSync to ensure state updates complete
-      flushSync(() => {
-        setShowCloseConfirm(false);
-        setIsSaving(false);
-      });
-      // Delay closing to allow AlertDialog portal cleanup
+      // Close confirmation dialog first
+      setShowCloseConfirm(false);
+      setIsSaving(false);
+      // Allow React to batch updates and portals to cleanup before closing main dialog
       setTimeout(() => {
         onOpenChange(false);
         onComplete?.(builder.manifest!.id);
-      }, 50);
+      }, PORTAL_CLEANUP_DELAY_MS);
     } catch (error) {
       toast.error('Failed to close manifest');
       console.error('Error closing manifest:', error);
@@ -264,33 +279,30 @@ export function ManifestBuilderWizard({
     } else {
       // Close any open Select/Popover portals first
       await closeNestedPortals();
-      // Use flushSync to ensure cleanup completes
-      flushSync(() => {
-        setShowCloseConfirm(false);
-        setShowCancelConfirm(false);
-      });
+      // Reset dialog states
+      setShowCloseConfirm(false);
+      setShowCancelConfirm(false);
+      // Allow portals to cleanup before closing main dialog
       setTimeout(() => {
         onOpenChange(false);
-      }, 50);
+      }, PORTAL_CLEANUP_DELAY_MS);
     }
   };
 
   const confirmCancel = async () => {
     // Close any open Select/Popover portals first
     await closeNestedPortals();
-    // Use flushSync to ensure state updates complete before unmounting
-    flushSync(() => {
-      setShowCancelConfirm(false);
-    });
-    // Small delay to allow AlertDialog portal to cleanup
+    // Reset cancel confirmation state
+    setShowCancelConfirm(false);
+    // Allow AlertDialog portal to cleanup before closing main dialog
     setTimeout(() => {
       onOpenChange(false);
-    }, 50);
+    }, PORTAL_CLEANUP_DELAY_MS);
   };
 
   return (
-    <>
-      <Dialog key={open ? 'open' : 'closed'} open={open} onOpenChange={handleCancel}>
+    <TooltipProvider>
+      <Dialog open={open} onOpenChange={handleCancel}>
         <DialogContent className="w-[100vw] h-[100dvh] md:w-[min(1200px,92vw)] md:h-[min(88vh,900px)] md:max-h-[90vh] lg:w-[min(1320px,88vw)] md:rounded-lg rounded-none flex flex-col gap-0 p-0 max-w-none overflow-hidden">
           {/* Header */}
           <DialogHeader className="px-6 py-4 border-b border-border text-left">
@@ -305,10 +317,15 @@ export function ManifestBuilderWizard({
             <WizardStepper steps={WIZARD_STEPS} currentStep={currentStep} />
           </div>
 
-          {/* Content */}
+          {/* Content - Use CSS visibility instead of conditional rendering to prevent portal destruction */}
           <div className="flex-1 min-h-0 overflow-y-auto bg-background/50">
             <div className="p-4 sm:p-5 md:p-6 lg:p-8">
-              {currentStep === 1 && (
+              {/* Step 1: Manifest Setup - Always mounted, hidden via CSS */}
+              <div
+                className={currentStep === 1 ? 'block' : 'hidden'}
+                aria-hidden={currentStep !== 1}
+                inert={currentStep !== 1 ? true : undefined}
+              >
                 <StepManifestSetup
                   hubs={hubs}
                   data={setupData}
@@ -316,31 +333,45 @@ export function ManifestBuilderWizard({
                   isValid={isStep1Valid}
                   onValidationChange={setIsStep1Valid}
                 />
-              )}
-              {currentStep === 2 && builder.manifest && (
-                <StepAddShipments
-                  manifestId={builder.manifest.id}
-                  staffId={currentStaff?.id}
-                  rules={{
-                    onlyReady: setupData.onlyReady,
-                    matchDestination: setupData.matchDestination,
-                    excludeCod: setupData.excludeCod,
-                  }}
-                  items={builder.items}
-                  isLoading={builder.isLoading}
-                  isEditable={builder.isEditable}
-                  onItemsChanged={builder.refetch}
-                  onRemove={(shipmentId) => builder.removeShipment(shipmentId, currentStaff?.id)}
-                  onViewShipment={(shipmentId) => navigate(`/shipments/${shipmentId}`)}
-                />
-              )}
-              {currentStep === 3 && (
+              </div>
+
+              {/* Step 2: Add Shipments - Mounted when manifest exists, hidden via CSS */}
+              <div
+                className={currentStep === 2 ? 'block' : 'hidden'}
+                aria-hidden={currentStep !== 2}
+                inert={currentStep !== 2 ? true : undefined}
+              >
+                {builder.manifest && (
+                  <StepAddShipments
+                    manifestId={builder.manifest.id}
+                    staffId={currentStaff?.id}
+                    rules={{
+                      onlyReady: setupData.onlyReady,
+                      matchDestination: setupData.matchDestination,
+                      excludeCod: setupData.excludeCod,
+                    }}
+                    items={builder.items}
+                    isLoading={builder.isLoading}
+                    isEditable={builder.isEditable}
+                    onItemsChanged={builder.refetch}
+                    onRemove={(shipmentId) => builder.removeShipment(shipmentId, currentStaff?.id)}
+                    onViewShipment={(shipmentId) => navigate(`/shipments/${shipmentId}`)}
+                  />
+                )}
+              </div>
+
+              {/* Step 3: Review & Finalize - Always mounted, hidden via CSS */}
+              <div
+                className={currentStep === 3 ? 'block' : 'hidden'}
+                aria-hidden={currentStep !== 3}
+                inert={currentStep !== 3 ? true : undefined}
+              >
                 <StepReviewFinalize
                   setupData={setupData}
                   shipments={builder.items.map((i) => i.shipment)}
                   hubs={hubs}
                 />
-              )}
+              </div>
             </div>
           </div>
 
@@ -361,43 +392,41 @@ export function ManifestBuilderWizard({
                 )}
 
                 {currentStep < 3 ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span tabIndex={0}>
-                          {' '}
-                          {/* Span needed for disabled button tooltip */}
-                          <Button
-                            onClick={handleNext}
-                            disabled={
-                              (currentStep === 1 && (!isStep1Valid || builder.isCreating)) ||
-                              (currentStep === 2 && builder.items.length === 0)
-                            }
-                          >
-                            {builder.isCreating ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Creating...
-                              </>
-                            ) : (
-                              <>
-                                Next
-                                <ArrowRight className="h-4 w-4 ml-2" />
-                              </>
-                            )}
-                          </Button>
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {currentStep === 1 && !isStep1Valid && (
-                          <p>Please fill all required fields correctly</p>
-                        )}
-                        {currentStep === 2 && builder.items.length === 0 && (
-                          <p>Add at least one shipment to proceed</p>
-                        )}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span tabIndex={0}>
+                        {' '}
+                        {/* Span needed for disabled button tooltip */}
+                        <Button
+                          onClick={handleNext}
+                          disabled={
+                            (currentStep === 1 && (!isStep1Valid || builder.isCreating)) ||
+                            (currentStep === 2 && builder.items.length === 0)
+                          }
+                        >
+                          {builder.isCreating ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Creating...
+                            </>
+                          ) : (
+                            <>
+                              Next
+                              <ArrowRight className="h-4 w-4 ml-2" />
+                            </>
+                          )}
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {currentStep === 1 && !isStep1Valid && (
+                        <p>Please fill all required fields correctly</p>
+                      )}
+                      {currentStep === 2 && builder.items.length === 0 && (
+                        <p>Add at least one shipment to proceed</p>
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
                 ) : (
                   <div className="flex items-center gap-2">
                     <Button
@@ -475,6 +504,6 @@ export function ManifestBuilderWizard({
           </AlertDialogContent>
         </AlertDialog>
       )}
-    </>
+    </TooltipProvider>
   );
 }

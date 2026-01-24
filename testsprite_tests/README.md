@@ -17,8 +17,8 @@ This directory contains automated tests generated and executed by TestSprite AI-
 
 | Item | Value |
 |------|-------|
-| **Supabase URL** | `https://xkkhxhgkyavxcfgeojww.supabase.co` |
-| **API Key** | `sb_publishable_KI1Xm0_j_Vz-tiQtdoWgyA__1_IPPwq` |
+| **Supabase URL** | See `VITE_SUPABASE_URL` in `.env.local` |
+| **API Key** | See `VITE_SUPABASE_ANON_KEY` in `.env.local` |
 | **Test Email** | `tapancargo@gmail.com` |
 | **Test Password** | `Test@1498` |
 
