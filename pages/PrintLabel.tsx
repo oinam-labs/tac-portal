@@ -271,8 +271,8 @@ export const PrintLabel: React.FC = () => {
 
         if (!stored && typeof window.name === 'string' && window.name.startsWith('TAC_LABEL:')) {
           stored = window.name.replace('TAC_LABEL:', '');
-          usedStorage = 'sessionStorage';
-          logger.debug('[PrintLabel] window.name payload used');
+          usedStorage = 'window.name' as typeof usedStorage;
+          logger.debug('[PrintLabel] window.name payload used', { storage: usedStorage });
         }
 
         if (!stored) {
