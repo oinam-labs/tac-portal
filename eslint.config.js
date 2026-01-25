@@ -19,6 +19,7 @@ export default tseslint.config(
     {
         ignores: [
             'dist/**',
+            'coverage/**',
             'node_modules/**',
             '*.config.js',
             '*.config.ts',
@@ -73,6 +74,14 @@ export default tseslint.config(
             // Disable base rules that TypeScript handles
             'no-unused-vars': 'off',
             'no-undef': 'off',
+        },
+    },
+
+    // Allow console.log in dev-only scripts and Playwright setup
+    {
+        files: ['scripts/**/*.{js,jsx,ts,tsx}', 'tests/e2e/**/*.ts'],
+        rules: {
+            'no-console': ['warn', { allow: ['log', 'warn', 'error'] }],
         },
     },
 );

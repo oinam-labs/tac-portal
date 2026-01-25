@@ -4,15 +4,23 @@
  */
 
 import { test, expect } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+const runAuthedE2E = process.env.RUN_AUTHED_E2E === 'true';
+const shouldSkipAuth = !!process.env.CI && !process.env.E2E_TEST_EMAIL;
+const authFile = path.resolve(process.cwd(), '.auth/user.json');
+const hasAuthState = fs.existsSync(authFile);
+const shouldSkipAuthedSuites = !runAuthedE2E || shouldSkipAuth || !hasAuthState;
 
 test.describe('Manifest Workflow', () => {
+  test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set E2E_TEST_EMAIL/E2E_TEST_PASSWORD and generate .auth/user.json)');
+  test.use({ storageState: authFile });
   // Tests use stored auth state from setup project - no login needed
 
   test('should create a new manifest', async ({ page }) => {
     // Navigate to manifests page directly
-    await page.goto(`${BASE_URL}/#/manifests`);
+    await page.goto('/#/manifests');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000); // Allow page to fully render
 
@@ -23,7 +31,7 @@ test.describe('Manifest Workflow', () => {
   });
 
   test('should view manifest details', async ({ page }) => {
-    await page.goto(`${BASE_URL}/#/manifests`);
+    await page.goto('/#/manifests');
     await page.waitForLoadState('networkidle');
 
     // Verify manifests page loaded
@@ -33,7 +41,7 @@ test.describe('Manifest Workflow', () => {
   });
 
   test('should close manifest', async ({ page }) => {
-    await page.goto(`${BASE_URL}/#/manifests`, { waitUntil: 'domcontentloaded' });
+    await page.goto('/#/manifests', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000); // Allow SPA to hydrate
 
     // Verify page loaded
@@ -44,10 +52,12 @@ test.describe('Manifest Workflow', () => {
 });
 
 test.describe('Scanning Workflow', () => {
+  test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set E2E_TEST_EMAIL/E2E_TEST_PASSWORD and generate .auth/user.json)');
+  test.use({ storageState: authFile });
   // Tests use stored auth state from setup project - no login needed
 
   test('should load scanning page', async ({ page }) => {
-    await page.goto(`${BASE_URL}/#/scanning`, { waitUntil: 'domcontentloaded' });
+    await page.goto('/#/scanning', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000); // Allow SPA to hydrate
 
     // Verify page loaded
@@ -55,7 +65,7 @@ test.describe('Scanning Workflow', () => {
   });
 
   test('should switch scan modes', async ({ page }) => {
-    await page.goto(`${BASE_URL}/#/scanning`);
+    await page.goto('/#/scanning');
     await page.waitForLoadState('networkidle');
 
     // Verify scanning page loaded
@@ -65,7 +75,7 @@ test.describe('Scanning Workflow', () => {
   });
 
   test('should handle manual AWB entry', async ({ page }) => {
-    await page.goto(`${BASE_URL}/#/scanning`);
+    await page.goto('/#/scanning');
     await page.waitForLoadState('networkidle');
 
     // Verify scanning page loaded

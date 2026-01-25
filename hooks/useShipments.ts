@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 import type { Json } from '../lib/database.types';
 import { getOrCreateDefaultOrg } from '../lib/org-helper';
+import { useAuthStore } from '../store/authStore';
+import { logger } from '../lib/logger';
 
 // Direct supabase usage - types handled via database.types.ts
 
@@ -13,7 +15,7 @@ import { getOrCreateDefaultOrg } from '../lib/org-helper';
 export const shipmentKeys = {
   all: ['shipments'] as const,
   lists: () => [...shipmentKeys.all, 'list'] as const,
-  list: (filters?: { limit?: number; status?: string }) =>
+  list: (filters?: { limit?: number; status?: string; orgId?: string }) =>
     [...shipmentKeys.lists(), filters] as const,
   details: () => [...shipmentKeys.all, 'detail'] as const,
   detail: (id: string) => [...shipmentKeys.details(), id] as const,
@@ -48,8 +50,10 @@ export interface ShipmentWithRelations {
 }
 
 export function useShipments(options?: { limit?: number; status?: string }) {
+  const orgId = useAuthStore((s) => s.user?.orgId);
+
   return useQuery({
-    queryKey: ['shipments', options],
+    queryKey: shipmentKeys.list({ ...options, orgId }),
     queryFn: async () => {
       let query = supabase
         .from('shipments')
@@ -63,6 +67,10 @@ export function useShipments(options?: { limit?: number; status?: string }) {
         )
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
+
+      if (orgId) {
+        query = query.eq('org_id', orgId);
+      }
 
       if (options?.status) {
         query = query.eq('status', options.status);
@@ -123,24 +131,23 @@ interface CreateShipmentInput {
 
 export function useCreateShipment() {
   const queryClient = useQueryClient();
+  const staffUser = useAuthStore((s) => s.user);
 
   return useMutation({
     mutationFn: async (shipment: CreateShipmentInput) => {
-      const orgId = await getOrCreateDefaultOrg();
-
-      // Generate AWB number - fallback if function doesn't exist
-      let awbNumber = `TAC${new Date().getFullYear()}${String(Date.now()).slice(-6)}`;
-      try {
-        const { data: awbResult } = await supabase.rpc('generate_awb_number', { p_org_id: orgId });
-        if (awbResult) awbNumber = awbResult as string;
-      } catch {
-        // AWB generation function not available, using fallback
+      const orgId = staffUser?.orgId || (await getOrCreateDefaultOrg());
+      const { data: awbResult, error: awbError } = await supabase.rpc('generate_awb_number', {
+        p_org_id: orgId,
+      });
+      if (awbError) throw awbError;
+      if (typeof awbResult !== 'string' || !awbResult) {
+        throw new Error('AWB service unavailable');
       }
 
       const insertPayload = {
         ...shipment,
         org_id: orgId,
-        awb_number: awbNumber,
+        awb_number: awbResult,
         status: 'CREATED' as const,
       };
 
@@ -158,7 +165,16 @@ export function useCreateShipment() {
       toast.success(`Shipment ${data.awb_number} created successfully`);
     },
     onError: (error: Error) => {
-      toast.error(`Failed to create shipment: ${error.message}`);
+      logger.error('Shipment create failed', {
+        env: import.meta.env.MODE,
+        org_id: staffUser?.orgId || null,
+        user_id: staffUser?.id || null,
+        auth_user_id: staffUser?.authUserId || null,
+        error: error.message,
+      });
+      toast.error('Unable to create shipment', {
+        description: error.message,
+      });
     },
   });
 }

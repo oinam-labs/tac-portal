@@ -81,12 +81,12 @@ export function StepAddShipments({
   const getResultIcon = (result: ScanResponse | null) => {
     if (!result) return null;
     if (result.success && !result.duplicate) {
-      return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+      return <CheckCircle2 className="h-5 w-5 text-status-success" />;
     }
     if (result.duplicate) {
-      return <AlertCircle className="h-5 w-5 text-amber-500" />;
+      return <AlertCircle className="h-5 w-5 text-status-warning" />;
     }
-    return <XCircle className="h-5 w-5 text-red-500" />;
+    return <XCircle className="h-5 w-5 text-status-error" />;
   };
 
   const totalWeight = items.reduce((sum, item) => sum + (item.shipment?.total_weight || 0), 0);
@@ -197,9 +197,9 @@ export function StepAddShipments({
               'border transition-colors shrink-0',
               scanner.lastResult.success &&
                 !scanner.lastResult.duplicate &&
-                'border-green-500/50 bg-green-500/10',
-              scanner.lastResult.duplicate && 'border-amber-500/50 bg-amber-500/10',
-              !scanner.lastResult.success && 'border-red-500/50 bg-red-500/10'
+                'border-status-success/50 bg-status-success/10',
+              scanner.lastResult.duplicate && 'border-status-warning/50 bg-status-warning/10',
+              !scanner.lastResult.success && 'border-status-error/50 bg-status-error/10'
             )}
           >
             <CardContent className="p-4">
@@ -211,9 +211,9 @@ export function StepAddShipments({
                       'text-sm font-medium',
                       scanner.lastResult.success &&
                         !scanner.lastResult.duplicate &&
-                        'text-green-700 dark:text-green-400',
-                      scanner.lastResult.duplicate && 'text-amber-700 dark:text-amber-400',
-                      !scanner.lastResult.success && 'text-red-700 dark:text-red-400'
+                        'text-status-success',
+                      scanner.lastResult.duplicate && 'text-status-warning',
+                      !scanner.lastResult.success && 'text-status-error'
                     )}
                   >
                     {scanner.lastResult.message}
@@ -252,13 +252,13 @@ export function StepAddShipments({
           </Card>
           <Card className="border-border bg-card/50">
             <CardContent className="p-3 text-center">
-              <p className="text-2xl font-bold text-amber-500">{scanner.duplicateCount}</p>
+              <p className="text-2xl font-bold text-status-warning">{scanner.duplicateCount}</p>
               <p className="text-xs text-muted-foreground">Dups</p>
             </CardContent>
           </Card>
           <Card className="border-border bg-card/50">
             <CardContent className="p-3 text-center">
-              <p className="text-2xl font-bold text-destructive">{scanner.errorCount}</p>
+              <p className="text-2xl font-bold text-status-error">{scanner.errorCount}</p>
               <p className="text-xs text-muted-foreground">Errors</p>
             </CardContent>
           </Card>

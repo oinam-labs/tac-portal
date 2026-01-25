@@ -38,17 +38,17 @@ const EVENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> =
  * These reference CSS custom properties for consistent theming
  */
 const EVENT_COLORS: Record<string, string> = {
-  CREATED: 'bg-[oklch(var(--status-created-bg))]',
-  PICKUP_SCHEDULED: 'bg-[oklch(var(--status-created-bg))]',
-  PICKED_UP: 'bg-[oklch(var(--status-manifested-bg))]',
-  RECEIVED_AT_ORIGIN: 'bg-[oklch(var(--status-manifested-bg))]',
-  IN_TRANSIT: 'bg-[oklch(var(--status-in-transit-bg))]',
-  RECEIVED_AT_DEST: 'bg-[oklch(var(--status-arrived-bg))]',
-  OUT_FOR_DELIVERY: 'bg-[oklch(var(--status-in-transit-bg))]',
-  DELIVERED: 'bg-[oklch(var(--status-delivered-bg))]',
-  CANCELLED: 'bg-[oklch(var(--status-exception-bg))]',
-  RTO: 'bg-[oklch(var(--status-exception-bg))]',
-  EXCEPTION: 'bg-[oklch(var(--status-exception-bg))]',
+  CREATED: 'bg-status-created',
+  PICKUP_SCHEDULED: 'bg-status-created',
+  PICKED_UP: 'bg-status-manifested',
+  RECEIVED_AT_ORIGIN: 'bg-status-manifested',
+  IN_TRANSIT: 'bg-status-in-transit',
+  RECEIVED_AT_DEST: 'bg-status-arrived',
+  OUT_FOR_DELIVERY: 'bg-status-in-transit',
+  DELIVERED: 'bg-status-delivered',
+  CANCELLED: 'bg-status-exception',
+  RTO: 'bg-status-exception',
+  EXCEPTION: 'bg-status-exception',
   DEFAULT: 'bg-muted',
 };
 

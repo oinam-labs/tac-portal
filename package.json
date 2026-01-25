@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "audit:hub-codes": "node scripts/audit-hub-codes.js",
+    "guard:no-mock-data": "node scripts/no-mock-data-guard.mjs",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",

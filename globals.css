@@ -41,6 +41,30 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-bg-app: var(--bg-app);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-muted: var(--bg-muted);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-status-success: oklch(var(--status-success));
+  --color-status-warning: oklch(var(--status-warning));
+  --color-status-error: oklch(var(--status-error));
+  --color-status-info: oklch(var(--status-info));
+  --color-status-neutral: oklch(var(--status-neutral));
+  --color-status-created: oklch(var(--status-created));
+  --color-status-manifested: oklch(var(--status-manifested));
+  --color-status-in-transit: oklch(var(--status-in-transit));
+  --color-status-arrived: oklch(var(--status-arrived));
+  --color-status-delivered: oklch(var(--status-delivered));
+  --color-status-cancelled: oklch(var(--status-cancelled));
+  --color-status-returned: oklch(var(--status-returned));
+  --color-status-exception: oklch(var(--status-exception));
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -92,6 +116,46 @@
   --shadow-lg: 0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1);
   --shadow-xl: 0px 20px 25px -5px rgba(0, 0, 0, 0.1), 0px 8px 10px -6px rgba(0, 0, 0, 0.1);
   --shadow-2xl: 0px 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --bg-app: var(--background);
+  --bg-surface: var(--card);
+  --bg-muted: var(--muted);
+  --border-subtle: var(--border);
+  --border-strong: oklch(0.78 0.04 286);
+  --text-primary: var(--foreground);
+  --text-secondary: var(--muted-foreground);
+  --text-muted: var(--muted-foreground);
+  --accent-primary: var(--primary);
+  --accent-hover: var(--ring);
+  --accent-soft: var(--accent);
+  --status-created: 0.72 0.1 235;
+  --status-manifested: 0.7 0.11 225;
+  --status-in-transit: 0.78 0.14 85;
+  --status-arrived: 0.73 0.13 175;
+  --status-delivered: 0.7 0.17 145;
+  --status-cancelled: 0.64 0.17 28;
+  --status-returned: 0.62 0.16 20;
+  --status-exception: 0.64 0.19 25;
+  --status-success: var(--status-delivered);
+  --status-warning: var(--status-in-transit);
+  --status-error: var(--status-exception);
+  --status-info: var(--status-created);
+  --status-neutral: 0.62 0.02 260;
+  --status-created-bg: var(--status-created);
+  --status-created-fg: var(--status-created);
+  --status-manifested-bg: var(--status-manifested);
+  --status-manifested-fg: var(--status-manifested);
+  --status-in-transit-bg: var(--status-in-transit);
+  --status-in-transit-fg: var(--status-in-transit);
+  --status-arrived-bg: var(--status-arrived);
+  --status-arrived-fg: var(--status-arrived);
+  --status-delivered-bg: var(--status-delivered);
+  --status-delivered-fg: var(--status-delivered);
+  --status-cancelled-bg: var(--status-cancelled);
+  --status-cancelled-fg: var(--status-cancelled);
+  --status-returned-bg: var(--status-returned);
+  --status-returned-fg: var(--status-returned);
+  --status-exception-bg: var(--status-exception);
+  --status-exception-fg: var(--status-exception);
 }
 
 .dark {
@@ -136,6 +200,46 @@
   --shadow-lg: 0px 4px 10px 0px hsl(240 30% 25% / 0.12), 0px 4px 6px -1px hsl(240 30% 25% / 0.12);
   --shadow-xl: 0px 4px 10px 0px hsl(240 30% 25% / 0.12), 0px 8px 10px -1px hsl(240 30% 25% / 0.12);
   --shadow-2xl: 0px 4px 10px 0px hsl(240 30% 25% / 0.3);
+  --bg-app: var(--background);
+  --bg-surface: var(--card);
+  --bg-muted: var(--muted);
+  --border-subtle: var(--border);
+  --border-strong: oklch(0.5 0.06 285);
+  --text-primary: var(--foreground);
+  --text-secondary: var(--muted-foreground);
+  --text-muted: var(--muted-foreground);
+  --accent-primary: var(--primary);
+  --accent-hover: var(--ring);
+  --accent-soft: var(--accent);
+  --status-created: 0.72 0.1 235;
+  --status-manifested: 0.7 0.11 225;
+  --status-in-transit: 0.78 0.14 85;
+  --status-arrived: 0.73 0.13 175;
+  --status-delivered: 0.7 0.17 145;
+  --status-cancelled: 0.64 0.17 28;
+  --status-returned: 0.62 0.16 20;
+  --status-exception: 0.64 0.19 25;
+  --status-success: var(--status-delivered);
+  --status-warning: var(--status-in-transit);
+  --status-error: var(--status-exception);
+  --status-info: var(--status-created);
+  --status-neutral: 0.62 0.02 260;
+  --status-created-bg: var(--status-created);
+  --status-created-fg: var(--status-created);
+  --status-manifested-bg: var(--status-manifested);
+  --status-manifested-fg: var(--status-manifested);
+  --status-in-transit-bg: var(--status-in-transit);
+  --status-in-transit-fg: var(--status-in-transit);
+  --status-arrived-bg: var(--status-arrived);
+  --status-arrived-fg: var(--status-arrived);
+  --status-delivered-bg: var(--status-delivered);
+  --status-delivered-fg: var(--status-delivered);
+  --status-cancelled-bg: var(--status-cancelled);
+  --status-cancelled-fg: var(--status-cancelled);
+  --status-returned-bg: var(--status-returned);
+  --status-returned-fg: var(--status-returned);
+  --status-exception-bg: var(--status-exception);
+  --status-exception-fg: var(--status-exception);
 }
 
 @layer base {
@@ -145,6 +249,70 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .badge--created {
+    background-color: oklch(var(--status-created) / 0.15);
+    color: oklch(var(--status-created));
+    border: 1px solid oklch(var(--status-created) / 0.35);
+  }
+
+  .badge--manifested {
+    background-color: oklch(var(--status-manifested) / 0.15);
+    color: oklch(var(--status-manifested));
+    border: 1px solid oklch(var(--status-manifested) / 0.35);
+  }
+
+  .badge--in-transit {
+    background-color: oklch(var(--status-in-transit) / 0.15);
+    color: oklch(var(--status-in-transit));
+    border: 1px solid oklch(var(--status-in-transit) / 0.35);
+  }
+
+  .badge--arrived {
+    background-color: oklch(var(--status-arrived) / 0.15);
+    color: oklch(var(--status-arrived));
+    border: 1px solid oklch(var(--status-arrived) / 0.35);
+  }
+
+  .badge--delivered {
+    background-color: oklch(var(--status-delivered) / 0.15);
+    color: oklch(var(--status-delivered));
+    border: 1px solid oklch(var(--status-delivered) / 0.35);
+  }
+
+  .badge--cancelled {
+    background-color: oklch(var(--status-cancelled) / 0.15);
+    color: oklch(var(--status-cancelled));
+    border: 1px solid oklch(var(--status-cancelled) / 0.35);
+  }
+
+  .badge--returned {
+    background-color: oklch(var(--status-returned) / 0.15);
+    color: oklch(var(--status-returned));
+    border: 1px solid oklch(var(--status-returned) / 0.35);
+  }
+
+  .badge--exception {
+    background-color: oklch(var(--status-exception) / 0.15);
+    color: oklch(var(--status-exception));
+    border: 1px solid oklch(var(--status-exception) / 0.35);
+  }
+
+  .tracking-map-pattern {
+    background-image: radial-gradient(circle at 50% 50%, var(--border-subtle) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .tracking-route-gradient {
+    background-image: linear-gradient(
+      90deg,
+      oklch(var(--status-info)),
+      oklch(var(--status-warning)),
+      oklch(var(--status-success))
+    );
   }
 }
 
@@ -159,9 +327,9 @@
   --color-cyber-neon: var(--primary);
   --color-cyber-purple: var(--chart-5);
   --color-cyber-border: var(--border);
-  --color-cyber-success: oklch(0.7 0.17 145);
-  --color-cyber-warning: oklch(0.75 0.15 75);
-  --color-cyber-danger: var(--destructive);
+  --color-cyber-success: oklch(var(--status-success));
+  --color-cyber-warning: oklch(var(--status-warning));
+  --color-cyber-danger: oklch(var(--status-error));
 }
 
 /* Custom scrollbar */

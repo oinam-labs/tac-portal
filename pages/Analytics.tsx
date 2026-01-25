@@ -20,25 +20,13 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import { useStore } from '../store';
 import { useShipments } from '../hooks/useShipments';
 import { useExceptions } from '../hooks/useExceptions';
 import { format, subMonths, isSameMonth } from 'date-fns';
 import { Package, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
-
-// Chart colors
-const COLORS = {
-  primary: '#22d3ee',
-  secondary: '#c084fc',
-  success: '#10b981',
-  warning: '#facc15',
-  danger: '#f97316',
-};
+import { CHART_COLORS } from '../lib/design-tokens';
 
 export const Analytics: React.FC = () => {
-  const { theme } = useStore();
-  const isDark = theme === 'dark';
-
   // Use Supabase hooks instead of mock-db
   const { data: shipments = [] } = useShipments();
   const { data: exceptions = [] } = useExceptions();
@@ -55,17 +43,13 @@ export const Analytics: React.FC = () => {
       const monthShipments = shipments.filter((s) =>
         isSameMonth(new Date(s.created_at), month.date)
       );
-      const outbound = monthShipments.length * 100 + Math.floor(Math.random() * 50);
-      const inbound =
-        monthShipments.filter((s) => ['DELIVERED', 'RECEIVED_AT_DEST_HUB'].includes(s.status))
-          .length *
-          100 +
-        Math.floor(Math.random() * 50);
+      const outbound = monthShipments.length;
+      const inbound = monthShipments.filter((s) => ['DELIVERED', 'RECEIVED_AT_DEST_HUB'].includes(s.status)).length;
 
       return {
         month: month.label,
-        outbound: outbound || 100,
-        inbound: inbound || 80,
+        outbound,
+        inbound,
       };
     });
 
@@ -81,12 +65,12 @@ export const Analytics: React.FC = () => {
     const withException = exceptions.length;
 
     const eData = [
-      { name: 'Delivered', value: delivered || 15, key: 'delivered' },
-      { name: 'Delayed', value: delayed || 3, key: 'delayed' },
-      { name: 'Exceptions', value: withException || 2, key: 'exceptions' },
+      { name: 'Delivered', value: delivered, key: 'delivered' },
+      { name: 'Delayed', value: delayed, key: 'delayed' },
+      { name: 'Exceptions', value: withException, key: 'exceptions' },
       {
         name: 'On Track',
-        value: Math.max(0, total - delivered - delayed - withException) || 8,
+        value: Math.max(0, total - delivered - delayed - withException),
         key: 'onTrack',
       },
     ];
@@ -96,9 +80,9 @@ export const Analytics: React.FC = () => {
 
   // Tooltip styles
   const tooltipStyle = {
-    backgroundColor: isDark ? '#0f172a' : '#ffffff',
-    borderColor: isDark ? '#1e293b' : '#e2e8f0',
-    color: isDark ? '#f8fafc' : '#0f172a',
+    backgroundColor: 'var(--popover)',
+    borderColor: 'var(--border)',
+    color: 'var(--popover-foreground)',
     borderRadius: '8px',
   };
 
@@ -122,30 +106,30 @@ export const Analytics: React.FC = () => {
                 <AreaChart data={volumeData} margin={{ left: 12, right: 12 }}>
                   <defs>
                     <linearGradient id="colorInbound" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.8} />
-                      <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0} />
+                      <stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.8} />
+                      <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="colorOutbound" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={COLORS.secondary} stopOpacity={0.8} />
-                      <stop offset="95%" stopColor={COLORS.secondary} stopOpacity={0} />
+                      <stop offset="5%" stopColor={CHART_COLORS.secondary} stopOpacity={0.8} />
+                      <stop offset="95%" stopColor={CHART_COLORS.secondary} stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid
                     vertical={false}
                     strokeDasharray="3 3"
-                    stroke={isDark ? 'rgba(100,116,139,0.2)' : 'rgba(148,163,184,0.3)'}
+                    stroke="var(--border)"
                   />
                   <XAxis
                     dataKey="month"
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}
-                    tick={{ fill: '#64748b', fontSize: 12 }}
+                    tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
                   />
                   <YAxis
                     tickLine={false}
                     axisLine={false}
-                    tick={{ fill: '#64748b', fontSize: 12 }}
+                    tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
                   />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Legend />
@@ -154,7 +138,7 @@ export const Analytics: React.FC = () => {
                     name="Inbound (Arrived)"
                     type="monotone"
                     fill="url(#colorInbound)"
-                    stroke={COLORS.primary}
+                    stroke={CHART_COLORS.primary}
                     strokeWidth={2}
                     stackId="a"
                   />
@@ -163,7 +147,7 @@ export const Analytics: React.FC = () => {
                     name="Outbound (Created)"
                     type="monotone"
                     fill="url(#colorOutbound)"
-                    stroke={COLORS.secondary}
+                    stroke={CHART_COLORS.secondary}
                     strokeWidth={2}
                     stackId="a"
                   />
@@ -174,10 +158,6 @@ export const Analytics: React.FC = () => {
           <CardFooter>
             <div className="flex w-full items-start gap-2 text-sm">
               <div className="grid gap-2">
-                <div className="flex items-center gap-2 leading-none font-medium text-foreground">
-                  Trending up by 5.2% this month{' '}
-                  <TrendingUp className="h-4 w-4 text-cyber-success" />
-                </div>
                 <div className="flex items-center gap-2 leading-none text-muted-foreground">
                   {format(subMonths(new Date(), 5), 'MMMM')} - {format(new Date(), 'MMMM yyyy')}
                 </div>
@@ -202,25 +182,25 @@ export const Analytics: React.FC = () => {
                   <CartesianGrid
                     vertical={false}
                     strokeDasharray="3 3"
-                    stroke={isDark ? 'rgba(100,116,139,0.2)' : 'rgba(148,163,184,0.3)'}
+                    stroke="var(--border)"
                   />
                   <XAxis
                     dataKey="name"
                     tickLine={false}
                     tickMargin={10}
                     axisLine={false}
-                    tick={{ fill: '#64748b', fontSize: 12 }}
+                    tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
                   />
                   <YAxis
                     tickLine={false}
                     axisLine={false}
-                    tick={{ fill: '#64748b', fontSize: 12 }}
+                    tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
                   />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Bar
                     dataKey="value"
                     name="Shipments"
-                    fill={COLORS.primary}
+                    fill={CHART_COLORS.primary}
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
@@ -228,9 +208,6 @@ export const Analytics: React.FC = () => {
             </div>
           </CardContent>
           <CardFooter className="flex-col items-start gap-2 text-sm">
-            <div className="flex gap-2 leading-none font-medium text-foreground">
-              Delivery rate up by 8.1% <TrendingUp className="h-4 w-4 text-cyber-success" />
-            </div>
             <div className="leading-none text-muted-foreground">Comparing to previous period</div>
           </CardFooter>
         </Card>
@@ -241,27 +218,21 @@ export const Analytics: React.FC = () => {
           title="Total Volume (6M)"
           value={volumeData.reduce((a, b) => a + b.outbound, 0)}
           icon={<Package className="w-5 h-5" />}
-          change={12}
-          trend="up"
         />
         <KPICard
-          title="SLA Adherence"
-          value="98.2%"
+          title="Delivery Rate"
+          value={shipments.length > 0 ? `${((shipments.filter((s) => s.status === 'DELIVERED').length / shipments.length) * 100).toFixed(1)}%` : '0.0%'}
           icon={<TrendingUp className="w-5 h-5" />}
-          change={2.1}
-          trend="up"
         />
         <KPICard
           title="Delivered"
           value={efficiencyData.find((d) => d.name === 'Delivered')?.value || 0}
           icon={<CheckCircle className="w-5 h-5" />}
-          trend="up"
         />
         <KPICard
           title="Active Exceptions"
           value={efficiencyData.find((d) => d.name === 'Exceptions')?.value || 0}
           icon={<AlertTriangle className="w-5 h-5" />}
-          trend={efficiencyData.find((d) => d.name === 'Exceptions')?.value ? 'down' : 'neutral'}
         />
       </div>
     </div>

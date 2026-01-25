@@ -22,8 +22,8 @@ export function KPICard({
   subtitle,
 }: KPICardProps) {
   const trendColor = {
-    up: 'text-[oklch(var(--status-delivered-fg))]',
-    down: 'text-[oklch(var(--status-exception-fg))]',
+    up: 'text-status-success',
+    down: 'text-status-error',
     neutral: 'text-muted-foreground',
   }[trend];
 

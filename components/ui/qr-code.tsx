@@ -7,12 +7,23 @@ import { useEffect, useState } from 'react';
 // Mock useTheme if not available, or use a context.
 // For now, simple mock or assume light/dark from class.
 const useTheme = () => {
-  // This is a simplification. Ideally import from your theme provider.
-  // If you have a custom theme hook, use it.
-  // Assuming 'dark' class on html element is the source of truth for now,
-  // but this hook needs to be reactive.
-  // For this port, we'll default to 'dark' heavy since it's a cyber theme.
-  return { resolvedTheme: 'dark' };
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const compute = () => {
+      setResolvedTheme(root.classList.contains('dark') ? 'dark' : 'light');
+    };
+
+    compute();
+
+    const observer = new MutationObserver(() => compute());
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+
+    return () => observer.disconnect();
+  }, []);
+
+  return { resolvedTheme };
 };
 
 interface ThemeAwareQRCodeProps {
@@ -49,11 +60,15 @@ export function ThemeAwareQRCode({
       return { bg: '#ffffff', fg: '#0a0a0a' };
     }
 
-    // Hardcoded cyber colors for now to match the design aesthetics
-    if (resolvedTheme === 'dark') {
-      return { bg: '#0a0a0a', fg: '#fafafa' };
-    }
-    return { bg: '#ffffff', fg: '#0a0a0a' };
+    const styles = getComputedStyle(document.documentElement);
+    const bgVar = resolvedTheme === 'dark' ? '--background' : '--background';
+    const fgVar = resolvedTheme === 'dark' ? '--foreground' : '--foreground';
+    const bg = styles.getPropertyValue(bgVar).trim();
+    const fg = styles.getPropertyValue(fgVar).trim();
+    return {
+      bg: bg || '#ffffff',
+      fg: fg || '#0a0a0a',
+    };
   };
 
   const colors = getThemeColors();

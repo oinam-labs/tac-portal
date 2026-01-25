@@ -1,5 +1,9 @@
 import { Hub, HubLocation, ShipmentMode } from '../types';
 
+export type DashboardTimeRange = '7d' | '30d' | '90d';
+
+export const DEFAULT_DASHBOARD_TIME_RANGE: DashboardTimeRange = '7d';
+
 export const HUBS: Record<HubLocation, Hub & { uuid: string }> = {
   IMPHAL: {
     id: 'IMPHAL',

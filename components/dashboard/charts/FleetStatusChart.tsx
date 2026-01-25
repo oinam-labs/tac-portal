@@ -17,18 +17,11 @@ import {
   CardContent,
   CardFooter,
 } from '../../ui/card';
-import { useStore } from '../../../store';
 import { ChartSkeleton } from '../../ui/skeleton';
 import { useManifests } from '../../../hooks/useManifests';
-
-const COLORS = {
-  primary: '#22d3ee',
-  secondary: '#c084fc',
-};
+import { CHART_COLORS } from '../../../lib/design-tokens';
 
 export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({ isLoading: externalLoading }) => {
-  const { theme } = useStore();
-  const isDark = theme === 'dark';
   const { data: manifests = [], isLoading: manifestsLoading } = useManifests();
   const isLoading = externalLoading || manifestsLoading;
 
@@ -81,9 +74,9 @@ export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({ isLoading:
 
   // Tooltip styles
   const tooltipStyle = {
-    backgroundColor: isDark ? '#0f172a' : '#ffffff',
-    borderColor: isDark ? '#1e293b' : '#e2e8f0',
-    color: isDark ? '#f8fafc' : '#0f172a',
+    backgroundColor: 'var(--popover)',
+    borderColor: 'var(--border)',
+    color: 'var(--popover-foreground)',
     borderRadius: '8px',
   };
 
@@ -100,23 +93,19 @@ export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({ isLoading:
         <div className="h-[200px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={fleetChartData}>
-              <CartesianGrid
-                vertical={false}
-                strokeDasharray="3 3"
-                stroke={isDark ? 'rgba(100,116,139,0.2)' : 'rgba(148,163,184,0.3)'}
-              />
+              <CartesianGrid vertical={false} strokeDasharray="3 3" stroke={CHART_COLORS.grid} />
               <XAxis
                 dataKey="route"
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
-                tick={{ fill: '#64748b', fontSize: 12 }}
+                tick={{ fill: CHART_COLORS.axis, fontSize: 12 }}
               />
-              <YAxis tickLine={false} axisLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+              <YAxis tickLine={false} axisLine={false} tick={{ fill: CHART_COLORS.axis, fontSize: 12 }} />
               <Tooltip contentStyle={tooltipStyle} />
               <Legend />
-              <Bar dataKey="active" name="Active" fill={COLORS.primary} radius={[4, 4, 0, 0]} />
-              <Bar dataKey="idle" name="Idle" fill={COLORS.secondary} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="active" name="Active" fill={CHART_COLORS.primary} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="idle" name="Idle" fill={CHART_COLORS.secondary} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

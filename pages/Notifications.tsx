@@ -34,10 +34,10 @@ const CATEGORY_ICONS: Record<NotificationCategory, React.ElementType> = {
 
 // Type colors using semantic status tokens
 const TYPE_COLORS: Record<NotificationType, string> = {
-  success: 'bg-[oklch(var(--status-delivered-bg))]',
-  error: 'bg-[oklch(var(--status-exception-bg))]',
-  warning: 'bg-[oklch(var(--status-in-transit-bg))]',
-  info: 'bg-[oklch(var(--status-created-bg))]',
+  success: 'bg-status-success',
+  error: 'bg-status-error',
+  warning: 'bg-status-warning',
+  info: 'bg-status-info',
 };
 
 // Type badge styles using semantic badge classes

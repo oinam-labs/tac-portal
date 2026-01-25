@@ -12,16 +12,14 @@ import { TrendingUp } from 'lucide-react';
 
 import { ChartSkeleton } from '../../ui/skeleton';
 import { useShipments } from '../../../hooks/useShipments';
+import { CHART_COLORS } from '../../../lib/design-tokens';
 
-const COLORS = {
-  primary: '#22d3ee',
-  secondary: '#c084fc',
-  success: '#10b981',
-  warning: '#facc15',
-  danger: '#f97316',
-};
-
-const STATUS_COLORS = [COLORS.primary, COLORS.success, COLORS.warning, COLORS.danger];
+const STATUS_COLORS = [
+  CHART_COLORS.primary,
+  CHART_COLORS.success,
+  CHART_COLORS.warning,
+  CHART_COLORS.error,
+];
 
 export const StatusDistributionChart: React.FC<{ isLoading?: boolean }> = ({ isLoading: externalLoading }) => {
   const { data: shipments = [], isLoading: shipmentsLoading } = useShipments();
@@ -36,10 +34,10 @@ export const StatusDistributionChart: React.FC<{ isLoading?: boolean }> = ({ isL
     const exception = shipments.filter((s) => s.status === 'EXCEPTION').length;
 
     return [
-      { status: 'inTransit', count: inTransit, fill: 'var(--color-inTransit)' },
-      { status: 'delivered', count: delivered, fill: 'var(--color-delivered)' },
-      { status: 'pending', count: pending, fill: 'var(--color-pending)' },
-      { status: 'exception', count: exception, fill: 'var(--color-exception)' },
+      { status: 'inTransit', count: inTransit, fill: STATUS_COLORS[0] },
+      { status: 'delivered', count: delivered, fill: STATUS_COLORS[1] },
+      { status: 'pending', count: pending, fill: STATUS_COLORS[2] },
+      { status: 'exception', count: exception, fill: STATUS_COLORS[3] },
     ].filter((item) => item.count > 0);
   }, [shipments]);
 
@@ -93,8 +91,8 @@ export const StatusDistributionChart: React.FC<{ isLoading?: boolean }> = ({ isL
                 {statusChartData.map((_, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={STATUS_COLORS[index % STATUS_COLORS.length]}
-                    stroke="hsl(var(--card))"
+                    fill={statusChartData[index].fill}
+                    stroke="var(--card)"
                     strokeWidth={2}
                   />
                 ))}
@@ -141,7 +139,7 @@ export const StatusDistributionChart: React.FC<{ isLoading?: boolean }> = ({ isL
             <div key={index} className="flex items-center text-xs text-muted-foreground">
               <span
                 className="w-2 h-2 rounded-full mr-1.5"
-                style={{ backgroundColor: STATUS_COLORS[index] }}
+                style={{ backgroundColor: statusChartData[index].fill }}
               ></span>
               {statusChartData[index].status === 'inTransit'
                 ? 'In Transit'

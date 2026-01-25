@@ -35,8 +35,19 @@ import {
 import { formatCurrency, calculateFreight } from '@/lib/utils';
 import { validateInvoice, validateDiscount } from '@/lib/validation/invoice-validator';
 import { PAYMENT_MODES, POPULAR_CITIES, CONTENT_TYPES } from '@/lib/constants';
+import type { CustomerAddress } from '@/hooks/useCustomers';
+
+// Hub prefill mapping for cities
+const HUB_PREFILL: Record<string, { address: string; zip: string; state: string }> = {
+  'Imphal': { address: 'Singjamei Hub', zip: '795001', state: 'Manipur' },
+  'New Delhi': { address: 'Kotla Hub', zip: '110003', state: 'Delhi' },
+};
 import { useCreateInvoice } from '@/hooks/useInvoices';
 import { useCustomers, Customer as CustomerDB } from '@/hooks/useCustomers';
+import type { Json } from '@/lib/database.types';
+import { getOrCreateDefaultOrg } from '@/lib/org-helper';
+import { useAuthStore } from '@/store/authStore';
+import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
 import { Shipment, Invoice, ShipmentMode, ServiceLevel } from '@/types';
 import { TrackingDialog } from '@/components/landing-new/tracking-dialog';
@@ -273,6 +284,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
   const createInvoiceMutation = useCreateInvoice();
   const isLoading = createInvoiceMutation.isPending;
   const { data: customers = [] } = useCustomers();
+  const staffUser = useAuthStore((s) => s.user);
 
   // Mode State
   const [mode, setMode] = useState<'NEW_BOOKING' | 'EXISTING_SHIPMENT'>('NEW_BOOKING');
@@ -411,13 +423,44 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
 
   // --- LOGIC: AUTO ID (Smart) ---
   useEffect(() => {
-    if (mode === 'NEW_BOOKING' && !getValues('awb')) {
-      const randomAWB = `TAC${Math.floor(10000000 + Math.random() * 90000000)}`;
+    let cancelled = false;
 
-      setValue('awb', randomAWB);
-      setValue('invoiceNumber', '');
-    }
-  }, [mode, setValue, getValues]);
+    const ensureAwb = async () => {
+      if (mode !== 'NEW_BOOKING') return;
+      if (getValues('awb')) return;
+
+      try {
+        const orgId = staffUser?.orgId || (await getOrCreateDefaultOrg());
+        const { data, error } = await supabase.rpc('generate_awb_number', { p_org_id: orgId });
+        if (error) throw error;
+        if (typeof data !== 'string' || !data) {
+          throw new Error('AWB generator returned empty');
+        }
+
+        if (cancelled) return;
+        setValue('awb', data);
+        setValue('invoiceNumber', '');
+      } catch (error) {
+        if (cancelled) return;
+        setValue('awb', '');
+        logger.error('AWB generation failed', {
+          env: import.meta.env.MODE,
+          org_id: staffUser?.orgId || null,
+          user_id: staffUser?.id || null,
+          auth_user_id: staffUser?.authUserId || null,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        toast.error('AWB service unavailable. Contact admin.', {
+          description: 'Unable to generate an AWB number at this time.',
+        });
+      }
+    };
+
+    void ensureAwb();
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, setValue, getValues, staffUser?.orgId, staffUser?.id, staffUser?.authUserId]);
 
   // Real-time discount validation
   useEffect(() => {
@@ -510,14 +553,35 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
     toast.info('Repeat last invoice feature coming soon');
   };
 
+  // Format CustomerAddress object to string
+  const formatCustomerAddress = (address: CustomerAddress | Json | string | null): string => {
+    if (!address) return '';
+    if (typeof address === 'string') return address;
+    const addr = address as CustomerAddress;
+    return [addr.street, addr.city, addr.state, addr.postal_code]
+      .filter(Boolean)
+      .join(', ');
+  };
+
   const fillCustomerData = (customer: CustomerDB, type: 'CONSIGNOR' | 'CONSIGNEE') => {
     const prefix = type === 'CONSIGNOR' ? 'consignor' : 'consignee';
     setValue(`${prefix}Name` as any, customer.companyName || customer.name, {
       shouldValidate: true,
     });
     setValue(`${prefix}Phone` as any, customer.phone, { shouldValidate: true });
-    setValue(`${prefix}Address` as any, customer.address, { shouldValidate: true });
+    
+    // Format address object to string
+    const formattedAddress = formatCustomerAddress(customer.address);
+    setValue(`${prefix}Address` as any, formattedAddress, { shouldValidate: true });
     setValue(`${prefix}Gstin` as any, customer.gstin || '', { shouldValidate: true });
+    
+    // Extract city/state/zip from address if available
+    const addr = customer.address as CustomerAddress;
+    if (addr && typeof addr === 'object') {
+      if (addr.city) setValue(`${prefix}City` as any, addr.city, { shouldValidate: true });
+      if (addr.state) setValue(`${prefix}State` as any, addr.state, { shouldValidate: true });
+      if (addr.postal_code) setValue(`${prefix}Zip` as any, addr.postal_code, { shouldValidate: true });
+    }
 
     // Smart autofill: Apply customer preferences (Phase 2)
     if (type === 'CONSIGNEE' && customer.preferences) {
@@ -725,7 +789,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
       case 0: // BASICS
         return (
           <div className="space-y-6 py-2">
-            <div className="flex p-1 bg-muted rounded-md shadow-sm border border-border w-fit">
+            <div className="inline-flex items-center gap-1 rounded-lg border border-border/60 bg-muted/60 p-1 shadow-sm">
               <button
                 type="button"
                 onClick={() => {
@@ -733,7 +797,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                   setValue('awb', '');
                   setValue('invoiceNumber', '');
                 }}
-                className={`px-4 py-1.5 text-xs font-bold rounded-sm transition-all flex items-center gap-2 ${mode === 'NEW_BOOKING' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                className={`px-3.5 py-1.5 text-[11px] font-semibold rounded-md transition-all flex items-center gap-2 tracking-wide ${mode === 'NEW_BOOKING' ? 'bg-background shadow-sm text-foreground border border-border/60' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 <Plus className="w-3.5 h-3.5" /> New Invoice
               </button>
@@ -743,14 +807,14 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                   setMode('EXISTING_SHIPMENT');
                   setValue('awb', '');
                 }}
-                className={`px-4 py-1.5 text-xs font-bold rounded-sm transition-all flex items-center gap-2 ${mode === 'EXISTING_SHIPMENT' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                className={`px-3.5 py-1.5 text-[11px] font-semibold rounded-md transition-all flex items-center gap-2 tracking-wide ${mode === 'EXISTING_SHIPMENT' ? 'bg-background shadow-sm text-foreground border border-border/60' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 <Search className="w-3.5 h-3.5" /> Link Shipment
               </button>
               <button
                 type="button"
                 onClick={handleRepeatLast}
-                className="px-4 py-1.5 text-xs font-bold rounded-sm transition-all flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-background"
+                className="px-3.5 py-1.5 text-[11px] font-semibold rounded-md transition-all flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-background tracking-wide"
                 title="Repeat last invoice"
               >
                 <RotateCcw className="w-3.5 h-3.5" /> Repeat Last
@@ -758,12 +822,12 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
             </div>
 
             {mode === 'EXISTING_SHIPMENT' && (
-              <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+              <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-muted/30 p-3 animate-in fade-in slide-in-from-top-2">
                 <Input
                   placeholder="Enter AWB Number..."
                   value={searchAwb}
                   onChange={(e) => setSearchAwb(e.target.value)}
-                  className="h-10 w-64"
+                  className="h-10 w-64 bg-background"
                 />
                 <Button size="sm" onClick={handleSearch} className="h-10">
                   Load
@@ -777,10 +841,14 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-5">
               <div className="space-y-2">
                 <Label>AWB Number</Label>
-                <Input {...form.register('awb')} readOnly className="font-mono bg-muted" />
+                <Input
+                  {...form.register('awb')}
+                  readOnly
+                  className="h-11 font-mono bg-muted/40 border-border/60 text-sm"
+                />
                 {form.formState.errors.awb && (
                   <span className="text-xs text-red-500">{form.formState.errors.awb.message}</span>
                 )}
@@ -790,13 +858,17 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                 <Input
                   {...form.register('invoiceNumber')}
                   readOnly
-                  className="font-mono bg-muted"
+                  className="h-11 font-mono bg-muted/40 border-border/60 text-sm"
                   placeholder="Auto-generated on save"
                 />
               </div>
               <div className="space-y-2">
                 <Label>Booking Date</Label>
-                <Input type="date" {...form.register('bookingDate')} />
+                <Input
+                  type="date"
+                  {...form.register('bookingDate')}
+                  className="h-11 bg-background"
+                />
                 {form.formState.errors.bookingDate && (
                   <span className="text-xs text-red-500">
                     {form.formState.errors.bookingDate.message}
@@ -808,17 +880,26 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                 <div className="relative">
                   <select
                     {...form.register('transportMode')}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                    className="flex h-11 w-full rounded-md border border-input bg-background pl-12 pr-10 py-2 text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
                   >
-                    <option value="TRUCK">Surface / Truck</option>
-                    <option value="AIR">Air Cargo</option>
+                    <option value="TRUCK">🚚 Surface / Truck</option>
+                    <option value="AIR">✈️ Air Cargo</option>
                   </select>
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <div
+                    className={`absolute left-2 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-md border pointer-events-none ${
+                      formValues.transportMode === 'AIR'
+                        ? 'bg-status-info/10 text-status-info border-status-info/30'
+                        : 'bg-status-warning/10 text-status-warning border-status-warning/30'
+                    }`}
+                  >
                     {formValues.transportMode === 'AIR' ? (
-                      <Plane className="w-4 h-4 text-foreground" />
+                      <Plane className="w-4 h-4" />
                     ) : (
-                      <Truck className="w-4 h-4 text-foreground" />
+                      <Truck className="w-4 h-4" />
                     )}
+                  </div>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+                    <ChevronDown className="w-4 h-4" />
                   </div>
                 </div>
               </div>
@@ -826,7 +907,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                 <Label>Payment Mode</Label>
                 <select
                   {...form.register('paymentMode')}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {PAYMENT_MODES.map((pm) => (
                     <option key={pm.id} value={pm.id}>
@@ -870,10 +951,20 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                   <select
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     onChange={(e) => {
-                      if (e.target.value === 'OTHER') {
+                      const city = e.target.value;
+                      if (city === 'OTHER') {
                         setConsignorCityMode('INPUT');
                         setValue('consignorCity', '');
-                      } else setValue('consignorCity', e.target.value);
+                      } else {
+                        setValue('consignorCity', city);
+                        // Hub prefill for known cities
+                        const hub = HUB_PREFILL[city];
+                        if (hub) {
+                          setValue('consignorAddress', hub.address, { shouldValidate: true });
+                          setValue('consignorZip', hub.zip, { shouldValidate: true });
+                          setValue('consignorState', hub.state, { shouldValidate: true });
+                        }
+                      }
                     }}
                     value={
                       POPULAR_CITIES.includes(watch('consignorCity'))
@@ -922,10 +1013,20 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                   <select
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     onChange={(e) => {
-                      if (e.target.value === 'OTHER') {
+                      const city = e.target.value;
+                      if (city === 'OTHER') {
                         setConsigneeCityMode('INPUT');
                         setValue('consigneeCity', '');
-                      } else setValue('consigneeCity', e.target.value);
+                      } else {
+                        setValue('consigneeCity', city);
+                        // Hub prefill for known cities
+                        const hub = HUB_PREFILL[city];
+                        if (hub) {
+                          setValue('consigneeAddress', hub.address, { shouldValidate: true });
+                          setValue('consigneeZip', hub.zip, { shouldValidate: true });
+                          setValue('consigneeState', hub.state, { shouldValidate: true });
+                        }
+                      }
                     }}
                     value={
                       POPULAR_CITIES.includes(watch('consigneeCity'))
@@ -1218,12 +1319,14 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
         <div className="flex flex-col h-full max-w-4xl mx-auto w-full min-h-[70vh]">
           {/* Progress Header */}
           <div className="mb-6">
-            <div className="flex justify-between items-end mb-2">
+            <div className="flex flex-wrap items-end justify-between gap-3 mb-2">
               <div>
-                <h2 className="text-2xl font-bold tracking-tight">{steps[currentStep].title}</h2>
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                  {steps[currentStep].title}
+                </h2>
                 <p className="text-muted-foreground text-sm">{steps[currentStep].description}</p>
               </div>
-              <div className="text-sm text-muted-foreground font-mono">
+              <div className="text-xs font-semibold tracking-wide uppercase text-muted-foreground border border-border/60 bg-muted/40 px-3 py-1 rounded-full">
                 Step {currentStep + 1} of {steps.length}
               </div>
             </div>
@@ -1234,6 +1337,35 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                 animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
                 transition={{ duration: 0.5 }}
               />
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {steps.map((step, index) => {
+                const isActive = index === currentStep;
+                const isComplete = index < currentStep;
+                const stateClasses = isActive
+                  ? 'border-primary/40 bg-primary/10 text-primary'
+                  : isComplete
+                    ? 'border-border bg-muted text-foreground'
+                    : 'border-border/40 bg-muted/40 text-muted-foreground';
+                const badgeClasses = isActive
+                  ? 'bg-primary text-primary-foreground'
+                  : isComplete
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-muted text-muted-foreground';
+                return (
+                  <div
+                    key={step.title}
+                    className={`flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] font-semibold tracking-wide ${stateClasses}`}
+                  >
+                    <span
+                      className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${badgeClasses}`}
+                    >
+                      {index + 1}
+                    </span>
+                    <span>{step.title}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

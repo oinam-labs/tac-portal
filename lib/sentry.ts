@@ -35,7 +35,7 @@ export const initSentry = () => {
   const forceDev = import.meta.env.VITE_ENABLE_SENTRY_DEV === 'true';
 
   if (isDev && !forceDev) {
-    console.log('[Sentry] Disabled in development to prevent CORS/Ad-block noise. Set VITE_ENABLE_SENTRY_DEV=true to enable.');
+    console.warn('[Sentry] Disabled in development to prevent CORS/Ad-block noise. Set VITE_ENABLE_SENTRY_DEV=true to enable.');
     return;
   }
 
