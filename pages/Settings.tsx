@@ -73,7 +73,7 @@ export const Settings: React.FC = () => {
       setIsLoading(true);
       await settingsService.updateOrgSettings(terminalName, { timezone });
       toast.success('Organization settings updated');
-    } catch (error) {
+    } catch {
       toast.error('Failed to update settings');
     } finally {
       setIsLoading(false);
@@ -97,7 +97,7 @@ export const Settings: React.FC = () => {
         }
       });
       toast.success('Preferences saved');
-    } catch (error) {
+    } catch {
       toast.error('Failed to save preference');
       // Revert on failure
       setNotifications({ ...notifications, [key]: notifications[key] });

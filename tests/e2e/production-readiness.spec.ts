@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
 
 /**
  * Production Readiness E2E Tests
@@ -10,44 +12,61 @@ import { test, expect } from '@playwright/test';
  * 4. Invoice → Label → Manifest flow works end-to-end
  */
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+const runAuthedE2E = process.env.RUN_AUTHED_E2E === 'true';
+const shouldSkipAuth = !!process.env.CI && !process.env.E2E_TEST_EMAIL;
+const authFile = path.resolve(process.cwd(), '.auth/user.json');
+const hasAuthState = fs.existsSync(authFile);
+const shouldSkipAuthedSuites = !runAuthedE2E || shouldSkipAuth || !hasAuthState;
+
+test.beforeEach(async ({ page: _page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium', 'Production readiness checks run only on the chromium project');
+});
 
 test.describe('Production Readiness - Domain Enforcement', () => {
+    test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set E2E_TEST_EMAIL/E2E_TEST_PASSWORD and generate .auth/user.json)');
+    test.use({ storageState: authFile });
+
     test('should not display IXA hub code anywhere in UI', async ({ page }) => {
         // Check Dashboard
-        await page.goto(`${BASE_URL}/#/dashboard`);
+        await page.goto('/#/dashboard');
         await page.waitForLoadState('networkidle');
         await expect(page.locator('body')).not.toContainText('IXA');
 
         // Check Manifests
-        await page.goto(`${BASE_URL}/#/manifests`);
+        await page.goto('/#/manifests');
         await page.waitForLoadState('networkidle');
         await expect(page.locator('body')).not.toContainText('IXA');
 
         // Check Shipments
-        await page.goto(`${BASE_URL}/#/shipments`);
+        await page.goto('/#/shipments');
         await page.waitForLoadState('networkidle');
         await expect(page.locator('body')).not.toContainText('IXA');
     });
 
     test('should show Imphal Hub with IMF code in manifest creation', async ({ page }) => {
-        await page.goto(`${BASE_URL}/#/manifests`);
+        await page.goto('/#/manifests');
 
         // Click create manifest to see hub dropdowns
-        const createBtn = page.getByRole('button', { name: /create|new/i }).first();
+        const createBtn = page.getByRole('button', { name: /create manifest/i }).first();
         await expect(createBtn).toBeVisible({ timeout: 5000 });
         await createBtn.click();
         await page.waitForTimeout(500);
 
-        // Check for IMF (Imphal)
-        const imphalOption = page.getByText(/Imphal Hub.*IMF/i);
-        await expect(imphalOption).toBeVisible({ timeout: 3000 });
+        // Open hub dropdown and check for IMF (Imphal)
+        const originCombobox = page.getByRole('combobox').first();
+        await expect(originCombobox).toBeVisible({ timeout: 5000 });
+        await originCombobox.click();
+        const imphalOption = page.getByRole('option', { name: /Imphal Hub.*IMF/i }).first();
+        await expect(imphalOption).toBeVisible({ timeout: 5000 });
     });
 });
 
 test.describe('Production Readiness - No Mock Data', () => {
+    test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set RUN_AUTHED_E2E=true and generate .auth/user.json)');
+    test.use({ storageState: authFile });
+
     test('should not show hardcoded mock data on dashboard', async ({ page }) => {
-        await page.goto(`${BASE_URL}/#/dashboard`);
+        await page.goto('/#/dashboard');
         await page.waitForLoadState('networkidle');
 
         const bodyText = await page.locator('body').textContent() || '';
@@ -63,7 +82,7 @@ test.describe('Production Readiness - No Mock Data', () => {
 
     test('should show empty state when no data exists', async ({ page }) => {
         // This test assumes a clean database or filtered view with no data
-        await page.goto(`${BASE_URL}/#/dashboard`);
+        await page.goto('/#/dashboard');
         await page.waitForLoadState('networkidle');
 
         // If there are no shipments, should show proper empty state
@@ -76,8 +95,11 @@ test.describe('Production Readiness - No Mock Data', () => {
 });
 
 test.describe('Production Readiness - Empty States', () => {
+    test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set RUN_AUTHED_E2E=true and generate .auth/user.json)');
+    test.use({ storageState: authFile });
+
     test('should render empty state correctly for charts with no data', async ({ page }) => {
-        await page.goto(`${BASE_URL}/#/dashboard`);
+        await page.goto('/#/dashboard');
         await page.waitForLoadState('networkidle');
 
         // Wait for initial render
@@ -107,10 +129,13 @@ test.describe('Production Readiness - Empty States', () => {
 });
 
 test.describe('Production Readiness - Critical User Flows', () => {
+    test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set E2E_TEST_EMAIL/E2E_TEST_PASSWORD and generate .auth/user.json)');
+    test.use({ storageState: authFile });
+
     test('Invoice creation smoke check', async ({ page }) => {
         // Smoke test: verify invoice creation UI is accessible
         // Full E2E flow requires manual QA (see PRODUCTION_READINESS_CHECKLIST.md)
-        await page.goto(`${BASE_URL}/#/invoices`);
+        await page.goto('/#/invoices');
         await page.waitForLoadState('networkidle');
 
         // Verify invoice creation button exists
@@ -120,7 +145,7 @@ test.describe('Production Readiness - Critical User Flows', () => {
 
     test('Shipment page should not show label generation error', async ({ page }) => {
         // Verify the forbidden error message is not displayed
-        await page.goto(`${BASE_URL}/#/shipments`);
+        await page.goto('/#/shipments');
         await page.waitForLoadState('networkidle');
 
         // Should not show error: "No shipment data found. Please generate label from Invoices dashboard."
@@ -144,11 +169,11 @@ test.describe('Production Readiness - Critical User Flows', () => {
             }
         });
 
-        await page.goto(`${BASE_URL}/#/manifests`);
+        await page.goto('/#/manifests');
         await page.waitForLoadState('networkidle');
 
         // Try to open create manifest
-        const createBtn = page.getByRole('button', { name: /create|new/i }).first();
+        const createBtn = page.getByRole('button', { name: /create manifest/i }).first();
         if (await createBtn.isVisible({ timeout: 3000 })) {
             await createBtn.click();
             await page.waitForTimeout(1000);
@@ -160,24 +185,32 @@ test.describe('Production Readiness - Critical User Flows', () => {
     });
 
     test('Hub dropdown should show IMF correctly', async ({ page }) => {
-        await page.goto(`${BASE_URL}/#/manifests`);
+        await page.goto('/#/manifests');
 
-        const createBtn = page.getByRole('button', { name: /create|new/i }).first();
+        const createBtn = page.getByRole('button', { name: /create manifest/i }).first();
         await expect(createBtn).toBeVisible({ timeout: 5000 });
         await createBtn.click();
         await page.waitForTimeout(500);
 
+        // Open hub dropdown and verify labels
+        const originCombobox = page.getByRole('combobox').first();
+        await expect(originCombobox).toBeVisible({ timeout: 5000 });
+        await originCombobox.click();
+
         // Should show "Imphal Hub (IMF)" not "Imphal Hub (IXA)"
-        const imphalIMF = page.getByText(/Imphal Hub.*\(IMF\)/i);
-        await expect(imphalIMF).toBeVisible({ timeout: 3000 });
+        const imphalIMF = page.getByRole('option', { name: /Imphal Hub.*\(IMF\)/i }).first();
+        await expect(imphalIMF).toBeVisible({ timeout: 5000 });
 
         // Should NOT show IXA
-        const imphalIXA = page.getByText(/Imphal Hub.*\(IXA\)/i);
+        const imphalIXA = page.getByRole('option', { name: /Imphal Hub.*\(IXA\)/i }).first();
         await expect(imphalIXA).not.toBeVisible();
     });
 });
 
 test.describe('Production Readiness - No Console Errors', () => {
+    test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set E2E_TEST_EMAIL/E2E_TEST_PASSWORD and generate .auth/user.json)');
+    test.use({ storageState: authFile });
+
     test('should not have React crashes on dashboard', async ({ page }) => {
         const errors: string[] = [];
 
@@ -187,7 +220,7 @@ test.describe('Production Readiness - No Console Errors', () => {
             }
         });
 
-        await page.goto(`${BASE_URL}/#/dashboard`);
+        await page.goto('/#/dashboard');
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(2000);
 

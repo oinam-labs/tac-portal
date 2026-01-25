@@ -1,14 +1,14 @@
 import { supabase } from '@/lib/supabase';
 import { mapSupabaseError } from '@/lib/errors';
 import { orgService } from '@/lib/services/orgService';
-// import type { Database } from '@/lib/database.types';
+import type { Json } from '@/lib/database.types';
 
 type OrgSettings = {
     timezone?: string;
     dateFormat?: string;
     currency?: string;
     theme?: 'light' | 'dark' | 'system';
-    [key: string]: any;
+    [key: string]: unknown;
 };
 
 type UserSettings = {
@@ -18,7 +18,7 @@ type UserSettings = {
         types?: string[];
     };
     theme?: 'light' | 'dark' | 'system';
-    [key: string]: any;
+    [key: string]: unknown;
 };
 
 export const settingsService = {
@@ -53,7 +53,7 @@ export const settingsService = {
             .from('orgs')
             .update({
                 name,
-                settings: settings as any,
+                settings: settings as unknown as Json,
                 updated_at: new Date().toISOString()
             })
             .eq('id', orgId);
@@ -83,7 +83,7 @@ export const settingsService = {
         const { error } = await supabase
             .from('staff')
             .update({
-                settings: settings as any,
+                settings: settings as unknown as Json,
                 updated_at: new Date().toISOString()
             })
             .eq('id', userId);

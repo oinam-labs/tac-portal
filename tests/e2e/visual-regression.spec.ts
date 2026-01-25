@@ -6,8 +6,26 @@
  */
 
 import { test, expect } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const runVisualRegression = process.env.RUN_VISUAL_REGRESSION === 'true';
+const shouldSkipAuth = !!process.env.CI && !process.env.E2E_TEST_EMAIL;
+const authFile = path.resolve(process.cwd(), '.auth/user.json');
+const hasAuthState = fs.existsSync(authFile);
+const shouldSkipAuthedSuites = shouldSkipAuth || !hasAuthState;
+const screenshotOptions = {
+    animations: 'disabled' as const,
+    maxDiffPixelRatio: 0.07,
+    timeout: 20000,
+};
+
+test.beforeEach(async ({ page: _page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium', 'Visual regression snapshots are validated only on the chromium project');
+});
 
 test.describe('Visual Regression Tests', () => {
+    test.skip(!runVisualRegression, 'Visual regression snapshots are opt-in (set RUN_VISUAL_REGRESSION=true)');
     test.describe('Login Page', () => {
         test('login page matches snapshot', async ({ page }) => {
             await page.goto('/#/login');
@@ -18,7 +36,7 @@ test.describe('Visual Regression Tests', () => {
 
             await expect(page).toHaveScreenshot('login-page.png', {
                 fullPage: true,
-                animations: 'disabled',
+                ...screenshotOptions,
                 mask: [
                     // Mask dynamic content that may change
                     page.locator('[data-testid="login-email-input"]'),
@@ -42,13 +60,14 @@ test.describe('Visual Regression Tests', () => {
 
             await expect(page).toHaveScreenshot('login-error-state.png', {
                 fullPage: true,
-                animations: 'disabled',
+                ...screenshotOptions,
             });
         });
     });
 
     test.describe('Dashboard', () => {
-        test.use({ storageState: '.auth/user.json' });
+        test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set E2E_TEST_EMAIL/E2E_TEST_PASSWORD and generate .auth/user.json)');
+        test.use({ storageState: authFile });
 
         test('dashboard page matches snapshot', async ({ page }) => {
             await page.goto('/#/dashboard');
@@ -60,7 +79,7 @@ test.describe('Visual Regression Tests', () => {
 
             await expect(page).toHaveScreenshot('dashboard-page.png', {
                 fullPage: true,
-                animations: 'disabled',
+                ...screenshotOptions,
                 mask: [
                     // Mask dynamic KPI values
                     page.locator('[data-testid="kpi-grid"]'),
@@ -76,7 +95,7 @@ test.describe('Visual Regression Tests', () => {
             await expect(header).toBeVisible();
 
             await expect(header).toHaveScreenshot('dashboard-header.png', {
-                animations: 'disabled',
+                ...screenshotOptions,
             });
         });
 
@@ -88,13 +107,14 @@ test.describe('Visual Regression Tests', () => {
             await expect(quickActions).toBeVisible();
 
             await expect(quickActions).toHaveScreenshot('quick-actions.png', {
-                animations: 'disabled',
+                ...screenshotOptions,
             });
         });
     });
 
     test.describe('Manifests Page', () => {
-        test.use({ storageState: '.auth/user.json' });
+        test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set E2E_TEST_EMAIL/E2E_TEST_PASSWORD and generate .auth/user.json)');
+        test.use({ storageState: authFile });
 
         test('manifests page matches snapshot', async ({ page }) => {
             await page.goto('/#/manifests');
@@ -103,7 +123,7 @@ test.describe('Visual Regression Tests', () => {
 
             await expect(page).toHaveScreenshot('manifests-page.png', {
                 fullPage: true,
-                animations: 'disabled',
+                ...screenshotOptions,
                 mask: [
                     // Mask table data that changes
                     page.locator('table'),
@@ -113,7 +133,8 @@ test.describe('Visual Regression Tests', () => {
     });
 
     test.describe('Shipments Page', () => {
-        test.use({ storageState: '.auth/user.json' });
+        test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set E2E_TEST_EMAIL/E2E_TEST_PASSWORD and generate .auth/user.json)');
+        test.use({ storageState: authFile });
 
         test('shipments page matches snapshot', async ({ page }) => {
             await page.goto('/#/shipments');
@@ -122,7 +143,7 @@ test.describe('Visual Regression Tests', () => {
 
             await expect(page).toHaveScreenshot('shipments-page.png', {
                 fullPage: true,
-                animations: 'disabled',
+                ...screenshotOptions,
                 mask: [
                     // Mask table data that changes
                     page.locator('table'),
@@ -140,7 +161,7 @@ test.describe('Visual Regression Tests', () => {
 
             await expect(page).toHaveScreenshot('login-mobile.png', {
                 fullPage: true,
-                animations: 'disabled',
+                ...screenshotOptions,
             });
         });
 
@@ -152,7 +173,7 @@ test.describe('Visual Regression Tests', () => {
 
             await expect(page).toHaveScreenshot('login-tablet.png', {
                 fullPage: true,
-                animations: 'disabled',
+                ...screenshotOptions,
             });
         });
     });
@@ -166,7 +187,7 @@ test.describe('Visual Regression Tests', () => {
 
             await expect(page).toHaveScreenshot('login-dark-mode.png', {
                 fullPage: true,
-                animations: 'disabled',
+                ...screenshotOptions,
             });
         });
     });

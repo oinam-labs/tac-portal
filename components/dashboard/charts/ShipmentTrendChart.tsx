@@ -11,21 +11,24 @@ import {
 } from 'recharts';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
-import { useStore } from '../../../store';
 import { ChartSkeleton } from '../../ui/skeleton';
 import { useShipments } from '../../../hooks/useShipments';
 import { format, subDays, startOfDay } from 'date-fns';
-
-const COLORS = {
-  primary: '#22d3ee',
-  secondary: '#c084fc',
-};
+import { CHART_COLORS } from '../../../lib/design-tokens';
+import { DEFAULT_DASHBOARD_TIME_RANGE, type DashboardTimeRange } from '../../../lib/constants';
 
 export const ShipmentTrendChart: React.FC<{ isLoading?: boolean }> = ({ isLoading: externalLoading }) => {
-  const [timeRange, setTimeRange] = useState('90d');
-  const { theme } = useStore();
-  const isDark = theme === 'dark';
+  const [timeRange, setTimeRange] = useState(DEFAULT_DASHBOARD_TIME_RANGE);
   const { data: shipments = [], isLoading: shipmentsLoading } = useShipments();
+
+  const handleTimeRangeChange = (value: string) => {
+    if (value === '7d' || value === '30d' || value === '90d') {
+      setTimeRange(value as DashboardTimeRange);
+      return;
+    }
+
+    setTimeRange(DEFAULT_DASHBOARD_TIME_RANGE);
+  };
 
   const isLoading = externalLoading || shipmentsLoading;
 
@@ -64,11 +67,54 @@ export const ShipmentTrendChart: React.FC<{ isLoading?: boolean }> = ({ isLoadin
 
   const filteredData = trendChartData;
 
+  if (filteredData.length === 0) {
+    return (
+      <Card className="pt-0 h-full">
+        <CardHeader className="flex items-center gap-2 space-y-0 border-b border-cyber-border py-5 sm:flex-row">
+          <div className="grid flex-1 gap-1">
+            <CardTitle className="flex items-center gap-2">
+              <span className="w-1 h-6 bg-cyber-neon rounded-full shadow-neon"></span>
+              Shipment Volume Trend
+            </CardTitle>
+            <CardDescription>Showing inbound vs outbound shipments</CardDescription>
+          </div>
+          <Select value={timeRange} onValueChange={handleTimeRangeChange}>
+            <SelectTrigger
+              className="hidden w-[160px] rounded-lg sm:ml-auto sm:flex"
+              aria-label="Select time range"
+            >
+              <SelectValue placeholder="Last 3 months" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="90d" className="rounded-lg">
+                Last 3 months
+              </SelectItem>
+              <SelectItem value="30d" className="rounded-lg">
+                Last 30 days
+              </SelectItem>
+              <SelectItem value="7d" className="rounded-lg">
+                Last 7 days
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <p className="text-muted-foreground">No shipments for selected period</p>
+              <p className="text-sm text-muted-foreground mt-1">Create shipments to see volume trends</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Tooltip styles
   const tooltipStyle = {
-    backgroundColor: isDark ? '#0f172a' : '#ffffff',
-    borderColor: isDark ? '#1e293b' : '#e2e8f0',
-    color: isDark ? '#f8fafc' : '#0f172a',
+    backgroundColor: 'var(--popover)',
+    borderColor: 'var(--border)',
+    color: 'var(--popover-foreground)',
     borderRadius: '8px',
   };
 
@@ -82,7 +128,7 @@ export const ShipmentTrendChart: React.FC<{ isLoading?: boolean }> = ({ isLoadin
           </CardTitle>
           <CardDescription>Showing inbound vs outbound shipments</CardDescription>
         </div>
-        <Select value={timeRange} onValueChange={setTimeRange}>
+        <Select value={timeRange} onValueChange={handleTimeRangeChange}>
           <SelectTrigger
             className="hidden w-[160px] rounded-lg sm:ml-auto sm:flex"
             aria-label="Select time range"
@@ -108,32 +154,28 @@ export const ShipmentTrendChart: React.FC<{ isLoading?: boolean }> = ({ isLoadin
             <AreaChart data={filteredData}>
               <defs>
                 <linearGradient id="fillInbound" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.8} />
-                  <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0.1} />
+                  <stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.8} />
+                  <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0.1} />
                 </linearGradient>
                 <linearGradient id="fillOutbound" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={COLORS.secondary} stopOpacity={0.8} />
-                  <stop offset="95%" stopColor={COLORS.secondary} stopOpacity={0.1} />
+                  <stop offset="5%" stopColor={CHART_COLORS.secondary} stopOpacity={0.8} />
+                  <stop offset="95%" stopColor={CHART_COLORS.secondary} stopOpacity={0.1} />
                 </linearGradient>
               </defs>
-              <CartesianGrid
-                vertical={false}
-                strokeDasharray="3 3"
-                stroke={isDark ? 'rgba(100,116,139,0.2)' : 'rgba(148,163,184,0.3)'}
-              />
+              <CartesianGrid vertical={false} strokeDasharray="3 3" stroke={CHART_COLORS.grid} />
               <XAxis
                 dataKey="date"
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
                 minTickGap={32}
-                tick={{ fill: '#64748b', fontSize: 12 }}
+                tick={{ fill: CHART_COLORS.axis, fontSize: 12 }}
                 tickFormatter={(value) => {
                   const date = new Date(value);
                   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 }}
               />
-              <YAxis tickLine={false} axisLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+              <YAxis tickLine={false} axisLine={false} tick={{ fill: CHART_COLORS.axis, fontSize: 12 }} />
               <Tooltip contentStyle={tooltipStyle} />
               <Legend />
               <Area
@@ -141,7 +183,7 @@ export const ShipmentTrendChart: React.FC<{ isLoading?: boolean }> = ({ isLoadin
                 name="Outbound"
                 type="monotone"
                 fill="url(#fillOutbound)"
-                stroke={COLORS.secondary}
+                stroke={CHART_COLORS.secondary}
                 strokeWidth={2}
                 stackId="a"
               />
@@ -150,7 +192,7 @@ export const ShipmentTrendChart: React.FC<{ isLoading?: boolean }> = ({ isLoadin
                 name="Inbound"
                 type="monotone"
                 fill="url(#fillInbound)"
-                stroke={COLORS.primary}
+                stroke={CHART_COLORS.primary}
                 strokeWidth={2}
                 stackId="a"
               />

@@ -21,7 +21,8 @@ import { getInvoicesColumns } from '@/components/finance/invoices.columns';
 
 // Utils
 import { formatCurrency } from '@/lib/utils';
-import { generateEnterpriseInvoice } from '@/lib/pdf-generator';
+import { sanitizeString } from '@/lib/utils/sanitize';
+import { generateEnterpriseInvoice, generateShipmentLabel } from '@/lib/pdf-generator';
 import { HUBS } from '@/lib/constants';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -43,6 +44,7 @@ export const Finance: React.FC = () => {
   } | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState<Invoice | null>(null);
+  const [labelDownloading, setLabelDownloading] = useState(false);
 
   // Helper to get shipment from Supabase (include hub + customer relations for label mapping)
   const getShipment = async (awb: string) => {
@@ -71,6 +73,24 @@ export const Finance: React.FC = () => {
     if (typeof address === 'string') return address;
     const { line1, line2, city, state, zip } = address as Record<string, string | undefined>;
     return [line1, line2, city, state, zip].filter(Boolean).join(', ');
+  };
+
+  const formatInvoiceDateTag = (dateInput?: string) => {
+    const date = dateInput ? new Date(dateInput) : new Date();
+    const safeDate = Number.isNaN(date.getTime()) ? new Date() : date;
+    return safeDate.toISOString().slice(0, 10).replace(/-/g, '');
+  };
+
+  const buildInvoiceFilename = (inv: Invoice, consignor: any, consignee: any) => {
+    const rawName = sanitizeString(
+      consignee?.name || inv.customerName || consignor?.name || 'Customer'
+    );
+    const safeName = rawName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+    const dateTag = formatInvoiceDateTag(inv.createdAt);
+    return `INVOICE-${safeName || 'customer'}-${dateTag}.pdf`;
   };
 
   const resolveHubLocation = (row: any, type: 'origin' | 'destination'): HubLocation => {
@@ -172,16 +192,15 @@ export const Finance: React.FC = () => {
       const url = await generateEnterpriseInvoice(fullInvoice as Invoice);
       logger.debug('[Invoice] PDF generated');
 
+      // Direct download without opening new tab
       const link = document.createElement('a');
       link.href = url;
-      link.download = `INVOICE-${inv.invoiceNumber}.pdf`;
+      link.download = buildInvoiceFilename(inv, consignor, consignee);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       logger.debug('[Invoice] Download triggered');
 
-      window.open(url, '_blank');
-      logger.debug('[Invoice] Opened in new tab');
       toast.success('Invoice downloaded!');
     } catch (error) {
       console.error('[Invoice] Invoice generation error:', error);
@@ -234,6 +253,11 @@ export const Finance: React.FC = () => {
 
   const handleDownloadLabel = async (inv: Invoice, e?: React.MouseEvent) => {
     e?.stopPropagation();
+    if (labelDownloading) {
+      logger.debug('[Label] Skipping duplicate call');
+      return;
+    }
+    setLabelDownloading(true);
     logger.debug('[Label] handleDownloadLabel called', { id: inv.id, awb: inv.awb });
     try {
       // Check if we have an AWB
@@ -242,6 +266,8 @@ export const Finance: React.FC = () => {
         toast.error('No AWB number found for this invoice');
         return;
       }
+
+      toast.info('Generating shipping label...');
 
       const shipmentRow = await getShipment(inv.awb);
       logger.debug('[Label] Shipment row from DB', { found: !!shipmentRow });
@@ -256,21 +282,25 @@ export const Finance: React.FC = () => {
         consignee: shipment.consignee?.name,
       });
 
-      // Store shipment data using BOTH localStorage and sessionStorage for reliability
-      // (Firefox Enhanced Tracking Protection can block localStorage in popups)
-      const storageKey = `print_shipping_label_${shipment.awb}`;
-      const dataStr = JSON.stringify(shipment);
-      localStorage.setItem(storageKey, dataStr);
-      sessionStorage.setItem(storageKey, dataStr);
-      logger.debug('[Label] Data stored', { storageKey });
+      // Generate label PDF directly using pdf-generator
+      const labelUrl = await generateShipmentLabel(shipment);
+      logger.debug('[Label] PDF generated');
 
-      // Navigate to label page in new tab (more reliable than popup)
-      window.open(`#/print/label/${shipment.awb}`, '_blank');
+      // Direct download without opening new tab
+      const link = document.createElement('a');
+      link.href = labelUrl;
+      link.download = `LABEL-${shipment.awb}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      logger.debug('[Label] Download triggered');
 
-      toast.success('Label opened in new tab!');
+      toast.success('Label downloaded!');
     } catch (error) {
       console.error('Label error:', error);
       toast.error('Failed to generate label');
+    } finally {
+      setTimeout(() => setLabelDownloading(false), 1000);
     }
   };
 
@@ -434,7 +464,7 @@ Thank you for choosing TAC Cargo.`;
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="bg-card border-border shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
+            <div className="p-3 rounded-full bg-status-success/10 text-status-success">
               <CreditCard className="w-6 h-6" />
             </div>
             <div>
@@ -447,7 +477,7 @@ Thank you for choosing TAC Cargo.`;
         </Card>
         <Card className="bg-card border-border shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
+            <div className="p-3 rounded-full bg-status-warning/10 text-status-warning">
               <FileText className="w-6 h-6" />
             </div>
             <div>
@@ -460,7 +490,7 @@ Thank you for choosing TAC Cargo.`;
         </Card>
         <Card className="bg-card border-border shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-full bg-red-500/10 text-red-600 dark:text-red-400">
+            <div className="p-3 rounded-full bg-status-error/10 text-status-error">
               <FileText className="w-6 h-6" />
             </div>
             <div>
@@ -507,8 +537,8 @@ Thank you for choosing TAC Cargo.`;
       >
         {successData && (
           <div className="text-center space-y-6">
-            <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
-              <Check className="w-8 h-8 text-green-500" />
+            <div className="w-16 h-16 bg-status-success/10 rounded-full flex items-center justify-center mx-auto">
+              <Check className="w-8 h-8 text-status-success" />
             </div>
             <div>
               <h3 className="text-xl font-bold text-foreground mb-2">Ready for Dispatch</h3>
@@ -538,14 +568,14 @@ Thank you for choosing TAC Cargo.`;
               <div className="flex justify-center gap-4">
                 <Button
                   variant="ghost"
-                  className="text-green-500 border border-green-500/30 hover:bg-green-500/10"
+                  className="text-status-success border border-status-success/30 hover:bg-status-success/10"
                   onClick={() => handleShareWhatsapp(successData.invoice)}
                 >
                   <MessageCircle className="w-5 h-5 mr-2" /> WhatsApp
                 </Button>
                 <Button
                   variant="ghost"
-                  className="text-blue-500 border border-blue-500/30 hover:bg-blue-500/10"
+                  className="text-status-info border border-status-info/30 hover:bg-status-info/10"
                   onClick={() => handleShareEmail(successData.invoice)}
                 >
                   <Mail className="w-5 h-5 mr-2" /> Email

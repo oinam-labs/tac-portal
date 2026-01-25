@@ -362,6 +362,17 @@ The theme is defined in `index.html` using Tailwind CSS v4 syntax:
 }
 ```
 
+---
+
+## Dashboard Defaults
+
+### Default Time Window (Business Decision)
+
+The dashboard must use an explicit default time window (not an implicit UI default).
+
+- **Source of truth**: `lib/constants.ts` → `DEFAULT_DASHBOARD_TIME_RANGE`
+
+
 ### Using Theme Colors
 
 ```tsx

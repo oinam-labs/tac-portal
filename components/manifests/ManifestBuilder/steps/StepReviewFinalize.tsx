@@ -82,12 +82,12 @@ export function StepReviewFinalize({ setupData, shipments, hubs }: StepReviewFin
             <Separator />
             <div className="flex items-center justify-center gap-2">
               {setupData.type === 'AIR' ? (
-                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                <Badge className="bg-status-info/20 text-status-info border-status-info/30">
                   <Plane className="mr-1 h-3 w-3" />
                   Air Cargo
                 </Badge>
               ) : (
-                <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
+                <Badge className="bg-status-warning/20 text-status-warning border-status-warning/30">
                   <Truck className="mr-1 h-3 w-3" />
                   Truck
                 </Badge>
@@ -210,8 +210,8 @@ export function StepReviewFinalize({ setupData, shipments, hubs }: StepReviewFin
           {setupData.type === 'AIR' ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-md bg-blue-500/10 border border-blue-500/20">
-                  <Plane className="h-5 w-5 text-blue-400" />
+                <div className="flex items-center justify-center w-10 h-10 rounded-md bg-status-info/10 border border-status-info/20">
+                  <Plane className="h-5 w-5 text-status-info" />
                 </div>
                 <div>
                   <p className="text-sm font-medium">
@@ -246,8 +246,8 @@ export function StepReviewFinalize({ setupData, shipments, hubs }: StepReviewFin
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-md bg-amber-500/10 border border-amber-500/20">
-                  <Hash className="h-5 w-5 text-amber-400" />
+                <div className="flex items-center justify-center w-10 h-10 rounded-md bg-status-warning/10 border border-status-warning/20">
+                  <Hash className="h-5 w-5 text-status-warning" />
                 </div>
                 <div>
                   <p className="text-sm font-medium">{setupData.vehicleNumber || '---'}</p>

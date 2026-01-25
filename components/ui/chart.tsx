@@ -80,15 +80,6 @@ const ChartContainer = React.forwardRef<
         }
         {...props}
       >
-        <style>{`
-          [data-chart="${chartId}"] {
-            --chart-1: #22d3ee;
-            --chart-2: #c084fc;
-            --chart-3: #facc15;
-            --chart-4: #10b981;
-            --chart-5: #f97316;
-          }
-        `}</style>
         {children}
       </div>
     </ChartContext.Provider>

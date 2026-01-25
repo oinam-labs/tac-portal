@@ -258,7 +258,7 @@ export const Scanning: React.FC = () => {
               setScanMode('LOAD_MANIFEST');
               setActiveManifest(null);
             }}
-            className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'LOAD_MANIFEST' ? 'bg-purple-500 text-white' : 'text-muted-foreground hover:text-foreground'}`}
+            className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'LOAD_MANIFEST' ? 'bg-status-info text-white' : 'text-muted-foreground hover:text-foreground'}`}
           >
             LOAD
           </button>
@@ -267,7 +267,7 @@ export const Scanning: React.FC = () => {
               setScanMode('VERIFY_MANIFEST');
               setActiveManifest(null);
             }}
-            className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'VERIFY_MANIFEST' ? 'bg-blue-500 text-white' : 'text-muted-foreground hover:text-foreground'}`}
+            className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'VERIFY_MANIFEST' ? 'bg-status-warning text-black' : 'text-muted-foreground hover:text-foreground'}`}
           >
             VERIFY
           </button>
@@ -276,7 +276,7 @@ export const Scanning: React.FC = () => {
               setScanMode('DELIVER');
               setActiveManifest(null);
             }}
-            className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'DELIVER' ? 'bg-green-500 text-black' : 'text-muted-foreground hover:text-foreground'}`}
+            className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'DELIVER' ? 'bg-status-success text-black' : 'text-muted-foreground hover:text-foreground'}`}
           >
             DELIVER
           </button>
@@ -285,17 +285,17 @@ export const Scanning: React.FC = () => {
 
       {(scanMode === 'LOAD_MANIFEST' || scanMode === 'VERIFY_MANIFEST') && activeManifest && (
         <div
-          className={`border p-3 rounded-lg flex items-center justify-between ${scanMode === 'LOAD_MANIFEST' ? 'bg-purple-500/10 border-purple-500/30' : 'bg-blue-500/10 border-blue-500/30'}`}
+          className={`border p-3 rounded-lg flex items-center justify-between ${scanMode === 'LOAD_MANIFEST' ? 'bg-status-info/10 border-status-info/30' : 'bg-status-warning/10 border-status-warning/30'}`}
         >
           <div className="flex items-center gap-3">
-            <Truck className={scanMode === 'LOAD_MANIFEST' ? 'text-purple-400' : 'text-blue-400'} />
+            <Truck className={scanMode === 'LOAD_MANIFEST' ? 'text-status-info' : 'text-status-warning'} />
             <div>
               <div className="text-sm font-bold text-white">
                 {scanMode === 'LOAD_MANIFEST' ? 'Loading' : 'Verifying Arrival'}:{' '}
                 {activeManifest.manifest_no}
               </div>
               <div
-                className={`text-xs ${scanMode === 'LOAD_MANIFEST' ? 'text-purple-300' : 'text-blue-300'}`}
+                className={`text-xs ${scanMode === 'LOAD_MANIFEST' ? 'text-status-info/80' : 'text-status-warning/80'}`}
               >
                 {activeManifest.from_hub_id} → {activeManifest.to_hub_id}
               </div>
@@ -328,10 +328,10 @@ export const Scanning: React.FC = () => {
 
           {/* Scan Stats */}
           <div className="absolute top-4 right-4 z-20 flex gap-2 text-xs font-mono">
-            <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded">
+            <span className="bg-status-success/20 text-status-success px-2 py-1 rounded">
               ✓ {scanCount.success}
             </span>
-            <span className="bg-red-500/20 text-red-400 px-2 py-1 rounded">
+            <span className="bg-status-error/20 text-status-error px-2 py-1 rounded">
               ✗ {scanCount.error}
             </span>
           </div>
@@ -393,14 +393,14 @@ export const Scanning: React.FC = () => {
                 scannedItems.map((item, idx) => (
                   <div
                     key={idx}
-                    className={`flex items-center justify-between p-3 rounded border animate-[slideIn_0.2s_ease-out] ${item.status === 'SUCCESS' ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'}`}
+                    className={`flex items-center justify-between p-3 rounded border animate-[slideIn_0.2s_ease-out] ${item.status === 'SUCCESS' ? 'bg-status-success/10 border-status-success/30' : 'bg-status-error/10 border-status-error/30'}`}
                   >
                     <div className="flex items-center gap-3">
                       {item.msg.includes('EXCEPTION') ? (
-                        <AlertTriangle className="w-4 h-4 text-red-500" />
+                        <AlertTriangle className="w-4 h-4 text-status-error" />
                       ) : (
                         <Box
-                          className={`w-4 h-4 ${item.status === 'SUCCESS' ? 'text-green-500' : 'text-red-500'}`}
+                          className={`w-4 h-4 ${item.status === 'SUCCESS' ? 'text-status-success' : 'text-status-error'}`}
                         />
                       )}
                       <div>
@@ -409,9 +409,9 @@ export const Scanning: React.FC = () => {
                       </div>
                     </div>
                     {item.status === 'SUCCESS' ? (
-                      <Check className="w-4 h-4 text-green-400" />
+                      <Check className="w-4 h-4 text-status-success" />
                     ) : (
-                      <X className="w-4 h-4 text-red-400" />
+                      <X className="w-4 h-4 text-status-error" />
                     )}
                   </div>
                 ))

@@ -97,7 +97,7 @@ export const LabelPreviewDialog: React.FC<LabelPreviewDialogProps> = ({
     <Dialog open={open} onOpenChange={setOpen}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
 
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto z-[100]">
         <DialogHeader>
           <DialogTitle>Shipping Label Preview</DialogTitle>
           <DialogDescription>Customize and print your shipping label</DialogDescription>

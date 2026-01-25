@@ -1,0 +1,127 @@
+{
+    "tech_stack": [
+        "TypeScript",
+        "React",
+        "Vite",
+        "Tailwind CSS",
+        "Zustand",
+        "React Query",
+        "Radix UI",
+        "Playwright",
+        "Vitest"
+    ],
+    "features": [
+        {
+            "name": "Authentication",
+            "description": "User authentication and route protection",
+            "files": [
+                "components/auth",
+                "store/authStore.ts",
+                "lib/auth.ts"
+            ]
+        },
+        {
+            "name": "Dashboard",
+            "description": "Main dashboard for user overview",
+            "files": [
+                "pages/Dashboard.tsx",
+                "components/dashboard"
+            ]
+        },
+        {
+            "name": "Customers Management",
+            "description": "Manage customers list and details",
+            "files": [
+                "pages/Customers.tsx",
+                "components/customers",
+                "hooks/useCustomers.ts"
+            ]
+        },
+        {
+            "name": "Shipments Management",
+            "description": "Manage shipments, creating and tracking orders",
+            "files": [
+                "pages/Shipments.tsx",
+                "components/shipments",
+                "hooks/useShipments.ts"
+            ]
+        },
+        {
+            "name": "Manifests",
+            "description": "Manifest creation, building, and scanning",
+            "files": [
+                "pages/Manifests.tsx",
+                "components/manifests",
+                "hooks/useManifests.ts",
+                "hooks/useManifestBuilder.ts",
+                "hooks/useManifestScan.ts"
+            ]
+        },
+        {
+            "name": "Finance",
+            "description": "Financial records and invoices",
+            "files": [
+                "pages/Finance.tsx",
+                "components/finance",
+                "hooks/useInvoices.ts"
+            ]
+        },
+        {
+            "name": "Scanning",
+            "description": "Barcode scanning and package processing",
+            "files": [
+                "pages/Scanning.tsx",
+                "components/scanning",
+                "store/scanQueueStore.ts"
+            ]
+        },
+        {
+            "name": "Tracking",
+            "description": "Public and internal package tracking",
+            "files": [
+                "pages/Tracking.tsx",
+                "pages/PublicTracking.tsx",
+                "hooks/useTrackingEvents.ts"
+            ]
+        },
+        {
+            "name": "Settings",
+            "description": "Application settings and configurations",
+            "files": [
+                "pages/Settings.tsx"
+            ]
+        },
+        {
+            "name": "Management",
+            "description": "Staff and RBAC management",
+            "files": [
+                "pages/Management.tsx",
+                "store/managementStore.ts",
+                "hooks/useStaff.ts",
+                "hooks/useRBAC.ts"
+            ]
+        },
+        {
+            "name": "Shift Reports",
+            "description": "Daily shift reporting",
+            "files": [
+                "pages/ShiftReport.tsx",
+                "hooks/useShiftReport.ts"
+            ]
+        },
+        {
+            "name": "Notifications",
+            "description": "System notifications",
+            "files": [
+                "pages/Notifications.tsx"
+            ]
+        },
+        {
+            "name": "UI Components",
+            "description": "Shared reusable UI components (Shadcn/UI)",
+            "files": [
+                "components/ui"
+            ]
+        }
+    ]
+}

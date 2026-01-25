@@ -10,6 +10,10 @@ import { orgService } from '@/lib/services/orgService';
 import type { Session } from '@supabase/supabase-js';
 import type { UserRole } from '@/types';
 
+// Singleton state to prevent concurrent initialization (React StrictMode fix)
+let initializationPromise: Promise<() => void> | null = null;
+let currentAbortController: AbortController | null = null;
+
 // Staff table types are defined in lib/database.types.ts
 // Using the properly typed supabase client
 
@@ -59,7 +63,7 @@ export const useAuthStore = create<AuthState>()(
           // Optimistic update
           set({ user: { ...currentUser, ...profile } });
 
-          const updates: any = {};
+          const updates: Record<string, string | null> = {};
           if (profile.fullName) updates.full_name = profile.fullName;
           if (profile.avatarUrl !== undefined) updates.avatar_url = profile.avatarUrl;
 
@@ -80,110 +84,172 @@ export const useAuthStore = create<AuthState>()(
       },
 
       initialize: async () => {
-        try {
-          set({ isLoading: true, error: null });
+        // Return existing promise if initialization is already in progress (React StrictMode fix)
+        if (initializationPromise) {
+          return initializationPromise;
+        }
 
-          // Get current session
-          const {
-            data: { session },
-            error: sessionError,
-          } = await supabase.auth.getSession();
+        // Abort any previous initialization that might be stale
+        if (currentAbortController) {
+          currentAbortController.abort();
+        }
+        currentAbortController = new AbortController();
+        const signal = currentAbortController.signal;
 
-          if (sessionError) {
-            console.error('[Auth] Session error:', sessionError);
-            set({ isLoading: false, isAuthenticated: false, session: null, user: null });
-            return () => { }; // Return no-op cleanup function
-          }
+        initializationPromise = (async () => {
+          try {
+            set({ isLoading: true, error: null });
 
-          if (!session) {
-            set({ isLoading: false, isAuthenticated: false, session: null, user: null });
-            return () => { }; // Return no-op cleanup function
-          }
+            // Safety timeout to prevent infinite loading
+            const timeoutId = setTimeout(() => {
+              if (get().isLoading && !signal.aborted) {
+                console.error('[Auth] Initialization timed out');
+                set({
+                  isLoading: false,
+                  isAuthenticated: false,
+                  error: 'Connection timed out. Please check your internet connection.',
+                });
+              }
+            }, 15000); // 15 seconds timeout
 
-          // Fetch staff record linked to this auth user
-          const staffUser = await fetchStaffByAuthId(session.user.id);
+            // Check if aborted before making request
+            if (signal.aborted) {
+              clearTimeout(timeoutId);
+              return () => { };
+            }
 
-          if (!staffUser) {
-            console.warn('[Auth] No staff record found for user:', session.user.email);
-            set({ isLoading: false, isAuthenticated: false, session: null, user: null });
-            return () => { }; // Return no-op cleanup function
-          }
+            // Get current session
+            const {
+              data: { session },
+              error: sessionError,
+            } = await supabase.auth.getSession();
 
-          if (!staffUser.isActive) {
-            console.warn('[Auth] Staff account is deactivated:', staffUser.email);
-            await supabase.auth.signOut();
+            // Check if aborted after request
+            if (signal.aborted) {
+              clearTimeout(timeoutId);
+              return () => { };
+            }
+
+            if (sessionError) {
+              // Don't log AbortError as it's expected during navigation/remounts
+              if (sessionError.message?.includes('AbortError') || sessionError.message?.includes('aborted')) {
+                clearTimeout(timeoutId);
+                return () => { };
+              }
+              console.error('[Auth] Session error:', sessionError);
+              clearTimeout(timeoutId);
+              set({ isLoading: false, isAuthenticated: false, session: null, user: null });
+              return () => { };
+            }
+
+            if (!session) {
+              clearTimeout(timeoutId);
+              set({ isLoading: false, isAuthenticated: false, session: null, user: null });
+              return () => { };
+            }
+
+            // Check if aborted before staff fetch
+            if (signal.aborted) {
+              clearTimeout(timeoutId);
+              return () => { };
+            }
+
+            // Fetch staff record linked to this auth user
+            const staffUser = await fetchStaffByAuthId(session.user.id, signal);
+
+            // Check if aborted after staff fetch
+            if (signal.aborted) {
+              clearTimeout(timeoutId);
+              return () => { };
+            }
+
+            if (!staffUser) {
+              console.warn('[Auth] No staff record found for user:', session.user.email);
+              clearTimeout(timeoutId);
+              set({ isLoading: false, isAuthenticated: false, session: null, user: null });
+              return () => { };
+            }
+
+            if (!staffUser.isActive) {
+              console.warn('[Auth] Staff account is deactivated:', staffUser.email);
+              await supabase.auth.signOut();
+              clearTimeout(timeoutId);
+              set({
+                isLoading: false,
+                isAuthenticated: false,
+                session: null,
+                user: null,
+                error: 'Your account has been deactivated. Please contact an administrator.',
+              });
+              return () => { };
+            }
+
+            // Set organization context for services
+            orgService.setCurrentOrg(staffUser.orgId);
+
+            clearTimeout(timeoutId);
+            set({
+              session,
+              user: staffUser,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            });
+
+            // Set up auth state change listener
+            const {
+              data: { subscription },
+            } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+              try {
+                if (event === 'SIGNED_OUT' || !newSession) {
+                  orgService.clearCurrentOrg();
+                  set({ session: null, user: null, isAuthenticated: false });
+                  return;
+                }
+
+                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                  const staff = await fetchStaffByAuthId(newSession.user.id);
+                  if (staff && staff.isActive) {
+                    orgService.setCurrentOrg(staff.orgId);
+                    set({
+                      session: newSession,
+                      user: staff,
+                      isAuthenticated: true,
+                    });
+                  }
+                }
+              } catch (error) {
+                // Handle AbortError gracefully - expected during navigation
+                if (error instanceof Error && (error.name === 'AbortError' || error.message?.includes('aborted'))) {
+                  return;
+                }
+                console.error('[Auth] Error in auth state change handler:', error);
+              }
+            });
+
+            // Return cleanup function
+            return () => {
+              subscription.unsubscribe();
+            };
+          } catch (error) {
+            // Silently ignore AbortError - expected during navigation or StrictMode remounts
+            if (error instanceof Error && (error.name === 'AbortError' || error.message?.includes('aborted'))) {
+              return () => { };
+            }
+            console.error('[Auth] Initialize error:', error);
             set({
               isLoading: false,
               isAuthenticated: false,
-              session: null,
-              user: null,
-              error: 'Your account has been deactivated. Please contact an administrator.',
+              error: 'Failed to initialize authentication',
             });
-            return () => { }; // Return no-op cleanup function
-          }
-
-          // Set organization context for services
-          orgService.setCurrentOrg(staffUser.orgId);
-
-          set({
-            session,
-            user: staffUser,
-            isAuthenticated: true,
-            isLoading: false,
-            error: null,
-          });
-
-          // Set up auth state change listener
-          const {
-            data: { subscription },
-          } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-            try {
-              if (event === 'SIGNED_OUT' || !newSession) {
-                orgService.clearCurrentOrg();
-                set({ session: null, user: null, isAuthenticated: false });
-                return;
-              }
-
-              if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                const staff = await fetchStaffByAuthId(newSession.user.id);
-                if (staff && staff.isActive) {
-                  // Set organization context for services
-                  orgService.setCurrentOrg(staff.orgId);
-                  set({
-                    session: newSession,
-                    user: staff,
-                    isAuthenticated: true,
-                  });
-                }
-              }
-            } catch (error) {
-              // Handle AbortError and other errors gracefully
-              if (error instanceof Error && error.name === 'AbortError') {
-                // Request aborted during auth state change - normal during navigation
-                return;
-              }
-              console.error('[Auth] Error in auth state change handler:', error);
-            }
-          });
-
-          // Return cleanup function to unsubscribe from auth state changes
-          return () => {
-            // Cleanup auth state listener on unmount
-            subscription.unsubscribe();
-          };
-        } catch (error) {
-          // Ignore AbortError - this happens when requests are cancelled during navigation or strict mode
-          if (error instanceof Error && error.name === 'AbortError') {
             return () => { };
+          } finally {
+            // Clear the singleton promise when done (success or error)
+            initializationPromise = null;
           }
-          console.error('[Auth] Initialize error:', error);
-          set({
-            isLoading: false,
-            isAuthenticated: false,
-            error: 'Failed to initialize authentication',
-          });
-          return () => { }; // Return no-op cleanup function
-        }
+        })();
+
+        return initializationPromise;
       },
 
       signIn: async (email: string, password: string) => {
@@ -321,10 +387,18 @@ export const useAuthStore = create<AuthState>()(
 
 /**
  * Fetch staff record by Supabase Auth user ID
+ * @param authUserId - The auth user ID to look up
+ * @param signal - Optional AbortSignal for cancellation
  */
-async function fetchStaffByAuthId(authUserId: string): Promise<StaffUser | null> {
+async function fetchStaffByAuthId(authUserId: string, signal?: AbortSignal): Promise<StaffUser | null> {
   try {
-    const { data, error } = await supabase
+    // Check if already aborted before making request
+    if (signal?.aborted) {
+      return null;
+    }
+
+    // Build query with optional abort signal
+    const baseQuery = supabase
       .from('staff')
       .select(
         `
@@ -340,10 +414,23 @@ async function fetchStaffByAuthId(authUserId: string): Promise<StaffUser | null>
                 hub:hubs(code)
             `
       )
-      .eq('auth_user_id', authUserId)
-      .single();
+      .eq('auth_user_id', authUserId);
+
+    // Add abort signal before .single() if provided
+    const query = signal ? baseQuery.abortSignal(signal).single() : baseQuery.single();
+
+    const { data, error } = await query;
+
+    // Check if aborted after request
+    if (signal?.aborted) {
+      return null;
+    }
 
     if (error || !data) {
+      // Don't log AbortError as it's expected during navigation/remounts
+      if (error && (error.message?.includes('AbortError') || error.message?.includes('aborted'))) {
+        return null;
+      }
       console.error('[Auth] Failed to fetch staff:', error);
       return null;
     }
@@ -361,6 +448,10 @@ async function fetchStaffByAuthId(authUserId: string): Promise<StaffUser | null>
       isActive: data.is_active ?? true,
     };
   } catch (error) {
+    // Silently ignore AbortError
+    if (error instanceof Error && (error.name === 'AbortError' || error.message?.includes('aborted'))) {
+      return null;
+    }
     console.error('[Auth] fetchStaffByAuthId error:', error);
     return null;
   }

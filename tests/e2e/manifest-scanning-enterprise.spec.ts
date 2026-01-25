@@ -1,16 +1,27 @@
 import { test, expect, Page } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
 
 /**
  * Enterprise Manifest Scanning E2E Tests
  * Tests the new AWB-first barcode scanning workflow
  */
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+const runAuthedE2E = process.env.RUN_AUTHED_E2E === 'true';
+const shouldSkipAuth = !!process.env.CI && !process.env.E2E_TEST_EMAIL;
+const authFile = path.resolve(process.cwd(), '.auth/user.json');
+const hasAuthState = fs.existsSync(authFile);
+
+test.beforeEach(async ({ page: _page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'Enterprise manifest scanning E2E runs only on the chromium project');
+  test.skip(!runAuthedE2E || shouldSkipAuth || !hasAuthState, 'E2E auth not configured (set RUN_AUTHED_E2E=true and generate .auth/user.json)');
+});
 
 test.describe('Enterprise Manifest Scanning', () => {
+  test.use({ storageState: authFile });
   test.beforeEach(async ({ page }) => {
     // Navigate to manifests page
-    await page.goto(`${BASE_URL}/#/manifests`);
+    await page.goto('/#/manifests');
     await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
   });
 
@@ -150,7 +161,7 @@ test.describe('Enterprise Manifest Scanning', () => {
 test.describe('Manifest Scan Panel', () => {
   // Shared helper to get to the scanning phase - always creates a new manifest
   async function enterScanPhase(page: Page) {
-    await page.goto(`${BASE_URL}/#/manifests`);
+    await page.goto('/#/manifests');
     await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
 
     // Always create a new manifest for consistent test behavior
@@ -256,7 +267,7 @@ test.describe('Manifest Scan Panel', () => {
 
 test.describe('Manifest Status Workflow', () => {
   test('should display manifest status badge', async ({ page }) => {
-    await page.goto(`${BASE_URL}/#/manifests`);
+    await page.goto('/#/manifests');
     await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
 
     // Look for status badges
@@ -272,7 +283,7 @@ test.describe('Manifest Status Workflow', () => {
   });
 
   test('should show close manifest button for open manifests', async ({ page }) => {
-    await page.goto(`${BASE_URL}/#/manifests`);
+    await page.goto('/#/manifests');
     await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
 
     // Click on an OPEN or BUILDING manifest - use first matching row
@@ -286,7 +297,7 @@ test.describe('Manifest Status Workflow', () => {
   });
 
   test('should not allow editing closed manifests', async ({ page }) => {
-    await page.goto(`${BASE_URL}/#/manifests`);
+    await page.goto('/#/manifests');
     await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
 
     // Find a CLOSED manifest - use first matching row
@@ -306,7 +317,7 @@ test.describe('Manifest Status Workflow', () => {
 test.describe('Manifest Shipment Table', () => {
   // Helper to get to the scanning phase - creates a new manifest
   async function enterScanPhase(page: Page) {
-    await page.goto(`${BASE_URL}/#/manifests`);
+    await page.goto('/#/manifests');
     await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
 
     // Create a new manifest for consistent test behavior
@@ -394,7 +405,7 @@ test.describe('Manifest Shipment Table', () => {
 test.describe('Scan Audit Logging', () => {
   // Helper to get to the scanning phase - creates a new manifest
   async function enterScanPhase(page: Page) {
-    await page.goto(`${BASE_URL}/#/manifests`);
+    await page.goto('/#/manifests');
     await expect(page.getByRole('button', { name: /create manifest/i }).first()).toBeVisible();
 
     // Create a new manifest for consistent test behavior

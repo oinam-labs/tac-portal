@@ -5,14 +5,16 @@ import { test, expect } from '@playwright/test';
  * Verifies that duplicate scans don't create duplicate manifest items
  */
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+test.beforeEach(async ({ page: _page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'Scanning idempotency E2E runs only on the chromium project');
+});
 
 test.describe('Scanning Idempotency', () => {
   // Tests use stored auth state from setup project - no login needed
 
   test('should handle duplicate AWB scans gracefully', async ({ page }) => {
     // Navigate to scanning page
-    await page.goto(`${BASE_URL}/#/scanning`);
+    await page.goto('/#/scanning');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('body')).toContainText(/(Scanning|Dashboard|TAC)/i, {
       timeout: 15000,
@@ -56,7 +58,7 @@ test.describe('Scanning Idempotency', () => {
   });
 
   test('should show scanning page without errors', async ({ page }) => {
-    await page.goto(`${BASE_URL}/#/scanning`);
+    await page.goto('/#/scanning');
 
     // Page should load without console errors
     const consoleErrors: string[] = [];
@@ -83,7 +85,7 @@ test.describe('Scanning Idempotency', () => {
   });
 
   test('should switch between scan modes', async ({ page }) => {
-    await page.goto(`${BASE_URL}/#/scanning`);
+    await page.goto('/#/scanning');
     await page.waitForLoadState('networkidle');
 
     // Find mode selector

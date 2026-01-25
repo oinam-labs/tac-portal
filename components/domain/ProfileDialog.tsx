@@ -83,7 +83,7 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ open, onOpenChange
             await updateProfile({ fullName, avatarUrl });
             toast.success('Profile updated successfully');
             onOpenChange(false);
-        } catch (error) {
+        } catch {
             toast.error('Failed to update profile');
         } finally {
             setIsLoading(false);

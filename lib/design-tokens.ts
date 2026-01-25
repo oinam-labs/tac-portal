@@ -31,10 +31,15 @@ export const ANIMATION_VARIANTS = {
 };
 
 export const CHART_COLORS = {
-  primary: '#22d3ee',
-  secondary: '#c084fc',
-  success: '#10b981',
-  danger: '#ef4444',
+  primary: 'var(--accent-primary)',
+  secondary: 'oklch(var(--status-info))',
+  success: 'oklch(var(--status-success))',
+  warning: 'oklch(var(--status-warning))',
+  error: 'oklch(var(--status-error))',
+  info: 'oklch(var(--status-info))',
+  neutral: 'oklch(var(--status-neutral))',
+  danger: 'oklch(var(--status-error))',
   background: 'transparent',
-  grid: 'rgba(34, 211, 238, 0.1)',
+  grid: 'var(--border-subtle)',
+  axis: 'var(--text-muted)',
 };

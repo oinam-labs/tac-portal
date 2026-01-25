@@ -103,7 +103,7 @@ export const Tracking: React.FC = () => {
             Track
           </Button>
         </div>
-        {error && <div className="text-red-500 mt-2 text-center text-sm">{error}</div>}
+        {error && <div className="text-status-error mt-2 text-center text-sm">{error}</div>}
       </Card>
 
       {result && (
@@ -121,18 +121,12 @@ export const Tracking: React.FC = () => {
 
           {/* Map & Shipment Details */}
           <Card className="lg:col-span-2 relative overflow-hidden min-h-[400px] bg-background">
-            <div
-              className="absolute inset-0 opacity-20"
-              style={{
-                backgroundImage: 'radial-gradient(circle at 50% 50%, #1e293b 1px, transparent 1px)',
-                backgroundSize: '20px 20px',
-              }}
-            ></div>
+            <div className="absolute inset-0 opacity-20 tracking-map-pattern"></div>
 
             {/* Route Visualization */}
             <div className="absolute inset-0">
               <div className="absolute top-1/2 left-1/4 -translate-y-1/2 text-center">
-                <div className="w-6 h-6 rounded-full bg-cyan-500 mx-auto mb-2 flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full bg-status-info mx-auto mb-2 flex items-center justify-center">
                   <Package className="w-3 h-3 text-white" />
                 </div>
                 <span className="text-xs font-bold text-white bg-black/50 px-2 py-1 rounded">
@@ -141,7 +135,7 @@ export const Tracking: React.FC = () => {
               </div>
 
               <div className="absolute top-1/2 right-1/4 -translate-y-1/2 text-center">
-                <div className="w-6 h-6 rounded-full bg-emerald-500 mx-auto mb-2 flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full bg-status-success mx-auto mb-2 flex items-center justify-center">
                   <MapPin className="w-3 h-3 text-white" />
                 </div>
                 <span className="text-xs font-bold text-white bg-black/50 px-2 py-1 rounded">
@@ -150,16 +144,16 @@ export const Tracking: React.FC = () => {
               </div>
 
               {/* Route line */}
-              <div className="absolute top-1/2 left-[28%] right-[28%] h-1 bg-gradient-to-r from-cyan-500 via-amber-500 to-emerald-500 rounded-full"></div>
+              <div className="absolute top-1/2 left-[28%] right-[28%] h-1 rounded-full tracking-route-gradient"></div>
 
               {/* Moving vehicle indicator */}
               {result.shipment.status === 'IN_TRANSIT' && (
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-cyber-card border-2 border-cyber-accent p-3 rounded-xl shadow-lg animate-pulse">
                   <div className="flex items-center gap-2">
                     {result.shipment.mode === 'AIR' ? (
-                      <Plane className="w-5 h-5 text-cyan-400" />
+                      <Plane className="w-5 h-5 text-status-info" />
                     ) : (
-                      <Truck className="w-5 h-5 text-amber-400" />
+                      <Truck className="w-5 h-5 text-status-warning" />
                     )}
                     <div>
                       <span className="text-sm font-bold text-white font-mono">

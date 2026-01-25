@@ -85,7 +85,7 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
       <div
         className={cn(
           'absolute left-0 top-0 bottom-0 w-1',
-          shipment.mode === 'AIR' ? 'bg-primary' : 'bg-[oklch(var(--status-in-transit-bg))]'
+          shipment.mode === 'AIR' ? 'bg-primary' : 'bg-status-in-transit'
         )}
       />
 
@@ -97,7 +97,7 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
               'p-2.5 rounded-lg',
               shipment.mode === 'AIR'
                 ? 'bg-primary/10'
-                : 'bg-[oklch(var(--status-in-transit-bg))]/20'
+                : 'bg-status-in-transit/20'
             )}
           >
             <ModeIcon
@@ -105,7 +105,7 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
                 'w-5 h-5',
                 shipment.mode === 'AIR'
                   ? 'text-primary'
-                  : 'text-[oklch(var(--status-in-transit-fg))]'
+                  : 'text-status-in-transit'
               )}
             />
           </div>

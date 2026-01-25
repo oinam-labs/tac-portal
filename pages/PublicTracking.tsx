@@ -90,7 +90,7 @@ export function PublicTracking() {
       <header className="border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-status-info to-status-success flex items-center justify-center">
               <Package className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -114,7 +114,7 @@ export function PublicTracking() {
                 className="pl-10 bg-background border-border text-foreground"
               />
             </div>
-            <Button type="submit" className="bg-cyan-600 hover:bg-cyan-700">
+            <Button type="submit" className="bg-primary hover:bg-primary/90">
               Track
             </Button>
           </form>
@@ -164,7 +164,7 @@ export function PublicTracking() {
                   <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                     AWB Number
                   </p>
-                  <h2 className="text-2xl font-mono font-bold text-cyan-400">
+                  <h2 className="text-2xl font-mono font-bold text-status-info">
                     {data.shipment.awb_number}
                   </h2>
                 </div>
@@ -174,7 +174,7 @@ export function PublicTracking() {
               {/* Route */}
               <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/50 mb-6">
                 <div className="text-center">
-                  <MapPin className="w-6 h-6 text-cyan-500 mx-auto mb-1" />
+                  <MapPin className="w-6 h-6 text-status-info mx-auto mb-1" />
                   <p className="text-lg font-bold text-white">
                     {data.shipment.origin_hub?.code || 'IMPHAL'}
                   </p>
@@ -183,15 +183,15 @@ export function PublicTracking() {
                 <div className="flex-1 flex items-center justify-center">
                   <div className="h-0.5 flex-1 bg-border" />
                   {data.shipment.service_type === 'EXPRESS' ? (
-                    <Plane className="w-6 h-6 text-cyan-400 mx-2" />
+                    <Plane className="w-6 h-6 text-status-info mx-2" />
                   ) : (
-                    <Truck className="w-6 h-6 text-cyan-400 mx-2" />
+                    <Truck className="w-6 h-6 text-status-info mx-2" />
                   )}
                   <ArrowRight className="w-4 h-4 text-muted-foreground" />
                   <div className="h-0.5 flex-1 bg-border" />
                 </div>
                 <div className="text-center">
-                  <MapPin className="w-6 h-6 text-green-500 mx-auto mb-1" />
+                  <MapPin className="w-6 h-6 text-status-success mx-auto mb-1" />
                   <p className="text-lg font-bold text-white">
                     {data.shipment.destination_hub?.code || 'NEW_DELHI'}
                   </p>
@@ -228,7 +228,7 @@ export function PublicTracking() {
             {/* Tracking Timeline */}
             <Card className="p-6 bg-card/80 border-border">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-cyan-500" />
+                <Clock className="w-5 h-5 text-status-info" />
                 Tracking History
               </h3>
 

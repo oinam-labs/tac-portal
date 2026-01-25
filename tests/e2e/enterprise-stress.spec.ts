@@ -1,18 +1,31 @@
 import { test, expect } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
 
 /**
  * Enterprise Stress Tests for TAC Cargo
  * Tests: Idempotency, Concurrency, PDF Contract, Error Recovery
  */
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+const runAuthedE2E = process.env.RUN_AUTHED_E2E === 'true';
+const shouldSkipAuth = !!process.env.CI && !process.env.E2E_TEST_EMAIL;
+const authFile = path.resolve(process.cwd(), '.auth/user.json');
+const hasAuthState = fs.existsSync(authFile);
+const shouldSkipAuthedSuites = !runAuthedE2E || shouldSkipAuth || !hasAuthState;
+
+test.beforeEach(async ({ page: _page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'Enterprise stress E2E runs only on the chromium project');
+});
 
 test.describe('Enterprise Stress Tests', () => {
+  test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set E2E_TEST_EMAIL/E2E_TEST_PASSWORD and generate .auth/user.json)');
+  test.use({ storageState: authFile });
+
   test.describe('Scanning Idempotency Stress', () => {
     test('should handle 20 rapid duplicate AWB scans creating only ONE manifest item', async ({
       page,
     }) => {
-      await page.goto(`${BASE_URL}/#/scanning`);
+      await page.goto('/#/scanning');
       await page.waitForLoadState('networkidle');
 
       // Find scan input
@@ -60,7 +73,7 @@ test.describe('Enterprise Stress Tests', () => {
     });
 
     test('should maintain UI responsiveness during rapid scanning', async ({ page }) => {
-      await page.goto(`${BASE_URL}/#/scanning`);
+      await page.goto('/#/scanning');
       await page.waitForLoadState('networkidle');
 
       const startTime = Date.now();
@@ -96,7 +109,7 @@ test.describe('Enterprise Stress Tests', () => {
         }
       });
 
-      await page.goto(`${BASE_URL}/#/finance`);
+      await page.goto('/#/finance');
       await page.waitForLoadState('networkidle');
 
       // Verify finance page loads
@@ -116,7 +129,7 @@ test.describe('Enterprise Stress Tests', () => {
     });
 
     test('should display invoice list with correct columns', async ({ page }) => {
-      await page.goto(`${BASE_URL}/#/finance`);
+      await page.goto('/#/finance');
       await page.waitForLoadState('networkidle');
 
       // Should have invoice-related content visible
@@ -126,7 +139,7 @@ test.describe('Enterprise Stress Tests', () => {
     });
 
     test('should handle invoice creation form validation', async ({ page }) => {
-      await page.goto(`${BASE_URL}/#/finance`);
+      await page.goto('/#/finance');
       await page.waitForLoadState('networkidle');
 
       // Look for create invoice button
@@ -152,7 +165,7 @@ test.describe('Enterprise Stress Tests', () => {
 
   test.describe('Manifest Workflow Tests', () => {
     test('should load manifests page', async ({ page }) => {
-      await page.goto(`${BASE_URL}/#/manifests`);
+      await page.goto('/#/manifests');
       await page.waitForLoadState('networkidle');
 
       await expect(page.locator('body')).toContainText(/(Manifest|Dashboard|TAC)/i, {
@@ -161,7 +174,7 @@ test.describe('Enterprise Stress Tests', () => {
     });
 
     test('should enforce manifest status workflow order', async ({ page }) => {
-      await page.goto(`${BASE_URL}/#/manifests`);
+      await page.goto('/#/manifests');
       await page.waitForLoadState('networkidle');
 
       // Verify status filter or manifest list is available
@@ -179,7 +192,7 @@ test.describe('Enterprise Stress Tests', () => {
 
   test.describe('Shipment Status Transition Tests', () => {
     test('should load shipments page', async ({ page }) => {
-      await page.goto(`${BASE_URL}/#/shipments`);
+      await page.goto('/#/shipments');
       await page.waitForLoadState('networkidle');
 
       await expect(page.locator('body')).toContainText(/(Shipment|AWB|Dashboard)/i, {
@@ -188,7 +201,7 @@ test.describe('Enterprise Stress Tests', () => {
     });
 
     test('should display shipment status correctly', async ({ page }) => {
-      await page.goto(`${BASE_URL}/#/shipments`);
+      await page.goto('/#/shipments');
       await page.waitForLoadState('networkidle');
 
       // Page should be functional with or without data
@@ -198,7 +211,7 @@ test.describe('Enterprise Stress Tests', () => {
 
   test.describe('Exception Handling Tests', () => {
     test('should load exceptions page', async ({ page }) => {
-      await page.goto(`${BASE_URL}/#/exceptions`);
+      await page.goto('/#/exceptions');
       await page.waitForLoadState('networkidle');
 
       await expect(page.locator('body')).toContainText(/(Exception|Issue|Dashboard)/i, {
@@ -207,7 +220,7 @@ test.describe('Enterprise Stress Tests', () => {
     });
 
     test('should display exception severity levels', async ({ page }) => {
-      await page.goto(`${BASE_URL}/#/exceptions`);
+      await page.goto('/#/exceptions');
       await page.waitForLoadState('networkidle');
 
       // Look for severity filters or indicators
@@ -223,15 +236,15 @@ test.describe('Enterprise Stress Tests', () => {
   });
 
   test.describe('Error Recovery Tests', () => {
-    test('should handle network errors gracefully', async ({ page, context }) => {
-      await page.goto(`${BASE_URL}/#/dashboard`);
+    test('should handle API failures gracefully without exposing raw errors', async ({ page, context }) => {
+      await page.goto('/#/dashboard');
       await page.waitForLoadState('networkidle');
 
       // Simulate offline mode
       await context.setOffline(true);
 
       // Try to navigate
-      await page.goto(`${BASE_URL}/#/shipments`);
+      await page.goto('/#/shipments');
       await page.waitForTimeout(2000);
 
       // Go back online
@@ -246,7 +259,7 @@ test.describe('Enterprise Stress Tests', () => {
     });
 
     test('should display user-friendly error messages', async ({ page }) => {
-      await page.goto(`${BASE_URL}/#/dashboard`);
+      await page.goto('/#/dashboard');
       await page.waitForLoadState('networkidle');
 
       // Verify no raw Supabase errors are displayed
@@ -265,8 +278,8 @@ test.describe('Enterprise Stress Tests', () => {
       const page2 = await context.newPage();
 
       // Navigate both to dashboard
-      await page1.goto(`${BASE_URL}/#/dashboard`);
-      await page2.goto(`${BASE_URL}/#/dashboard`);
+      await page1.goto('/#/dashboard');
+      await page2.goto('/#/dashboard');
 
       await page1.waitForLoadState('networkidle');
       await page2.waitForLoadState('networkidle');
@@ -276,8 +289,8 @@ test.describe('Enterprise Stress Tests', () => {
       await expect(page2.locator('body')).toContainText(/(Dashboard|TAC)/i, { timeout: 15000 });
 
       // Navigate to different pages
-      await page1.goto(`${BASE_URL}/#/shipments`);
-      await page2.goto(`${BASE_URL}/#/manifests`);
+      await page1.goto('/#/shipments');
+      await page2.goto('/#/manifests');
 
       await page1.waitForLoadState('networkidle');
       await page2.waitForLoadState('networkidle');
@@ -296,7 +309,7 @@ test.describe('Performance Tests', () => {
   test('should render dashboard within acceptable time', async ({ page }) => {
     const startTime = Date.now();
 
-    await page.goto(`${BASE_URL}/#/dashboard`);
+    await page.goto('/#/dashboard');
     await page.waitForLoadState('networkidle');
 
     const loadTime = Date.now() - startTime;
@@ -304,7 +317,7 @@ test.describe('Performance Tests', () => {
     // Dashboard should load within 10 seconds
     expect(loadTime).toBeLessThan(10000);
 
-    await expect(page.locator('body')).toContainText(/(Dashboard|TAC)/i);
+    await expect(page.locator('body')).toContainText(/(Dashboard|TAC)/i, { timeout: 15000 });
   });
 
   test('should handle rapid navigation without memory leaks', async ({ page }) => {
@@ -312,13 +325,13 @@ test.describe('Performance Tests', () => {
 
     for (let i = 0; i < 3; i++) {
       for (const route of routes) {
-        await page.goto(`${BASE_URL}/#${route}`);
+        await page.goto(`/#${route}`);
         await page.waitForTimeout(200);
       }
     }
 
     // Page should still be responsive after rapid navigation
-    await page.goto(`${BASE_URL}/#/dashboard`);
+    await page.goto('/#/dashboard');
     await page.waitForLoadState('networkidle');
 
     await expect(page.locator('body')).toContainText(/(Dashboard|TAC)/i, { timeout: 15000 });

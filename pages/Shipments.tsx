@@ -9,6 +9,9 @@ import { Modal } from '@/components/ui/Modal';
 // CRUD Components
 import { CrudTable } from '@/components/crud/CrudTable';
 import { CrudDeleteDialog } from '@/components/crud/CrudDeleteDialog';
+import { EmptyState } from '@/components/states/EmptyState';
+import { ErrorState } from '@/components/states/ErrorState';
+import { TableSkeleton } from '@/components/states/TableSkeleton';
 
 // Domain Components
 import { CreateShipmentForm } from '@/components/shipments/CreateShipmentForm';
@@ -27,7 +30,7 @@ function adaptToShipment(s: ShipmentWithRelations): Shipment {
     id: s.id,
     awb: s.awb_number,
     customerId: s.customer_id,
-    customerName: s.customer?.name || 'Unknown',
+    customerName: s.customer?.name || '',
     originHub: (s.origin_hub?.code as any) || (s.origin_hub_id as any),
     destinationHub: (s.destination_hub?.code as any) || (s.destination_hub_id as any),
     mode: s.mode,
@@ -39,18 +42,20 @@ function adaptToShipment(s: ShipmentWithRelations): Shipment {
       volumetric: 0,
       chargeable: s.total_weight,
     },
-    eta: 'TBD',
+    eta: '',
     createdAt: s.created_at,
     updatedAt: s.updated_at,
-    lastUpdate: 'Synced from DB',
-    contentsDescription: 'General Cargo',
-    paymentMode: 'PAID',
   };
 }
 
 export const Shipments: React.FC = () => {
   // Data fetching
-  const { data: shipments = [], isLoading } = useShipments();
+  const {
+    data: shipments,
+    isLoading,
+    error,
+    refetch,
+  } = useShipments();
   const deleteMutation = useDeleteShipment();
 
   // Modal state
@@ -96,11 +101,31 @@ export const Shipments: React.FC = () => {
       {/* Table with CRUD */}
       <CrudTable
         columns={columns}
-        data={shipments}
+        data={shipments ?? []}
         searchKey="awb_number"
         searchPlaceholder="Search by AWB..."
         isLoading={isLoading}
-        emptyMessage="No shipments found. Create your first shipment to get started."
+        loadingState={<TableSkeleton />}
+        emptyState={({ isFiltered }) =>
+          error ? (
+            <ErrorState
+              title="Unable to load shipments"
+              description="The system could not retrieve shipment data. Please retry."
+              onRetry={() => refetch()}
+            />
+          ) : (
+            <EmptyState
+              title="No shipments found"
+              description={
+                isFiltered
+                  ? 'No shipments match the selected filters.'
+                  : 'Shipments will appear here once created or imported.'
+              }
+              actionLabel={isFiltered ? undefined : 'Create shipment'}
+              onAction={isFiltered ? undefined : () => setIsCreateModalOpen(true)}
+            />
+          )
+        }
         toolbar={
           <div className="flex gap-3">
             <Button variant="ghost">

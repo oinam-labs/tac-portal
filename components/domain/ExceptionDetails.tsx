@@ -16,10 +16,10 @@ interface ExceptionDetailsProps {
 }
 
 const SEVERITY_COLORS: Record<string, string> = {
-  LOW: 'bg-blue-500/10 text-blue-600 border-blue-500/30',
-  MEDIUM: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/30',
-  HIGH: 'bg-orange-500/10 text-orange-600 border-orange-500/30',
-  CRITICAL: 'bg-red-500/10 text-red-600 border-red-500/30',
+  LOW: 'bg-status-info/10 text-status-info border-status-info/30',
+  MEDIUM: 'bg-status-warning/10 text-status-warning border-status-warning/30',
+  HIGH: 'bg-status-warning/10 text-status-warning border-status-warning/30',
+  CRITICAL: 'bg-status-error/10 text-status-error border-status-error/30',
 };
 
 const TYPE_ICONS: Record<string, string> = {
@@ -42,8 +42,8 @@ export const ExceptionDetails: React.FC<ExceptionDetailsProps> = ({
       {/* Header */}
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-lg bg-red-500/10 flex items-center justify-center">
-            <AlertTriangle className="w-7 h-7 text-red-500" />
+          <div className="w-14 h-14 rounded-lg bg-status-error/10 flex items-center justify-center">
+            <AlertTriangle className="w-7 h-7 text-status-error" />
           </div>
           <div>
             <div className="flex items-center gap-3">
@@ -104,8 +104,8 @@ export const ExceptionDetails: React.FC<ExceptionDetailsProps> = ({
             </h3>
             <div className="space-y-4">
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0">
-                  <AlertTriangle className="w-4 h-4 text-red-500" />
+                <div className="w-8 h-8 rounded-full bg-status-error/10 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle className="w-4 h-4 text-status-error" />
                 </div>
                 <div>
                   <div className="font-medium text-foreground">Exception Reported</div>
@@ -118,8 +118,8 @@ export const ExceptionDetails: React.FC<ExceptionDetailsProps> = ({
 
               {exception.assignedTo && (
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                    <User className="w-4 h-4 text-blue-500" />
+                  <div className="w-8 h-8 rounded-full bg-status-info/10 flex items-center justify-center flex-shrink-0">
+                    <User className="w-4 h-4 text-status-info" />
                   </div>
                   <div>
                     <div className="font-medium text-foreground">
@@ -132,8 +132,8 @@ export const ExceptionDetails: React.FC<ExceptionDetailsProps> = ({
 
               {exception.resolvedAt && (
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                  <div className="w-8 h-8 rounded-full bg-status-success/10 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="w-4 h-4 text-status-success" />
                   </div>
                   <div>
                     <div className="font-medium text-foreground">Exception Resolved</div>

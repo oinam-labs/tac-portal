@@ -1,13 +1,13 @@
-name: "Code Quality Pipeline"
+name: 'Code Quality Pipeline'
 
 on:
   push:
-    branches: ["main", "develop"]
+    branches: ['main', 'develop']
   pull_request:
-    branches: ["main", "develop"]
+    branches: ['main', 'develop']
 
 env:
-  NODE_VERSION: "20"
+  NODE_VERSION: '20'
 
 jobs:
   # Security & Type Safety Checks
@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
@@ -55,13 +55,16 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
       - name: Run ESLint
         run: npm run lint
+
+      - name: No mock/demo data guard
+        run: npm run guard:no-mock-data
 
       - name: Check console.log usage
         run: |
@@ -107,7 +110,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
@@ -137,7 +140,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
@@ -156,7 +159,7 @@ jobs:
           # Start preview server in background
           npm run preview &
           SERVER_PID=$!
-          
+
           # Wait for server to be ready (max 60 seconds)
           echo "Waiting for server to start..."
           for i in {1..60}; do
@@ -166,13 +169,13 @@ jobs:
             fi
             sleep 1
           done
-          
+
           # Run E2E tests
           npm run test || TEST_EXIT=$?
-          
+
           # Cleanup
           kill $SERVER_PID 2>/dev/null || true
-          
+
           exit ${TEST_EXIT:-0}
         env:
           CI: true
@@ -202,7 +205,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
@@ -259,7 +262,7 @@ jobs:
           # Check for inline function definitions in JSX (potential re-render issues)
           INLINE_FNS=$(grep -rE "onClick=\{\\(\\)" --include="*.tsx" --exclude-dir=node_modules . 2>/dev/null | wc -l)
           echo "Found $INLINE_FNS potential inline function definitions"
-          
+
           # Check for missing React.memo on large components
           echo "✅ Performance anti-pattern check complete"
 

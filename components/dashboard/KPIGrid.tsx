@@ -1,8 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion } from '@/lib/motion';
 import {
-  TrendingUp,
-  TrendingDown,
   Box,
   Activity,
   CheckCircle,
@@ -19,8 +17,6 @@ interface KPIData {
   label: string;
   value: number;
   displayValue: string;
-  trend: number;
-  trendDirection: 'up' | 'down' | 'neutral';
   icon: LucideIcon;
   color: 'primary' | 'success' | 'warning' | 'destructive';
 }
@@ -41,24 +37,10 @@ const KPICard = React.memo(({ kpi, index }: KPICardProps) => {
 
   const colorMap = {
     primary: 'text-primary bg-primary/10 border-primary/20',
-    success: 'text-green-600 dark:text-green-400 bg-green-500/10 border-green-500/20',
-    warning: 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20',
-    destructive: 'text-red-600 dark:text-red-400 bg-red-500/10 border-red-500/20',
+    success: 'text-status-success bg-status-success/10 border-status-success/20',
+    warning: 'text-status-warning bg-status-warning/10 border-status-warning/20',
+    destructive: 'text-status-error bg-status-error/10 border-status-error/20',
   };
-
-  const trendColorMap = {
-    up: 'text-green-600 dark:text-green-400 bg-green-500/10',
-    down: 'text-red-600 dark:text-red-400 bg-red-500/10',
-    neutral: 'text-muted-foreground bg-muted',
-  };
-
-  // Special case: For exceptions, down is good
-  const effectiveTrendColor =
-    kpi.label === 'Active Exceptions'
-      ? kpi.trendDirection === 'down'
-        ? trendColorMap.up
-        : trendColorMap.down
-      : trendColorMap[kpi.trendDirection];
 
   return (
     <motion.div
@@ -83,16 +65,6 @@ const KPICard = React.memo(({ kpi, index }: KPICardProps) => {
             <div className={`p-2.5 rounded-lg border shadow-sm ${colorMap[kpi.color]}`}>
               <kpi.icon className="w-5 h-5" />
             </div>
-
-            {/* Trend Badge */}
-            <div
-              className={`flex items-center text-xs font-semibold px-2.5 py-1 rounded-full border ${effectiveTrendColor ? effectiveTrendColor.replace('bg-', 'bg-opacity-10 border-') : ''}`}
-            >
-              {kpi.trendDirection === 'up' && <TrendingUp className="w-3.5 h-3.5 mr-1" />}
-              {kpi.trendDirection === 'down' && <TrendingDown className="w-3.5 h-3.5 mr-1" />}
-              {kpi.trend > 0 ? '+' : ''}
-              {kpi.trend}%
-            </div>
           </div>
 
           {/* Value with Animation */}
@@ -110,17 +82,6 @@ const KPICard = React.memo(({ kpi, index }: KPICardProps) => {
           </motion.div>
 
           <div className="text-sm text-muted-foreground font-medium">{kpi.label}</div>
-
-          {/* Sparkline placeholder - enhanced styling */}
-          <div className="mt-5 flex items-end gap-1 h-10 opacity-60 mask-image-gradient-to-t">
-            {[40, 65, 45, 80, 55, 70, 85, 60, 75, 90].map((height, i) => (
-              <div
-                key={i}
-                className={`flex-1 rounded-t-sm transition-all duration-500 group-hover:bg-primary ${kpi.color === 'destructive' ? 'bg-destructive/50' : 'bg-primary/30'}`}
-                style={{ height: `${height}%` }}
-              />
-            ))}
-          </div>
         </div>
       </Card>
     </motion.div>
@@ -157,8 +118,6 @@ export const KPIGrid: React.FC<KPIGridProps> = ({ isLoading: externalLoading = f
         label: 'Total Shipments',
         value: total,
         displayValue: total.toLocaleString(),
-        trend: 12.5,
-        trendDirection: 'up',
         icon: Box,
         color: 'primary',
       },
@@ -166,8 +125,6 @@ export const KPIGrid: React.FC<KPIGridProps> = ({ isLoading: externalLoading = f
         label: 'Active Transit',
         value: active,
         displayValue: active.toLocaleString(),
-        trend: 8.1,
-        trendDirection: 'up',
         icon: Activity,
         color: 'success',
       },
@@ -175,8 +132,6 @@ export const KPIGrid: React.FC<KPIGridProps> = ({ isLoading: externalLoading = f
         label: 'Delivered',
         value: delivered,
         displayValue: delivered.toLocaleString(),
-        trend: 4.3,
-        trendDirection: 'up',
         icon: CheckCircle,
         color: 'success',
       },
@@ -184,8 +139,6 @@ export const KPIGrid: React.FC<KPIGridProps> = ({ isLoading: externalLoading = f
         label: 'Active Exceptions',
         value: exceptionCount,
         displayValue: exceptionCount.toString(),
-        trend: exceptionCount > 0 ? 10 : 0,
-        trendDirection: exceptionCount > 0 ? 'down' : 'neutral',
         icon: AlertTriangle,
         color: exceptionCount > 0 ? 'destructive' : 'warning',
       },
