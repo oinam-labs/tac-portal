@@ -139,15 +139,15 @@ If MCP doesn't work, you can query Sentry directly using the API token:
 
 ```bash
 # List issues
-curl -H "Authorization: Bearer YOUR_TOKEN" \
+curl -H "Authorization: Bearer $SENTRY_TOKEN" \
   https://sentry.io/api/0/projects/tac-pf/javascript-react/issues/
 
 # Get issue details
-curl -H "Authorization: Bearer YOUR_TOKEN" \
+curl -H "Authorization: Bearer $SENTRY_TOKEN" \
   https://sentry.io/api/0/issues/ISSUE_ID/
 ```
 
-Your API token is in `.env.local` as `VITE_SENTRY_ORG_TOKEN`.
+Your API token should be set as environment variable `SENTRY_TOKEN` from `.env.local`.
 
 ## Verification Checklist
 

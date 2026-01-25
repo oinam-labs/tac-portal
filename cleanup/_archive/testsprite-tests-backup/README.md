@@ -89,8 +89,8 @@ python auth_helper.py
 Expected output:
 ```
 ✓ Authentication successful
-  User ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-  Token: eyJhbGciOiJIUzI1NiIs...
+  User ID: <user-uuid>
+  Token: <jwt-token>
 ✓ Logout successful
 ```
 
