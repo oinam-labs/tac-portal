@@ -76,7 +76,7 @@
     "fuse.js": "^7.1.0",
     "gsap": "^3.14.2",
     "jsbarcode": "3.12.3",
-    "lucide-react": "0.562.0",
+    "lucide-react": "0.563.0",
     "motion": "^12.28.1",
     "pdf-lib": "1.17.1",
     "qrcode": "1.5.4",
