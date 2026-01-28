@@ -360,8 +360,3 @@ export const parseAWB = (input: string): AWB | null => {
 export const formatAWB = (awb: AWB | string): string => {
   return awb.replace(/^TAC/, 'TAC-');
 };
-
-export const generateAWB = (): AWB => {
-  const random = Math.floor(10000000 + Math.random() * 90000000);
-  return `TAC${random}` as AWB;
-};
