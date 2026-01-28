@@ -4,14 +4,15 @@ import { BarcodeScanner } from '../components/scanning/BarcodeScanner';
 import { ScanLine, Box, Check, X, Truck, AlertTriangle, Camera, Keyboard } from 'lucide-react';
 import { parseScanInput } from '../lib/scanParser';
 import { useScanQueue } from '../store/scanQueueStore';
+import { useAuthStore } from '../store/authStore';
 import { useUpdateShipmentStatus, useFindShipmentByAwb } from '../hooks/useShipments';
 import {
   useFindManifestByCode,
-  useAddManifestItem,
   useCheckManifestItem,
   ManifestLookupResult,
 } from '../hooks/useManifests';
 import { useCreateException } from '../hooks/useExceptions';
+import { manifestService } from '../lib/services/manifestService';
 import {
   playSuccessFeedback,
   playErrorFeedback,
@@ -46,9 +47,9 @@ export const Scanning: React.FC = () => {
   const updateStatus = useUpdateShipmentStatus();
   const findManifest = useFindManifestByCode();
   const findShipment = useFindShipmentByAwb();
-  const addManifestItem = useAddManifestItem();
   const checkManifestItem = useCheckManifestItem();
   const createException = useCreateException();
+  const staffUser = useAuthStore((state) => state.user);
 
   // Sync pending scans when online
   useEffect(() => {
@@ -173,12 +174,21 @@ export const Scanning: React.FC = () => {
         addScanResult(awb, 'SUCCESS', `Status updated to ${newStatus}`);
       } else if (scanMode === 'LOAD_MANIFEST') {
         if (!activeManifest) throw new Error('No Active Manifest.');
-
-        // Add to manifest using hook
-        await addManifestItem.mutateAsync({
-          manifest_id: activeManifest.id,
-          shipment_id: shipment.id,
+        const scanSource = useCameraScanner ? 'CAMERA' : 'MANUAL';
+        const response = await manifestService.addShipmentByScan(activeManifest.id, awb, {
+          staffId: staffUser?.id ?? undefined,
+          scanSource,
         });
+
+        if (!response.success) {
+          addScanResult(awb, 'ERROR', response.message || 'Failed to add to manifest');
+          return;
+        }
+
+        if (response.duplicate) {
+          addScanResult(awb, 'SUCCESS', response.message || 'Already in manifest', 'duplicate');
+          return;
+        }
 
         // Update shipment status
         await updateStatus.mutateAsync({ id: shipment.id, status: 'IN_TRANSIT' });
@@ -214,7 +224,7 @@ export const Scanning: React.FC = () => {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       addScanResult(awb, 'ERROR', errorMessage);
     }
-  }, [scanMode, activeManifest, isOnline, addScan, findShipment, findManifest, updateStatus, addManifestItem, checkManifestItem, createException, addScanResult]);
+  }, [scanMode, activeManifest, isOnline, addScan, findShipment, findManifest, updateStatus, checkManifestItem, createException, addScanResult, useCameraScanner, staffUser]);
 
   const handleCameraScan = useCallback(
     (result: string) => {

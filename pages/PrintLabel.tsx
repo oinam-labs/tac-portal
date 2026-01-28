@@ -1,26 +1,45 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- Data mapping between Supabase and UI types */
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { ShippingLabel, ShippingLabelData } from '../components/shipping/ShippingLabel';
+import { LabelData, LabelGenerator } from '../components/domain/LabelGenerator';
+import { generateLabelFromShipment } from '../lib/utils/label-utils';
 import { Shipment, HubLocation, ShipmentMode, ServiceLevel, PaymentMode } from '../types';
 import { HUBS } from '../lib/constants';
 import { logger } from '../lib/logger';
 import { supabase } from '../lib/supabase';
 
-// Service level code mapping for enterprise standardization
-const SERVICE_LEVEL_CODES: Record<string, string> = {
-  EXPRESS: 'X-09',
-  STANDARD: 'S-01',
-  ECONOMY: 'E-03',
-  PRIORITY: 'P-01',
+const getAddressValue = (value: unknown): string => (typeof value === 'string' ? value.trim() : '');
+
+const normalizeAddress = (address: unknown) => {
+  if (!address || typeof address !== 'object' || Array.isArray(address)) return {};
+  const record = address as Record<string, unknown>;
+  return {
+    line1: getAddressValue(
+      record.line1 ?? record.line_1 ?? record.street ?? record.address ?? record.addr1 ?? record.address1
+    ),
+    line2: getAddressValue(
+      record.line2 ?? record.line_2 ?? record.street2 ?? record.address2 ?? record.addr2
+    ),
+    city: getAddressValue(record.city),
+    state: getAddressValue(record.state),
+    zip: getAddressValue(
+      record.zip ?? record.postal_code ?? record.postalCode ?? record.pincode ?? record.pin
+    ),
+  };
 };
 
 const formatAddress = (address: unknown): string => {
   if (!address) return '';
   if (typeof address === 'string') return address;
-  if (typeof address !== 'object') return '';
-  const { line1, line2, city, state, zip } = address as Record<string, string | undefined>;
-  return [line1, line2, city, state, zip].filter(Boolean).join(', ');
+  const normalized = normalizeAddress(address);
+  return [normalized.line1, normalized.line2, normalized.city, normalized.state, normalized.zip]
+    .filter(Boolean)
+    .join(', ');
+};
+
+const resolveAddressParts = (address: unknown) => {
+  if (!address || typeof address === 'string') return {};
+  return normalizeAddress(address);
 };
 
 const resolveHubLocation = (row: any, type: 'origin' | 'destination'): HubLocation => {
@@ -50,6 +69,8 @@ const mapShipmentRowToShipment = (row: any): Shipment => {
   const destinationHub = resolveHubLocation(row, 'destination');
   const weight = Number(row.total_weight ?? row.totalWeight ?? 0);
   const serviceValue = row.service_level || row.service_type || row.mode;
+  const senderAddressParts = resolveAddressParts(row.sender_address);
+  const receiverAddressParts = resolveAddressParts(row.receiver_address);
 
   return {
     id: row.id,
@@ -74,11 +95,17 @@ const mapShipmentRowToShipment = (row: any): Shipment => {
       name: row.sender_name || 'SENDER',
       phone: row.sender_phone || '',
       address: formatAddress(row.sender_address),
+      city: senderAddressParts.city || row.sender_city || row.senderCity,
+      state: senderAddressParts.state || row.sender_state || row.senderState,
+      zip: senderAddressParts.zip || row.sender_zip || row.senderZip || row.sender_pincode,
     },
     consignee: {
       name: row.receiver_name || 'RECIPIENT',
       phone: row.receiver_phone || '',
       address: formatAddress(row.receiver_address),
+      city: receiverAddressParts.city || row.receiver_city || row.receiverCity,
+      state: receiverAddressParts.state || row.receiver_state || row.receiverState,
+      zip: receiverAddressParts.zip || row.receiver_zip || row.receiverZip || row.receiver_pincode,
     },
     contentsDescription: row.contents || 'General Cargo',
     paymentMode: (row.payment_mode as PaymentMode) || 'TO_PAY',
@@ -108,14 +135,6 @@ const fetchShipmentByAwb = async (awb?: string) => {
   return data as any;
 };
 
-// Service type display codes
-const SERVICE_TYPE_CODES: Record<string, string> = {
-  EXPRESS: 'EXP',
-  STANDARD: 'STD',
-  ECONOMY: 'ECO',
-  PRIORITY: 'PRI',
-};
-
 // Validate shipment has required fields for label generation
 const validateShipmentForLabel = (shipment: unknown): shipment is Shipment => {
   if (!shipment || typeof shipment !== 'object') return false;
@@ -123,90 +142,9 @@ const validateShipmentForLabel = (shipment: unknown): shipment is Shipment => {
   return !!(s.awb && typeof s.awb === 'string' && s.destinationHub && s.originHub && s.totalWeight);
 };
 
-// Safe date formatter with fallback
-const formatLabelDate = (dateStr: string | undefined): string => {
-  if (!dateStr)
-    return new Date().toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  try {
-    return new Date(dateStr).toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  } catch {
-    return new Date().toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  }
-};
-
-// Helper to map Domain Shipment to View Model with enterprise-grade validation
-const mapShipmentToLabel = (shipment: Shipment): ShippingLabelData => {
-  const destHub = HUBS[shipment.destinationHub as HubLocation] || {
-    name: 'Unknown Hub',
-    code: 'UNK',
-    sortCode: 'UNK',
-  };
-  const originHub = HUBS[shipment.originHub as HubLocation] || {
-    name: 'Unknown Hub',
-    code: 'UNK',
-    sortCode: 'UNK',
-  };
-
-  // Build address lines with proper fallbacks
-  const consigneeAddress = shipment.consignee?.address?.trim();
-  const consigneeCity = shipment.consignee?.city?.trim();
-
-  const address = consigneeAddress || `${destHub.name} Airport Road`;
-  const city = consigneeCity || destHub.name.replace(' Hub', '');
-
-  const shipToLines = [address.substring(0, 40), city, destHub.name].filter(Boolean);
-
-  // Derive service codes from service level
-  const serviceLevel = shipment.serviceLevel || 'STANDARD';
-  const serviceLevelCode = SERVICE_LEVEL_CODES[serviceLevel] || 'S-01';
-  const serviceTypeCode = SERVICE_TYPE_CODES[serviceLevel] || 'STD';
-
-  // Build service name from mode and level
-  const serviceName = serviceLevel === 'EXPRESS' ? 'EXPRESS SERVICE' : 'STANDARD EXPRESS';
-
-  // Safe weight extraction (chargeable is the billing weight)
-  const weight = shipment.totalWeight?.chargeable ?? 1;
-
-  return {
-    serviceName,
-    tracking: shipment.awb,
-    weight: `${weight} kg`,
-    serviceType: serviceTypeCode,
-    payment: (shipment as any).paymentMode || 'TO PAY',
-    mode: shipment.mode || 'TRUCK',
-    shipToName: (shipment.consignee?.name || shipment.customerName || 'CUSTOMER').toUpperCase(),
-    shipToLines,
-    deliveryStation: destHub.code,
-    originSort: originHub.code,
-    destSort: destHub.code,
-    shipDate: formatLabelDate(shipment.createdAt),
-    gstNumber: (shipment as any).gstNumber || '07AAMFT6165B1Z3',
-    invoiceDate: formatLabelDate(shipment.createdAt),
-    routingFrom: originHub.code,
-    routingTo: destHub.code,
-    serviceLevel: serviceLevelCode,
-    contents: (shipment.contentsDescription || 'GENERAL GOODS').toUpperCase(),
-    qty: String(shipment.totalPackageCount || 1).padStart(2, '0'),
-    footerLeft: ['Liability limited to conditions of carriage.', '© 2026 TAC Logistics.'],
-    brand: 'TAC SHIPPING',
-  };
-};
-
 export const PrintLabel: React.FC = () => {
   const { awb } = useParams();
-  const [data, setData] = useState<ShippingLabelData | null>(null);
+  const [data, setData] = useState<LabelData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
@@ -220,7 +158,7 @@ export const PrintLabel: React.FC = () => {
       const perAwbKey = `print_shipping_label_${payload.shipment.awb}`;
       sessionStorage.setItem(perAwbKey, JSON.stringify(payload.shipment));
       setError(null);
-      setData(mapShipmentToLabel(payload.shipment));
+      setData(generateLabelFromShipment(payload.shipment));
       logger.debug('[PrintLabel] Payload received via postMessage');
     };
 
@@ -289,7 +227,7 @@ export const PrintLabel: React.FC = () => {
             const shipment = mapShipmentRowToShipment(fetched);
             if (isMounted) {
               sessionStorage.setItem(perAwbKey, JSON.stringify(shipment));
-              setData(mapShipmentToLabel(shipment));
+              setData(generateLabelFromShipment(shipment));
             }
             return;
           }
@@ -328,7 +266,7 @@ export const PrintLabel: React.FC = () => {
         }
 
         if (isMounted) {
-          setData(mapShipmentToLabel(shipment));
+          setData(generateLabelFromShipment(shipment));
         }
 
         // Clean up localStorage after reading to prevent PII lingering
@@ -367,7 +305,7 @@ export const PrintLabel: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-neutral-100 flex justify-center">
-      <ShippingLabel shipment={data} />
+      <LabelGenerator data={data} />
     </div>
   );
 };

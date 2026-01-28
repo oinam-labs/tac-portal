@@ -27,10 +27,12 @@ export const StatusDistributionChart: React.FC<{ isLoading?: boolean }> = ({ isL
 
   const statusChartData = useMemo(() => {
     const inTransit = shipments.filter((s) =>
-      ['IN_TRANSIT_TO_DESTINATION', 'LOADED_FOR_LINEHAUL', 'RECEIVED_AT_ORIGIN_HUB'].includes(s.status)
+      ['RECEIVED_AT_ORIGIN', 'IN_TRANSIT', 'RECEIVED_AT_DEST'].includes(s.status)
     ).length;
     const delivered = shipments.filter((s) => s.status === 'DELIVERED').length;
-    const pending = shipments.filter((s) => s.status === 'PENDING').length;
+    const pending = shipments.filter((s) =>
+      ['CREATED', 'PICKUP_SCHEDULED', 'PICKED_UP'].includes(s.status)
+    ).length;
     const exception = shipments.filter((s) => s.status === 'EXCEPTION').length;
 
     return [

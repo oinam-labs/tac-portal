@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import fs from 'node:fs';
 import path from 'node:path';
 
 /**
@@ -7,18 +6,9 @@ import path from 'node:path';
  * Tests: Idempotency, Concurrency, PDF Contract, Error Recovery
  */
 
-const runAuthedE2E = process.env.RUN_AUTHED_E2E === 'true';
-const shouldSkipAuth = !!process.env.CI && !process.env.E2E_TEST_EMAIL;
 const authFile = path.resolve(process.cwd(), '.auth/user.json');
-const hasAuthState = fs.existsSync(authFile);
-const shouldSkipAuthedSuites = !runAuthedE2E || shouldSkipAuth || !hasAuthState;
-
-test.beforeEach(async ({ page: _page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'chromium', 'Enterprise stress E2E runs only on the chromium project');
-});
 
 test.describe('Enterprise Stress Tests', () => {
-  test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set E2E_TEST_EMAIL/E2E_TEST_PASSWORD and generate .auth/user.json)');
   test.use({ storageState: authFile });
 
   test.describe('Scanning Idempotency Stress', () => {

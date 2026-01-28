@@ -77,8 +77,16 @@ function getProjectRef() {
 
 /**
  * Run a specific migration file
+ * @param {string} filename - Migration filename (must be in allowedFiles)
+ * @param {Set<string>} allowedFiles - Allowlist of valid migration filenames
  */
-async function runMigration(filename) {
+async function runMigration(filename, allowedFiles) {
+    // Security: Allowlist validation FIRST - reject anything not in the known migrations
+    if (!allowedFiles || !allowedFiles.has(filename)) {
+        console.error(`❌ Filename not in allowlist: ${filename}`);
+        return false;
+    }
+
     const migrationsDir = resolve(process.cwd(), 'supabase/migrations');
 
     // Security: Validate filename to prevent path traversal
@@ -174,8 +182,11 @@ async function main() {
     let success = 0;
     let failed = 0;
 
+    // Security: Create allowlist Set from actual directory contents
+    const allowedFiles = new Set(allMigrations);
+
     for (const migration of migrationsToRun) {
-        const result = await runMigration(migration);
+        const result = await runMigration(migration, allowedFiles);
         if (result) success++;
         else failed++;
     }

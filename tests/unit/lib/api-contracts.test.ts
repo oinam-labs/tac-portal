@@ -285,8 +285,8 @@ describe('API Contract Tests', () => {
         it('should transition shipments to IN_TRANSIT on manifest close', () => {
             const shipmentStatusAfterClose = 'IN_TRANSIT';
             const validShipmentStatuses = [
-                'PENDING', 'RECEIVED_AT_ORIGIN_HUB', 'LOADED_FOR_LINEHAUL',
-                'IN_TRANSIT', 'IN_TRANSIT_TO_DESTINATION', 'DELIVERED'
+                'CREATED', 'PICKUP_SCHEDULED', 'PICKED_UP',
+                'RECEIVED_AT_ORIGIN', 'IN_TRANSIT', 'RECEIVED_AT_DEST', 'DELIVERED'
             ];
 
             expect(validShipmentStatuses).toContain(shipmentStatusAfterClose);

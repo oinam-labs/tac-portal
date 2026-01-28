@@ -553,14 +553,65 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
     toast.info('Repeat last invoice feature coming soon');
   };
 
+  const getAddressValue = (value: unknown): string => (typeof value === 'string' ? value.trim() : '');
+
+  const parseAddressString = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return {};
+    const zipMatch = trimmed.match(/\b(\d{6})\b/);
+    const zip = zipMatch?.[1] || '';
+    const withoutZip = zip ? trimmed.replace(zip, '').replace(/[\s,]+$/, '') : trimmed;
+    const parts = withoutZip
+      .split(',')
+      .map((part) => part.trim())
+      .filter(Boolean);
+    let line1 = '';
+    let line2 = '';
+    let city = '';
+    let state = '';
+
+    if (parts.length >= 3) {
+      state = parts.pop() || '';
+      city = parts.pop() || '';
+      line1 = parts.shift() || '';
+      line2 = parts.join(', ');
+    } else if (parts.length === 2) {
+      line1 = parts[0];
+      city = parts[1];
+    } else {
+      line1 = withoutZip;
+    }
+
+    return { line1, line2, city, state, zip };
+  };
+
+  const normalizeCustomerAddress = (address: CustomerAddress | Json | string | null) => {
+    if (!address) return {};
+    if (typeof address === 'string') return parseAddressString(address);
+    if (typeof address !== 'object' || Array.isArray(address)) return {};
+    const record = address as Record<string, unknown>;
+    const line1 = getAddressValue(
+      record.line1 ?? record.line_1 ?? record.street ?? record.address ?? record.addr1 ?? record.address1
+    );
+    const line2 = getAddressValue(
+      record.line2 ?? record.line_2 ?? record.street2 ?? record.address2 ?? record.addr2
+    );
+    const city = getAddressValue(record.city);
+    const state = getAddressValue(record.state);
+    const zip = getAddressValue(
+      record.zip ?? record.postal_code ?? record.postalCode ?? record.pincode ?? record.pin
+    );
+    return { line1, line2, city, state, zip };
+  };
+
   // Format CustomerAddress object to string
   const formatCustomerAddress = (address: CustomerAddress | Json | string | null): string => {
     if (!address) return '';
     if (typeof address === 'string') return address;
-    const addr = address as CustomerAddress;
-    return [addr.street, addr.city, addr.state, addr.postal_code]
-      .filter(Boolean)
-      .join(', ');
+    const normalized = normalizeCustomerAddress(address);
+    const line = [normalized.line1, normalized.line2].filter(Boolean).join(', ');
+    if (line) return line;
+    return [normalized.city, normalized.state, normalized.zip].filter(Boolean).join(', ');
   };
 
   const fillCustomerData = (customer: CustomerDB, type: 'CONSIGNOR' | 'CONSIGNEE') => {
@@ -569,18 +620,25 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
       shouldValidate: true,
     });
     setValue(`${prefix}Phone` as any, customer.phone, { shouldValidate: true });
-    
+
+    const normalizedAddress = normalizeCustomerAddress(customer.address);
+
     // Format address object to string
     const formattedAddress = formatCustomerAddress(customer.address);
-    setValue(`${prefix}Address` as any, formattedAddress, { shouldValidate: true });
+    if (formattedAddress) {
+      setValue(`${prefix}Address` as any, formattedAddress, { shouldValidate: true });
+    }
     setValue(`${prefix}Gstin` as any, customer.gstin || '', { shouldValidate: true });
-    
+
     // Extract city/state/zip from address if available
-    const addr = customer.address as CustomerAddress;
-    if (addr && typeof addr === 'object') {
-      if (addr.city) setValue(`${prefix}City` as any, addr.city, { shouldValidate: true });
-      if (addr.state) setValue(`${prefix}State` as any, addr.state, { shouldValidate: true });
-      if (addr.postal_code) setValue(`${prefix}Zip` as any, addr.postal_code, { shouldValidate: true });
+    if (normalizedAddress.city) {
+      setValue(`${prefix}City` as any, normalizedAddress.city, { shouldValidate: true });
+    }
+    if (normalizedAddress.state) {
+      setValue(`${prefix}State` as any, normalizedAddress.state, { shouldValidate: true });
+    }
+    if (normalizedAddress.zip) {
+      setValue(`${prefix}Zip` as any, normalizedAddress.zip, { shouldValidate: true });
     }
 
     // Smart autofill: Apply customer preferences (Phase 2)
@@ -886,11 +944,10 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                     <option value="AIR">✈️ Air Cargo</option>
                   </select>
                   <div
-                    className={`absolute left-2 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-md border pointer-events-none ${
-                      formValues.transportMode === 'AIR'
-                        ? 'bg-status-info/10 text-status-info border-status-info/30'
-                        : 'bg-status-warning/10 text-status-warning border-status-warning/30'
-                    }`}
+                    className={`absolute left-2 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-md border pointer-events-none ${formValues.transportMode === 'AIR'
+                      ? 'bg-status-info/10 text-status-info border-status-info/30'
+                      : 'bg-status-warning/10 text-status-warning border-status-warning/30'
+                      }`}
                   >
                     {formValues.transportMode === 'AIR' ? (
                       <Plane className="w-4 h-4" />

@@ -366,15 +366,16 @@ const ColorsSection: React.FC = () => {
 const StatusSection: React.FC = () => {
   const shipmentStatuses = [
     'CREATED',
+    'PICKUP_SCHEDULED',
     'PICKED_UP',
-    'RECEIVED_AT_ORIGIN_HUB',
-    'LOADED_FOR_LINEHAUL',
-    'IN_TRANSIT_TO_DESTINATION',
-    'RECEIVED_AT_DEST_HUB',
+    'RECEIVED_AT_ORIGIN',
+    'IN_TRANSIT',
+    'RECEIVED_AT_DEST',
     'OUT_FOR_DELIVERY',
     'DELIVERED',
-    'EXCEPTION_RAISED',
+    'EXCEPTION',
     'CANCELLED',
+    'RTO',
   ];
 
   const manifestStatuses = ['OPEN', 'CLOSED', 'DEPARTED', 'ARRIVED'];

@@ -44,7 +44,7 @@ export const Analytics: React.FC = () => {
         isSameMonth(new Date(s.created_at), month.date)
       );
       const outbound = monthShipments.length;
-      const inbound = monthShipments.filter((s) => ['DELIVERED', 'RECEIVED_AT_DEST_HUB'].includes(s.status)).length;
+      const inbound = monthShipments.filter((s) => ['DELIVERED', 'RECEIVED_AT_DEST'].includes(s.status)).length;
 
       return {
         month: month.label,

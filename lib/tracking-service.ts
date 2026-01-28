@@ -98,30 +98,6 @@ export const getTrackingInfo = async (
       };
     }
 
-    // Fallback demo data for testing (if AWB format matches but not in DB)
-    if (ref.startsWith('TAC') || ref.startsWith('IMP-') || ref.startsWith('DEL-')) {
-      return {
-        success: true,
-        data: {
-          shipment: {
-            reference: ref,
-            status: 'IN_TRANSIT',
-            consignee_name: 'Demo Recipient',
-            consignee_city: 'New Delhi',
-            origin: 'Imphal Hub',
-            destination: 'New Delhi Hub',
-          },
-          events: [
-            {
-              status: 'IN_TRANSIT_TO_DESTINATION',
-              description: 'Shipment departed from origin hub',
-              created_at: new Date().toISOString(),
-            },
-          ],
-        },
-      };
-    }
-
     return { success: false, error: 'Shipment not found. Please check the AWB number.' };
   } catch (error) {
     console.error('Tracking lookup error:', error);

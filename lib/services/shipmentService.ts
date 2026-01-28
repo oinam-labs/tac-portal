@@ -145,10 +145,17 @@ export const shipmentService = {
       // Generate AWB if not provided
       let awbNumber = shipment.awb_number;
       if (!awbNumber) {
-        const { data: awbData } = await (supabase.rpc as any)('generate_awb_number', {
-          p_org_id: orgId,
-        });
-        awbNumber = awbData || `TAC${Date.now()}`;
+        const { data: awbData, error: awbError } = await (supabase.rpc as any)(
+          'generate_awb_number',
+          {
+            p_org_id: orgId,
+          }
+        );
+        if (awbError) throw mapSupabaseError(awbError);
+        if (typeof awbData !== 'string' || !awbData) {
+          throw new Error('AWB service unavailable');
+        }
+        awbNumber = awbData;
       }
 
       const { data, error } = await (supabase.from('shipments') as any)
