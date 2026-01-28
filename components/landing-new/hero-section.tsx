@@ -60,7 +60,7 @@ export function HeroSection() {
               initial="hidden"
               animate="visible"
               variants={fadeUpVariant}
-              className="font-sans text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tighter text-foreground leading-[0.95]"
+              className="font-sans text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter text-foreground leading-[0.95]"
             >
               Tapan Associate
               <br />
@@ -72,7 +72,7 @@ export function HeroSection() {
               initial="hidden"
               animate="visible"
               variants={fadeUpVariant}
-              className="max-w-xl text-lg text-muted-foreground leading-relaxed font-light"
+              className="max-w-xl text-base sm:text-lg text-muted-foreground leading-relaxed font-light"
             >
               Your trusted cargo partner for over 15 years. Air cargo, surface transport, pickup &
               delivery, and professional packaging — connecting Imphal and New Delhi with
@@ -84,12 +84,12 @@ export function HeroSection() {
               initial="hidden"
               animate="visible"
               variants={fadeUpVariant}
-              className="flex flex-col sm:flex-row gap-4 w-full"
+              className="flex flex-col sm:flex-row gap-3 w-full"
             >
               <Link to="/login">
                 <Button
                   size="lg"
-                  className="rounded-full px-8 h-12 text-base font-medium shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all duration-300"
+                  className="rounded-full px-6 sm:px-8 h-11 sm:h-12 text-sm sm:text-base font-medium shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all duration-300 w-full sm:w-auto"
                 >
                   Book a Shipment
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -100,7 +100,7 @@ export function HeroSection() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="rounded-full px-8 h-12 text-base font-medium backdrop-blur-sm bg-background/30 hover:bg-background/50 border-border"
+                    className="rounded-full px-6 sm:px-8 h-11 sm:h-12 text-sm sm:text-base font-medium backdrop-blur-sm bg-background/30 hover:bg-background/50 border-border w-full sm:w-auto"
                   >
                     Track Shipment
                   </Button>

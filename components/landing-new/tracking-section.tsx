@@ -56,7 +56,7 @@ export function TrackingSection() {
             viewport={{ once: true }}
             className="mb-10 space-y-4 text-center"
           >
-            <h2 className="text-3xl font-bold tracking-tight md:text-5xl text-foreground">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight md:text-5xl text-foreground">
               Global Tracking <span className="text-primary">Protocol</span>
             </h2>
             <p className="text-muted-foreground text-lg font-light">
@@ -70,7 +70,7 @@ export function TrackingSection() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="border-border bg-card/40 shadow-sm rounded-xl p-0 transition-all sm:p-8 border backdrop-blur-xl"
+            className="border-border bg-card/40 shadow-sm rounded-xl p-4 sm:p-8 border backdrop-blur-xl"
           >
             {/* Tabs */}
             <div className="mb-8 flex justify-center">
@@ -81,13 +81,13 @@ export function TrackingSection() {
                 className="w-auto"
               >
                 <TabsList className="bg-secondary/50 grid w-full grid-cols-2">
-                  <TabsTrigger value="gps" className="flex items-center gap-2 px-6">
-                    <MapPin className="h-4 w-4" />
-                    GPS Telemetry
+                  <TabsTrigger value="gps" className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 text-xs sm:text-sm">
+                    <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="hidden xs:inline">GPS</span> Telemetry
                   </TabsTrigger>
-                  <TabsTrigger value="custody" className="flex items-center gap-2 px-6">
-                    <FileText className="h-4 w-4" />
-                    Chain of Custody
+                  <TabsTrigger value="custody" className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 text-xs sm:text-sm">
+                    <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="hidden xs:inline">Chain of</span> Custody
                   </TabsTrigger>
                 </TabsList>
               </Tabs>

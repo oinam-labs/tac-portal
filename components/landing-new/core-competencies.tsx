@@ -67,11 +67,11 @@ export function CoreCompetencies() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl md:text-5xl font-bold text-foreground mb-6 tracking-tight font-sans"
+            className="text-2xl sm:text-3xl md:text-5xl font-bold text-foreground mb-6 tracking-tight font-sans"
           >
             Operating <span className="text-primary">Spectrum</span>
           </motion.h2>
-          <p className="text-muted-foreground text-lg md:text-xl leading-relaxed max-w-xl">
+          <p className="text-muted-foreground text-base sm:text-lg md:text-xl leading-relaxed max-w-xl">
             Multi-modal logistics infrastructure powered by autonomous systems and military-grade
             security protocols.
           </p>

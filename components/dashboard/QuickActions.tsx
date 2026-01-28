@@ -41,12 +41,14 @@ export const QuickActions: React.FC = () => {
 
   return (
     <Card data-testid="quick-actions" className="mb-6">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div>
-          <h3 className="text-lg font-bold text-foreground">Quick Actions</h3>
-          <p className="text-xs text-muted-foreground">Common tasks for your role</p>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <h3 className="text-base sm:text-lg font-bold text-foreground">Quick Actions</h3>
+            <p className="text-xs text-muted-foreground">Common tasks for your role</p>
+          </div>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
           {actions.map((action) => (
             <Button
               key={action.label}
@@ -55,8 +57,9 @@ export const QuickActions: React.FC = () => {
               className="bg-background border border-border/60 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all group shadow-sm"
               onClick={action.onClick}
             >
-              <action.icon className={`w-4 h-4 mr-2 ${action.color} group-hover:scale-110 transition-transform`} />
-              {action.label}
+              <action.icon className={`w-4 h-4 sm:mr-2 ${action.color} group-hover:scale-110 transition-transform`} />
+              <span className="hidden sm:inline">{action.label}</span>
+              <span className="sm:hidden text-xs">{action.label.split(' ')[0]}</span>
               <span className="ml-2 text-[10px] opacity-40 border border-current px-1 rounded hidden lg:inline-block">
                 {action.shortcut}
               </span>

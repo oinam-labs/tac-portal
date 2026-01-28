@@ -9,7 +9,7 @@ export function StatsCTA() {
       <div className="relative z-10 container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="mb-16 flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between text-center lg:text-left">
           <div className="max-w-2xl mx-auto lg:mx-0">
-            <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
               Serving You for <span className="text-primary">15+ Years</span>
             </h2>
             <p className="text-muted-foreground mt-4 text-xl font-light max-w-lg mx-auto lg:mx-0">
@@ -40,7 +40,7 @@ export function StatsCTA() {
             <div className="bg-primary/10 text-primary w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-primary/20">
               <Package className="w-7 h-7" />
             </div>
-            <div className="text-5xl font-bold text-foreground mb-2 tracking-tight">50k+</div>
+            <div className="text-4xl sm:text-5xl font-bold text-foreground mb-2 tracking-tight">50k+</div>
             <p className="text-muted-foreground font-medium">Shipments Delivered</p>
           </motion.div>
 
@@ -55,7 +55,7 @@ export function StatsCTA() {
             <div className="bg-emerald-500/10 text-emerald-500 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-emerald-500/20">
               <ShieldCheck className="w-7 h-7" />
             </div>
-            <div className="text-5xl font-bold text-foreground mb-2 tracking-tight">99%</div>
+            <div className="text-4xl sm:text-5xl font-bold text-foreground mb-2 tracking-tight">99%</div>
             <p className="text-muted-foreground font-medium">Safe Arrival Rate</p>
           </motion.div>
 
@@ -70,7 +70,7 @@ export function StatsCTA() {
             <div className="bg-blue-500/10 text-blue-500 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-blue-500/20">
               <Clock className="w-7 h-7" />
             </div>
-            <div className="text-5xl font-bold text-foreground mb-2 tracking-tight">48h</div>
+            <div className="text-4xl sm:text-5xl font-bold text-foreground mb-2 tracking-tight">48h</div>
             <p className="text-muted-foreground font-medium">Imphal ↔ Delhi</p>
           </motion.div>
         </div>

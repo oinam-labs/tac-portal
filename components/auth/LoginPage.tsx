@@ -165,7 +165,7 @@ export const LoginPage: React.FC = () => {
       </div>
 
       {/* Right Panel - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <motion.div
@@ -189,7 +189,7 @@ export const LoginPage: React.FC = () => {
             variants={fadeUpVariant}
             className="text-center mb-8"
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Welcome Back</h2>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2">Welcome Back</h2>
             <p className="text-muted-foreground">Sign in to access your dashboard</p>
           </motion.div>
 
