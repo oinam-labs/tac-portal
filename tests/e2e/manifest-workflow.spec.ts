@@ -4,17 +4,11 @@
  */
 
 import { test, expect } from '@playwright/test';
-import fs from 'node:fs';
 import path from 'node:path';
 
-const runAuthedE2E = process.env.RUN_AUTHED_E2E === 'true';
-const shouldSkipAuth = !!process.env.CI && !process.env.E2E_TEST_EMAIL;
 const authFile = path.resolve(process.cwd(), '.auth/user.json');
-const hasAuthState = fs.existsSync(authFile);
-const shouldSkipAuthedSuites = !runAuthedE2E || shouldSkipAuth || !hasAuthState;
 
 test.describe('Manifest Workflow', () => {
-  test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set E2E_TEST_EMAIL/E2E_TEST_PASSWORD and generate .auth/user.json)');
   test.use({ storageState: authFile });
   // Tests use stored auth state from setup project - no login needed
 
@@ -52,7 +46,6 @@ test.describe('Manifest Workflow', () => {
 });
 
 test.describe('Scanning Workflow', () => {
-  test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set E2E_TEST_EMAIL/E2E_TEST_PASSWORD and generate .auth/user.json)');
   test.use({ storageState: authFile });
   // Tests use stored auth state from setup project - no login needed
 
