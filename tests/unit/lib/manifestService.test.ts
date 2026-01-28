@@ -290,7 +290,7 @@ describe('Manifest Service - Scan Validation Rules', () => {
     }
 
     // Check shipment status
-    const validStatuses = ['RECEIVED', 'CREATED', 'PICKED_UP', 'RECEIVED_AT_ORIGIN_HUB'];
+    const validStatuses = ['CREATED', 'PICKED_UP', 'RECEIVED_AT_ORIGIN'];
     if (validateStatus && !validStatuses.includes(shipment.status)) {
       return { valid: false, error: 'INVALID_STATUS' };
     }
@@ -301,7 +301,7 @@ describe('Manifest Service - Scan Validation Rules', () => {
   it('should pass validation for valid shipment', () => {
     const shipment: MockShipment = {
       id: 's1',
-      status: 'RECEIVED',
+      status: 'RECEIVED_AT_ORIGIN',
       destination_hub_id: 'hub-delhi',
       awb_number: '123-12345678',
     };
@@ -318,7 +318,7 @@ describe('Manifest Service - Scan Validation Rules', () => {
   it('should reject when manifest is closed', () => {
     const shipment: MockShipment = {
       id: 's1',
-      status: 'RECEIVED',
+      status: 'RECEIVED_AT_ORIGIN',
       destination_hub_id: 'hub-delhi',
       awb_number: '123-12345678',
     };
@@ -336,7 +336,7 @@ describe('Manifest Service - Scan Validation Rules', () => {
   it('should reject destination mismatch when validation enabled', () => {
     const shipment: MockShipment = {
       id: 's1',
-      status: 'RECEIVED',
+      status: 'RECEIVED_AT_ORIGIN',
       destination_hub_id: 'hub-mumbai',
       awb_number: '123-12345678',
     };
@@ -354,7 +354,7 @@ describe('Manifest Service - Scan Validation Rules', () => {
   it('should allow destination mismatch when validation disabled', () => {
     const shipment: MockShipment = {
       id: 's1',
-      status: 'RECEIVED',
+      status: 'RECEIVED_AT_ORIGIN',
       destination_hub_id: 'hub-mumbai',
       awb_number: '123-12345678',
     };
@@ -404,7 +404,7 @@ describe('Manifest Service - Scan Validation Rules', () => {
   });
 
   it('should accept all valid shipment statuses', () => {
-    const validStatuses = ['RECEIVED', 'CREATED', 'PICKED_UP', 'RECEIVED_AT_ORIGIN_HUB'];
+    const validStatuses = ['CREATED', 'PICKED_UP', 'RECEIVED_AT_ORIGIN'];
     const manifest: MockManifest = {
       id: 'm1',
       status: 'BUILDING',

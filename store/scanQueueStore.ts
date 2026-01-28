@@ -5,12 +5,15 @@
  */
 /* eslint-disable @typescript-eslint/no-explicit-any -- Supabase client requires any for complex operations */
 
+import { useEffect } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { ScanEvent, ScanSource, HubCode, UUID } from '@/types/domain';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import { orgService } from '@/lib/services/orgService';
+import { useAuthStore } from '@/store/authStore';
 
 interface ScanQueueState {
   queue: ScanEvent[];
@@ -92,14 +95,17 @@ export const useScanQueueStore = create<ScanQueueState>()(
 
         for (const scan of pendingScans) {
           try {
+            const { orgId, shipmentId, hubId, staffId } = await resolveScanContext(scan);
+
             // Create tracking event in Supabase
             const { error } = await (supabase.from('tracking_events') as any).insert({
-              shipment_id: scan.code, // This should be resolved to actual shipment ID
+              org_id: orgId,
+              shipment_id: shipmentId,
               awb_number: scan.code,
               event_code: scan.type === 'manifest' ? 'MANIFEST_SCAN' : 'PACKAGE_SCAN',
               event_time: scan.timestamp,
-              hub_id: scan.hubCode,
-              actor_staff_id: scan.staffId,
+              hub_id: hubId,
+              actor_staff_id: staffId,
               source: mapScanSourceToTrackingSource(scan.source),
               meta: {
                 scan_id: scan.id,
@@ -172,21 +178,23 @@ const mapScanSourceToTrackingSource = (source: ScanSource): string => {
   }
 };
 
-// Auto-retry sync every 30 seconds when online
-if (typeof window !== 'undefined') {
-  const startAutoRetry = () => {
-    setInterval(() => {
-      const store = useScanQueueStore.getState();
-      const pendingCount = store.getPendingScans().length;
+let scanQueueAutoSyncInitialized = false;
 
-      if (pendingCount > 0 && navigator.onLine) {
-        logger.debug('[ScanQueue] Auto-retry', { pendingCount });
-        store.retrySync();
-      }
-    }, 30000); // 30 seconds
-  };
+const initScanQueueAutoSync = () => {
+  if (typeof window === 'undefined') return;
+  if (scanQueueAutoSyncInitialized) return;
+  scanQueueAutoSyncInitialized = true;
 
-  // Listen for online/offline events
+  setInterval(() => {
+    const store = useScanQueueStore.getState();
+    const pendingCount = store.getPendingScans().length;
+
+    if (pendingCount > 0 && navigator.onLine) {
+      logger.debug('[ScanQueue] Auto-retry', { pendingCount });
+      store.retrySync();
+    }
+  }, 30000);
+
   window.addEventListener('online', () => {
     logger.debug('[ScanQueue] Connection restored, syncing...');
     useScanQueueStore.getState().retrySync();
@@ -198,10 +206,7 @@ if (typeof window !== 'undefined') {
       description: 'Scans will sync when connection is restored',
     });
   });
-
-  // Start auto-retry
-  startAutoRetry();
-}
+};
 
 /**
  * Convenience hook for Scanning page - simplified interface
@@ -209,15 +214,21 @@ if (typeof window !== 'undefined') {
 export const useScanQueue = () => {
   const store = useScanQueueStore();
   const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+  const user = useAuthStore((state) => state.user);
+
+  useEffect(() => {
+    initScanQueueAutoSync();
+  }, []);
 
   return {
     addScan: (scan: { awb: string; mode: string; manifestId?: string }) => {
+      const hubCode = user?.hubCode === 'DEL' ? HubCode.NEW_DELHI : HubCode.IMPHAL;
       store.addScan({
         type: 'shipment',
         code: scan.awb,
         source: ScanSource.CAMERA,
-        hubCode: HubCode.IMPHAL,
-        staffId: null as unknown as UUID, // Null until resolved on sync - 'system' is not a valid UUID
+        hubCode,
+        staffId: (user?.id as UUID) ?? (null as unknown as UUID),
       });
     },
     pendingScans: store.getPendingScans(),
@@ -227,6 +238,34 @@ export const useScanQueue = () => {
     syncPending: store.retrySync,
     clearSynced: store.clearSynced,
   };
+};
+
+const resolveScanContext = async (scan: ScanEvent) => {
+  const orgId = orgService.getCurrentOrgId();
+  const staffId = scan.staffId ?? useAuthStore.getState().user?.id ?? null;
+
+  const { data: shipment, error: shipmentError } = await (supabase.from('shipments') as any)
+    .select('id')
+    .eq('org_id', orgId)
+    .eq('awb_number', scan.code)
+    .maybeSingle();
+
+  if (shipmentError || !shipment?.id) {
+    throw new Error('Shipment not found for scan');
+  }
+
+  const hubCode = scan.hubCode === HubCode.IMPHAL ? 'IMF' : 'DEL';
+  const { data: hub, error: hubError } = await (supabase.from('hubs') as any)
+    .select('id')
+    .eq('org_id', orgId)
+    .eq('code', hubCode)
+    .maybeSingle();
+
+  if (hubError || !hub?.id) {
+    throw new Error('Hub not found for scan');
+  }
+
+  return { orgId, shipmentId: shipment.id, hubId: hub.id, staffId };
 };
 
 /**

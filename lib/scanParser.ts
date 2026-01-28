@@ -35,7 +35,7 @@ export interface ScanPayloadV1 {
  * Supports:
  * 1. Raw AWB: TAC12345678
  * 2. JSON shipment: {"v":1,"awb":"TAC12345678"}
- * 3. JSON manifest: {"v":1,"type":"manifest","id":"uuid","manifestNo":"MNF-2024-001"}
+ * 3. JSON manifest: {"v":1,"type":"manifest","id":"uuid","manifestNo":"MNF-2024-000001"}
  * 4. JSON package: {"v":1,"type":"package","packageId":"PKG-001"}
  */
 export function parseScanInput(input: string): ScanResult {
@@ -113,7 +113,16 @@ export function parseScanInput(input: string): ScanResult {
     }
   }
 
-  // 3. Try manifest number format (MNF-YYYY-XXXXXX)
+  // 3. Try manifest number format (MNF-YYYY-XXXXXX) or legacy MAN- format
+  const legacyManifestMatch = /^MAN-(\d{4})-(\d{5})$/i.exec(trimmed);
+  if (legacyManifestMatch) {
+    return {
+      type: 'manifest',
+      manifestNo: trimmed.toUpperCase(),
+      raw: trimmed,
+    };
+  }
+
   if (/^MNF-\d{4}-\d{6}$/i.test(trimmed)) {
     return {
       type: 'manifest',
