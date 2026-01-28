@@ -23,7 +23,7 @@ const ROOT_DIR = join(__dirname, '..');
 const FORBIDDEN_CODE = 'IXA';
 const VALID_CODES = ['DEL', 'GAU', 'CCU', 'IMF'];
 
-// Directories to scan
+// Directories to scan (SECURITY: hardcoded allowlist - do not accept user input)
 const SCAN_DIRS = [
     'components',
     'pages',
@@ -34,6 +34,8 @@ const SCAN_DIRS = [
     'supabase/migrations',
     'tests',
 ];
+// Security: Frozen allowlist Set for O(1) lookup
+const SCAN_DIRS_ALLOWLIST = Object.freeze(new Set(SCAN_DIRS));
 
 // File extensions to check
 const EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.sql', '.md'];
@@ -173,6 +175,12 @@ console.log(`   Forbidden: ${FORBIDDEN_CODE}`);
 console.log(`   Valid: ${VALID_CODES.join(', ')}\n`);
 
 SCAN_DIRS.forEach((dir) => {
+    // Security: Verify against frozen allowlist (defense in depth)
+    if (!SCAN_DIRS_ALLOWLIST.has(dir)) {
+        console.error(`Security: Directory not in allowlist: ${dir}`);
+        return;
+    }
+
     // Security: Validate scan directory names
     if (dir.includes('..') || dir.startsWith('/') || dir.startsWith('\\')) {
         console.error(`Security: Skipping invalid scan directory: ${dir}`);
