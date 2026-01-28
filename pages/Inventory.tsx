@@ -27,9 +27,9 @@ export const Inventory: React.FC = () => {
     const originHubLocation = getHubLocationFromId(s.origin_hub_id);
     const destHubLocation = getHubLocationFromId(s.destination_hub_id);
 
-    if (['CREATED', 'RECEIVED_AT_ORIGIN', 'LOADED_FOR_LINEHAUL'].includes(s.status))
+    if (['CREATED', 'PICKUP_SCHEDULED', 'PICKED_UP', 'RECEIVED_AT_ORIGIN'].includes(s.status))
       return originHubLocation;
-    if (['RECEIVED_AT_DEST_HUB', 'OUT_FOR_DELIVERY'].includes(s.status)) return destHubLocation;
+    if (['RECEIVED_AT_DEST', 'OUT_FOR_DELIVERY'].includes(s.status)) return destHubLocation;
     if (['EXCEPTION'].includes(s.status)) return originHubLocation;
     return null;
   };
