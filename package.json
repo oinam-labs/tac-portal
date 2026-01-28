@@ -53,7 +53,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@tiptap/extension-color": "^3.17.1",
     "@tiptap/extension-highlight": "^3.16.0",
-    "@tiptap/extension-image": "^3.16.0",
+    "@tiptap/extension-image": "^3.17.1",
     "@tiptap/extension-link": "^3.16.0",
     "@tiptap/extension-placeholder": "^3.17.1",
     "@tiptap/extension-task-item": "^3.16.0",
