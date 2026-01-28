@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import fs from 'node:fs';
 import path from 'node:path';
 
 /**
@@ -12,18 +11,9 @@ import path from 'node:path';
  * 4. Invoice → Label → Manifest flow works end-to-end
  */
 
-const runAuthedE2E = process.env.RUN_AUTHED_E2E === 'true';
-const shouldSkipAuth = !!process.env.CI && !process.env.E2E_TEST_EMAIL;
 const authFile = path.resolve(process.cwd(), '.auth/user.json');
-const hasAuthState = fs.existsSync(authFile);
-const shouldSkipAuthedSuites = !runAuthedE2E || shouldSkipAuth || !hasAuthState;
-
-test.beforeEach(async ({ page: _page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'chromium', 'Production readiness checks run only on the chromium project');
-});
 
 test.describe('Production Readiness - Domain Enforcement', () => {
-    test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set E2E_TEST_EMAIL/E2E_TEST_PASSWORD and generate .auth/user.json)');
     test.use({ storageState: authFile });
 
     test('should not display IXA hub code anywhere in UI', async ({ page }) => {
@@ -62,7 +52,6 @@ test.describe('Production Readiness - Domain Enforcement', () => {
 });
 
 test.describe('Production Readiness - No Mock Data', () => {
-    test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set RUN_AUTHED_E2E=true and generate .auth/user.json)');
     test.use({ storageState: authFile });
 
     test('should not show hardcoded mock data on dashboard', async ({ page }) => {
@@ -95,7 +84,6 @@ test.describe('Production Readiness - No Mock Data', () => {
 });
 
 test.describe('Production Readiness - Empty States', () => {
-    test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set RUN_AUTHED_E2E=true and generate .auth/user.json)');
     test.use({ storageState: authFile });
 
     test('should render empty state correctly for charts with no data', async ({ page }) => {
@@ -129,13 +117,12 @@ test.describe('Production Readiness - Empty States', () => {
 });
 
 test.describe('Production Readiness - Critical User Flows', () => {
-    test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set E2E_TEST_EMAIL/E2E_TEST_PASSWORD and generate .auth/user.json)');
     test.use({ storageState: authFile });
 
     test('Invoice creation smoke check', async ({ page }) => {
         // Smoke test: verify invoice creation UI is accessible
         // Full E2E flow requires manual QA (see PRODUCTION_READINESS_CHECKLIST.md)
-        await page.goto('/#/invoices');
+        await page.goto('/#/finance');
         await page.waitForLoadState('networkidle');
 
         // Verify invoice creation button exists
@@ -208,7 +195,6 @@ test.describe('Production Readiness - Critical User Flows', () => {
 });
 
 test.describe('Production Readiness - No Console Errors', () => {
-    test.skip(shouldSkipAuthedSuites, 'E2E auth not configured (set E2E_TEST_EMAIL/E2E_TEST_PASSWORD and generate .auth/user.json)');
     test.use({ storageState: authFile });
 
     test('should not have React crashes on dashboard', async ({ page }) => {

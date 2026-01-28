@@ -142,6 +142,12 @@ describe('scanParser', () => {
         expect(result.type).toBe('manifest');
         expect(result.manifestNo).toBe('MNF-2024-000001');
       });
+
+      it('should accept legacy MAN manifest numbers', () => {
+        const result = parseScanInput('MAN-2024-00001');
+        expect(result.type).toBe('manifest');
+        expect(result.manifestNo).toBe('MAN-2024-00001');
+      });
     });
 
     describe('Error cases', () => {

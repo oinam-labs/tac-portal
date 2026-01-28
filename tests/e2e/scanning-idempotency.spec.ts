@@ -5,10 +5,6 @@ import { test, expect } from '@playwright/test';
  * Verifies that duplicate scans don't create duplicate manifest items
  */
 
-test.beforeEach(async ({ page: _page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'chromium', 'Scanning idempotency E2E runs only on the chromium project');
-});
-
 test.describe('Scanning Idempotency', () => {
   // Tests use stored auth state from setup project - no login needed
 
