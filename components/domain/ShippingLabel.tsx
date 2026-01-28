@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import JsBarcode from 'jsbarcode';
-import QRCode from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';
 import { Shipment, HubLocation } from '@/types';
 import { format } from 'date-fns';
 
@@ -96,7 +96,7 @@ export function ShippingLabel({ shipment, packageIndex = 1 }: ShippingLabelProps
       {/* QR Code & Consignee */}
       <div className="flex gap-3">
         <div className="flex-shrink-0">
-          <QRCode value={qrData} size={80} level="M" renderAs="svg" />
+          <QRCodeSVG value={qrData} size={80} level="M" />
         </div>
         <div className="flex-1 border-l border-border pl-3">
           <p className="text-xs text-muted-foreground mb-1">DELIVER TO:</p>
