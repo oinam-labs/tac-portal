@@ -113,12 +113,13 @@ export function Navbar() {
                     ))}
                   </div>
                   <div className="p-6 mt-auto">
-                    <Button
-                      className="w-full rounded-full h-12 text-base font-medium shadow-lg shadow-primary/20"
-                      onClick={() => (window.location.href = '/login')}
-                    >
-                      Login
-                    </Button>
+                    <Link to="/login" className="block" onClick={() => setIsOpen(false)}>
+                      <Button
+                        className="w-full rounded-full h-12 text-base font-medium shadow-lg shadow-primary/20"
+                      >
+                        Login
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </SheetContent>

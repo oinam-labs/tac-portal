@@ -6,14 +6,25 @@ import { AnimatedThemeToggler } from '../ui/animated-theme-toggler';
 import { NotificationBell } from '../domain/NotificationBell';
 
 export const Header: React.FC = () => {
-  const { toggleSidebar } = useStore();
+  const { toggleSidebar, setMobileSidebarOpen, mobileSidebarOpen } = useStore();
+
+  const handleMenuClick = () => {
+    // On mobile (< lg breakpoint), toggle mobile sidebar overlay
+    // On desktop, collapse/expand sidebar
+    if (window.innerWidth < 1024) {
+      setMobileSidebarOpen(!mobileSidebarOpen);
+    } else {
+      toggleSidebar();
+    }
+  };
 
   return (
-    <header className="h-16 bg-cyber-bg/80 backdrop-blur-md border-b border-cyber-border sticky top-0 z-40 px-6 flex items-center justify-between transition-colors duration-300">
+    <header className="h-16 bg-cyber-bg/80 backdrop-blur-md border-b border-cyber-border sticky top-0 z-40 px-4 lg:px-6 flex items-center justify-between transition-colors duration-300">
       <div className="flex items-center gap-4">
         <button
-          onClick={toggleSidebar}
+          onClick={handleMenuClick}
           className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+          aria-label="Toggle menu"
         >
           <Menu className="w-5 h-5" />
         </button>

@@ -1,5 +1,5 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   BarChart2,
@@ -99,7 +99,13 @@ const NAV_GROUPS: NavGroupDef[] = [
 ];
 
 export const Sidebar: React.FC = () => {
-  const { sidebarCollapsed, user } = useStore();
+  const { sidebarCollapsed, mobileSidebarOpen, setMobileSidebarOpen, user } = useStore();
+  const location = useLocation();
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [location.pathname, setMobileSidebarOpen]);
 
   const hasAccess = (allowedRoles?: UserRole[]) => {
     if (!allowedRoles) return true;
@@ -110,75 +116,89 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside
-      className={`fixed left-0 top-0 h-full bg-sidebar border-r border-sidebar-border transition-all duration-300 z-50 flex flex-col ${sidebarCollapsed ? 'w-20' : 'w-64'}`}
-    >
-      {/* Logo Area */}
-      <div className="h-16 flex items-center px-5 border-b border-sidebar-border bg-sidebar/50">
-        <div className="flex items-center justify-center shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shadow-sm">
-            <span className="font-bold text-lg leading-none">T</span>
+    <>
+      {/* Mobile overlay backdrop */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setMobileSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      <aside
+        className={`fixed left-0 top-0 h-full bg-sidebar border-r border-sidebar-border transition-all duration-300 z-50 flex flex-col
+          ${sidebarCollapsed ? 'w-20' : 'w-64'}
+          ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:translate-x-0
+        `}
+      >
+        {/* Logo Area */}
+        <div className="h-16 flex items-center px-5 border-b border-sidebar-border bg-sidebar/50">
+          <div className="flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shadow-sm">
+              <span className="font-bold text-lg leading-none">T</span>
+            </div>
           </div>
+          {!sidebarCollapsed && (
+            <span className="ml-3 font-bold text-lg tracking-tight text-foreground flex flex-col leading-none">
+              <span className="text-foreground">TAC Cargo</span>
+              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-0.5">Enterprise</span>
+            </span>
+          )}
         </div>
-        {!sidebarCollapsed && (
-          <span className="ml-3 font-bold text-lg tracking-tight text-foreground flex flex-col leading-none">
-            <span className="text-foreground">TAC Cargo</span>
-            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-0.5">Enterprise</span>
-          </span>
-        )}
-      </div>
 
-      {/* Nav Items */}
-      <nav className="flex-1 px-3 py-6 space-y-8 overflow-y-auto">
-        {NAV_GROUPS.map((group, groupIndex) => {
-          const visibleItems = group.items.filter((item) => hasAccess(item.roles));
+        {/* Nav Items */}
+        <nav className="flex-1 px-3 py-6 space-y-8 overflow-y-auto">
+          {NAV_GROUPS.map((group, groupIndex) => {
+            const visibleItems = group.items.filter((item) => hasAccess(item.roles));
 
-          if (visibleItems.length === 0) return null;
+            if (visibleItems.length === 0) return null;
 
-          return (
-            <div key={groupIndex}>
-              {!sidebarCollapsed && group.title && (
-                <div className="px-4 mb-3 text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest">
-                  {group.title}
-                </div>
-              )}
-              <div className="space-y-1">
-                {visibleItems.map((item) => (
-                  <NavLink
-                    key={item.label}
-                    to={item.path}
-                    title={sidebarCollapsed ? item.label : ''}
-                    data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
-                    aria-label={item.label}
-                    className={({ isActive }) => `
+            return (
+              <div key={groupIndex}>
+                {!sidebarCollapsed && group.title && (
+                  <div className="px-4 mb-3 text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest">
+                    {group.title}
+                  </div>
+                )}
+                <div className="space-y-1">
+                  {visibleItems.map((item) => (
+                    <NavLink
+                      key={item.label}
+                      to={item.path}
+                      title={sidebarCollapsed ? item.label : ''}
+                      data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                      aria-label={item.label}
+                      className={({ isActive }) => `
                       flex items-center px-3 py-2 text-sm transition-all duration-200 group rounded-md
                       ${isActive
-                        ? 'bg-primary text-primary-foreground font-medium shadow-sm'
-                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-normal'
-                      }
+                          ? 'bg-primary text-primary-foreground font-medium shadow-sm'
+                          : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-normal'
+                        }
                     `}
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <item.icon
-                          className={`w-4 h-4 shrink-0 transition-colors duration-200 ${sidebarCollapsed ? 'mx-auto' : 'mr-3'} ${isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'}`}
-                          aria-hidden="true"
-                        />
-                        {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
-                      </>
-                    )}
-                  </NavLink>
-                ))}
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <item.icon
+                            className={`w-4 h-4 shrink-0 transition-colors duration-200 ${sidebarCollapsed ? 'mx-auto' : 'mr-3'} ${isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'}`}
+                            aria-hidden="true"
+                          />
+                          {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
+                        </>
+                      )}
+                    </NavLink>
+                  ))}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </nav>
+            );
+          })}
+        </nav>
 
-      {/* Footer / User */}
-      <div className="p-4 border-t border-cyber-border">
-        <UserProfile collapsed={sidebarCollapsed} />
-      </div>
-    </aside>
+        {/* Footer / User */}
+        <div className="p-4 border-t border-cyber-border">
+          <UserProfile collapsed={sidebarCollapsed} />
+        </div>
+      </aside>
+    </>
   );
 };

@@ -309,9 +309,10 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
         Skip to content
       </a>
       <Sidebar />
-      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'pl-20' : 'pl-64'}`}>
+      {/* On mobile (< lg), no left padding since sidebar is hidden. On desktop, apply padding based on sidebar state */}
+      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
         <Header />
-        <main id="main-content" className="p-6 max-w-[96%] mx-auto">
+        <main id="main-content" className="p-4 lg:p-6 max-w-full lg:max-w-[96%] mx-auto">
           {children}
         </main>
       </div>
