@@ -77,16 +77,16 @@ enum HubCode {
 
 enum ShipmentStatus {
     CREATED = 'CREATED',
+    PICKUP_SCHEDULED = 'PICKUP_SCHEDULED',
     PICKED_UP = 'PICKED_UP',
-    RECEIVED_AT_ORIGIN_HUB = 'RECEIVED_AT_ORIGIN_HUB',
-    LOADED_FOR_LINEHAUL = 'LOADED_FOR_LINEHAUL',
-    IN_TRANSIT_TO_DESTINATION = 'IN_TRANSIT_TO_DESTINATION',
-    RECEIVED_AT_DEST_HUB = 'RECEIVED_AT_DEST_HUB',
+    RECEIVED_AT_ORIGIN = 'RECEIVED_AT_ORIGIN',
+    IN_TRANSIT = 'IN_TRANSIT',
+    RECEIVED_AT_DEST = 'RECEIVED_AT_DEST',
     OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY',
     DELIVERED = 'DELIVERED',
-    EXCEPTION_RAISED = 'EXCEPTION_RAISED',
-    EXCEPTION_RESOLVED = 'EXCEPTION_RESOLVED',
     CANCELLED = 'CANCELLED',
+    RTO = 'RTO',
+    EXCEPTION = 'EXCEPTION',
 }
 
 enum ManifestStatus {
@@ -210,17 +210,17 @@ interface Financials {
 ```typescript
 // Valid shipment transitions
 const SHIPMENT_STATUS_TRANSITIONS: Record<ShipmentStatus, ShipmentStatus[]> = {
-    CREATED: [PICKED_UP, RECEIVED_AT_ORIGIN_HUB, CANCELLED],
-    PICKED_UP: [RECEIVED_AT_ORIGIN_HUB, EXCEPTION_RAISED],
-    RECEIVED_AT_ORIGIN_HUB: [LOADED_FOR_LINEHAUL, EXCEPTION_RAISED],
-    LOADED_FOR_LINEHAUL: [IN_TRANSIT_TO_DESTINATION, EXCEPTION_RAISED],
-    IN_TRANSIT_TO_DESTINATION: [RECEIVED_AT_DEST_HUB, EXCEPTION_RAISED],
-    RECEIVED_AT_DEST_HUB: [OUT_FOR_DELIVERY, EXCEPTION_RAISED],
-    OUT_FOR_DELIVERY: [DELIVERED, EXCEPTION_RAISED],
+    CREATED: [PICKUP_SCHEDULED, CANCELLED],
+    PICKUP_SCHEDULED: [PICKED_UP, CANCELLED],
+    PICKED_UP: [RECEIVED_AT_ORIGIN, EXCEPTION],
+    RECEIVED_AT_ORIGIN: [IN_TRANSIT, EXCEPTION],
+    IN_TRANSIT: [RECEIVED_AT_DEST, EXCEPTION],
+    RECEIVED_AT_DEST: [OUT_FOR_DELIVERY, EXCEPTION],
+    OUT_FOR_DELIVERY: [DELIVERED, RTO, EXCEPTION],
     DELIVERED: [],
-    EXCEPTION_RAISED: [EXCEPTION_RESOLVED, CANCELLED],
-    EXCEPTION_RESOLVED: [RECEIVED_AT_ORIGIN_HUB, RECEIVED_AT_DEST_HUB, OUT_FOR_DELIVERY],
     CANCELLED: [],
+    RTO: [RECEIVED_AT_ORIGIN],
+    EXCEPTION: [RECEIVED_AT_ORIGIN, RECEIVED_AT_DEST, CANCELLED],
 };
 
 // Validate transition
@@ -754,9 +754,6 @@ function parseAWB(input: string): AWB | null;
 
 // Format AWB for display
 function formatAWB(awb: AWB | string): string;
-
-// Generate random AWB (for testing only)
-function generateAWB(): AWB;
 ```
 
 ---
@@ -809,21 +806,18 @@ export const CONTENT_TYPES: string[];  // 12 content categories
 **Location:** `lib/design-tokens.ts`
 
 ```typescript
-export const STATUS_COLORS: Record<ShipmentStatus, string> = {
-    CREATED: 'text-slate-500 border-slate-500/30 bg-slate-500/10',
-    IN_TRANSIT_TO_DESTINATION: 'text-cyber-neon border-cyber-neon/30 bg-cyber-neon/10',
-    DELIVERED: 'text-cyber-success border-cyber-success/30 bg-cyber-success/10',
-    EXCEPTION_RAISED: 'text-cyber-danger border-cyber-danger/30 bg-cyber-danger/10',
-    // ... more statuses
-};
-
-export const CHART_COLORS = {
-    primary: '#22d3ee',
-    secondary: '#c084fc',
-    success: '#10b981',
-    danger: '#ef4444',
-    background: 'transparent',
-    grid: 'rgba(34, 211, 238, 0.1)'
+export const STATUS_COLORS: Partial<Record<ShipmentStatus, string>> = {
+    CREATED: 'badge--created',
+    PICKUP_SCHEDULED: 'badge--created',
+    PICKED_UP: 'badge--manifested',
+    RECEIVED_AT_ORIGIN: 'badge--manifested',
+    IN_TRANSIT: 'badge--in-transit',
+    RECEIVED_AT_DEST: 'badge--arrived',
+    OUT_FOR_DELIVERY: 'badge--in-transit',
+    DELIVERED: 'badge--delivered',
+    CANCELLED: 'badge--cancelled',
+    RTO: 'badge--returned',
+    EXCEPTION: 'badge--exception',
 };
 
 export const ANIMATION_VARIANTS = {
@@ -836,6 +830,20 @@ export const ANIMATION_VARIANTS = {
         initial: { x: -20, opacity: 0 },
         animate: { x: 0, opacity: 1 },
     }
+};
+
+export const CHART_COLORS = {
+    primary: 'var(--accent-primary)',
+    secondary: 'oklch(var(--status-info))',
+    success: 'oklch(var(--status-success))',
+    warning: 'oklch(var(--status-warning))',
+    error: 'oklch(var(--status-error))',
+    info: 'oklch(var(--status-info))',
+    neutral: 'oklch(var(--status-neutral))',
+    danger: 'oklch(var(--status-error))',
+    background: 'transparent',
+    grid: 'var(--border-subtle)',
+    axis: 'var(--text-muted)',
 };
 ```
 
