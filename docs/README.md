@@ -331,33 +331,27 @@ interface Shipment {
 CREATED
     │
     ▼
+PICKUP_SCHEDULED
+    │
+    ▼
 PICKED_UP
     │
     ▼
-RECEIVED_AT_ORIGIN_HUB
+RECEIVED_AT_ORIGIN
     │
     ▼
-LOADED_FOR_LINEHAUL ──────────────────┐
-    │                                 │
-    ▼                                 │
-IN_TRANSIT_TO_DESTINATION             │
-    │                                 │
-    ▼                                 │
-RECEIVED_AT_DEST_HUB                  │
-    │                                 │
-    ▼                                 │
-OUT_FOR_DELIVERY                      │
-    │                                 │
-    ▼                                 │
-DELIVERED ◄───────────────────────────┤
+IN_TRANSIT
+    │
+    ▼
+RECEIVED_AT_DEST
+    │
+    ▼
+OUT_FOR_DELIVERY
+    │
+    ▼
+DELIVERED ◄───────────────────────────┐
                                       │
-           EXCEPTION_RAISED ◄─────────┘
-                  │
-                  ▼
-           EXCEPTION_RESOLVED
-                  │
-                  ▼
-            (Resume Flow)
+           EXCEPTION ◄────────────────┘
 ```
 
 #### Invoice
@@ -449,7 +443,7 @@ formatCurrency(1500); // "₹1,500.00"
 Validates if a shipment status transition is allowed.
 
 ```typescript
-isValidTransition('PICKED_UP', 'RECEIVED_AT_ORIGIN_HUB'); // true
+isValidTransition('PICKED_UP', 'RECEIVED_AT_ORIGIN'); // true
 isValidTransition('DELIVERED', 'IN_TRANSIT'); // false
 ```
 

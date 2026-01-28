@@ -10,7 +10,7 @@ The Enterprise Manifest module is designed to support high-volume, scan-first ca
 
 The architecture relies on a robust relational schema with strict constraints:
 
-- **`manifests`**: The core entity representing a linehaul movement (AIR/TRUCK).
+- `manifests`: The core entity representing a linehaul movement (AIR/TRUCK).
   - `manifest_no`: Server-side generated unique identifier (e.g., `MAN-2024-00001`).
   - `status`: State machine (`DRAFT` → `BUILDING` → `OPEN` → `CLOSED` → `DEPARTED` → `ARRIVED` → `RECONCILED`).
   - `vehicle_meta`: JSONB field for transport-specific details (flight no, driver, etc.).
