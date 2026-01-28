@@ -8,7 +8,7 @@
 
 import { config } from 'dotenv';
 import { readFileSync, readdirSync } from 'fs';
-import { resolve, join, normalize, basename, sep } from 'path';
+import { resolve, normalize, basename, sep } from 'path';
 
 // Load environment variables
 config({ path: '.env.local' });
@@ -26,8 +26,17 @@ if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
  * 
  * Security Note: SQL content is transmitted over HTTPS to Supabase.
  * Ensure migration files do not contain sensitive credentials or secrets.
+ * This script is intended for local development only.
  */
 async function executeSQL(sql, description) {
+    // Validate SQL is not empty before sending
+    if (!sql || sql.trim().length === 0) {
+        throw new Error('Cannot execute empty SQL');
+    }
+
+    // Security: Log that file content is being transmitted (for audit)
+    console.log(`   Executing SQL migration (${sql.length} bytes)`);
+
     // First try using the sql endpoint
     const response = await fetch(`${SUPABASE_URL}/rest/v1/`, {
         method: 'POST',
@@ -82,7 +91,7 @@ function getProjectRef() {
  */
 async function runMigration(filename, allowedFiles) {
     // Security: Allowlist validation FIRST - reject anything not in the known migrations
-    if (!allowedFiles || !allowedFiles.has(filename)) {
+    if (!allowedFiles.has(filename)) {
         console.error(`❌ Filename not in allowlist: ${filename}`);
         return false;
     }
