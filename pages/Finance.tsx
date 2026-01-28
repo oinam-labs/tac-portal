@@ -22,7 +22,7 @@ import { getInvoicesColumns } from '@/components/finance/invoices.columns';
 // Utils
 import { formatCurrency } from '@/lib/utils';
 import { sanitizeString } from '@/lib/utils/sanitize';
-import { generateEnterpriseInvoice, generateShipmentLabel } from '@/lib/pdf-generator';
+import { generateEnterpriseInvoice } from '@/lib/pdf-generator';
 import { HUBS } from '@/lib/constants';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -170,17 +170,17 @@ export const Finance: React.FC = () => {
 
       const consignor = shipmentRow
         ? {
-            name: shipmentRow.sender_name,
-            phone: shipmentRow.sender_phone,
-            address: formatAddress(shipmentRow.sender_address),
-          }
+          name: shipmentRow.sender_name,
+          phone: shipmentRow.sender_phone,
+          address: formatAddress(shipmentRow.sender_address),
+        }
         : lineItems.consignor || (inv as any).consignor || {};
       const consignee = shipmentRow
         ? {
-            name: shipmentRow.receiver_name,
-            phone: shipmentRow.receiver_phone,
-            address: formatAddress(shipmentRow.receiver_address),
-          }
+          name: shipmentRow.receiver_name,
+          phone: shipmentRow.receiver_phone,
+          address: formatAddress(shipmentRow.receiver_address),
+        }
         : lineItems.consignee || (inv as any).consignee || {};
 
       logger.debug('[Invoice] Parties', { consignor, consignee });
@@ -267,7 +267,7 @@ export const Finance: React.FC = () => {
         return;
       }
 
-      toast.info('Generating shipping label...');
+      toast.info('Opening label preview...');
 
       const shipmentRow = await getShipment(inv.awb);
       logger.debug('[Label] Shipment row from DB', { found: !!shipmentRow });
@@ -282,20 +282,16 @@ export const Finance: React.FC = () => {
         consignee: shipment.consignee?.name,
       });
 
-      // Generate label PDF directly using pdf-generator
-      const labelUrl = await generateShipmentLabel(shipment);
-      logger.debug('[Label] PDF generated');
+      // Store shipment data in sessionStorage for the PrintLabel page
+      const storageKey = `print_shipping_label_${shipment.awb}`;
+      sessionStorage.setItem(storageKey, JSON.stringify(shipment));
+      logger.debug('[Label] Shipment stored in sessionStorage', { key: storageKey });
 
-      // Direct download without opening new tab
-      const link = document.createElement('a');
-      link.href = labelUrl;
-      link.download = `LABEL-${shipment.awb}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      logger.debug('[Label] Download triggered');
+      // Navigate to PrintLabel page which uses the polished LabelGenerator component
+      navigate(`/print/label/${shipment.awb}`);
+      logger.debug('[Label] Navigating to PrintLabel page');
 
-      toast.success('Label downloaded!');
+      toast.success('Label ready for printing!');
     } catch (error) {
       console.error('Label error:', error);
       toast.error('Failed to generate label');
