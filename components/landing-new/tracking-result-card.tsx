@@ -92,7 +92,7 @@ export function TrackingResultCard({ data, className }: TrackingResultCardProps)
                     <div className="rounded-xl bg-muted/20 dark:bg-white/5 border border-border/20 dark:border-white/5 p-4">
                         <div className="flex justify-between items-start mb-1">
                             <span className="text-[10px] uppercase text-muted-foreground font-mono">Latest Event</span>
-                            <span className="text-[10px] text-muted-foreground/70">{new Date(latestEvent?.created_at).toLocaleString()}</span>
+                            <span className="text-[10px] text-muted-foreground/70">{latestEvent ? new Date(latestEvent.created_at).toLocaleString() : 'No updates'}</span>
                         </div>
                         <div className="text-sm font-medium text-foreground">{latestEvent?.description}</div>
                         <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">

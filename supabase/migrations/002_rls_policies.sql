@@ -13,7 +13,7 @@ ALTER TABLE tracking_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE manifests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE manifest_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
-ALTER TABLE invoice_items ENABLE ROW LEVEL SECURITY;
+
 ALTER TABLE exceptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
@@ -265,11 +265,7 @@ CREATE POLICY "Admins/Managers can view audit logs"
   TO authenticated
   USING (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER']));
 
--- Audit logs are inserted by triggers, not directly
-CREATE POLICY "System can insert audit logs"
-  ON audit_logs FOR INSERT
-  TO authenticated
-  WITH CHECK (org_id = get_user_org_id());
+
 
 -- ============================================================================
 -- PUBLIC TRACKING (Anonymous Access)

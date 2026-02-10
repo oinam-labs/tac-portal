@@ -6,7 +6,7 @@ export const Card: React.FC<{ children: React.ReactNode; className?: string }> =
   className = '',
 }) => (
   <div
-    className={`bg-card backdrop-blur-md border border-border rounded-xl p-6 shadow-neon-sm hover:shadow-neon transition-all duration-300 ${className}`}
+    className={`bg-card backdrop-blur-md border border-border rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 ${className}`}
   >
     {children}
   </div>
@@ -79,7 +79,7 @@ export const Input = React.forwardRef<
 >(({ className = '', ...props }, ref) => (
   <input
     ref={ref}
-    className={`bg-white/50 dark:bg-card/50 border border-border text-foreground rounded-lg px-4 py-2 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none placeholder-muted-foreground transition-all w-full ${className}`}
+    className={`bg-background/50 dark:bg-card/50 border border-border text-foreground rounded-lg px-4 py-2 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none placeholder-muted-foreground transition-all w-full ${className}`}
     {...props}
   />
 ));

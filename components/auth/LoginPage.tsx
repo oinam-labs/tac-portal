@@ -322,7 +322,11 @@ export const LoginPage: React.FC = () => {
 
               {/* Remember Me */}
               <div className="flex items-center space-x-2">
-                <Checkbox id="rememberMe" {...form.register('rememberMe')} />
+                <Checkbox
+                  id="rememberMe"
+                  checked={form.watch('rememberMe')}
+                  onCheckedChange={(checked) => form.setValue('rememberMe', checked === true)}
+                />
                 <Label htmlFor="rememberMe" className="text-sm font-normal cursor-pointer text-muted-foreground">
                   Remember me for 30 days
                 </Label>
@@ -351,12 +355,14 @@ export const LoginPage: React.FC = () => {
               </Button>
             </form>
 
-            {/* Demo Credentials */}
-            <div className="mt-5 p-3 rounded-xl bg-muted/30 border border-border/40">
-              <p className="text-[11px] text-muted-foreground text-center font-mono">
-                <span className="text-primary/60">DEMO:</span> admin@tac.com / admin123
-              </p>
-            </div>
+            {/* Demo Credentials - Only in DEV */}
+            {import.meta.env.DEV && (
+              <div className="mt-5 p-3 rounded-xl bg-muted/30 border border-border/40">
+                <p className="text-[11px] text-muted-foreground text-center font-mono">
+                  <span className="text-primary/60">DEMO:</span> admin@tac.com / admin123
+                </p>
+              </div>
+            )}
           </motion.div>
 
           {/* SSO Section */}

@@ -34,13 +34,20 @@ export function ParallaxLayer({
     if (!ref.current) return;
 
     const onResize = () => {
-      setElementTop(ref.current?.offsetTop || 0);
+      const rect = ref.current?.getBoundingClientRect();
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      setElementTop((rect?.top || 0) + scrollTop);
       setClientHeight(window.innerHeight);
     };
 
     onResize();
     window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    window.addEventListener('scroll', onResize); // Recalculate on scroll to ensure accuracy if layout shifts
+
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('scroll', onResize);
+    };
   }, []);
 
   const initial = elementTop - clientHeight;

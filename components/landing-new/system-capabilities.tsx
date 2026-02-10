@@ -45,7 +45,7 @@ export function SystemCapabilities() {
 
                     {/* 1. Global Telemetry (Large Feature) */}
                     <FadeUp delay={0.2} className="col-span-1 md:col-span-2 lg:col-span-2 row-span-2">
-                        <div className="group relative h-full min-h-[400px] rounded-[2rem] border border-white/10 bg-card/40 backdrop-blur-xl overflow-hidden p-8 flex flex-col justify-between">
+                        <div className="group relative h-full min-h-[400px] rounded-[2rem] border border-border/40 bg-card/40 backdrop-blur-xl overflow-hidden p-8 flex flex-col justify-between">
                             {/* Hover Glow */}
                             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
@@ -70,7 +70,7 @@ export function SystemCapabilities() {
 
                     {/* 2. Predictive Routing (Tall) */}
                     <FadeUp delay={0.3} className="col-span-1 md:col-span-1 lg:col-span-1 row-span-2">
-                        <div className="group relative h-full min-h-[400px] rounded-[2rem] border border-white/10 bg-card/40 backdrop-blur-xl overflow-hidden p-8 flex flex-col">
+                        <div className="group relative h-full min-h-[400px] rounded-[2rem] border border-border/40 bg-card/40 backdrop-blur-xl overflow-hidden p-8 flex flex-col">
                             <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
                             <div className="w-12 h-12 rounded-xl bg-secondary/10 border border-secondary/20 flex items-center justify-center mb-6 text-secondary shrink-0">
@@ -83,7 +83,7 @@ export function SystemCapabilities() {
                             </p>
 
                             {/* Stat Visualization */}
-                            <div className="mt-8 pt-6 border-t border-white/5">
+                            <div className="mt-8 pt-6 border-t border-border/20">
                                 <div className="flex justify-between text-[10px] uppercase font-mono text-muted-foreground mb-2">
                                     <span>Efficiency</span>
                                     <span className="text-secondary">98.5%</span>
@@ -97,7 +97,7 @@ export function SystemCapabilities() {
 
                     {/* 3. Secure Chain (Square) */}
                     <FadeUp delay={0.4} className="col-span-1 md:col-span-1 lg:col-span-1 row-span-1">
-                        <div className="group relative h-full min-h-[200px] rounded-[2rem] border border-white/10 bg-card/40 backdrop-blur-xl overflow-hidden p-6 hover:border-primary/30 transition-colors duration-500">
+                        <div className="group relative h-full min-h-[200px] rounded-[2rem] border border-border/40 bg-card/40 backdrop-blur-xl overflow-hidden p-6 hover:border-primary/30 transition-colors duration-500">
                             <div className="flex justify-between items-start mb-4">
                                 <Shield className="w-6 h-6 text-primary" />
                                 <span className="text-[10px] font-mono text-primary/60 border border-primary/20 px-2 py-0.5 rounded">AES-256</span>
@@ -109,7 +109,7 @@ export function SystemCapabilities() {
 
                     {/* 4. Instant Customs (Square) */}
                     <FadeUp delay={0.5} className="col-span-1 md:col-span-1 lg:col-span-1 row-span-1">
-                        <div className="group relative h-full min-h-[200px] rounded-[2rem] border border-white/10 bg-card/40 backdrop-blur-xl overflow-hidden p-6 hover:border-secondary/30 transition-colors duration-500">
+                        <div className="group relative h-full min-h-[200px] rounded-[2rem] border border-border/40 bg-card/40 backdrop-blur-xl overflow-hidden p-6 hover:border-secondary/30 transition-colors duration-500">
                             <div className="flex justify-between items-start mb-4">
                                 <FileCheck className="w-6 h-6 text-secondary" />
                                 <span className="text-[10px] font-mono text-secondary/60 border border-secondary/20 px-2 py-0.5 rounded">AUTO</span>
@@ -121,7 +121,7 @@ export function SystemCapabilities() {
 
                     {/* 5. Advanced Analytics (Wide) */}
                     <FadeUp delay={0.6} className="col-span-1 md:col-span-3 lg:col-span-4 row-span-1">
-                        <div className="group relative h-full min-h-[180px] rounded-[2rem] border border-white/10 bg-card/40 backdrop-blur-xl overflow-hidden p-8 flex flex-col md:flex-row items-center justify-between gap-6 hover:bg-card/60 transition-colors duration-500">
+                        <div className="group relative h-full min-h-[180px] rounded-[2rem] border border-border/40 bg-card/40 backdrop-blur-xl overflow-hidden p-8 flex flex-col md:flex-row items-center justify-between gap-6 hover:bg-card/60 transition-colors duration-500">
                             <div className="flex items-center gap-6">
                                 <div className="w-14 h-14 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent shrink-0">
                                     <LineChart className="w-7 h-7" />
@@ -134,7 +134,7 @@ export function SystemCapabilities() {
                                 </div>
                             </div>
 
-                            <Button variant="outline" className="rounded-full px-8 border-white/10 hover:bg-white/5 hover:text-foreground group-hover:border-primary/50 transition-all font-mono text-xs">
+                            <Button variant="outline" className="rounded-full px-8 border-border/40 hover:bg-accent/5 hover:text-foreground group-hover:border-primary/50 transition-all font-mono text-xs">
                                 VIEW DASHBOARD_DEMO <ArrowRight className="ml-2 w-4 h-4" />
                             </Button>
                         </div>

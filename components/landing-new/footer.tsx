@@ -34,17 +34,17 @@ export function Footer() {
             <h3 className="font-sans font-bold text-foreground mb-6">Platform</h3>
             <ul className="space-y-4 text-sm text-muted-foreground">
               <li>
-                <Link to="/tracking" className="hover:text-primary transition-colors hover:translate-x-1 inline-block duration-200">
+                <Link to="/#tracking" className="hover:text-primary transition-colors hover:translate-x-1 inline-block duration-200">
                   Tracking
                 </Link>
               </li>
               <li>
-                <Link to="/services" className="hover:text-primary transition-colors hover:translate-x-1 inline-block duration-200">
+                <Link to="/#services" className="hover:text-primary transition-colors hover:translate-x-1 inline-block duration-200">
                   Services
                 </Link>
               </li>
               <li>
-                <Link to="/pricing" className="hover:text-primary transition-colors hover:translate-x-1 inline-block duration-200">
+                <Link to="/#pricing" className="hover:text-primary transition-colors hover:translate-x-1 inline-block duration-200">
                   Pricing
                 </Link>
               </li>

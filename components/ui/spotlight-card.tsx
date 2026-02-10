@@ -52,14 +52,14 @@ export function SpotlightCard({ children, className = '', as: Component = 'div',
                 className="pointer-events-none absolute -inset-px opacity-0 transition duration-300 z-10"
                 style={{
                     opacity,
-                    background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, oklch(var(--primary) / 10%), transparent 40%)`,
+                    background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, color-mix(in oklch, var(--primary) 10%, transparent), transparent 40%)`,
                 }}
             />
             <div
                 className="pointer-events-none absolute -inset-px opacity-0 transition duration-300 z-30"
                 style={{
                     opacity,
-                    background: `radial-gradient(400px circle at ${position.x}px ${position.y}px, oklch(var(--primary) / 30%), transparent 40%)`,
+                    background: `radial-gradient(400px circle at ${position.x}px ${position.y}px, color-mix(in oklch, var(--primary) 30%, transparent), transparent 40%)`,
                     maskImage: `linear-gradient(black, black) content-box, linear-gradient(black, black)`,
                     WebkitMaskImage: `linear-gradient(black, black) content-box, linear-gradient(black, black)`,
                     maskComposite: `exclude`,

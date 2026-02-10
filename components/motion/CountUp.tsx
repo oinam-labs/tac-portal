@@ -35,7 +35,7 @@ export function CountUp({
     if (!isInView || hasAnimated.current || !ref.current || shouldReduceMotion) return;
 
     hasAnimated.current = true;
-    
+
     gsap.fromTo(
       ref.current,
       { textContent: from },
@@ -44,16 +44,17 @@ export function CountUp({
         duration,
         delay,
         ease: 'power2.out',
-        snap: { textContent: 1 },
+        // Only snap to integer if no decimals are required, otherwise let it float roughly and format in onUpdate 
+        snap: decimals === 0 ? { textContent: 1 } : undefined,
         onUpdate: function () {
           if (ref.current) {
             const value = parseFloat(this.targets()[0].textContent || '0');
-            ref.current.textContent = 
-              prefix + 
-              value.toLocaleString(undefined, { 
-                minimumFractionDigits: decimals, 
-                maximumFractionDigits: decimals 
-              }) + 
+            ref.current.textContent =
+              prefix +
+              value.toLocaleString(undefined, {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+              }) +
               suffix;
           }
         },
@@ -63,12 +64,12 @@ export function CountUp({
 
   // Initial render state
   const initialValue = shouldReduceMotion ? to : from;
-  const formattedInitial = 
-    prefix + 
-    initialValue.toLocaleString(undefined, { 
-      minimumFractionDigits: decimals, 
-      maximumFractionDigits: decimals 
-    }) + 
+  const formattedInitial =
+    prefix +
+    initialValue.toLocaleString(undefined, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    }) +
     suffix;
 
   return (

@@ -73,18 +73,18 @@ export interface RichTextEditorProps {
 }
 
 interface ToolbarButtonProps {
-  onClick: () => void;
+  onClick?: () => void;
   isActive?: boolean;
   disabled?: boolean;
   tooltip: string;
   children: React.ReactNode;
 }
 
-const ToolbarButton = memo<ToolbarButtonProps>(
-  ({ onClick, isActive, disabled, tooltip, children }) => (
+const ToolbarButton = memo(forwardRef<HTMLButtonElement, ToolbarButtonProps>(
+  ({ onClick, isActive, disabled, tooltip, children }, ref) => (
     <TooltipPrimitive.Provider delayDuration={300}>
       <TooltipPrimitive.Root>
-        <TooltipPrimitive.Trigger asChild>
+        <TooltipPrimitive.Trigger asChild ref={ref}>
           <Button
             type="button"
             variant="ghost"
@@ -113,7 +113,7 @@ const ToolbarButton = memo<ToolbarButtonProps>(
       </TooltipPrimitive.Root>
     </TooltipPrimitive.Provider>
   )
-);
+));
 ToolbarButton.displayName = 'ToolbarButton';
 
 const ToolbarDivider = memo(() => <div className="mx-0.5 h-5 w-px bg-border/60" />);
@@ -157,13 +157,14 @@ const LinkPopover = memo<{ editor: Editor }>(({ editor }) => {
   }, [editor, url]);
 
   return (
-    <PopoverPrimitive.Root open={open} onOpenChange={setOpen}>
+    <PopoverPrimitive.Root open={open} onOpenChange={(isOpen) => {
+      if (isOpen) handleOpen();
+      setOpen(isOpen);
+    }}>
       <PopoverPrimitive.Trigger asChild>
-        <span onClick={handleOpen}>
-          <ToolbarButton isActive={editor.isActive('link')} tooltip="Add Link" onClick={handleOpen}>
-            <LinkIcon className="h-3.5 w-3.5" />
-          </ToolbarButton>
-        </span>
+        <ToolbarButton isActive={editor.isActive('link')} tooltip="Add Link" onClick={() => { }}>
+          <LinkIcon className="h-3.5 w-3.5" />
+        </ToolbarButton>
       </PopoverPrimitive.Trigger>
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Content
@@ -203,20 +204,28 @@ const ImagePopover = memo<{ editor: Editor }>(({ editor }) => {
 
   const handleSubmit = useCallback(() => {
     if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
+      try {
+        const parsed = new URL(url);
+        if (['http:', 'https:'].includes(parsed.protocol)) {
+          editor.chain().focus().setImage({ src: url }).run();
+        }
+      } catch {
+        // Invalid URL, ignore
+      }
     }
     setUrl('');
     setOpen(false);
   }, [editor, url]);
 
   return (
-    <PopoverPrimitive.Root open={open} onOpenChange={setOpen}>
+    <PopoverPrimitive.Root open={open} onOpenChange={(isOpen) => {
+      setOpen(isOpen);
+      if (isOpen) setTimeout(() => inputRef.current?.focus(), 100);
+    }}>
       <PopoverPrimitive.Trigger asChild>
-        <span onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 100); }}>
-          <ToolbarButton tooltip="Add Image" onClick={() => setOpen(true)}>
-            <ImageIcon className="h-3.5 w-3.5" />
-          </ToolbarButton>
-        </span>
+        <ToolbarButton tooltip="Add Image">
+          <ImageIcon className="h-3.5 w-3.5" />
+        </ToolbarButton>
       </PopoverPrimitive.Trigger>
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Content

@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { Printer } from 'lucide-react';
+import JsBarcode from 'jsbarcode';
 import { Button } from '@/components/ui/button';
 
 export type ServiceLevel = 'STANDARD' | 'EXPRESS' | 'PRIORITY';
@@ -57,8 +58,29 @@ const TransportIcon: React.FC<{ mode: TransportMode; className?: string }> = ({
   );
 };
 
+
+
 export const LabelGenerator: React.FC<LabelGeneratorProps> = ({ data, onPrint }) => {
   const labelRef = useRef<HTMLDivElement>(null);
+  const barcodeRef = useRef<SVGSVGElement>(null);
+
+  React.useEffect(() => {
+    if (barcodeRef.current && data.awb) {
+      try {
+        JsBarcode(barcodeRef.current, data.awb, {
+          format: "CODE128",
+          width: 2,
+          height: 40,
+          displayValue: false,
+          margin: 0,
+          background: "transparent",
+          lineColor: "#18181b"
+        });
+      } catch (e) {
+        console.error("Barcode generation failed", e);
+      }
+    }
+  }, [data.awb]);
 
   const handlePrint = () => {
     if (onPrint) {
@@ -377,7 +399,9 @@ export const LabelGenerator: React.FC<LabelGeneratorProps> = ({ data, onPrint })
           {/* BARCODE + META */}
           <section className="sl-barcode-row">
             <div className="sl-barcode-cell">
-              <div className="sl-barcode"></div>
+              <div className="sl-barcode flex items-center justify-start overflow-hidden">
+                <svg ref={barcodeRef} className="max-w-full h-full" />
+              </div>
               <div className="sl-awb">{data.awb}</div>
             </div>
             <div className="sl-meta-cell">

@@ -17,15 +17,15 @@ export function ModernGlobe({ className }: { className?: string }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Configuration
-    const CONFIG = {
+    // Configuration (now mutable in ref)
+    const configRef = useRef({
         particleCount: 300,
         baseRadius: 100,
         connectionDistance: 35,
         rotationSpeed: 0.002,
         mouseRotationSpeed: 0.05,
         dotSize: 1.5,
-    };
+    });
 
     // State refs for animation loop
     const state = useRef({
@@ -46,9 +46,10 @@ export function ModernGlobe({ className }: { className?: string }) {
     const initPoints = () => {
         const points: Point[] = [];
         const phi = Math.PI * (3 - Math.sqrt(5)); // Golden angle
+        const { particleCount, baseRadius } = configRef.current;
 
-        for (let i = 0; i < CONFIG.particleCount; i++) {
-            const y = 1 - (i / (CONFIG.particleCount - 1)) * 2; // y goes from 1 to -1
+        for (let i = 0; i < particleCount; i++) {
+            const y = 1 - (i / (particleCount - 1)) * 2; // y goes from 1 to -1
             const radius = Math.sqrt(1 - y * y); // Radius at y
             const theta = phi * i; // Golden angle increment
 
@@ -57,12 +58,12 @@ export function ModernGlobe({ className }: { className?: string }) {
 
             // Scale by base radius
             points.push({
-                x: x * CONFIG.baseRadius,
-                y: y * CONFIG.baseRadius,
-                z: z * CONFIG.baseRadius,
-                baseX: x * CONFIG.baseRadius,
-                baseY: y * CONFIG.baseRadius,
-                baseZ: z * CONFIG.baseRadius,
+                x: x * baseRadius,
+                y: y * baseRadius,
+                z: z * baseRadius,
+                baseX: x * baseRadius,
+                baseY: y * baseRadius,
+                baseZ: z * baseRadius,
             });
         }
         state.current.points = points;
@@ -84,7 +85,7 @@ export function ModernGlobe({ className }: { className?: string }) {
         state.current.height = rect.height;
 
         // Scale radius based on container size
-        CONFIG.baseRadius = Math.min(rect.width, rect.height) * 0.4;
+        configRef.current.baseRadius = Math.min(rect.width, rect.height) * 0.4;
         initPoints(); // Re-init points with new radius
 
         // Update Colors
@@ -130,6 +131,7 @@ export function ModernGlobe({ className }: { className?: string }) {
             if (!ctx || !canvasRef.current) return;
 
             const { width, height, points, colors } = state.current;
+            const config = configRef.current;
 
             // Clear
             ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
@@ -143,7 +145,7 @@ export function ModernGlobe({ className }: { className?: string }) {
             state.current.rotationX += (state.current.targetRotationX - state.current.rotationX) * 0.05;
 
             // Constant Auto-Spin
-            const autoSpin = gsap.ticker.time * CONFIG.rotationSpeed;
+            const autoSpin = gsap.ticker.time * config.rotationSpeed;
 
             const finalRotY = state.current.rotationY + autoSpin;
             const finalRotX = state.current.rotationX;
@@ -166,12 +168,13 @@ export function ModernGlobe({ className }: { className?: string }) {
                 let y1 = p.baseY * cosX - z1 * sinX;
                 let z2 = z1 * cosX + p.baseY * sinX;
 
-                // Simple Perspective
-                const scale = 400 / (400 - z2); // Camera distance
+                // Simple Perspective (Safe division)
+                const perspective = 400;
+                const scale = perspective / (perspective - z2 + 0.001);
                 const x2D = x1 * scale;
                 const y2D = y1 * scale;
 
-                projectedPoints.push({ x: x2D, y: y2D, z: z2, visible: z2 < 150 }); // Cull back-faces slightly? No, transparent
+                projectedPoints.push({ x: x2D, y: y2D, z: z2, visible: z2 < 150 });
             });
 
             // Draw Lines (Connections)
@@ -187,13 +190,13 @@ export function ModernGlobe({ className }: { className?: string }) {
                 // but strictly we just want to draw lines between close points
 
                 // Draw Dot
-                const alpha = Math.max(0.1, (p1.z + CONFIG.baseRadius) / (CONFIG.baseRadius * 2)); // Depth fog
+                const alpha = Math.max(0.1, (p1.z + config.baseRadius) / (config.baseRadius * 2)); // Depth fog
                 // ctx.fillStyle = colors.foreground.replace(')', `, ${alpha})`).replace('rgb', 'rgba'); -> Removed
                 ctx.fillStyle = colors.foreground;
 
                 ctx.globalAlpha = alpha;
                 ctx.beginPath();
-                ctx.arc(p1.x, p1.y, CONFIG.dotSize * scalePoint(p1.z), 0, Math.PI * 2);
+                ctx.arc(p1.x, p1.y, config.dotSize * scalePoint(p1.z), 0, Math.PI * 2);
                 ctx.fill();
 
                 // Connections
@@ -203,8 +206,8 @@ export function ModernGlobe({ className }: { className?: string }) {
                     const dy = p1.y - p2.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
 
-                    if (dist < CONFIG.connectionDistance) {
-                        const lineAlpha = (1 - dist / CONFIG.connectionDistance) * 0.2;
+                    if (dist < config.connectionDistance) {
+                        const lineAlpha = (1 - dist / config.connectionDistance) * 0.2;
                         // Depth check for lines too
                         if (p1.z > -50 && p2.z > -50) { // Only draw lines on front-ish hemisphere
                             // ctx.strokeStyle = colors.foreground.replace(')', `, ${lineAlpha})`).replace('rgb', 'rgba'); -> Removed

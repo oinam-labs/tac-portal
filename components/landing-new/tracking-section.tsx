@@ -30,15 +30,21 @@ export function TrackingSection() {
     setShowResult(false);
     setTrackingData(null);
 
-    const result = await getTrackingInfo(trackingNumber.trim());
+    try {
+      const result = await getTrackingInfo(trackingNumber.trim());
 
-    if (result.success && result.data) {
-      setTrackingData(result.data);
-      setShowResult(true);
-    } else {
-      toast.error(result.error || 'Shipment not found. Please check the AWB number.');
+      if (result.success && result.data) {
+        setTrackingData(result.data);
+        setShowResult(true);
+      } else {
+        toast.error(result.error || 'Shipment not found. Please check the AWB number.');
+      }
+    } catch (error) {
+      toast.error('An unexpected error occurred. Please try again.');
+      console.error('Tracking search error:', error);
+    } finally {
+      setIsSearching(false);
     }
-    setIsSearching(false);
   };
 
   return (
