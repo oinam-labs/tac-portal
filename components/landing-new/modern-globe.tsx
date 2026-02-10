@@ -161,12 +161,12 @@ export function ModernGlobe({ className }: { className?: string }) {
 
             points.forEach(p => {
                 // Rotate Y
-                let x1 = p.baseX * cosY - p.baseZ * sinY;
-                let z1 = p.baseZ * cosY + p.baseX * sinY;
+                const x1 = p.baseX * cosY - p.baseZ * sinY;
+                const z1 = p.baseZ * cosY + p.baseX * sinY;
 
                 // Rotate X
-                let y1 = p.baseY * cosX - z1 * sinX;
-                let z2 = z1 * cosX + p.baseY * sinX;
+                const y1 = p.baseY * cosX - z1 * sinX;
+                const z2 = z1 * cosX + p.baseY * sinX;
 
                 // Simple Perspective (Safe division)
                 const perspective = 400;
