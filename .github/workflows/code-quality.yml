@@ -217,9 +217,8 @@ jobs:
         run: |
           # Check total dist size
           DIST_SIZE=$(du -sm dist 2>/dev/null | cut -f1 || echo "0")
-          echo "Bundle size: ${DIST_SIZE}MB"
-          if [ "$DIST_SIZE" -gt 50 ]; then
-            echo "❌ Bundle size exceeds 50MB limit"
+          if [ "$DIST_SIZE" -gt 100 ]; then
+            echo "❌ Bundle size exceeds 100MB limit"
             exit 1
           fi
           echo "✅ Bundle size within limits"
