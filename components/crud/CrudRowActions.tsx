@@ -53,7 +53,7 @@ export function CrudRowActions({
 
         <DropdownMenuItem
           onClick={onDelete}
-          className="cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-500/10"
+          className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
         >
           <Trash2 className="mr-2 h-4 w-4" />
           Delete

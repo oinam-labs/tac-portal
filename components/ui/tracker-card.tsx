@@ -99,7 +99,7 @@ export const PackageTrackerCard = ({
           onClick={onTrackClick}
           className="bg-muted/50 text-muted-foreground hover:bg-muted flex w-full items-center justify-center gap-2 rounded-full px-4 py-2 text-sm transition-colors"
         >
-          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+          <CheckCircle2 className="h-4 w-4 text-status-success" />
           Show full tracking
         </motion.button>
       </div>

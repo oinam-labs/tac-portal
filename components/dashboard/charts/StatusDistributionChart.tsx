@@ -52,7 +52,7 @@ export const StatusDistributionChart: React.FC<{ isLoading?: boolean }> = ({ isL
       <Card className="flex flex-col h-full">
         <CardHeader className="items-center pb-0">
           <CardTitle className="flex items-center gap-2">
-            <span className="w-1 h-6 bg-cyber-purple rounded-full shadow-neon-purple"></span>
+            <span className="w-1 h-6 bg-chart-5 rounded-full shadow-neon-purple"></span>
             Status Distribution
           </CardTitle>
           <CardDescription>Current shipment status breakdown</CardDescription>
@@ -71,7 +71,7 @@ export const StatusDistributionChart: React.FC<{ isLoading?: boolean }> = ({ isL
     <Card className="flex flex-col h-full">
       <CardHeader className="items-center pb-0">
         <CardTitle className="flex items-center gap-2">
-          <span className="w-1 h-6 bg-cyber-purple rounded-full shadow-neon-purple"></span>
+          <span className="w-1 h-6 bg-chart-5 rounded-full shadow-neon-purple"></span>
           Status Distribution
         </CardTitle>
         <CardDescription>Current shipment status breakdown</CardDescription>
@@ -154,7 +154,7 @@ export const StatusDistributionChart: React.FC<{ isLoading?: boolean }> = ({ isL
           ))}
         </div>
         <div className="flex items-center gap-2 leading-none font-medium text-foreground mt-2">
-          <TrendingUp className="h-4 w-4 text-cyber-success" /> Real-time status overview
+          <TrendingUp className="h-4 w-4 text-status-success" /> Real-time status overview
         </div>
       </CardFooter>
     </Card>

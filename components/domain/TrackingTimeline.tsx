@@ -76,7 +76,7 @@ export function TrackingTimeline({ events, className }: TrackingTimelineProps) {
             <div className="flex flex-col items-center">
               <div
                 className={cn(
-                  'w-10 h-10 rounded-full flex items-center justify-center z-10 border-2 border-cyber-bg',
+                  'w-10 h-10 rounded-full flex items-center justify-center z-10 border-2 border-background',
                   color,
                   isFirst && 'ring-4 ring-opacity-30',
                   isFirst && color.replace('bg-', 'ring-')
@@ -94,7 +94,7 @@ export function TrackingTimeline({ events, className }: TrackingTimelineProps) {
               <div
                 className={cn(
                   'rounded-lg p-4 transition-all',
-                  isFirst ? 'bg-cyber-card border border-white/10' : 'bg-transparent'
+                  isFirst ? 'bg-card border border-white/10' : 'bg-transparent'
                 )}
               >
                 <div className="flex items-start justify-between">

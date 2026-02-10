@@ -82,7 +82,7 @@ const NoteItem = memo<NoteItemProps>(({ note, currentUserId, onEdit, onDelete, o
 
           <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
             {note.isPinned && <Pin className="h-3 w-3 text-primary" />}
-            {note.isInternal && <Lock className="h-3 w-3 text-amber-500" />}
+            {note.isInternal && <Lock className="h-3 w-3 text-status-warning" />}
           </div>
         </div>
 
@@ -243,11 +243,11 @@ export const NotesPanel = memo<NotesPanelProps>(
           onKeyDown={
             collapsible
               ? (e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setIsCollapsed(!isCollapsed);
-                  }
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setIsCollapsed(!isCollapsed);
                 }
+              }
               : undefined
           }
           role={collapsible ? 'button' : undefined}
@@ -305,7 +305,7 @@ export const NotesPanel = memo<NotesPanelProps>(
                   <Button
                     variant="ghost"
                     size="sm"
-                    className={cn('h-7 gap-1 text-xs', isInternal && 'text-amber-500')}
+                    className={cn('h-7 gap-1 text-xs', isInternal && 'text-status-warning')}
                     onClick={() => setIsInternal(!isInternal)}
                   >
                     {isInternal ? (

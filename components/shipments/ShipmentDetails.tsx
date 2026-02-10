@@ -26,13 +26,13 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
       localStorage.setItem(storageKey, JSON.stringify(shipment));
 
       // Open print page in a popup (consistent with Invoice section)
-      const width = 500;
-      const height = 700;
+      const width = 440;
+      const height = 650;
       const left = (window.screen.width - width) / 2;
       const top = (window.screen.height - height) / 2;
 
       const popup = window.open(
-        `#/print/label/${shipment.awb}`,
+        `/print/label/${shipment.awb}`,
         'PrintLabel',
         `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
       );
@@ -93,10 +93,10 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
               <div className="text-xs text-muted-foreground">{origin.name}</div>
             </div>
             <div className="flex-1 px-4 flex flex-col items-center">
-              <div className="w-full h-0.5 bg-cyber-border relative">
+              <div className="w-full h-0.5 bg-border relative">
                 <div className="absolute top-1/2 left-0 -translate-y-1/2 w-2 h-2 rounded-full bg-muted-foreground"></div>
-                <div className="absolute top-1/2 right-0 -translate-y-1/2 w-2 h-2 rounded-full bg-cyber-neon"></div>
-                <div className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 bg-cyber-surface px-2 text-xs text-muted-foreground">
+                <div className="absolute top-1/2 right-0 -translate-y-1/2 w-2 h-2 rounded-full bg-primary"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 bg-card px-2 text-xs text-muted-foreground">
                   {shipment.mode}
                 </div>
               </div>
@@ -106,7 +106,7 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
               <div className="text-xs text-muted-foreground">{dest.name}</div>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4 border-t border-cyber-border pt-4">
+          <div className="grid grid-cols-3 gap-4 border-t border-border pt-4">
             <div>
               <div className="text-xs text-muted-foreground">Service</div>
               <div className="font-bold text-sm">{shipment.serviceLevel}</div>
@@ -128,7 +128,7 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
           <div className="text-xs text-muted-foreground mt-1">ID: {shipment.customerId}</div>
 
           <h3 className="text-sm font-bold mt-4 mb-2">ETA</h3>
-          <div className="text-lg font-mono text-green-500">{shipment.eta}</div>
+          <div className="text-lg font-mono text-status-success">{shipment.eta}</div>
         </Card>
       </div>
 
@@ -141,10 +141,10 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
           {trackingEvents.map((evt, idx) => (
             <div
               key={evt.id}
-              className="relative pl-6 border-l border-cyber-border last:border-0 pb-1"
+              className="relative pl-6 border-l border-border last:border-0 pb-1"
             >
               <div
-                className={`absolute left-[-5px] top-0 w-2.5 h-2.5 rounded-full ${idx === 0 ? 'bg-cyber-neon shadow-neon' : 'bg-muted-foreground'}`}
+                className={`absolute left-[-5px] top-0 w-2.5 h-2.5 rounded-full ${idx === 0 ? 'bg-primary shadow-neon' : 'bg-muted-foreground'}`}
               ></div>
               <div className="text-sm font-bold text-foreground">
                 {evt.event_code.replace(/_/g, ' ')}

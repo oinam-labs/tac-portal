@@ -80,19 +80,19 @@ export function ManifestScanPanel({
   const getResultIcon = (result: ScanResponse | null) => {
     if (!result) return null;
     if (result.success && !result.duplicate) {
-      return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+      return <CheckCircle2 className="h-5 w-5 text-status-success" />;
     }
     if (result.duplicate) {
-      return <AlertCircle className="h-5 w-5 text-amber-500" />;
+      return <AlertCircle className="h-5 w-5 text-status-warning" />;
     }
-    return <XCircle className="h-5 w-5 text-red-500" />;
+    return <XCircle className="h-5 w-5 text-status-error" />;
   };
 
   const getResultColor = (result: ScanResponse | null) => {
     if (!result) return 'border-border';
-    if (result.success && !result.duplicate) return 'border-green-500 bg-green-500/5';
-    if (result.duplicate) return 'border-amber-500 bg-amber-500/5';
-    return 'border-red-500 bg-red-500/5';
+    if (result.success && !result.duplicate) return 'border-status-success bg-status-success/5';
+    if (result.duplicate) return 'border-status-warning bg-status-warning/5';
+    return 'border-status-error bg-status-error/5';
   };
 
   return (
@@ -180,10 +180,10 @@ export function ManifestScanPanel({
             className={cn(
               'rounded-lg p-3 text-sm',
               scanner.lastResult.success &&
-                !scanner.lastResult.duplicate &&
-                'bg-green-500/10 text-green-700 dark:text-green-400',
-              scanner.lastResult.duplicate && 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
-              !scanner.lastResult.success && 'bg-red-500/10 text-red-700 dark:text-red-400'
+              !scanner.lastResult.duplicate &&
+              'bg-status-success/10 text-status-success',
+              scanner.lastResult.duplicate && 'bg-status-warning/10 text-status-warning',
+              !scanner.lastResult.success && 'bg-status-error/10 text-status-error'
             )}
           >
             <div className="flex items-start gap-2">
@@ -229,21 +229,21 @@ export function ManifestScanPanel({
         <div className="flex items-center justify-between pt-2 border-t">
           <div className="flex gap-3 text-xs">
             <div className="flex items-center gap-1.5">
-              <div className="h-2 w-2 rounded-full bg-green-500" />
+              <div className="h-2 w-2 rounded-full bg-status-success" />
               <span className="text-muted-foreground">Added:</span>
               <Badge variant="secondary" className="h-5 px-1.5 text-xs font-mono">
                 {scanner.successCount}
               </Badge>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="h-2 w-2 rounded-full bg-amber-500" />
+              <div className="h-2 w-2 rounded-full bg-status-warning" />
               <span className="text-muted-foreground">Duplicates:</span>
               <Badge variant="secondary" className="h-5 px-1.5 text-xs font-mono">
                 {scanner.duplicateCount}
               </Badge>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="h-2 w-2 rounded-full bg-red-500" />
+              <div className="h-2 w-2 rounded-full bg-status-error" />
               <span className="text-muted-foreground">Errors:</span>
               <Badge variant="secondary" className="h-5 px-1.5 text-xs font-mono">
                 {scanner.errorCount}

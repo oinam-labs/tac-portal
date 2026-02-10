@@ -38,7 +38,7 @@ export const Dashboard: React.FC = () => {
             <RefreshCw className="w-4 h-4 sm:mr-2" />
             <span className="hidden sm:inline">Refresh</span>
           </Button>
-          <Button data-testid="dashboard-download-button" variant="secondary" className="flex-1 sm:flex-none">
+          <Button data-testid="dashboard-download-button" variant="secondary" className="flex-1 sm:flex-none" onClick={() => { import('sonner').then(({ toast }) => toast.info('Report download coming soon — export is planned for the next release.')); }}>
             <span className="hidden sm:inline">Download Report</span>
             <span className="sm:hidden">Report</span>
           </Button>

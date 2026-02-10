@@ -46,12 +46,12 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
       <div
         onClick={onClick}
         className={cn(
-          'flex items-center gap-4 p-3 rounded-lg border border-white/5 bg-cyber-surface/50 hover:bg-cyber-surface hover:border-cyber-accent/30 transition-all cursor-pointer group',
+          'flex items-center gap-4 p-3 rounded-lg border border-white/5 bg-card/50 hover:bg-card hover:border-primary/30 transition-all cursor-pointer group',
           className
         )}
       >
-        <div className="p-2 rounded-lg bg-cyber-accent/10">
-          <Package className="w-4 h-4 text-cyber-accent" />
+        <div className="p-2 rounded-lg bg-primary/10">
+          <Package className="w-4 h-4 text-primary" />
         </div>
 
         <div className="flex-1 min-w-0">
@@ -68,7 +68,7 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
           <span className="font-medium">{dest.code}</span>
         </div>
 
-        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-cyber-accent transition-colors" />
+        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
       </div>
     );
   }
@@ -77,7 +77,7 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
     <div
       onClick={onClick}
       className={cn(
-        'relative overflow-hidden rounded-xl border border-white/10 bg-cyber-card/80 backdrop-blur-sm p-5 transition-all hover:border-cyber-accent/30 hover:shadow-lg hover:shadow-cyber-accent/5 cursor-pointer group',
+        'relative overflow-hidden rounded-xl border border-white/10 bg-card/80 backdrop-blur-sm p-5 transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 cursor-pointer group',
         className
       )}
     >
@@ -118,7 +118,7 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
       </div>
 
       {/* Route */}
-      <div className="flex items-center justify-between bg-cyber-surface/50 rounded-lg p-3 mb-4">
+      <div className="flex items-center justify-between bg-card/50 rounded-lg p-3 mb-4">
         <div className="text-center">
           <p className="text-2xl font-bold text-white">{origin.code}</p>
           <p className="text-xs text-muted-foreground">{origin.name}</p>

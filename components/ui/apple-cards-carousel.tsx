@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState, createContext, useContext } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion } from '@/lib/motion';
 import { useOutsideClick } from '@/hooks/use-outside-click';
 
 interface CarouselProps {

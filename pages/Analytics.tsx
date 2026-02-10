@@ -95,7 +95,7 @@ export const Analytics: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <span className="w-1 h-6 bg-cyber-neon rounded-full shadow-neon"></span>
+              <span className="w-1 h-6 bg-primary rounded-full shadow-neon"></span>
               Shipment Volume (In/Out)
             </CardTitle>
             <CardDescription>Showing total shipments for the last 6 months</CardDescription>
@@ -170,7 +170,7 @@ export const Analytics: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <span className="w-1 h-6 bg-cyber-purple rounded-full shadow-neon-purple"></span>
+              <span className="w-1 h-6 bg-chart-5 rounded-full shadow-neon-purple"></span>
               Current Fleet Status
             </CardTitle>
             <CardDescription>Shipment status breakdown</CardDescription>

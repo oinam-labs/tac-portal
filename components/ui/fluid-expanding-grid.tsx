@@ -18,11 +18,14 @@ interface FluidExpandingGridProps {
   id?: string;
 }
 
+// ... imports remain the same
+
 export default function FluidExpandingGrid({
   items,
   className,
   id = 'fluid-gallery',
 }: FluidExpandingGridProps) {
+  // ... state logic remains the same (lines 26-55)
   const [layout, setLayout] = useState(() => {
     // Determine initial layout based on item count
     const ids = items.map((item) => item.id);
@@ -67,7 +70,7 @@ export default function FluidExpandingGrid({
             layout
             className="grid grid-cols-2 grid-rows-2 gap-4 w-full h-[400px] sm:h-[600px]"
           >
-            {items.map((item) => {
+            {items.map((item, index) => {
               const isRow1 = layout.row1.includes(item.id);
               const rowArr = isRow1 ? layout.row1 : layout.row2;
               const isSelected = rowArr.length === 1 && rowArr[0] === item.id;
@@ -104,40 +107,66 @@ export default function FluidExpandingGrid({
                 >
                   <motion.div
                     layoutId={`${id}-${item.id}-mask-wrapper`}
-                    className="absolute inset-0 overflow-hidden bg-card border border-border"
-                    style={{ borderRadius: 24 }}
+                    className="absolute inset-0 overflow-hidden bg-muted/30 border border-border/50 shadow-lg backdrop-blur-sm"
+                    style={{ borderRadius: 12 }}
                   >
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className={cn(
-                        'absolute inset-0 w-full h-full object-cover transition-all duration-1000 ease-in-out opacity-60 group-hover:opacity-80 group-hover:scale-105',
-                        isSelected
-                          ? 'object-[center_35%] scale-105 opacity-80'
-                          : 'object-[center_50%]'
-                      )}
-                    />
+                    {/* Image with overlay */}
+                    <div className={cn(
+                      'absolute inset-0 w-full h-full text-primary/20', // Controls SVG stroke color
+                      isSelected ? 'text-primary/40' : 'text-primary/20'
+                    )}>
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className={cn(
+                          'absolute inset-0 w-full h-full object-cover transition-all duration-1000 ease-in-out opacity-100 group-hover:scale-105',
+                          isSelected
+                            ? 'object-[center_35%] scale-105'
+                            : 'object-[center_50%]'
+                        )}
+                      />
+                    </div>
                     <motion.div
                       layoutId={`${id}-${item.id}-mask`}
                       className={cn(
-                        'absolute inset-0 transition-colors duration-700 bg-gradient-to-t from-black/80 via-black/40 to-transparent',
-                        isSelected ? 'from-black/60' : 'from-black/80'
+                        'absolute inset-0 transition-colors duration-700 bg-gradient-to-t from-background via-background/60 to-transparent',
+                        isSelected ? 'from-background' : 'from-background/90'
                       )}
+                    />
+
+                    {/* Technical Grid Overlay */}
+                    <div
+                      className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('/assets/grid-pattern.svg')] bg-repeat"
+                      style={{ backgroundSize: '20px 20px' }}
                     />
                   </motion.div>
 
                   <motion.div
                     layout="position"
-                    className="absolute inset-0 p-6 sm:p-8 flex flex-col justify-end text-white z-10 select-none"
+                    className="absolute inset-0 p-6 sm:p-8 flex flex-col justify-end z-10 select-none"
                   >
-                    <motion.div layout="position" className="overflow-hidden">
+                    {/* Top Tech Data */}
+                    <div className="absolute top-6 right-6 flex flex-col items-end gap-1 opacity-70">
+                      <div className="flex items-center gap-2">
+                        <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", isSelected ? "bg-status-live" : "bg-primary")}></div>
+                        <span className="text-[10px] font-mono tracking-widest uppercase text-muted-foreground">{isSelected ? "SYSTEM_ACTIVE" : "STANDBY"}</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-muted-foreground/60">ID: {item.id.toUpperCase().substring(0, 4)}_0{index + 1}</span>
+                    </div>
+
+                    <motion.div layout="position" className="overflow-hidden relative z-20">
                       <motion.h3
                         layout="position"
-                        className="text-2xl sm:text-4xl font-bold mb-2 tracking-tight uppercase font-mono"
-                        style={{ color: isSelected ? item.color : 'white' }}
+                        className="text-2xl sm:text-4xl font-bold mb-2 tracking-tight uppercase font-mono group-hover:text-primary transition-colors duration-300"
+                        style={{ color: isSelected ? item.color : 'var(--foreground)' }}
                       >
                         {item.title}
                       </motion.h3>
+                      <motion.div
+                        layout="position"
+                        className="h-1 w-12 rounded-full mb-3"
+                        style={{ backgroundColor: item.color }}
+                      />
                       <motion.p
                         layout="position"
                         className="text-sm sm:text-base text-muted-foreground font-medium max-w-md"
@@ -147,17 +176,16 @@ export default function FluidExpandingGrid({
                     </motion.div>
                   </motion.div>
 
-                  <motion.div
-                    layoutId={`${id}-${item.id}-overlay`}
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      borderRadius: 24,
-                    }}
-                  />
+                  {/* Corner Brackets */}
+                  <div className="absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-primary/20 rounded-tl-sm pointer-events-none group-hover:border-primary/50 transition-colors" />
+                  <div className="absolute top-4 right-4 w-4 h-4 border-t-2 border-r-2 border-primary/20 rounded-tr-sm pointer-events-none group-hover:border-primary/50 transition-colors" />
+                  <div className="absolute bottom-4 left-4 w-4 h-4 border-b-2 border-l-2 border-primary/20 rounded-bl-sm pointer-events-none group-hover:border-primary/50 transition-colors" />
+                  <div className="absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-primary/20 rounded-br-sm pointer-events-none group-hover:border-primary/50 transition-colors" />
+
                   <motion.div
                     layoutId={`${id}-${item.id}-border`}
-                    className="absolute inset-0 border border-white/10 group-hover:border-white/30 transition-colors duration-500 pointer-events-none"
-                    style={{ borderRadius: 24 }}
+                    className="absolute inset-0 border border-primary/10 group-hover:border-primary/30 transition-colors duration-500 pointer-events-none"
+                    style={{ borderRadius: 12 }}
                   />
                 </motion.div>
               );

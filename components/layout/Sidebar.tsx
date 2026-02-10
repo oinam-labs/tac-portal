@@ -94,7 +94,10 @@ const NAV_GROUPS: NavGroupDef[] = [
   },
   {
     title: 'System',
-    items: [{ label: 'Settings', icon: Settings, path: '/settings' }],
+    items: [
+      { label: 'Shift Report', icon: ClipboardList, path: '/shift-report' },
+      { label: 'Settings', icon: Settings, path: '/settings' }
+    ],
   },
 ];
 
@@ -195,7 +198,7 @@ export const Sidebar: React.FC = () => {
         </nav>
 
         {/* Footer / User */}
-        <div className="p-4 border-t border-cyber-border">
+        <div className="p-4 border-t border-border">
           <UserProfile collapsed={sidebarCollapsed} />
         </div>
       </aside>
