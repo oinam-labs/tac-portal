@@ -19,7 +19,7 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="h-16 bg-cyber-bg/80 backdrop-blur-md border-b border-cyber-border sticky top-0 z-40 px-4 lg:px-6 flex items-center justify-between transition-colors duration-300">
+    <header className="h-16 bg-background/80 backdrop-blur-md border-b border-border sticky top-0 z-40 px-4 lg:px-6 flex items-center justify-between transition-colors duration-300">
       <div className="flex items-center gap-4">
         <button
           onClick={handleMenuClick}

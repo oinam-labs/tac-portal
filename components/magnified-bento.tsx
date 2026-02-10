@@ -18,7 +18,7 @@ import {
   Lock,
   LucideIcon,
 } from 'lucide-react';
-import { motion, useMotionValue, useMotionTemplate } from 'motion/react';
+import { motion, useMotionValue, useMotionTemplate } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 // Customizable content for TAC Portal - Tracking & Logistics Focus

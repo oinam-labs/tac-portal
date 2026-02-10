@@ -46,13 +46,13 @@ export const Inventory: React.FC = () => {
   const bucketColor = (bucket: string) => {
     switch (bucket) {
       case '0-6h':
-        return 'text-green-500';
+        return 'text-status-success';
       case '6-12h':
-        return 'text-yellow-500';
+        return 'text-status-warning';
       case '12-24h':
-        return 'text-orange-500';
+        return 'text-status-warning';
       case '24h+':
-        return 'text-red-500 font-bold';
+        return 'text-status-error font-bold';
       default:
         return 'text-muted-foreground';
     }
@@ -127,7 +127,7 @@ export const Inventory: React.FC = () => {
         </Card>
         <Card className="p-4 bg-muted flex justify-between items-center">
           <span className="text-sm text-muted-foreground">Aging Critical (24h+)</span>
-          <span className="text-xl font-bold text-red-500">{stats.critical} Pkgs</span>
+          <span className="text-xl font-bold text-status-error">{stats.critical} Pkgs</span>
         </Card>
       </div>
 

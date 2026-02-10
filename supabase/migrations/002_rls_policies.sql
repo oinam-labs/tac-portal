@@ -13,7 +13,7 @@ ALTER TABLE tracking_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE manifests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE manifest_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
-ALTER TABLE invoice_items ENABLE ROW LEVEL SECURITY;
+
 ALTER TABLE exceptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
@@ -111,13 +111,13 @@ CREATE POLICY "Users can view customers"
 CREATE POLICY "Authorized users can create customers"
   ON customers FOR INSERT
   TO authenticated
-  WITH CHECK (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS_STAFF', 'FINANCE_STAFF']));
+  WITH CHECK (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS', 'INVOICE']));
 
 -- Authorized roles can update customers
 CREATE POLICY "Authorized users can update customers"
   ON customers FOR UPDATE
   TO authenticated
-  USING (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS_STAFF', 'FINANCE_STAFF']));
+  USING (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS', 'INVOICE']));
 
 -- ============================================================================
 -- SHIPMENTS
@@ -133,13 +133,13 @@ CREATE POLICY "Users can view shipments"
 CREATE POLICY "Authorized users can create shipments"
   ON shipments FOR INSERT
   TO authenticated
-  WITH CHECK (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS_STAFF', 'WAREHOUSE_STAFF']));
+  WITH CHECK (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS', 'WAREHOUSE_IMPHAL', 'WAREHOUSE_DELHI']));
 
 -- Authorized roles can update shipments
 CREATE POLICY "Authorized users can update shipments"
   ON shipments FOR UPDATE
   TO authenticated
-  USING (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS_STAFF', 'WAREHOUSE_STAFF']));
+  USING (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS', 'WAREHOUSE_IMPHAL', 'WAREHOUSE_DELHI']));
 
 -- ============================================================================
 -- TRACKING EVENTS
@@ -155,7 +155,7 @@ CREATE POLICY "Users can view tracking events"
 CREATE POLICY "Authorized users can create tracking events"
   ON tracking_events FOR INSERT
   TO authenticated
-  WITH CHECK (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS_STAFF', 'WAREHOUSE_STAFF']));
+  WITH CHECK (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS', 'WAREHOUSE_IMPHAL', 'WAREHOUSE_DELHI']));
 
 -- ============================================================================
 -- MANIFESTS
@@ -171,13 +171,13 @@ CREATE POLICY "Users can view manifests"
 CREATE POLICY "Authorized users can create manifests"
   ON manifests FOR INSERT
   TO authenticated
-  WITH CHECK (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS_STAFF']));
+  WITH CHECK (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS']));
 
 -- Authorized roles can update manifests
 CREATE POLICY "Authorized users can update manifests"
   ON manifests FOR UPDATE
   TO authenticated
-  USING (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS_STAFF', 'WAREHOUSE_STAFF']));
+  USING (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS', 'WAREHOUSE_IMPHAL', 'WAREHOUSE_DELHI']));
 
 -- ============================================================================
 -- MANIFEST ITEMS
@@ -205,7 +205,7 @@ CREATE POLICY "Authorized users can manage manifest items"
       WHERE m.id = manifest_items.manifest_id 
       AND m.org_id = get_user_org_id()
     )
-    AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS_STAFF', 'WAREHOUSE_STAFF'])
+    AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS', 'WAREHOUSE_IMPHAL', 'WAREHOUSE_DELHI'])
   );
 
 -- ============================================================================
@@ -222,42 +222,16 @@ CREATE POLICY "Users can view invoices"
 CREATE POLICY "Finance users can create invoices"
   ON invoices FOR INSERT
   TO authenticated
-  WITH CHECK (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'FINANCE_STAFF']));
+  WITH CHECK (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'INVOICE']));
 
 -- Only finance roles can update invoices
 CREATE POLICY "Finance users can update invoices"
   ON invoices FOR UPDATE
   TO authenticated
-  USING (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'FINANCE_STAFF']));
+  USING (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'INVOICE']));
 
--- ============================================================================
--- INVOICE ITEMS
--- ============================================================================
-
--- Users can view invoice items (via invoice's org_id)
-CREATE POLICY "Users can view invoice items"
-  ON invoice_items FOR SELECT
-  TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM invoices i 
-      WHERE i.id = invoice_items.invoice_id 
-      AND i.org_id = get_user_org_id()
-    )
-  );
-
--- Finance roles can manage invoice items
-CREATE POLICY "Finance users can manage invoice items"
-  ON invoice_items FOR ALL
-  TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM invoices i 
-      WHERE i.id = invoice_items.invoice_id 
-      AND i.org_id = get_user_org_id()
-    )
-    AND has_role(ARRAY['ADMIN', 'MANAGER', 'FINANCE_STAFF'])
-  );
+-- NOTE: invoice_items table was removed in later schema iterations.
+-- Line items are stored as JSONB in invoices.line_items instead.
 
 -- ============================================================================
 -- EXCEPTIONS
@@ -273,13 +247,13 @@ CREATE POLICY "Users can view exceptions"
 CREATE POLICY "Authorized users can create exceptions"
   ON exceptions FOR INSERT
   TO authenticated
-  WITH CHECK (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS_STAFF', 'WAREHOUSE_STAFF']));
+  WITH CHECK (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS', 'WAREHOUSE_IMPHAL', 'WAREHOUSE_DELHI']));
 
 -- Authorized roles can update exceptions
 CREATE POLICY "Authorized users can update exceptions"
   ON exceptions FOR UPDATE
   TO authenticated
-  USING (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS_STAFF']));
+  USING (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER', 'OPS']));
 
 -- ============================================================================
 -- AUDIT LOGS
@@ -291,26 +265,16 @@ CREATE POLICY "Admins/Managers can view audit logs"
   TO authenticated
   USING (org_id = get_user_org_id() AND has_role(ARRAY['ADMIN', 'MANAGER']));
 
--- Audit logs are inserted by triggers, not directly
-CREATE POLICY "System can insert audit logs"
-  ON audit_logs FOR INSERT
-  TO authenticated
-  WITH CHECK (org_id = get_user_org_id());
+
 
 -- ============================================================================
 -- PUBLIC TRACKING (Anonymous Access)
 -- ============================================================================
 
--- Allow anonymous tracking lookup by AWB (read-only, limited fields)
-CREATE POLICY "Public can track shipments by AWB"
-  ON shipments FOR SELECT
-  TO anon
-  USING (true);  -- Additional filtering done at application level
-
-CREATE POLICY "Public can view tracking events"
-  ON tracking_events FOR SELECT
-  TO anon
-  USING (true);  -- Additional filtering done at application level
+-- NOTE: Anonymous tracking access is now handled via application-level
+-- API endpoints with proper filtering. Direct anonymous table access
+-- has been removed for security. See tracking-service.ts for the
+-- public tracking implementation.
 
 -- ============================================================================
 -- AUDIT LOG TRIGGER

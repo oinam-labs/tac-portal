@@ -1,13 +1,15 @@
 'use client';
-/* eslint-disable @typescript-eslint/no-explicit-any -- Motion library type compatibility */
 
-import { useState, useRef } from 'react';
-import { motion, useInView } from '@/lib/motion';
+import { useState } from 'react';
+import { motion } from '@/lib/motion';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+
 import { Label } from '@/components/ui/label';
-import { Check, Loader2 } from 'lucide-react';
+import { Check, Loader2, Send } from 'lucide-react';
+import { FadeUp } from '@/components/motion/FadeUp';
+import { StaggerChildren } from '@/components/motion/StaggerChildren';
 
 export function ContactSection() {
   const [name, setName] = useState('');
@@ -15,9 +17,6 @@ export function ContactSection() {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-
-  const formRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(formRef as any, { once: true, amount: 0.3 });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,135 +40,118 @@ export function ContactSection() {
   };
 
   return (
-    <section id="contact" className="bg-background relative w-full overflow-hidden py-16 md:py-24">
+    <section id="contact" className="relative w-full overflow-hidden py-24 lg:py-32 bg-background">
       <div className="relative z-10 container mx-auto px-4 md:px-6">
-        <div className="border-border/40 bg-card mx-auto max-w-5xl overflow-hidden rounded-[28px] border shadow-xl backdrop-blur-sm">
-          <div className="grid md:grid-cols-2">
-            <div className="relative p-6 md:p-10" ref={formRef}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="flex w-full gap-2 relative"
-              >
-                <h2 className="from-foreground to-foreground/80 mb-2 bg-gradient-to-r bg-clip-text text-3xl sm:text-4xl font-bold tracking-tight text-transparent md:text-5xl">
-                  Contact
-                </h2>
-                <span className="text-primary relative z-10 w-full text-3xl sm:text-4xl font-bold tracking-tight italic md:text-5xl">
-                  Us
-                </span>
-              </motion.div>
+        <FadeUp className="bg-card border border-border/50 mx-auto max-w-5xl overflow-hidden rounded-3xl shadow-2xl shadow-primary/5">
+          <div className="grid lg:grid-cols-2">
 
-              <motion.form
-                initial={{ opacity: 0, y: 20 }}
-                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                onSubmit={handleSubmit}
-                className="mt-8 space-y-6"
-              >
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <motion.div
-                    className="space-y-2"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                  >
-                    <Label htmlFor="name">Name</Label>
+            {/* Left: Content & Image */}
+            <div className="relative p-10 lg:p-14 bg-muted/50 border-r border-border/50 flex flex-col justify-between overflow-hidden">
+              {/* Technical Grid Pattern */}
+              <div className="absolute inset-0 opacity-[0.03] bg-[url('/assets/grid-pattern.svg')] bg-repeat pointer-events-none" style={{ backgroundSize: '20px 20px' }} />
+
+              <div className="relative z-10">
+                <FadeUp delay={0.1}>
+                  <div className="inline-flex items-center gap-2 font-mono text-xs text-primary/80 border border-primary/20 px-4 py-1.5 rounded-full uppercase tracking-widest bg-background/50 backdrop-blur-sm mb-6">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    CONTACT_CHANNEL_OPEN
+                  </div>
+                  <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground mb-4">
+                    Ready to <br />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Get Started?</span>
+                  </h2>
+                  <p className="text-muted-foreground text-lg leading-relaxed max-w-sm">
+                    Our logistics experts are ready to optimize your supply chain. Reach out for a custom quote or consultation.
+                  </p>
+                </FadeUp>
+              </div>
+
+              <FadeUp delay={0.3} className="hidden lg:block relative mt-10 z-10">
+                <div className="relative z-10 transform transition-transform hover:scale-105 duration-500">
+                  <img
+                    src="/contact.png"
+                    alt="Contact Support"
+                    className="w-full max-w-[320px] mx-auto object-contain drop-shadow-2xl grayscale hover:grayscale-0 transition-all duration-500"
+                  />
+                </div>
+                {/* Glow behind image */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-primary/20 blur-[60px] rounded-full -z-10" />
+              </FadeUp>
+            </div>
+
+            {/* Right: Form */}
+            <div className="p-10 lg:p-14 bg-card/50 backdrop-blur-sm">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <StaggerChildren staggerDelay={0.1} initialDelay={0.2} className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-foreground/80 font-medium font-mono text-xs uppercase tracking-wider">Full Name</Label>
                     <Input
                       id="name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder="Enter your name"
+                      placeholder="ENTER YOUR NAME"
                       required
+                      className="h-12 bg-background border-border/60 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium"
                     />
-                  </motion.div>
+                  </div>
 
-                  <motion.div
-                    className="space-y-2"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                  >
-                    <Label htmlFor="email">Email</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-foreground/80 font-medium font-mono text-xs uppercase tracking-wider">Email Address</Label>
                     <Input
                       id="email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email"
+                      placeholder="ENTER YOUR EMAIL"
                       required
+                      className="h-12 bg-background border-border/60 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium"
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="message" className="text-foreground/80 font-medium font-mono text-xs uppercase tracking-wider">Message</Label>
+                    <Textarea
+                      id="message"
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="TELL US ABOUT YOUR SHIPMENT NEEDS..."
+                      required
+                      className="min-h-[160px] resize-none bg-background border-border/60 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium"
+                    />
+                  </div>
+                </StaggerChildren>
+
+                <FadeUp delay={0.5} className="pt-2">
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      size="lg"
+                      className="w-full h-12 text-base font-bold shadow-lg shadow-primary/20 rounded-xl"
+                    >
+                      {isSubmitting ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          TRANSMITTING...
+                        </span>
+                      ) : isSubmitted ? (
+                        <span className="flex items-center gap-2">
+                          <Check className="h-4 w-4" />
+                          MESSAGE SENT
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          SEND MESSAGE
+                          <Send className="h-4 w-4" />
+                        </span>
+                      )}
+                    </Button>
                   </motion.div>
-                </div>
-
-                <motion.div
-                  className="space-y-2"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                >
-                  <Label htmlFor="message">Message</Label>
-                  <Textarea
-                    id="message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Enter your message"
-                    required
-                    className="h-40 resize-none"
-                  />
-                </motion.div>
-
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full"
-                >
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
-                  >
-                    {isSubmitting ? (
-                      <span className="flex items-center justify-center">
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Sending...
-                      </span>
-                    ) : isSubmitted ? (
-                      <span className="flex items-center justify-center">
-                        <Check className="mr-2 h-4 w-4" />
-                        Message Sent!
-                      </span>
-                    ) : (
-                      <span>Send Message</span>
-                    )}
-                  </Button>
-                </motion.div>
-              </motion.form>
+                </FadeUp>
+              </form>
             </div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              className="relative my-8 hidden md:flex items-center justify-center overflow-hidden pr-8"
-            >
-              <div className="flex flex-col items-center justify-center overflow-hidden w-full h-full">
-                <article className="relative mx-auto h-[350px] min-h-60 max-w-[450px] overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-b from-primary to-primary/5 p-6 text-3xl tracking-tight text-white md:h-[450px] md:min-h-80 md:p-8 md:text-4xl md:leading-[1.05] lg:text-5xl flex items-center">
-                  <div className="relative z-20 font-bold">
-                    Seamless logistics solutions for your business excellence.
-                  </div>
-                  <div className="absolute -right-10 -bottom-10 z-10 mx-auto flex h-full w-full max-w-[300px] items-center justify-center transition-all duration-700 hover:scale-105 md:-right-14 md:-bottom-14 md:max-w-[550px] opacity-80">
-                    <img
-                      src="/contact.png"
-                      alt="Contact Support"
-                      className="h-[350px] w-[350px] object-contain"
-                    />
-                  </div>
-                </article>
-              </div>
-            </motion.div>
           </div>
-        </div>
+        </FadeUp>
       </div>
     </section>
   );

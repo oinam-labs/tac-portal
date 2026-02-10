@@ -233,8 +233,8 @@ export function StepManifestSetup({
                 value="AIR"
                 className={cn(
                   'flex-1 h-[72px] flex flex-col items-center justify-center gap-1.5 border border-border rounded-lg transition-all',
-                  'data-[state=on]:bg-blue-500/20 data-[state=on]:text-blue-400 data-[state=on]:border-blue-500/50',
-                  transportType === 'AIR' && 'ring-2 ring-blue-500/30'
+                  'data-[state=on]:bg-feature-air/20 data-[state=on]:text-feature-air data-[state=on]:border-feature-air/50',
+                  transportType === 'AIR' && 'ring-2 ring-feature-air/30'
                 )}
               >
                 <Plane className="h-5 w-5" />
@@ -244,8 +244,8 @@ export function StepManifestSetup({
                 value="TRUCK"
                 className={cn(
                   'flex-1 h-[72px] flex flex-col items-center justify-center gap-1.5 border border-border rounded-lg transition-all',
-                  'data-[state=on]:bg-amber-500/20 data-[state=on]:text-amber-400 data-[state=on]:border-amber-500/50',
-                  transportType === 'TRUCK' && 'ring-2 ring-amber-500/30'
+                  'data-[state=on]:bg-feature-ground/20 data-[state=on]:text-feature-ground data-[state=on]:border-feature-ground/50',
+                  transportType === 'TRUCK' && 'ring-2 ring-feature-ground/30'
                 )}
               >
                 <Truck className="h-5 w-5" />

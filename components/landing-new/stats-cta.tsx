@@ -2,78 +2,117 @@
 
 import { ArrowRight, Package, Clock, ShieldCheck } from 'lucide-react';
 import { motion } from '@/lib/motion';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { TextReveal } from '@/components/motion/TextReveal';
+import { FadeUp } from '@/components/motion/FadeUp';
+import { StaggerChildren } from '@/components/motion/StaggerChildren';
+import { CountUp } from '@/components/motion/CountUp';
 
 export function StatsCTA() {
   return (
-    <section className="bg-background relative w-full overflow-hidden border-t border-border/40 py-20 lg:py-24">
-      <div className="relative z-10 container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-16 flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between text-center lg:text-left">
-          <div className="max-w-2xl mx-auto lg:mx-0">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-              Serving You for <span className="text-primary">15+ Years</span>
-            </h2>
-            <p className="text-muted-foreground mt-4 text-xl font-light max-w-lg mx-auto lg:mx-0">
-              From Imphal to New Delhi and back — we deliver your cargo with care, speed, and
-              reliability.
-            </p>
+    <section className="relative w-full overflow-hidden py-24 lg:py-32 bg-background">
+      {/* Background Decor */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[600px] bg-primary/5 blur-[120px] rounded-full opacity-50" />
+      </div>
+
+      <div className="relative z-10 container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-20 flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between text-center lg:text-left">
+          <div className="max-w-3xl mx-auto lg:mx-0">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-mono text-primary mb-6">
+              /// IMPACT_METRICS
+            </div>
+            <TextReveal
+              text="Operational Impact"
+              as="h2"
+              className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl text-foreground mb-6"
+            />
+            <FadeUp delay={0.3}>
+              <p className="text-muted-foreground text-xl font-light max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                From Imphal to New Delhi — delivering cargo with <span className="text-foreground font-medium">precision</span>, <span className="text-foreground font-medium">speed</span>, and <span className="text-foreground font-medium">security</span>.
+              </p>
+            </FadeUp>
           </div>
 
-          <div className="pt-4 mx-auto lg:mx-0">
-            <a
-              href="#"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 inline-flex items-center gap-2 rounded-full px-8 py-4 text-base font-bold transition-all hover:scale-105"
-            >
-              Get a Quote
-              <ArrowRight className="h-5 w-5" />
-            </a>
-          </div>
+          <FadeUp delay={0.4} className="mx-auto lg:mx-0 shrink-0">
+            <Link to="/login" className="inline-flex">
+              <Button size="lg" className="h-14 rounded-full px-10 text-base font-bold shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 transition-all duration-300 hover:scale-105 bg-primary text-primary-foreground hover:bg-primary/90">
+                Get a Quote
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </FadeUp>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <StaggerChildren className="grid gap-8 md:grid-cols-3" staggerDelay={0.15}>
           {/* Stat 1 */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-card dark:bg-muted/30 border border-border/50 rounded-3xl p-8 text-center hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300"
+            variants={{
+              hidden: { opacity: 0, y: 30 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+            }}
+            whileHover={{ y: -10, transition: { duration: 0.3 } }}
+            className="group relative bg-card/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-10 text-center hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 overflow-hidden"
           >
-            <div className="bg-primary/10 text-primary w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-primary/20">
-              <Package className="w-7 h-7" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative z-10">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-8 text-primary group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-sm">
+                <Package className="w-8 h-8" />
+              </div>
+              <div className="text-5xl sm:text-6xl font-extrabold text-foreground mb-3 tracking-tight font-mono">
+                <CountUp to={50} suffix="k+" duration={2.5} />
+              </div>
+              <p className="text-muted-foreground font-medium text-lg uppercase tracking-widest text-[10px]">Shipments Delivered</p>
             </div>
-            <div className="text-4xl sm:text-5xl font-bold text-foreground mb-2 tracking-tight">50k+</div>
-            <p className="text-muted-foreground font-medium">Shipments Delivered</p>
+            {/* Corner Accent */}
+            <div className="absolute top-0 right-0 w-16 h-16 border-t font-mono text-[10px] text-primary/40 pt-4 pr-4 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">OBJ_01</div>
           </motion.div>
 
           {/* Stat 2 */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="bg-card dark:bg-muted/30 border border-border/50 rounded-3xl p-8 text-center hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300"
+            variants={{
+              hidden: { opacity: 0, y: 30 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+            }}
+            whileHover={{ y: -10, transition: { duration: 0.3 } }}
+            className="group relative bg-card/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-10 text-center hover:border-secondary/30 hover:shadow-2xl hover:shadow-secondary/5 transition-all duration-300 overflow-hidden"
           >
-            <div className="bg-emerald-500/10 text-emerald-500 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-emerald-500/20">
-              <ShieldCheck className="w-7 h-7" />
+            <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative z-10">
+              <div className="w-16 h-16 rounded-2xl bg-secondary/10 border border-secondary/20 flex items-center justify-center mx-auto mb-8 text-secondary group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-sm">
+                <ShieldCheck className="w-8 h-8" />
+              </div>
+              <div className="text-5xl sm:text-6xl font-extrabold text-foreground mb-3 tracking-tight font-mono">
+                <CountUp to={99.9} suffix="%" duration={2.5} decimals={1} />
+              </div>
+              <p className="text-muted-foreground font-medium text-lg uppercase tracking-widest text-[10px]">Safe Arrival Rate</p>
             </div>
-            <div className="text-4xl sm:text-5xl font-bold text-foreground mb-2 tracking-tight">99%</div>
-            <p className="text-muted-foreground font-medium">Safe Arrival Rate</p>
+            <div className="absolute top-0 right-0 w-16 h-16 border-t font-mono text-[10px] text-secondary/40 pt-4 pr-4 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">OBJ_02</div>
           </motion.div>
 
           {/* Stat 3 */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="bg-card dark:bg-muted/30 border border-border/50 rounded-3xl p-8 text-center hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300"
+            variants={{
+              hidden: { opacity: 0, y: 30 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+            }}
+            whileHover={{ y: -10, transition: { duration: 0.3 } }}
+            className="group relative bg-card/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-10 text-center hover:border-accent/30 hover:shadow-2xl hover:shadow-accent/5 transition-all duration-300 overflow-hidden"
           >
-            <div className="bg-blue-500/10 text-blue-500 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-blue-500/20">
-              <Clock className="w-7 h-7" />
+            <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative z-10">
+              <div className="w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto mb-8 text-accent group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-sm">
+                <Clock className="w-8 h-8" />
+              </div>
+              <div className="text-5xl sm:text-6xl font-extrabold text-foreground mb-3 tracking-tight font-mono">
+                <CountUp to={48} suffix="h" duration={2.5} />
+              </div>
+              <p className="text-muted-foreground font-medium text-lg uppercase tracking-widest text-[10px]">Imphal ↔ Delhi</p>
             </div>
-            <div className="text-4xl sm:text-5xl font-bold text-foreground mb-2 tracking-tight">48h</div>
-            <p className="text-muted-foreground font-medium">Imphal ↔ Delhi</p>
+            <div className="absolute top-0 right-0 w-16 h-16 border-t font-mono text-[10px] text-accent/40 pt-4 pr-4 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">OBJ_03</div>
           </motion.div>
-        </div>
+        </StaggerChildren>
       </div>
     </section>
   );

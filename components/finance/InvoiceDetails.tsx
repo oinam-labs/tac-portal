@@ -189,7 +189,7 @@ export const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
                 <span className="font-mono">{formatCurrency(invoice.financials.insurance)}</span>
               </div>
               {invoice.financials.discount > 0 && (
-                <div className="flex justify-between text-green-600">
+                <div className="flex justify-between text-status-success">
                   <span>Discount</span>
                   <span className="font-mono">-{formatCurrency(invoice.financials.discount)}</span>
                 </div>
@@ -211,7 +211,7 @@ export const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
                   <>
                     <div className="flex justify-between text-sm mt-1">
                       <span className="text-muted-foreground">Advance Paid</span>
-                      <span className="font-mono text-green-600">
+                      <span className="font-mono text-status-success">
                         -{formatCurrency(invoice.financials.advancePaid)}
                       </span>
                     </div>

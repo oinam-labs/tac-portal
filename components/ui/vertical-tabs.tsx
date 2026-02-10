@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { FadeUp } from '@/components/motion/FadeUp';
 
 const SERVICES = [
   {
@@ -82,7 +83,7 @@ export default function VerticalTabs() {
 
   return (
     <section id="about" className="w-full bg-background py-8 md:py-16 lg:py-24">
-      <div className="w-full px-4 md:px-8 lg:px-12 xl:px-20 mx-auto max-w-7xl">
+      <FadeUp className="w-full px-4 md:px-8 lg:px-12 xl:px-20 mx-auto max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
           {/* Left Column: Content */}
           <div className="lg:col-span-5 flex flex-col justify-center order-2 lg:order-1 pt-4">
@@ -226,7 +227,7 @@ export default function VerticalTabs() {
             </div>
           </div>
         </div>
-      </div>
+      </FadeUp>
     </section>
   );
 }

@@ -57,9 +57,9 @@ export const Manifests: React.FC = () => {
           return (
             <div className="flex items-center gap-2">
               {row.original.type === 'AIR' ? (
-                <Plane className="w-4 h-4 text-cyan-400" />
+                <Plane className="w-4 h-4 text-feature-air" />
               ) : (
-                <Truck className="w-4 h-4 text-amber-400" />
+                <Truck className="w-4 h-4 text-feature-ground" />
               )}
               <div>
                 <span className="font-medium text-foreground">

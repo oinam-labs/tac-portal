@@ -209,7 +209,7 @@ export default function ShiftReport() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <AlertCircle className="h-5 w-5 text-yellow-500" />
+                      <AlertCircle className="h-5 w-5 text-status-warning" />
                       <span>Open Manifests</span>
                     </div>
                     <Badge
@@ -223,7 +223,7 @@ export default function ShiftReport() {
 
                   <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <XCircle className="h-5 w-5 text-red-500" />
+                      <XCircle className="h-5 w-5 text-status-error" />
                       <span>Unresolved Exceptions</span>
                     </div>
                     <Badge
@@ -237,7 +237,7 @@ export default function ShiftReport() {
 
                   <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <Package className="h-5 w-5 text-blue-500" />
+                      <Package className="h-5 w-5 text-status-info" />
                       <span>Awaiting Pickup</span>
                     </div>
                     <Badge variant="secondary">

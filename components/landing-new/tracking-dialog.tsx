@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, Search } from 'lucide-react';
-import { PackageTrackerCard } from '@/components/ui/tracker-card';
+import { TrackingResultCard } from '@/components/landing-new/tracking-result-card';
 import { getTrackingInfo, TrackingData } from '@/lib/tracking-service';
 import { toast } from 'sonner';
 
@@ -36,9 +36,7 @@ export function TrackingDialog({ trigger, children }: TrackingDialogProps) {
     }
   };
 
-  const formatStatus = (status: string) => {
-    return status.replace(/_/g, ' ').toUpperCase();
-  };
+
 
   return (
     <Dialog>
@@ -90,18 +88,7 @@ export function TrackingDialog({ trigger, children }: TrackingDialogProps) {
                 Back to Search
               </Button>
             </div>
-            <PackageTrackerCard
-              status={formatStatus(result.shipment.status)}
-              packageNumber={result.shipment.reference}
-              destination={`${result.shipment.origin} -> ${result.shipment.destination}`}
-              destinationFlag={<span>🇮🇳</span>}
-              date={
-                result.events[0]?.created_at
-                  ? new Date(result.events[0].created_at).toLocaleDateString()
-                  : 'N/A'
-              }
-              qrCodeValue={`https://tac.logistics/track/${result.shipment.reference}`}
-            />
+            <TrackingResultCard data={result} />
           </div>
         )}
       </DialogContent>

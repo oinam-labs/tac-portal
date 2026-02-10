@@ -39,10 +39,10 @@ const CATEGORY_ICONS: Record<NotificationCategory, React.ElementType> = {
 };
 
 const TYPE_COLORS: Record<string, string> = {
-  success: 'bg-green-500',
-  error: 'bg-red-500',
-  warning: 'bg-yellow-500',
-  info: 'bg-blue-500',
+  success: 'bg-status-success',
+  error: 'bg-status-error',
+  warning: 'bg-status-warning',
+  info: 'bg-status-info',
 };
 
 interface NotificationRowProps {

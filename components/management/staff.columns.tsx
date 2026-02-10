@@ -69,14 +69,12 @@ export function getStaffColumns(params: StaffColumnsParams): ColumnDef<Staff>[] 
       header: 'Status',
       cell: ({ row }) => (
         <span
-          className={`flex items-center gap-1.5 text-xs ${
-            row.original.is_active ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'
-          }`}
+          className={`flex items-center gap-1.5 text-xs ${row.original.is_active ? 'text-status-active' : 'text-muted-foreground'
+            }`}
         >
           <span
-            className={`w-1.5 h-1.5 rounded-full ${
-              row.original.is_active ? 'bg-green-500 dark:bg-green-400' : 'bg-muted'
-            }`}
+            className={`w-1.5 h-1.5 rounded-full ${row.original.is_active ? 'bg-status-active' : 'bg-muted'
+              }`}
           />
           {row.original.is_active ? 'Active' : 'Inactive'}
         </span>
@@ -91,7 +89,7 @@ export function getStaffColumns(params: StaffColumnsParams): ColumnDef<Staff>[] 
             variant={row.original.is_active ? 'ghost' : 'secondary'}
             size="sm"
             onClick={() => params.onToggleStatus(row.original)}
-            className={row.original.is_active ? 'text-red-500 hover:text-red-600' : ''}
+            className={row.original.is_active ? 'text-destructive hover:text-destructive/80' : ''}
           >
             {row.original.is_active ? (
               <>

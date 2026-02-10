@@ -37,8 +37,8 @@ export function getInvoicesColumns(
       header: 'Invoice',
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <FileText className="w-4 h-4 text-cyber-accent" />
-          <span className="font-mono font-bold text-cyber-accent">{row.original.invoice_no}</span>
+          <FileText className="w-4 h-4 text-primary" />
+          <span className="font-mono font-bold text-primary">{row.original.invoice_no}</span>
         </div>
       ),
     },
@@ -104,17 +104,17 @@ export function getInvoicesColumns(
             extraItems={[
               ...(row.original.status === 'ISSUED'
                 ? [
-                    {
-                      label: 'Mark as Paid',
-                      icon: <CheckCircle className="w-4 h-4" />,
-                      onClick: () => params.onMarkPaid(row.original),
-                    },
-                    {
-                      label: 'Cancel',
-                      icon: <XCircle className="w-4 h-4" />,
-                      onClick: () => params.onCancel(row.original),
-                    },
-                  ]
+                  {
+                    label: 'Mark as Paid',
+                    icon: <CheckCircle className="w-4 h-4" />,
+                    onClick: () => params.onMarkPaid(row.original),
+                  },
+                  {
+                    label: 'Cancel',
+                    icon: <XCircle className="w-4 h-4" />,
+                    onClick: () => params.onCancel(row.original),
+                  },
+                ]
                 : []),
             ]}
           />

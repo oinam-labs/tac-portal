@@ -136,7 +136,7 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
                     value={shipment.awb_number}
                     onSelect={() => handleSelect(shipment.awb_number)}
                   >
-                    <Package className="mr-2 h-4 w-4 text-cyber-accent" />
+                    <Package className="mr-2 h-4 w-4 text-primary" />
                     <span className="font-mono">{shipment.awb_number}</span>
                     <span className="ml-2 text-muted-foreground text-sm">
                       {shipment.customer?.name || 'Unknown Customer'}
@@ -158,7 +158,7 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
                   value={action.action}
                   onSelect={() => handleSelect(action.action)}
                 >
-                  <action.icon className="mr-2 h-4 w-4 text-emerald-400" />
+                  <action.icon className="mr-2 h-4 w-4 text-status-success" />
                   <span>{action.name}</span>
                 </CommandItem>
               ))}

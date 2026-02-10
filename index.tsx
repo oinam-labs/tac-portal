@@ -1,4 +1,4 @@
-// import React from 'react'; // Temporarily unused - StrictMode disabled
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './globals.css';
 import App from './App';
@@ -13,10 +13,8 @@ if (!rootElement) {
 }
 
 const root = ReactDOM.createRoot(rootElement);
-// Note: StrictMode temporarily disabled to debug portal removeChild error
-// TODO: Re-enable after fixing the manifest dialog issue
 root.render(
-  // <React.StrictMode>
-  <App />
-  // </React.StrictMode>
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
 );

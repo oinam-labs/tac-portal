@@ -4,6 +4,7 @@ import { useManifest, useManifestItems, useUpdateManifestStatus } from '../../ho
 import { Button, Card, Table, Th, Td } from '../ui/CyberComponents';
 import { ArrowLeft, Printer, Truck, Plane, Package } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Manifest } from '../../types';
 import { format } from 'date-fns';
 import { ManifestPrintView } from '@/components/manifests/ManifestPrintView';
 import { useReactToPrint } from 'react-to-print';
@@ -64,7 +65,7 @@ export const ManifestDetails: React.FC = () => {
           {manifest.status === 'DEPARTED' && (
             <Button
               onClick={() => handleUpdateStatus('ARRIVED')}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-status-success hover:bg-status-success/90"
             >
               Mark Arrived
             </Button>
@@ -73,8 +74,8 @@ export const ManifestDetails: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="md:col-span-2 p-0 border border-cyber-border bg-white dark:bg-cyber-surface overflow-hidden">
-          <div className="p-4 border-b border-cyber-border bg-muted">
+        <Card className="md:col-span-2 p-0 border border-border bg-white dark:bg-card overflow-hidden">
+          <div className="p-4 border-b border-border bg-muted">
             <h3 className="font-bold flex items-center gap-2">
               <Package className="w-4 h-4" /> Manifested Shipments
             </h3>
@@ -112,7 +113,7 @@ export const ManifestDetails: React.FC = () => {
           </Table>
         </Card>
 
-        <Card className="p-6 space-y-6 h-fit bg-white dark:bg-cyber-surface border border-cyber-border">
+        <Card className="p-6 space-y-6 h-fit bg-white dark:bg-card border border-border">
           <div>
             <h3 className="text-xs font-bold text-muted-foreground uppercase mb-3">
               Transport Details
@@ -132,13 +133,15 @@ export const ManifestDetails: React.FC = () => {
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Vehicle/Flight</span>
                 <span className="font-mono font-bold">
-                  {(manifest.vehicle_meta as any)?.identifier}
+                  {((manifest.vehicle_meta as unknown) as Manifest['vehicleMeta'])?.identifier}
                 </span>
               </div>
               {manifest.type === 'TRUCK' && (
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Driver</span>
-                  <span className="font-bold">{(manifest.vehicle_meta as any)?.driver}</span>
+                  <span className="font-bold">
+                    {((manifest.vehicle_meta as unknown) as Manifest['vehicleMeta'])?.driver}
+                  </span>
                 </div>
               )}
             </div>
@@ -155,14 +158,14 @@ export const ManifestDetails: React.FC = () => {
                 <span className="text-sm text-muted-foreground">Total Packages</span>
                 <span className="font-bold">{manifest.total_packages}</span>
               </div>
-              <div className="flex justify-between pt-2 border-t border-cyber-border">
+              <div className="flex justify-between pt-2 border-t border-border">
                 <span className="text-sm text-muted-foreground">Total Weight</span>
                 <span className="font-bold text-lg text-primary">{manifest.total_weight} kg</span>
               </div>
             </div>
           </div>
 
-          <div className="text-xs text-muted-foreground pt-4 border-t border-cyber-border">
+          <div className="text-xs text-muted-foreground pt-4 border-t border-border">
             <div>Created by: {manifest.creator?.full_name || 'System'}</div>
             <div>Created at: {format(new Date(manifest.created_at), 'dd MMM yyyy HH:mm')}</div>
           </div>

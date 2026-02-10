@@ -28,11 +28,11 @@ export function getShipmentsColumns(
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           {row.original.mode === 'AIR' ? (
-            <Plane className="w-4 h-4 text-cyan-400" />
+            <Plane className="w-4 h-4 text-feature-air" />
           ) : (
-            <Truck className="w-4 h-4 text-amber-400" />
+            <Truck className="w-4 h-4 text-feature-ground" />
           )}
-          <span className="font-mono font-bold text-cyber-accent">{row.original.awb_number}</span>
+          <span className="font-mono font-bold text-primary">{row.original.awb_number}</span>
         </div>
       ),
     },
@@ -73,11 +73,10 @@ export function getShipmentsColumns(
       header: 'Service',
       cell: ({ row }) => (
         <span
-          className={`text-xs font-bold px-2 py-0.5 rounded ${
-            row.original.service_level === 'EXPRESS'
-              ? 'bg-amber-500/20 text-amber-400'
-              : 'bg-muted text-muted-foreground'
-          }`}
+          className={`text-xs font-bold px-2 py-0.5 rounded ${row.original.service_level === 'EXPRESS'
+            ? 'bg-status-warning/20 text-status-warning'
+            : 'bg-muted text-muted-foreground'
+            }`}
         >
           {row.original.service_level?.substring(0, 3) || 'STD'}
         </span>

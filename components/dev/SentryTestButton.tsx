@@ -108,9 +108,9 @@ export const SentryTestButton: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 p-4 bg-cyber-card border border-cyber-neon/30 rounded-lg shadow-xl max-w-xs">
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 p-4 bg-card border border-primary/30 rounded-lg shadow-xl max-w-xs">
       <div className="flex items-center gap-2 mb-2">
-        <AlertTriangle className="w-5 h-5 text-yellow-500" />
+        <AlertTriangle className="w-5 h-5 text-status-warning" />
         <span className="text-sm font-bold text-white">Sentry Test Controls</span>
       </div>
 

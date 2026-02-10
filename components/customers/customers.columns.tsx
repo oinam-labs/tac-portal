@@ -22,7 +22,7 @@ export function getCustomersColumns(params: CustomersColumnsParams): ColumnDef<C
       header: 'Customer',
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-cyber-accent">
+          <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-primary">
             {row.original.type === 'BUSINESS' ? (
               <Building className="w-4 h-4" />
             ) : (
@@ -50,14 +50,14 @@ export function getCustomersColumns(params: CustomersColumnsParams): ColumnDef<C
             {row.original.email && (
               <a
                 href={`mailto:${row.original.email}`}
-                className="text-muted-foreground hover:text-cyber-accent flex items-center gap-1"
+                className="text-muted-foreground hover:text-primary flex items-center gap-1"
               >
                 <Mail className="w-3 h-3" /> {row.original.email}
               </a>
             )}
             <a
               href={`tel:${row.original.phone}`}
-              className="text-muted-foreground hover:text-cyber-accent flex items-center gap-1"
+              className="text-muted-foreground hover:text-primary flex items-center gap-1"
             >
               <Phone className="w-3 h-3" /> {row.original.phone}
             </a>
@@ -75,9 +75,9 @@ export function getCustomersColumns(params: CustomersColumnsParams): ColumnDef<C
             variant={tier === 'ENTERPRISE' ? 'default' : 'secondary'}
             className={
               tier === 'ENTERPRISE'
-                ? 'bg-cyber-accent text-black'
+                ? 'bg-primary text-primary-foreground'
                 : tier === 'PRIORITY'
-                  ? 'bg-amber-500/20 text-amber-500'
+                  ? 'bg-status-warning/20 text-status-warning'
                   : ''
             }
           >

@@ -108,7 +108,7 @@ export const Settings: React.FC = () => {
     <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
       <h1 className="text-2xl font-bold text-foreground">System Configuration</h1>
 
-      <div className="flex gap-4 border-b border-cyber-border mb-6">
+      <div className="flex gap-4 border-b border-border mb-6">
         <button
           onClick={() => setActiveTab('GENERAL')}
           className={`pb-2 px-4 text-sm font-bold border-b-2 transition-colors ${activeTab === 'GENERAL' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
@@ -132,7 +132,7 @@ export const Settings: React.FC = () => {
       {activeTab === 'GENERAL' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-cyber-border">
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
               <Globe className="w-5 h-5 text-primary" />
               <h3 className="font-bold text-foreground">General Settings</h3>
             </div>
@@ -171,8 +171,8 @@ export const Settings: React.FC = () => {
       {activeTab === 'SECURITY' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-cyber-border">
-              <Bell className="w-5 h-5 text-cyber-purple" />
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
+              <Bell className="w-5 h-5 text-chart-5" />
               <h3 className="font-bold text-foreground">Notifications</h3>
             </div>
             <div className="space-y-3">
@@ -190,9 +190,9 @@ export const Settings: React.FC = () => {
                   onClick={() => toggleNotification(item.id)}
                 >
                   <span className="text-sm text-foreground">{item.label}</span>
-                  <div className={`w-10 h-5 rounded-full relative transition-colors ${notifications[item.id] ? 'bg-cyber-accent/20' : 'bg-muted-foreground/20'}`}>
+                  <div className={`w-10 h-5 rounded-full relative transition-colors ${notifications[item.id] ? 'bg-primary/20' : 'bg-muted-foreground/20'}`}>
                     <div className={`absolute top-0.5 w-4 h-4 rounded-full shadow-sm transition-all duration-200 ${notifications[item.id]
-                      ? 'right-0.5 bg-cyber-accentHover dark:bg-cyber-neon shadow-[0_0_5px_#22d3ee]'
+                      ? 'right-0.5 bg-primary dark:bg-primary shadow-[0_0_5px_hsl(var(--primary))]'
                       : 'left-0.5 bg-muted-foreground'
                       }`}></div>
                   </div>
@@ -202,8 +202,8 @@ export const Settings: React.FC = () => {
           </Card>
 
           <Card>
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-cyber-border">
-              <Shield className="w-5 h-5 text-green-600 dark:text-green-400" />
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
+              <Shield className="w-5 h-5 text-status-success" />
               <h3 className="font-bold text-foreground">Security</h3>
             </div>
             <div className="space-y-4">
@@ -232,7 +232,7 @@ export const Settings: React.FC = () => {
 
       {activeTab === 'AUDIT' && (
         <Card>
-          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-cyber-border">
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
             <Activity className="w-5 h-5 text-primary" />
             <h3 className="font-bold text-foreground">System Audit Logs</h3>
           </div>
@@ -258,7 +258,7 @@ export const Settings: React.FC = () => {
                   logs.map((log) => (
                     <tr
                       key={log.id}
-                      className="hover:bg-muted transition-colors border-b border-cyber-border/30"
+                      className="hover:bg-muted transition-colors border-b border-border/30"
                     >
                       <Td className="font-mono text-xs text-muted-foreground">
                         {new Date(log.timestamp).toLocaleString()}

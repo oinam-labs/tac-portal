@@ -296,7 +296,7 @@ export const PrintLabel: React.FC = () => {
   }, [data]);
 
   if (error) {
-    return <div className="p-8 text-red-500 font-bold">{error}</div>;
+    return <div className="p-8 text-destructive font-bold">{error}</div>;
   }
 
   if (!data) {
@@ -304,7 +304,7 @@ export const PrintLabel: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-100 flex justify-center">
+    <div className="min-h-screen bg-muted flex justify-center">
       <LabelGenerator data={data} />
     </div>
   );

@@ -137,9 +137,9 @@ const Label: React.FC<{
   <div className={`flex justify-between items-end mb-2 ${className}`}>
     <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
       {children}
-      {required && <span className="text-red-500 text-xs leading-none">*</span>}
+      {required && <span className="text-destructive text-xs leading-none">*</span>}
     </label>
-    {error && <span className="text-xs text-red-500 font-medium">{error}</span>}
+    {error && <span className="text-xs text-destructive font-medium">{error}</span>}
   </div>
 );
 
@@ -908,7 +908,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                   className="h-11 font-mono bg-muted/40 border-border/60 text-sm"
                 />
                 {form.formState.errors.awb && (
-                  <span className="text-xs text-red-500">{form.formState.errors.awb.message}</span>
+                  <span className="text-xs text-destructive">{form.formState.errors.awb.message}</span>
                 )}
               </div>
               <div className="space-y-2">
@@ -928,7 +928,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                   className="h-11 bg-background"
                 />
                 {form.formState.errors.bookingDate && (
-                  <span className="text-xs text-red-500">
+                  <span className="text-xs text-destructive">
                     {form.formState.errors.bookingDate.message}
                   </span>
                 )}
@@ -997,7 +997,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                 <div className="space-y-1">
                   <Input placeholder="Company / Full Name" {...form.register('consignorName')} />
                   {form.formState.errors.consignorName && (
-                    <span className="text-xs text-red-500">
+                    <span className="text-xs text-destructive">
                       {form.formState.errors.consignorName.message}
                     </span>
                   )}
@@ -1059,7 +1059,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                 <div className="space-y-1">
                   <Input placeholder="Company / Full Name" {...form.register('consigneeName')} />
                   {form.formState.errors.consigneeName && (
-                    <span className="text-xs text-red-500">
+                    <span className="text-xs text-destructive">
                       {form.formState.errors.consigneeName.message}
                     </span>
                   )}
@@ -1112,7 +1112,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-2 space-y-2">
                 <Label>
-                  Nature of Goods <span className="text-red-500">*</span>
+                  Nature of Goods <span className="text-destructive">*</span>
                 </Label>
                 <div className="flex gap-2">
                   <select
@@ -1137,7 +1137,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                   )}
                 </div>
                 {form.formState.errors.contents && (
-                  <span className="text-xs text-red-500">
+                  <span className="text-xs text-destructive">
                     {form.formState.errors.contents.message}
                   </span>
                 )}
@@ -1274,13 +1274,13 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
 
               <div className="mt-6 pt-4 border-t border-border">
                 <div className="flex justify-between items-center">
-                  <Label className="text-green-600 font-bold text-sm">Discount</Label>
+                  <Label className="text-status-success font-bold text-sm">Discount</Label>
                   <div className="relative w-40">
-                    <span className="absolute left-3 top-2.5 text-green-600">−₹</span>
+                    <span className="absolute left-3 top-2.5 text-status-success">−₹</span>
                     <Input
                       type="number"
                       {...form.register('discount')}
-                      className="pl-10 text-right text-green-600 font-bold bg-green-500/5 border-green-500/30"
+                      className="pl-10 text-right text-status-success font-bold bg-status-success/5 border-status-success/30"
                     />
                   </div>
                 </div>
@@ -1336,9 +1336,9 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                   </div>
 
                   {balance > 0 && balance !== total && (
-                    <div className="flex justify-between items-center py-2 bg-amber-500/10 px-3 rounded-lg border border-amber-500/20">
-                      <span className="text-sm font-medium text-amber-600">Balance Due</span>
-                      <span className="font-bold text-amber-600">{formatCurrency(balance)}</span>
+                    <div className="flex justify-between items-center py-2 bg-status-warning/10 px-3 rounded-lg border border-status-warning/20">
+                      <span className="text-sm font-medium text-status-warning">Balance Due</span>
+                      <span className="font-bold text-status-warning">{formatCurrency(balance)}</span>
                     </div>
                   )}
                 </div>

@@ -52,13 +52,13 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
     >
       <div
         ref={modalRef}
-        className={`bg-cyber-card border border-cyber-border rounded-xl w-full ${SIZES[size]} max-h-[90vh] overflow-y-auto shadow-neon flex flex-col animate-[slideIn_0.3s_ease-out]`}
+        className={`bg-card border border-border rounded-xl w-full ${SIZES[size]} max-h-[90vh] overflow-y-auto shadow-neon flex flex-col animate-[slideIn_0.3s_ease-out]`}
       >
-        <div className="flex items-center justify-between p-6 border-b border-cyber-border bg-cyber-surface/50 backdrop-blur sticky top-0 z-10">
+        <div className="flex items-center justify-between p-6 border-b border-border bg-card/50 backdrop-blur sticky top-0 z-10">
           <h2 id={titleId} className="text-xl font-bold text-foreground tracking-wide">{title}</h2>
           <button
             onClick={onClose}
-            className="text-muted-foreground hover:text-cyber-accentHover transition-colors"
+            className="text-muted-foreground hover:text-primary transition-colors"
             aria-label="Close modal"
             data-testid={`${modalId}-close-button`}
           >

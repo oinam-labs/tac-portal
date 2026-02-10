@@ -40,7 +40,7 @@ export const FlightCard = React.forwardRef<HTMLDivElement, FlightCardProps>(
       <motion.div
         ref={ref}
         className={cn(
-          'w-full max-w-xl font-sans rounded-3xl overflow-hidden shadow-2xl bg-card/40 border border-border/50 backdrop-blur-md relative group',
+          'w-full max-w-xl font-sans rounded-3xl overflow-hidden shadow-2xl bg-card/40 dark:bg-black/40 border border-border/50 backdrop-blur-md relative group',
           className
         )}
         initial={{ opacity: 0, y: 30 }}
@@ -51,7 +51,7 @@ export const FlightCard = React.forwardRef<HTMLDivElement, FlightCardProps>(
         <div className="absolute -inset-[1px] bg-gradient-to-br from-primary/30 via-transparent to-primary/10 rounded-[2rem] opacity-50 blur-lg group-hover:opacity-100 transition-opacity duration-1000" />
 
         {/* Main Content Wrapper - Darker Glass */}
-        <div className="relative bg-black/40 h-full rounded-[2rem] overflow-hidden border border-white/10 backdrop-blur-xl">
+        <div className="relative bg-background/40 dark:bg-black/40 h-full rounded-[2rem] overflow-hidden border border-border/50 backdrop-blur-xl">
           {/* Header / Image Area */}
           <div className="relative h-72 w-full overflow-hidden">
             {/* Replaced Next.js Image with standard img */}
@@ -68,10 +68,10 @@ export const FlightCard = React.forwardRef<HTMLDivElement, FlightCardProps>(
             {/* Status Bar - Premium Pill */}
             <div className="absolute top-6 left-6 right-6 flex justify-between items-start z-20">
               <div className="flex gap-2">
-                <div className="pl-2 pr-3 py-1.5 rounded-full bg-black/60 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold flex items-center gap-2 backdrop-blur-md shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                <div className="pl-2 pr-3 py-1.5 rounded-full bg-background/80 dark:bg-black/60 border border-status-live/30 text-status-live text-xs font-mono font-bold flex items-center gap-2 backdrop-blur-md shadow-[0_0_15px_color-mix(in_oklch,var(--color-status-live)_20%,transparent)]">
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_5px_#10b981]"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-status-live opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-status-live shadow-[0_0_5px_var(--color-status-live)]"></span>
                   </span>
                   LIVE TRACKING
                 </div>

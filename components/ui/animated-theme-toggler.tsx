@@ -9,11 +9,13 @@ import { cn } from '@/lib/utils';
 interface AnimatedThemeTogglerProps extends React.ComponentPropsWithoutRef<'button'> {
   className?: string;
   duration?: number;
+  onThemeChange?: (theme: 'dark' | 'light') => void;
 }
 
 export const AnimatedThemeToggler = ({
   className,
   duration = 400,
+  onThemeChange,
   ...props
 }: AnimatedThemeTogglerProps) => {
   const [isDark, setIsDark] = useState(false);
@@ -46,6 +48,7 @@ export const AnimatedThemeToggler = ({
       setIsDark(newTheme);
       document.documentElement.classList.toggle('dark');
       localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+      onThemeChange?.(newTheme ? 'dark' : 'light');
     };
 
     // Check if View Transitions API is supported
@@ -106,7 +109,7 @@ export const AnimatedThemeToggler = ({
           <Sun
             className={cn(
               'h-5 w-5 transition-all duration-300',
-              isAnimating ? 'scale-110 text-yellow-400' : 'scale-100'
+              isAnimating ? 'scale-110 text-status-warning' : 'scale-100'
             )}
           />
         ) : (
