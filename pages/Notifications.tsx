@@ -338,7 +338,7 @@ export const Notifications: React.FC = () => {
                                   className="p-1 rounded hover:bg-muted transition-colors"
                                   title="Delete"
                                 >
-                                  <Trash2 className="w-4 h-4 text-muted-foreground hover:text-red-500" />
+                                  <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
                                 </button>
                               </div>
                             </div>

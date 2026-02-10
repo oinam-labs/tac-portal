@@ -1,3 +1,5 @@
+import { FadeUp } from '@/components/motion/FadeUp';
+
 const PARTNER_NAMES = [
   'Kangla Global',
   'Siroi Logistics',
@@ -19,7 +21,7 @@ export function TrustedBy() {
         WebkitMaskImage: 'linear-gradient(90deg, transparent, black 20%, black 80%, transparent)',
       }}
     >
-      <div className="mx-auto max-w-7xl px-6">
+      <FadeUp className="mx-auto max-w-7xl px-6" delay={0.2} duration={0.8}>
         <p className="text-muted-foreground mb-8 text-center text-xs font-medium">
           Trusted by businesses across Manipur
         </p>
@@ -54,7 +56,7 @@ export function TrustedBy() {
             ))}
           </div>
         </div>
-      </div>
+      </FadeUp>
     </section>
   );
 }

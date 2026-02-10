@@ -1,6 +1,6 @@
 import React, { useEffect, Suspense, lazy, useState } from 'react';
 import {
-  HashRouter as Router,
+  BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
@@ -14,19 +14,21 @@ import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { useStore } from './store';
 import { useAuthStore } from './store/authStore';
+import { useIdleTimeout } from './hooks/useIdleTimeout';
 import { UserRole, HubLocation } from './types';
-import { Button, Card, Input } from './components/ui/CyberComponents';
+import { Button, Card } from './components/ui/CyberComponents';
 import { CommandPalette } from './components/domain/CommandPalette';
 import { queryClient } from './lib/query-client';
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Mail, Lock, Shield, Clock, LogIn, Box } from 'lucide-react';
 import { PageSkeleton } from './components/ui/skeleton';
+import { AnimatedThemeToggler } from './components/ui/animated-theme-toggler';
 import { ErrorBoundary } from './components/ui/error-boundary';
 import { PageTransition } from './components/ui/page-transition';
 import { SentryErrorBoundary, setUserContext, addBreadcrumb } from './lib/sentry';
 
 // Lazy Load Pages
 const Landing = lazy(() =>
-  import('./pages/Landing').then((module) => ({ default: module.Landing }))
+  import('./pages/LandingPage').then((module) => ({ default: module.Landing }))
 );
 const Dashboard = lazy(() =>
   import('./pages/Dashboard').then((module) => ({ default: module.Dashboard }))
@@ -79,15 +81,18 @@ const DevUIKit = lazy(() =>
 const SentryTest = lazy(() =>
   import('./pages/SentryTest').then((module) => ({ default: module.SentryTest }))
 );
+const ShiftReport = lazy(() => import('./pages/ShiftReport'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Login Page Component with Supabase Auth
 const Login: React.FC = () => {
   const { signIn, isAuthenticated, isLoading, error, clearError, user } = useAuthStore();
-  const { login: legacyLogin } = useStore();
+  const { login: legacyLogin, setTheme } = useStore();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -141,95 +146,179 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-cyber-bg flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Back Arrow */}
-      <button
-        onClick={() => navigate('/')}
-        className="absolute top-6 left-6 z-50 p-2 text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group"
-      >
-        <div className="p-2 rounded-full bg-white/10 border border-white/10 group-hover:border-cyber-neon/50 transition-all">
-          <ArrowLeft className="w-5 h-5" />
-        </div>
-        <span className="font-mono text-sm font-bold tracking-wide uppercase opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0">
-          Back
-        </span>
-      </button>
+    <div className="min-h-screen antialiased selection:bg-primary/20 text-foreground font-sans">
+      {/* Gradient Background — adapative to project theme */}
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-background via-muted/50 to-background dark:from-background dark:via-primary/5 dark:to-background transition-colors duration-500">
+        {/* Ambient blobs using project vars */}
+        <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] rounded-full bg-primary/20 sm:bg-primary/10 blur-[120px] animate-pulse" />
+        <div className="absolute bottom-1/4 -right-20 w-[400px] h-[400px] rounded-full bg-accent/20 sm:bg-accent/10 blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
+      </div>
 
-      {/* Background effects */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyber-accent/10 rounded-full blur-[100px] animate-pulse"></div>
-      <div
-        className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyber-purple/10 rounded-full blur-[100px] animate-pulse"
-        style={{ animationDelay: '1s' }}
-      ></div>
+      {/* Top Controls */}
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-5 sm:p-6">
+        {/* Back Arrow */}
+        <button
+          onClick={() => navigate('/')}
+          className="group flex items-center gap-2 rounded-full border border-border/40 bg-background/50 backdrop-blur-md px-3 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-background/80 hover:border-border transition-all"
+          aria-label="Back to home"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span className="hidden sm:inline">Home</span>
+        </button>
 
-      <Card className="w-full max-w-md relative z-10 border-cyber-accent/30 shadow-[0_0_50px_rgba(34,211,238,0.1)]">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-cyber-neon to-cyber-purple rounded-xl mx-auto mb-4 flex items-center justify-center shadow-neon">
-            <span className="text-3xl font-bold text-foreground">T</span>
-          </div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">
-            TAC <span className="text-primary">CARGO</span>
-          </h1>
-          <p className="text-muted-foreground mt-2">Secure Logistics Terminal</p>
-        </div>
+        {/* Theme Toggle — Matches Landing Page Animation */}
+        <AnimatedThemeToggler onThemeChange={setTheme} />
+      </div>
 
-        {error && (
-          <div data-testid="login-error-message" className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
-            {error}
-          </div>
-        )}
+      {/* Main */}
+      <main className="relative flex min-h-screen items-center justify-center p-4 sm:p-6">
+        {/* Card */}
+        <div className="relative z-10 w-full max-w-3xl">
+          <div className="group relative overflow-hidden rounded-2xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/10 backdrop-blur-xl shadow-2xl shadow-black/10 dark:shadow-black/40 ring-1 ring-black/5 dark:ring-white/10 transition-all duration-300 hover:border-black/15 dark:hover:border-white/20 hover:ring-black/10 dark:hover:ring-white/20">
+            {/* Top hairline */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-black/10 dark:via-white/20 to-transparent" />
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-xs font-mono text-primary mb-1 uppercase">Email</label>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              disabled={isLoading}
-              autoComplete="email"
-              data-testid="login-email-input"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-mono text-primary mb-1 uppercase">Password</label>
-            <div className="relative">
-              <Input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                disabled={isLoading}
-                autoComplete="current-password"
-                data-testid="login-password-input"
-                className="pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
+            {/* Split: Image + Form */}
+            <div className="relative flex flex-col sm:flex-row">
+              {/* Image (Left) */}
+              <div className="relative w-full sm:w-1/2 h-48 sm:h-auto min-h-[320px]">
+                <img
+                  src="/tac-hero-bg.jpeg"
+                  alt="TAC Cargo logistics"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-tr from-black/60 via-black/30 to-transparent" />
+
+                {/* Overlay badge */}
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between rounded-lg border border-white/10 bg-black/30 px-3 py-2 backdrop-blur-md">
+                  <div className="flex items-center gap-2 text-xs text-white/75">
+                    <Box className="h-3.5 w-3.5" />
+                    Secure channel
+                  </div>
+                  <span className="text-[11px] text-white/60">TAC v4.0</span>
+                </div>
+              </div>
+
+              {/* Form (Right) */}
+              <div className="p-6 sm:p-8 w-full sm:w-1/2">
+                {/* Logo */}
+                <div className="mb-6 flex items-center justify-between">
+                  <Link to="/" className="flex items-center gap-3 group">
+                    <div className="grid h-10 w-10 place-items-center text-foreground/80 dark:text-white/90 bg-black/5 dark:bg-white/10 border border-black/10 dark:border-white/15 rounded-xl shadow-sm group-hover:bg-black/10 dark:group-hover:bg-white/20 transition-colors">
+                      <Box className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm tracking-widest text-muted-foreground dark:text-white/60">TAC</div>
+                      <div className="text-[22px] tracking-tight font-semibold leading-tight text-foreground dark:text-white">Cargo</div>
+                    </div>
+                  </Link>
+                  <div className="text-xs text-muted-foreground dark:text-white/50">v4.0</div>
+                </div>
+
+                {/* Heading */}
+                <div className="mb-6">
+                  <h1 className="text-[26px] font-semibold tracking-tight text-foreground dark:text-white">Welcome back</h1>
+                  <p className="mt-1.5 text-sm text-muted-foreground dark:text-white/60">Sign in to your logistics dashboard.</p>
+                </div>
+
+                {/* Error */}
+                {error && (
+                  <div data-testid="login-error-message" className="mb-4 p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive dark:text-red-300 text-sm backdrop-blur-sm">
+                    {error}
+                  </div>
+                )}
+
+                {/* Form */}
+                <form onSubmit={handleLogin} className="space-y-4">
+                  {/* Email */}
+                  <div className="space-y-2">
+                    <label htmlFor="login-email" className="block text-sm text-foreground/80 dark:text-white/80">Email</label>
+                    <div className="group/input relative flex items-center rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/5 px-3 py-2.5 transition-all hover:border-black/20 dark:hover:border-white/20 focus-within:border-primary/40 dark:focus-within:border-white/25 focus-within:bg-black/[0.05] dark:focus-within:bg-white/[0.07]">
+                      <Mail className="mr-2 h-4 w-4 text-muted-foreground dark:text-white/50 shrink-0" />
+                      <input
+                        id="login-email"
+                        type="email"
+                        inputMode="email"
+                        autoComplete="email"
+                        placeholder="you@company.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        disabled={isLoading}
+                        data-testid="login-email-input"
+                        className="w-full bg-transparent text-sm text-foreground dark:text-white placeholder:text-muted-foreground/60 dark:placeholder:text-white/40 focus:outline-none disabled:opacity-50"
+                      />
+                      <div className="pointer-events-none absolute inset-0 rounded-xl ring-0 ring-primary/0 transition-all group-focus-within/input:ring-2 group-focus-within/input:ring-primary/25" />
+                    </div>
+                  </div>
+
+                  {/* Password */}
+                  <div className="space-y-2">
+                    <label htmlFor="login-password" className="block text-sm text-foreground/80 dark:text-white/80">Password</label>
+                    <div className="group/input relative flex items-center rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/5 px-3 py-2.5 transition-all hover:border-black/20 dark:hover:border-white/20 focus-within:border-primary/40 dark:focus-within:border-white/25 focus-within:bg-black/[0.05] dark:focus-within:bg-white/[0.07]">
+                      <Lock className="mr-2 h-4 w-4 text-muted-foreground dark:text-white/50 shrink-0" />
+                      <input
+                        id="login-password"
+                        type={showPassword ? 'text' : 'password'}
+                        autoComplete="current-password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        disabled={isLoading}
+                        data-testid="login-password-input"
+                        className="w-full bg-transparent text-sm text-foreground dark:text-white placeholder:text-muted-foreground/60 dark:placeholder:text-white/40 focus:outline-none disabled:opacity-50"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="ml-2 grid h-8 w-8 shrink-0 place-items-center rounded-lg text-muted-foreground dark:text-white/60 hover:text-foreground dark:hover:text-white/90 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                        tabIndex={-1}
+                        aria-label="Toggle password visibility"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                      <div className="pointer-events-none absolute inset-0 rounded-xl ring-0 ring-primary/0 transition-all group-focus-within/input:ring-2 group-focus-within/input:ring-primary/25" />
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="my-2 h-px bg-gradient-to-r from-transparent via-black/10 dark:via-white/10 to-transparent" />
+
+                  {/* Submit */}
+                  <div className="grid gap-3">
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      data-testid="login-submit-button"
+                      className="group relative inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-lg shadow-primary/30 outline-none ring-1 ring-primary/30 transition-all hover:shadow-primary/40 hover:brightness-110 hover:saturate-125 focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <span className="absolute inset-0 -z-10 rounded-xl bg-primary/20 opacity-0 blur-xl transition-opacity group-hover:opacity-100" />
+                      <LogIn className="mr-2 h-4 w-4" />
+                      {isLoading ? 'Signing in...' : 'Sign in'}
+                    </button>
+                    <p className="text-center text-xs text-muted-foreground dark:text-white/55">
+                      <button type="button" onClick={() => navigate('/')} className="text-primary/90 hover:text-primary underline underline-offset-4 transition-colors">
+                        ← Return to Home
+                      </button>
+                    </p>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            {/* Bottom footer */}
+            <div className="flex items-center justify-between rounded-b-2xl border-t border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] px-6 py-3 text-[11px] text-muted-foreground dark:text-white/55">
+              <div className="flex items-center gap-2">
+                <Shield className="h-3.5 w-3.5" />
+                <span>Secured access</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-3.5 w-3.5" />
+                <span>Contact admin for access</span>
+              </div>
             </div>
           </div>
-          <Button type="submit" className="w-full mt-4" size="lg" disabled={isLoading} data-testid="login-submit-button">
-            {isLoading ? 'Signing in...' : 'Sign In'}
-          </Button>
-        </form>
-
-        <div className="mt-6 text-center text-xs text-muted-foreground font-mono">
-          <button onClick={() => navigate('/')} className="hover:text-primary transition-colors">
-            Return to Home
-          </button>
         </div>
-
-        <div className="mt-4 pt-4 border-t border-border text-center text-xs text-muted-foreground">
-          <p>Contact your administrator for account access</p>
-        </div>
-      </Card>
+      </main>
     </div>
   );
 };
@@ -245,9 +334,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: UserR
   // Show loading while auth is initializing
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cyber-bg">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-cyber-neon border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-muted-foreground">Verifying credentials...</p>
         </div>
       </div>
@@ -283,7 +372,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: UserR
 
   if (!hasAccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cyber-bg text-center p-4">
+      <div className="min-h-screen flex items-center justify-center bg-background text-center p-4">
         <div>
           <h1 className="text-4xl font-bold text-red-500 mb-2">403 Forbidden</h1>
           <p className="text-muted-foreground mb-4">
@@ -304,7 +393,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: UserR
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { sidebarCollapsed } = useStore();
   return (
-    <div className="min-h-screen bg-cyber-bg text-foreground font-sans selection:bg-cyber-accent/30 transition-colors duration-300">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30 transition-colors duration-300">
       <a href="#main-content" className="skip-to-content">
         Skip to content
       </a>
@@ -325,6 +414,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
 const App: React.FC = () => {
   const { theme } = useStore();
   const { initialize } = useAuthStore();
+  useIdleTimeout();
 
   // Initialize auth on app startup
   useEffect(() => {
@@ -384,7 +474,7 @@ const App: React.FC = () => {
         <div className="min-h-screen">
           <SentryErrorBoundary
             fallback={({ error, resetError }) => (
-              <div className="min-h-screen flex items-center justify-center bg-cyber-bg p-4">
+              <div className="min-h-screen flex items-center justify-center bg-background p-4">
                 <Card className="max-w-lg p-8 text-center">
                   <h1 className="text-2xl font-bold text-red-500 mb-4">Something went wrong</h1>
                   <p className="text-muted-foreground mb-6">
@@ -397,7 +487,7 @@ const App: React.FC = () => {
           >
             <Suspense
               fallback={
-                <div className="min-h-screen flex items-center justify-center bg-cyber-bg">
+                <div className="min-h-screen flex items-center justify-center bg-background">
                   <div className="w-full max-w-7xl p-6">
                     <PageSkeleton />
                   </div>
@@ -549,6 +639,16 @@ const App: React.FC = () => {
                         }
                       />
                       <Route
+                        path="/shift-report"
+                        element={
+                          <ProtectedRoute>
+                            <DashboardLayout>
+                              <ShiftReport />
+                            </DashboardLayout>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
                         path="/notifications"
                         element={
                           <ProtectedRoute>
@@ -560,11 +660,7 @@ const App: React.FC = () => {
                       />
                       <Route
                         path="/print/label/:awb"
-                        element={
-                          <ProtectedRoute>
-                            <PrintLabel />
-                          </ProtectedRoute>
-                        }
+                        element={<PrintLabel />}
                       />
 
                       {/* Dev Routes (ADMIN only) */}
@@ -585,8 +681,8 @@ const App: React.FC = () => {
                         }
                       />
 
-                      {/* Catch all */}
-                      <Route path="*" element={<Navigate to="/" replace />} />
+                      {/* 404 – Not Found */}
+                      <Route path="*" element={<NotFound />} />
                     </Routes>
                   </main>
                 </PageTransition>

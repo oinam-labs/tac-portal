@@ -45,6 +45,19 @@ function adaptToShipment(s: ShipmentWithRelations): Shipment {
     eta: '',
     createdAt: s.created_at,
     updatedAt: s.updated_at,
+    consignor: {
+      name: s.sender_name || '',
+      phone: s.sender_phone || '',
+      address: typeof s.sender_address === 'string' ? s.sender_address : '',
+    },
+    consignee: {
+      name: s.receiver_name || '',
+      phone: s.receiver_phone || '',
+      address: typeof s.receiver_address === 'string' ? s.receiver_address : '',
+    },
+    declaredValue: s.declared_value ?? undefined,
+    contentsDescription: s.special_instructions || 'General Cargo',
+    bookingDate: s.created_at,
   };
 }
 
@@ -128,7 +141,29 @@ export const Shipments: React.FC = () => {
         }
         toolbar={
           <div className="flex gap-3">
-            <Button variant="ghost">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                if (shipments) {
+                  import('@/lib/export').then(({ exportToCSV }) => {
+                    // Flatten data for export
+                    const dataToExport = shipments.map((s) => ({
+                      AWB: s.awb_number,
+                      Customer: s.customer?.name,
+                      Origin: s.origin_hub?.code || s.origin_hub_id,
+                      Destination: s.destination_hub?.code || s.destination_hub_id,
+                      Status: s.status,
+                      Mode: s.mode,
+                      Packages: s.package_count,
+                      Weight: s.total_weight,
+                      Created: new Date(s.created_at).toLocaleDateString(),
+                    }));
+                    exportToCSV(dataToExport, `shipments-${new Date().toISOString().split('T')[0]}`);
+                  });
+                }
+              }}
+              disabled={!shipments || shipments.length === 0}
+            >
               <Download className="w-4 h-4 mr-2" /> Export
             </Button>
             <Button

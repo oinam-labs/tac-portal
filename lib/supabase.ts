@@ -5,7 +5,13 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase credentials not configured. Using mock data.');
+  if (import.meta.env.PROD) {
+    throw new Error(
+      '[TAC Portal] Missing required environment variables: VITE_SUPABASE_URL and/or VITE_SUPABASE_ANON_KEY. ' +
+      'The application cannot start without Supabase credentials in production.'
+    );
+  }
+  console.warn('[Supabase] Credentials not configured. Some features will be unavailable.');
 }
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);

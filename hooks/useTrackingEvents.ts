@@ -20,6 +20,8 @@ export interface TrackingEvent {
   meta: Json;
   created_at: string;
   hub?: { code: string; name: string };
+  location?: string | null;
+  notes?: string | null;
 }
 
 export function useTrackingEvents(awbNumber: string | null) {

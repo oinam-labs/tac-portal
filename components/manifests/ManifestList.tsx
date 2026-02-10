@@ -16,13 +16,13 @@ export const ManifestList: React.FC = () => {
         <Loader className="animate-spin text-primary" />
       </div>
     );
-  if (error) return <div className="text-red-500">Error loading manifests</div>;
+  if (error) return <div className="text-destructive">Error loading manifests</div>;
 
   return (
-    <Card className="p-6 bg-white dark:bg-cyber-surface border border-cyber-border">
+    <Card className="p-6 bg-white dark:bg-card border border-border">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-cyber-neon to-purple-400 bg-clip-text text-transparent">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             Linehaul Manifests
           </h2>
           <p className="text-xs text-muted-foreground">Manage hub-to-hub transport</p>

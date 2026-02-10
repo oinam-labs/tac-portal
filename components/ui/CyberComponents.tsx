@@ -6,7 +6,7 @@ export const Card: React.FC<{ children: React.ReactNode; className?: string }> =
   className = '',
 }) => (
   <div
-    className={`bg-cyber-card backdrop-blur-md border border-cyber-border rounded-xl p-6 shadow-neon-sm hover:shadow-neon transition-all duration-300 ${className}`}
+    className={`bg-card backdrop-blur-md border border-border rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 ${className}`}
   >
     {children}
   </div>
@@ -20,8 +20,8 @@ export const Badge: React.FC<{
 }> = ({ children, variant = 'default', className = '' }) => {
   const baseStyle = 'px-2 py-0.5 rounded text-xs font-mono font-bold tracking-wide uppercase';
   const variants = {
-    default: 'bg-cyber-surface text-cyber-accent border border-cyber-border',
-    outline: 'border border-cyber-border text-muted-foreground',
+    default: 'bg-card text-primary border border-border',
+    outline: 'border border-border text-muted-foreground',
     neon: 'bg-primary/10 text-primary border border-primary/50 shadow-sm',
   };
   return <span className={`${baseStyle} ${variants[variant]} ${className}`}>{children}</span>;
@@ -42,17 +42,17 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const base =
-    'font-sans font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-cyber-accent/50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95';
+    'font-sans font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95';
 
   const variants = {
     primary:
       'bg-primary/10 hover:bg-primary/20 active:bg-primary/30 text-primary border border-primary/50 shadow-sm hover:shadow-md',
     secondary:
-      'bg-cyber-surface hover:bg-muted active:bg-muted/80 text-muted-foreground border border-cyber-border',
+      'bg-card hover:bg-muted active:bg-muted/80 text-muted-foreground border border-border',
     ghost:
       'bg-transparent hover:bg-primary/5 active:bg-primary/10 text-muted-foreground hover:text-primary',
     danger:
-      'bg-red-500/10 hover:bg-red-500/20 active:bg-red-500/30 text-red-600 dark:text-red-400 border border-red-500/50',
+      'bg-destructive/10 hover:bg-destructive/20 active:bg-destructive/30 text-destructive border border-destructive/50',
   };
 
   const sizes = {
@@ -79,7 +79,7 @@ export const Input = React.forwardRef<
 >(({ className = '', ...props }, ref) => (
   <input
     ref={ref}
-    className={`bg-white/50 dark:bg-cyber-surface/50 border border-cyber-border text-foreground rounded-lg px-4 py-2 focus:border-cyber-neon focus:ring-1 focus:ring-cyber-neon focus:outline-none placeholder-muted-foreground transition-all w-full ${className}`}
+    className={`bg-background/50 dark:bg-card/50 border border-border text-foreground rounded-lg px-4 py-2 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none placeholder-muted-foreground transition-all w-full ${className}`}
     {...props}
   />
 ));
@@ -98,7 +98,7 @@ export const Th: React.FC<React.ThHTMLAttributes<HTMLTableCellElement>> = ({
   ...props
 }) => (
   <th
-    className={`p-4 text-xs font-mono text-muted-foreground uppercase tracking-wider border-b border-cyber-border ${className}`}
+    className={`p-4 text-xs font-mono text-muted-foreground uppercase tracking-wider border-b border-border ${className}`}
     {...props}
   >
     {children}
@@ -111,7 +111,7 @@ export const Td: React.FC<React.TdHTMLAttributes<HTMLTableCellElement>> = ({
   ...props
 }) => (
   <td
-    className={`p-4 border-b border-cyber-border/50 text-sm text-foreground ${className}`}
+    className={`p-4 border-b border-border/50 text-sm text-foreground ${className}`}
     {...props}
   >
     {children}

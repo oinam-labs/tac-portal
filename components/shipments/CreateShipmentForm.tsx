@@ -133,7 +133,7 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
             ))}
           </select>
           {errors.destinationHub && (
-            <span className="text-red-500 text-xs">{errors.destinationHub.message}</span>
+            <span className="text-destructive text-xs">{errors.destinationHub.message}</span>
           )}
         </div>
       </div>
@@ -153,7 +153,7 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
           ))}
         </select>
         {errors.customerId && (
-          <span className="text-red-500 text-xs">{errors.customerId.message}</span>
+          <span className="text-destructive text-xs">{errors.customerId.message}</span>
         )}
       </div>
 

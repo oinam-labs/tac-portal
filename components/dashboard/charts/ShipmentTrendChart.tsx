@@ -70,10 +70,10 @@ export const ShipmentTrendChart: React.FC<{ isLoading?: boolean }> = ({ isLoadin
   if (filteredData.length === 0) {
     return (
       <Card className="pt-0 h-full">
-        <CardHeader className="flex items-center gap-2 space-y-0 border-b border-cyber-border py-5 sm:flex-row">
+        <CardHeader className="flex items-center gap-2 space-y-0 border-b border-border py-5 sm:flex-row">
           <div className="grid flex-1 gap-1">
             <CardTitle className="flex items-center gap-2">
-              <span className="w-1 h-6 bg-cyber-neon rounded-full shadow-neon"></span>
+              <span className="w-1 h-6 bg-primary rounded-full shadow-neon"></span>
               Shipment Volume Trend
             </CardTitle>
             <CardDescription>Showing inbound vs outbound shipments</CardDescription>
@@ -120,10 +120,10 @@ export const ShipmentTrendChart: React.FC<{ isLoading?: boolean }> = ({ isLoadin
 
   return (
     <Card className="pt-0 h-full">
-      <CardHeader className="flex items-center gap-2 space-y-0 border-b border-cyber-border py-5 sm:flex-row">
+      <CardHeader className="flex items-center gap-2 space-y-0 border-b border-border py-5 sm:flex-row">
         <div className="grid flex-1 gap-1">
           <CardTitle className="flex items-center gap-2">
-            <span className="w-1 h-6 bg-cyber-neon rounded-full shadow-neon"></span>
+            <span className="w-1 h-6 bg-primary rounded-full shadow-neon"></span>
             Shipment Volume Trend
           </CardTitle>
           <CardDescription>Showing inbound vs outbound shipments</CardDescription>

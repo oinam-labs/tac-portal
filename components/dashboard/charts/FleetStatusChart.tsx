@@ -57,7 +57,7 @@ export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({ isLoading:
       <Card className="h-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <span className="w-1 h-6 bg-cyber-success rounded-full"></span>
+            <span className="w-1 h-6 bg-status-success rounded-full"></span>
             Current Fleet Status
           </CardTitle>
           <CardDescription>Active vs idle fleet by route</CardDescription>
@@ -84,7 +84,7 @@ export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({ isLoading:
     <Card className="h-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <span className="w-1 h-6 bg-cyber-success rounded-full"></span>
+          <span className="w-1 h-6 bg-status-success rounded-full"></span>
           Current Fleet Status
         </CardTitle>
         <CardDescription>Active vs idle fleet by route</CardDescription>

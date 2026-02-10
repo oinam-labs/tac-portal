@@ -253,13 +253,13 @@ export const Scanning: React.FC = () => {
           <h1 className="text-2xl font-bold text-foreground">Terminal Scanner</h1>
           <p className="text-sm text-muted-foreground">Process incoming/outgoing shipments.</p>
         </div>
-        <div className="flex gap-2 bg-cyber-card p-1 rounded-lg border border-cyber-border">
+        <div className="flex gap-2 bg-card p-1 rounded-lg border border-border">
           <button
             onClick={() => {
               setScanMode('RECEIVE');
               setActiveManifest(null);
             }}
-            className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'RECEIVE' ? 'bg-cyber-neon text-black' : 'text-muted-foreground hover:text-foreground'}`}
+            className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'RECEIVE' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
             RECEIVE
           </button>
@@ -319,18 +319,18 @@ export const Scanning: React.FC = () => {
 
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
         {/* Camera / Scanner View */}
-        <Card className="relative overflow-hidden flex flex-col border-cyber-neon/50 bg-black">
+        <Card className="relative overflow-hidden flex flex-col border-primary/50 bg-black">
           {/* Toggle Camera/Manual */}
           <div className="absolute top-4 left-4 z-20 flex gap-2">
             <button
               onClick={() => setUseCameraScanner(true)}
-              className={`p-2 rounded-lg transition-all ${useCameraScanner ? 'bg-cyber-accent text-black' : 'bg-black/50 text-white hover:bg-black/70'}`}
+              className={`p-2 rounded-lg transition-all ${useCameraScanner ? 'bg-primary text-primary-foreground' : 'bg-black/50 text-white hover:bg-black/70'}`}
             >
               <Camera className="w-4 h-4" />
             </button>
             <button
               onClick={() => setUseCameraScanner(false)}
-              className={`p-2 rounded-lg transition-all ${!useCameraScanner ? 'bg-cyber-accent text-black' : 'bg-black/50 text-white hover:bg-black/70'}`}
+              className={`p-2 rounded-lg transition-all ${!useCameraScanner ? 'bg-primary text-primary-foreground' : 'bg-black/50 text-white hover:bg-black/70'}`}
             >
               <Keyboard className="w-4 h-4" />
             </button>

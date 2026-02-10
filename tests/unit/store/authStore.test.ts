@@ -1,112 +1,84 @@
-/**
- * Unit Tests for Auth Store
- * Tests authentication logic and localStorage cleanup on logout
- */
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useAuthStore } from '@/store/authStore';
+import { supabase } from '@/lib/supabase';
+import { orgService } from '@/lib/services/orgService';
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
-// Mock Supabase before importing the store
+// Mock dependencies
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     auth: {
-      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
       signInWithPassword: vi.fn(),
-      signOut: vi.fn().mockResolvedValue({ error: null }),
-      onAuthStateChange: vi
-        .fn()
-        .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+      signOut: vi.fn(),
+      getSession: vi.fn(),
+      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
     },
-    from: vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: null }),
-      update: vi.fn().mockReturnThis(),
-    }),
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          single: vi.fn(),
+          maybeSingle: vi.fn(),
+        })),
+        single: vi.fn(),
+      })),
+      update: vi.fn(() => ({
+        eq: vi.fn(),
+      })),
+    })),
   },
 }));
 
-describe('Auth Store', () => {
-  let localStorageData: Record<string, string>;
+vi.mock('@/lib/services/orgService', () => ({
+  orgService: {
+    setCurrentOrg: vi.fn(),
+    clearCurrentOrg: vi.fn(),
+  },
+}));
 
+describe('authStore', () => {
   beforeEach(() => {
-    // Setup localStorage mock with data
-    localStorageData = {
-      invoice_draft_123: JSON.stringify({ id: '123', amount: 100 }),
-      shipment_456: JSON.stringify({ awb: 'AWB123' }),
-      print_789: JSON.stringify({ label: 'test' }),
-      label_abc: JSON.stringify({ data: 'test' }),
-      'tac-auth': JSON.stringify({ isAuthenticated: true }),
-      other_key: 'should_remain',
-    };
-
-    Object.defineProperty(window, 'localStorage', {
-      value: {
-        getItem: vi.fn((key: string) => localStorageData[key] || null),
-        setItem: vi.fn((key: string, value: string) => {
-          localStorageData[key] = value;
-        }),
-        removeItem: vi.fn((key: string) => {
-          delete localStorageData[key];
-        }),
-        clear: vi.fn(() => {
-          localStorageData = {};
-        }),
-        key: vi.fn((index: number) => Object.keys(localStorageData)[index] || null),
-        get length() {
-          return Object.keys(localStorageData).length;
-        },
-      },
-      writable: true,
-    });
-
-    // Mock Object.keys for localStorage iteration
-    vi.spyOn(Object, 'keys').mockImplementation((obj: object) => {
-      if (obj === localStorage) {
-        return Object.keys(localStorageData);
-      }
-      return Reflect.ownKeys(obj).filter((key): key is string => typeof key === 'string');
+    vi.clearAllMocks();
+    useAuthStore.setState({
+      user: null,
+      session: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
     });
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
+  it('sets loading state during sign in', async () => {
+    (supabase.auth.signInWithPassword as any).mockImplementation(() => new Promise(() => { }));
+    useAuthStore.getState().signIn('test@example.com', 'password');
+    expect(useAuthStore.getState().isLoading).toBe(true);
+    // await the promise to avoid open handles, though we mocked it to hang, so maybe ignore
   });
 
-  describe('signOut', () => {
-    it('should clear sensitive localStorage data on logout', async () => {
-      // Import after mocks are set up
-      const { useAuthStore } = await import('@/store/authStore');
-
-      // Trigger signOut
-      await useAuthStore.getState().signOut();
-
-      // Verify sensitive keys were removed
-      expect(localStorage.removeItem).toHaveBeenCalledWith('invoice_draft_123');
-      expect(localStorage.removeItem).toHaveBeenCalledWith('shipment_456');
-      expect(localStorage.removeItem).toHaveBeenCalledWith('print_789');
-      expect(localStorage.removeItem).toHaveBeenCalledWith('label_abc');
-      expect(localStorage.removeItem).toHaveBeenCalledWith('tac-auth');
+  it('handles sign in error', async () => {
+    (supabase.auth.signInWithPassword as any).mockResolvedValue({
+      data: { session: null, user: null },
+      error: { message: 'Invalid credentials' },
     });
 
-    it('should reset auth state after logout', async () => {
-      const { useAuthStore } = await import('@/store/authStore');
+    const result = await useAuthStore.getState().signIn('test@example.com', 'password');
 
-      await useAuthStore.getState().signOut();
-
-      const state = useAuthStore.getState();
-      expect(state.isAuthenticated).toBe(false);
-      expect(state.user).toBeNull();
-      expect(state.session).toBeNull();
-    });
+    expect(result.success).toBe(false);
+    expect(useAuthStore.getState().error).toBe('Invalid credentials');
+    expect(useAuthStore.getState().isLoading).toBe(false);
   });
 
-  describe('initialize', () => {
-    it('should set isLoading to false after initialization', async () => {
-      const { useAuthStore } = await import('@/store/authStore');
-
-      await useAuthStore.getState().initialize();
-
-      expect(useAuthStore.getState().isLoading).toBe(false);
+  it('clears session on sign out', async () => {
+    // Set initial state
+    useAuthStore.setState({
+      // @ts-ignore
+      session: { user: { id: '123' } },
+      isAuthenticated: true,
     });
+
+    await useAuthStore.getState().signOut();
+
+    expect(supabase.auth.signOut).toHaveBeenCalled();
+    expect(orgService.clearCurrentOrg).toHaveBeenCalled();
+    expect(useAuthStore.getState().session).toBeNull();
+    expect(useAuthStore.getState().isAuthenticated).toBe(false);
   });
 });

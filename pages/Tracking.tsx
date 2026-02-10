@@ -32,31 +32,31 @@ export const Tracking: React.FC = () => {
   // Map Supabase data to legacy format for existing components
   const result = shipmentData
     ? {
-        shipment: {
-          id: shipmentData.id,
-          awb: shipmentData.awb_number,
-          status: shipmentData.status,
-          mode: shipmentData.mode,
-          originHub: shipmentData.origin_hub?.code || 'ORIGIN',
-          destinationHub: shipmentData.destination_hub?.code || 'DEST',
-          eta: 'TBD',
-          consigneeName: shipmentData.receiver_name,
-          consigneePhone: shipmentData.receiver_phone,
-          weight: shipmentData.total_weight,
-          pieces: shipmentData.package_count,
-        } as unknown as Shipment,
-        events: (eventsData || []).map((e) => ({
-          id: e.id,
-          shipmentId: e.shipment_id,
-          awb: shipmentData?.awb_number || '',
-          timestamp: e.event_time || e.created_at,
-          status: e.event_code,
-          eventCode: e.event_code,
-          location: (e as any).hub?.name || (e as any).location || '',
-          description: (e as any).notes || `Status: ${e.event_code}`,
-          actorId: (e as any).actor_staff_id || '',
-        })) as unknown as TrackingEvent[],
-      }
+      shipment: {
+        id: shipmentData.id,
+        awb: shipmentData.awb_number,
+        status: shipmentData.status,
+        mode: shipmentData.mode,
+        originHub: shipmentData.origin_hub?.code || 'ORIGIN',
+        destinationHub: shipmentData.destination_hub?.code || 'DEST',
+        eta: 'TBD',
+        consigneeName: shipmentData.receiver_name,
+        consigneePhone: shipmentData.receiver_phone,
+        weight: shipmentData.total_weight,
+        pieces: shipmentData.package_count,
+      } as unknown as Shipment,
+      events: (eventsData || []).map((e) => ({
+        id: e.id,
+        shipmentId: e.shipment_id,
+        awb: shipmentData?.awb_number || '',
+        timestamp: e.event_time || e.created_at,
+        status: e.event_code,
+        eventCode: e.event_code,
+        location: e.hub?.name || e.location || '',
+        description: e.notes || `Status: ${e.event_code}`,
+        actorId: e.actor_staff_id || '',
+      })) as unknown as TrackingEvent[],
+    }
     : null;
 
   const handleTrack = () => {
@@ -88,7 +88,7 @@ export const Tracking: React.FC = () => {
       <h1 className="text-2xl font-bold text-foreground">Live Tracking</h1>
 
       {/* Search Area */}
-      <Card className="max-w-3xl mx-auto p-8 border-cyber-accent/30 shadow-[0_0_30px_rgba(34,211,238,0.05)]">
+      <Card className="max-w-3xl mx-auto p-8 border-primary/30 shadow-[0_0_30px_rgba(34,211,238,0.05)]">
         <div className="flex gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 text-muted-foreground w-5 h-5" />
@@ -148,7 +148,7 @@ export const Tracking: React.FC = () => {
 
               {/* Moving vehicle indicator */}
               {result.shipment.status === 'IN_TRANSIT' && (
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-cyber-card border-2 border-cyber-accent p-3 rounded-xl shadow-lg animate-pulse">
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-card border-2 border-primary p-3 rounded-xl shadow-lg animate-pulse">
                   <div className="flex items-center gap-2">
                     {result.shipment.mode === 'AIR' ? (
                       <Plane className="w-5 h-5 text-status-info" />

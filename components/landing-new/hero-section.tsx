@@ -1,126 +1,112 @@
 'use client';
 
-import { motion } from '@/lib/motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { TrackingDialog } from './tracking-dialog';
-import MagnifiedBento from '@/components/magnified-bento';
+import { ModernGlobe } from './modern-globe';
+import { HeroOverlays } from './hero-overlays';
+import { LightRays } from '@/components/ui/light-rays';
+import { Button } from '@/components/ui/button';
+import { useEffect, useRef } from 'react';
+import gsap from 'gsap';
 
 export function HeroSection() {
-  const fadeUpVariant = {
-    hidden: { opacity: 0, y: 20 },
-    visible: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: i * 0.1,
-        duration: 0.8,
-        ease: [0.215, 0.61, 0.355, 1.0] as const,
-      },
-    }),
-  };
+  const containerRef = useRef<HTMLDivElement>(null);
+  const globeRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // Timeline for entrance sequence
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+      // 1. Globe Entrance (Already handled by Framer Motion internal to the component, but we can sequence the container)
+      // Actually, removing GSAP animation on the globe container since the component animates itself
+      // Just fading it in slightly to sync
+      tl.fromTo(globeRef.current,
+        { y: 20 },
+        { y: 0, duration: 1.5 }
+      );
+
+      // 2. Text Stagger Reveal
+      tl.fromTo(textRef.current?.children || [],
+        { y: 20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.8, stagger: 0.2 },
+        "-=1.2"
+      );
+
+      // 3. CTA Reveal
+      tl.fromTo(ctaRef.current,
+        { y: 10, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6 },
+        "-=0.4"
+      );
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <section className="relative flex min-h-screen w-full items-center justify-center overflow-hidden py-20 md:py-32">
-      {/* Background Layer - Preserved & Darkened */}
-      <div className="absolute inset-0 z-0 select-none">
-        <img
-          src="/tac-hero-bg.jpeg"
-          alt="TAC Cargo Background"
-          className="absolute inset-0 w-full h-full object-cover opacity-60 grayscale scale-105"
-        />
-        <div className="absolute inset-0 bg-background/60" /> {/* Overlay for visibility */}
-        <div className="absolute inset-0 bg-grid opacity-30" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+    <main ref={containerRef} className="relative min-h-[85vh] flex flex-col items-center justify-center overflow-hidden pt-32 pb-12 w-full">
+
+      {/* Background Elements */}
+      {/* Ambient Center Glow (Subtler) */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/05 dark:bg-primary/20 rounded-full blur-[80px] pointer-events-none z-0"></div>
+
+      {/* Light Rays - Deep Dive Implementation */}
+      <LightRays
+        className="opacity-100 dark:opacity-80 z-0 mix-blend-screen"
+        count={20}
+        speed={3}
+        color="rgba(255, 255, 255, 0.4)"
+      />
+
+      {/* Technical Overlays */}
+      <HeroOverlays />
+
+      {/* 1. Globe Integration (Top, Compact) */}
+      <div ref={globeRef} className="relative z-10 mb-6 w-full flex justify-center">
+        <ModernGlobe className="w-64 h-64 md:w-80 md:h-80" />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-12">
-          {/* Left Content */}
-          <div className="flex flex-col items-start space-y-8 lg:col-span-6">
-            <motion.div
-              custom={0}
-              initial="hidden"
-              animate="visible"
-              variants={fadeUpVariant}
-              className="inline-flex items-center gap-2.5 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 backdrop-blur-md"
-            >
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
-              </span>
-              <span className="text-xs font-mono font-medium text-primary tracking-widest uppercase">
-                Trusted Since 2010 • Imphal ↔ Delhi
-              </span>
-            </motion.div>
+      {/* 2. Hero Content */}
+      <div className="relative z-20 text-center max-w-5xl px-6">
 
-            <motion.h1
-              custom={1}
-              initial="hidden"
-              animate="visible"
-              variants={fadeUpVariant}
-              className="font-sans text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter text-foreground leading-[0.95]"
-            >
-              Tapan Associate
-              <br />
-              <span className="text-primary glow-effect">Cargo.</span>
-            </motion.h1>
+        {/* Text Container */}
+        <div ref={textRef}>
+          {/* Main Headline - Tip Top Typography */}
+          <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6 text-foreground drop-shadow-sm font-sans max-w-4xl mx-auto">
+            Connecting Northeast India to the World
+          </h1>
 
-            <motion.p
-              custom={2}
-              initial="hidden"
-              animate="visible"
-              variants={fadeUpVariant}
-              className="max-w-xl text-base sm:text-lg text-muted-foreground leading-relaxed font-light"
-            >
-              Your trusted cargo partner for over 15 years. Air cargo, surface transport, pickup &
-              delivery, and professional packaging — connecting Imphal and New Delhi with
-              reliability and speed.
-            </motion.p>
+          {/* Subheadline */}
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-normal leading-relaxed mb-8 font-sans">
+            Advanced logistics solutions ensuring secure custody, real-time tracking, and operational transparency for every shipment.
+          </p>
+        </div>
 
-            <motion.div
-              custom={3}
-              initial="hidden"
-              animate="visible"
-              variants={fadeUpVariant}
-              className="flex flex-col sm:flex-row gap-3 w-full"
-            >
-              <Link to="/login">
-                <Button
-                  size="lg"
-                  className="rounded-full px-6 sm:px-8 h-11 sm:h-12 text-sm sm:text-base font-medium shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all duration-300 w-full sm:w-auto"
-                >
-                  Book a Shipment
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-              <TrackingDialog
-                trigger={
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="rounded-full px-6 sm:px-8 h-11 sm:h-12 text-sm sm:text-base font-medium backdrop-blur-sm bg-background/30 hover:bg-background/50 border-border w-full sm:w-auto"
-                  >
-                    Track Shipment
-                  </Button>
-                }
-              />
-            </motion.div>
-          </div>
+        {/* CTAs */}
+        <div ref={ctaRef} className="flex flex-col md:flex-row items-center justify-center gap-4 opacity-0">
+          {/* Primary CTA */}
+          <Link to="/login">
+            <Button size="lg" className="rounded-full px-8 font-medium group">
+              Book Shipment
+              <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Button>
+          </Link>
 
-          {/* Right Content - Magnified Bento */}
-          <motion.div
-            custom={4}
-            initial="hidden"
-            animate="visible"
-            variants={fadeUpVariant}
-            className="w-full lg:col-span-6 flex justify-center lg:justify-end"
-          >
-            <MagnifiedBento />
-          </motion.div>
+          {/* Secondary CTA */}
+          <TrackingDialog
+            trigger={
+              <Button variant="outline" size="lg" className="rounded-full px-8 font-medium">
+                Track Cargo
+              </Button>
+            }
+          />
         </div>
       </div>
-    </section>
+    </main>
   );
 }

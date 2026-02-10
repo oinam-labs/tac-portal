@@ -126,7 +126,7 @@ export function BarcodeScanner({ onScan, onError, active = true, className }: Ba
     return (
       <div
         className={cn(
-          'flex flex-col items-center justify-center bg-cyber-surface/50 rounded-lg border border-white/10 p-8',
+          'flex flex-col items-center justify-center bg-card/50 rounded-lg border border-white/10 p-8',
           className
         )}
       >
@@ -148,16 +148,16 @@ export function BarcodeScanner({ onScan, onError, active = true, className }: Ba
       {/* Scanner overlay */}
       <div className="absolute inset-0 pointer-events-none">
         {/* Corner brackets */}
-        <div className="absolute inset-8 border-2 border-cyber-accent/30 rounded-lg">
-          <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-cyber-accent rounded-tl-lg" />
-          <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-cyber-accent rounded-tr-lg" />
-          <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-cyber-accent rounded-bl-lg" />
-          <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-cyber-accent rounded-br-lg" />
+        <div className="absolute inset-8 border-2 border-primary/30 rounded-lg">
+          <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-primary rounded-tl-lg" />
+          <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-primary rounded-tr-lg" />
+          <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-primary rounded-bl-lg" />
+          <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-primary rounded-br-lg" />
         </div>
 
         {/* Scanning line animation */}
         {isScanning && (
-          <div className="absolute left-8 right-8 h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_10px_#ef4444] animate-scan" />
+          <div className="absolute left-8 right-8 h-0.5 bg-gradient-to-r from-transparent via-status-error to-transparent shadow-[0_0_10px_var(--color-status-error)] animate-scan" />
         )}
 
         {/* Status indicator */}
@@ -165,7 +165,7 @@ export function BarcodeScanner({ onScan, onError, active = true, className }: Ba
           <span
             className={cn(
               'w-3 h-3 rounded-full',
-              isScanning ? 'bg-green-500 animate-pulse' : 'bg-amber-500'
+              isScanning ? 'bg-status-success animate-pulse' : 'bg-status-warning'
             )}
           />
           <span className="text-xs font-medium text-white bg-black/50 px-2 py-1 rounded">
@@ -175,7 +175,7 @@ export function BarcodeScanner({ onScan, onError, active = true, className }: Ba
 
         {/* Last scan indicator */}
         {lastScanned && (
-          <div className="absolute bottom-4 left-4 right-4 bg-green-500/90 text-white px-4 py-2 rounded-lg text-center font-mono text-sm animate-pulse">
+          <div className="absolute bottom-4 left-4 right-4 bg-status-success/90 text-white px-4 py-2 rounded-lg text-center font-mono text-sm animate-pulse">
             ✓ {lastScanned}
           </div>
         )}

@@ -79,7 +79,7 @@ export const Exceptions: React.FC = () => {
         id: 'awb',
         header: 'AWB',
         cell: ({ row }) => (
-          <span className="font-mono font-bold text-cyber-accent">
+          <span className="font-mono font-bold text-primary">
             {row.original.shipment?.awb_number || 'N/A'}
           </span>
         ),
@@ -175,7 +175,7 @@ export const Exceptions: React.FC = () => {
     <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-          <AlertTriangle className="text-red-500 w-8 h-8" />
+          <AlertTriangle className="text-destructive w-8 h-8" />
           Exceptions & Alerts
         </h1>
         <Button onClick={() => setIsRaiseModalOpen(true)} variant="danger">
@@ -229,7 +229,7 @@ export const Exceptions: React.FC = () => {
               <label className="block text-xs text-muted-foreground mb-1">TYPE</label>
               <select
                 {...registerRaise('type')}
-                className="w-full bg-cyber-card border border-cyber-border rounded-lg p-2"
+                className="w-full bg-card border border-border rounded-lg p-2"
               >
                 <option value="DAMAGE">Damage</option>
                 <option value="SHORTAGE">Shortage</option>
@@ -244,7 +244,7 @@ export const Exceptions: React.FC = () => {
               <label className="block text-xs text-muted-foreground mb-1">SEVERITY</label>
               <select
                 {...registerRaise('severity')}
-                className="w-full bg-cyber-card border border-cyber-border rounded-lg p-2"
+                className="w-full bg-card border border-border rounded-lg p-2"
               >
                 <option value="LOW">Low</option>
                 <option value="MEDIUM">Medium</option>

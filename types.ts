@@ -181,6 +181,9 @@ export interface TrackingEvent {
   description: string;
   timestamp: string;
   actorId: string;
+  location?: string;
+  notes?: string;
+  hub?: { name: string; code: string };
   meta?: Record<string, unknown>;
 }
 
@@ -197,6 +200,8 @@ export interface Manifest {
     driverPhone?: string;
     flightNumber?: string;
     carrier?: string;
+    identifier?: string;
+    driver?: string;
   };
   shipmentIds: string[];
   shipmentCount: number;

@@ -111,13 +111,13 @@ export const SentryTest: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-cyber-bg flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
             {/* Back Arrow */}
             <button
                 onClick={() => navigate('/dashboard')}
                 className="absolute top-6 left-6 z-50 p-2 text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group"
             >
-                <div className="p-2 rounded-full bg-white/10 border border-white/10 group-hover:border-cyber-neon/50 transition-all">
+                <div className="p-2 rounded-full bg-white/10 border border-white/10 group-hover:border-primary/50 transition-all">
                     <ArrowLeft className="w-5 h-5" />
                 </div>
                 <span className="font-mono text-sm font-bold tracking-wide uppercase opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0">
