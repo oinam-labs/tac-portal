@@ -70,7 +70,7 @@ export function ModernGlobe({ className }: { className?: string }) {
     };
 
     // Handle Resize & Colors
-    const handleResize = () => {
+    const handleResize = useCallback(() => {
         if (!canvasRef.current || !containerRef.current) return;
 
         const rect = containerRef.current.getBoundingClientRect();
@@ -102,7 +102,7 @@ export function ModernGlobe({ className }: { className?: string }) {
 
         state.current.colors.foreground = getColor('--foreground');
         state.current.colors.primary = getColor('--primary');
-    };
+    }, []);
 
     useEffect(() => {
         initPoints();
@@ -234,7 +234,7 @@ export function ModernGlobe({ className }: { className?: string }) {
             window.removeEventListener('mousemove', handleMouseMove);
             observer.disconnect();
         };
-    }, []);
+    }, [handleResize]);
 
     const scalePoint = (z: number) => {
         // Scale dot size based on depth
