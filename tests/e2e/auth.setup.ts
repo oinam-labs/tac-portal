@@ -51,7 +51,7 @@ setup('authenticate', async ({ page }) => {
 
   try {
     // Go to login page
-    await page.goto(`${BASE_URL}/#/login`, { timeout: 30000 });
+    await page.goto(`${BASE_URL}/login`, { timeout: 30000 });
 
     // Verifying page loaded
     await expect(page.getByTestId('login-email-input')).toBeVisible({ timeout: 10000 });
