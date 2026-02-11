@@ -53,12 +53,15 @@ setup('authenticate', async ({ page }) => {
     // Go to login page
     await page.goto(`${BASE_URL}/#/login`, { timeout: 30000 });
 
+    // Verifying page loaded
+    await expect(page.getByTestId('login-email-input')).toBeVisible({ timeout: 10000 });
+
     // Fill login form
-    await page.fill('input[type="email"]', testEmail);
-    await page.fill('input[type="password"]', testPassword);
+    await page.getByTestId('login-email-input').fill(testEmail);
+    await page.getByTestId('login-password-input').fill(testPassword);
 
     // Submit
-    await page.click('button:has-text("Sign In")');
+    await page.getByTestId('login-submit-button').click();
 
     // Wait for redirect to dashboard
     await page.waitForURL('**/dashboard', { timeout: 15000 });
