@@ -46,6 +46,7 @@ async function executeSQL(sql, description) {
             'Content-Type': 'application/json',
             'Prefer': 'return=minimal'
         },
+        // codeql[js/file-data-in-outbound-network-request] - Intentional: Sending SQL migration content to Supabase to be executed
         body: JSON.stringify({ query: sql })
     });
 
@@ -60,6 +61,7 @@ async function executeSQL(sql, description) {
                     'Authorization': `Bearer ${process.env.SUPABASE_ACCESS_TOKEN}`,
                     'Content-Type': 'application/json'
                 },
+                // codeql[js/file-data-in-outbound-network-request] - Intentional: Sending SQL migration content to Supabase to be executed
                 body: JSON.stringify({ query: sql })
             }
         );
