@@ -29,14 +29,14 @@ setup('authenticate', async ({ page }) => {
   const BASE_URL =
     process.env.BASE_URL || (process.env.CI ? 'http://localhost:4173' : 'http://localhost:3000');
 
-  // Get credentials from environment (secure for CI)
-  const testEmail = process.env.E2E_TEST_EMAIL || 'tapancargo@gmail.com';
-  const testPassword = process.env.E2E_TEST_PASSWORD || 'Test@1498';
+  // Get credentials from environment variables only (no hardcoded fallbacks)
+  const testEmail = process.env.E2E_TEST_EMAIL;
+  const testPassword = process.env.E2E_TEST_PASSWORD;
 
-  // In CI without configured credentials, create empty auth state and skip
-  if (process.env.CI && !process.env.E2E_TEST_EMAIL) {
-    console.log('⚠️ E2E_TEST_EMAIL not configured - creating empty auth state');
-    console.log('   Set E2E_TEST_EMAIL and E2E_TEST_PASSWORD secrets for full E2E testing');
+  // Without configured credentials, create empty auth state and skip
+  if (!testEmail || !testPassword) {
+    console.log('⚠️ E2E_TEST_EMAIL or E2E_TEST_PASSWORD not configured - creating empty auth state');
+    console.log('   Set E2E_TEST_EMAIL and E2E_TEST_PASSWORD env vars/secrets for full E2E testing');
 
     // Create empty auth state so tests can run (unauthenticated)
     writeFileSync(
@@ -51,7 +51,7 @@ setup('authenticate', async ({ page }) => {
 
   try {
     // Go to login page
-    await page.goto(`${BASE_URL}/#/login`, { timeout: 30000 });
+    await page.goto(`${BASE_URL}/login`, { timeout: 30000 });
 
     // Verifying page loaded
     await expect(page.getByTestId('login-email-input')).toBeVisible({ timeout: 10000 });

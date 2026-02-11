@@ -36,3 +36,5 @@ coverage/
 sentry_report.json
 test_output.txt
 manifest_analysis.md
+
+stats.html
