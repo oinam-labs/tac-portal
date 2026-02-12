@@ -116,7 +116,7 @@ const ButtonsSection: React.FC = () => (
       <SectionTitle>Button Sizes</SectionTitle>
       <ComponentGrid>
         <Button size="sm">Small</Button>
-        <Button size="md">Medium</Button>
+        <Button>Medium</Button>
         <Button size="lg">Large</Button>
       </ComponentGrid>
     </Card>
@@ -154,7 +154,7 @@ const BadgesSection: React.FC = () => (
       <ComponentGrid>
         <Badge variant="default">Default</Badge>
         <Badge variant="outline">Outline</Badge>
-        <Badge variant="neon">Neon</Badge>
+        <Badge variant="secondary">Neon</Badge>
       </ComponentGrid>
     </Card>
   </div>
