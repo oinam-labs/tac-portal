@@ -8,7 +8,7 @@
 import { useEffect } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { ScanEvent, ScanSource, HubCode, UUID } from '@/types/domain';
+import { ScanEvent, ScanSource, HubCode, UUID } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';

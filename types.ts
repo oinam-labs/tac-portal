@@ -377,3 +377,36 @@ export interface NoteFilters {
   search?: string;
   limit?: number;
 }
+
+// ============================================================================
+// RE-EXPORT DOMAIN TYPES
+// Consolidated from types/domain.ts for single import path
+// Note: UserRole remains as union type above (used throughout the codebase);
+//       the enum version lives in types/domain.ts for RBAC runtime checks
+// ============================================================================
+export {
+  // Branded types
+  type AWB,
+  type UUID,
+  type ManifestNumber,
+  type InvoiceNumber,
+
+  // Type guards
+  isAWB,
+  isUUID,
+
+  // Enums
+  HubCode,
+  ScanSource,
+  TrackingEventSource,
+
+  // Scan types
+  type ScanPayload,
+  type ScanEvent,
+
+  // Utility functions
+  parseAWB,
+  formatAWB,
+} from './types/domain';
+
+
