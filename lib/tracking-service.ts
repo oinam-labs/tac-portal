@@ -8,6 +8,7 @@ export interface TrackingData {
     consignee_city: string | null;
     origin: string;
     destination: string;
+    mode: 'AIR' | 'TRUCK';
   };
   events: Array<{
     status: string;
@@ -21,8 +22,9 @@ interface ShipmentQueryResult {
   id: string;
   awb_number: string;
   status: string;
-  consignee_name: string;
-  consignee_address: { city?: string } | null;
+  receiver_name: string;
+  receiver_address: { city?: string } | null;
+  mode: 'AIR' | 'TRUCK';
   origin_hub: { code: string; name: string } | null;
   destination_hub: { code: string; name: string } | null;
 }
@@ -51,8 +53,9 @@ export const getTrackingInfo = async (
                 id,
                 awb_number,
                 status,
-                consignee_name,
-                consignee_address,
+                receiver_name,
+                receiver_address,
+                mode,
                 origin_hub:hubs!shipments_origin_hub_id_fkey(code, name),
                 destination_hub:hubs!shipments_destination_hub_id_fkey(code, name)
             `
@@ -75,8 +78,8 @@ export const getTrackingInfo = async (
 
       if (eventsError) throw eventsError;
 
-      // Parse consignee address to get city
-      const consigneeCity = s.consignee_address?.city || null;
+      // Parse receiver address to get city
+      const receiverCity = s.receiver_address?.city || null;
 
       return {
         success: true,
@@ -84,10 +87,11 @@ export const getTrackingInfo = async (
           shipment: {
             reference: s.awb_number,
             status: s.status,
-            consignee_name: s.consignee_name,
-            consignee_city: consigneeCity,
+            consignee_name: s.receiver_name,
+            consignee_city: receiverCity,
             origin: s.origin_hub?.name || 'Origin Hub',
             destination: s.destination_hub?.name || 'Destination Hub',
+            mode: s.mode,
           },
           events: ((events || []) as TrackingEventResult[]).map((e) => ({
             status: e.event_code,

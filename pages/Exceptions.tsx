@@ -1,9 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- Data mapping between Supabase and UI types */
 import React, { useState, useMemo } from 'react';
-import { Card, Button, Input } from '../components/ui/CyberComponents';
-import { DataTable } from '../components/ui/data-table';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '../components/domain/StatusBadge';
 import { KPICard } from '../components/domain/KPICard';
+import { CrudTable } from '@/components/crud/CrudTable';
 import { ColumnDef } from '@tanstack/react-table';
 import {
   useExceptions,
@@ -14,11 +23,12 @@ import {
 import { useRealtimeExceptions } from '../hooks/useRealtime';
 import { AlertTriangle, AlertCircle, CheckCircle, Plus, ShieldAlert, Clock } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 const raiseSchema = z.object({
   awb: z.string().min(1, 'AWB Required'),
@@ -56,8 +66,13 @@ export const Exceptions: React.FC = () => {
     register: registerRaise,
     handleSubmit: handleSubmitRaise,
     reset: resetRaise,
+    control: controlRaise,
   } = useForm<RaiseFormData>({
     resolver: zodResolver(raiseSchema),
+    defaultValues: {
+      type: 'DAMAGE',
+      severity: 'MEDIUM',
+    },
   });
 
   const {
@@ -122,7 +137,7 @@ export const Exceptions: React.FC = () => {
           const ex = row.original;
           if (ex.status === 'OPEN') {
             return (
-              <Button variant="secondary" size="sm" onClick={() => setSelectedException(ex)}>
+              <Button variant="outline" size="sm" onClick={() => setSelectedException(ex)}>
                 <CheckCircle className="w-4 h-4 mr-1" /> Resolve
               </Button>
             );
@@ -147,7 +162,7 @@ export const Exceptions: React.FC = () => {
       .single();
 
     if (!shipmentData) {
-      alert('Shipment not found');
+      toast.error('Shipment not found for the given AWB number.');
       return;
     }
 
@@ -172,16 +187,16 @@ export const Exceptions: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-          <AlertTriangle className="text-destructive w-8 h-8" />
-          Exceptions & Alerts
-        </h1>
-        <Button onClick={() => setIsRaiseModalOpen(true)} variant="danger">
+    <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
+      <PageHeader
+        title="Exceptions & Alerts"
+        description="Track and resolve shipment exceptions."
+        icon={<AlertTriangle className="text-destructive w-7 h-7" />}
+      >
+        <Button variant="destructive" onClick={() => setIsRaiseModalOpen(true)}>
           <Plus className="w-4 h-4 mr-2" /> Raise Exception
         </Button>
-      </div>
+      </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <KPICard
@@ -203,15 +218,14 @@ export const Exceptions: React.FC = () => {
         />
       </div>
 
-      <Card className="p-6">
-        <DataTable
-          columns={columns}
-          data={exceptions}
-          searchKey="awb"
-          searchPlaceholder="Search by AWB..."
-          pageSize={10}
-        />
-      </Card>
+      <CrudTable
+        columns={columns}
+        data={exceptions}
+        searchKey="awb"
+        searchPlaceholder="Search by AWB..."
+        isLoading={isLoading}
+        emptyMessage="No exceptions found."
+      />
 
       {/* Raise Modal */}
       <Modal
@@ -221,43 +235,67 @@ export const Exceptions: React.FC = () => {
       >
         <form onSubmit={handleSubmitRaise(onRaiseSubmit)} className="space-y-4">
           <div>
-            <label className="block text-xs text-muted-foreground mb-1">AWB NUMBER</label>
+            <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">
+              AWB Number
+            </label>
             <Input {...registerRaise('awb')} placeholder="Scan or type AWB" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-muted-foreground mb-1">TYPE</label>
-              <select
-                {...registerRaise('type')}
-                className="w-full bg-card border border-border rounded-lg p-2"
-              >
-                <option value="DAMAGE">Damage</option>
-                <option value="SHORTAGE">Shortage</option>
-                <option value="MISROUTE">Misroute</option>
-                <option value="DELAY">Delay</option>
-                <option value="CUSTOMER_REFUSAL">Customer Refusal</option>
-                <option value="ADDRESS_ISSUE">Address Issue</option>
-                <option value="OTHER">Other</option>
-              </select>
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">
+                Type
+              </label>
+              <Controller
+                control={controlRaise}
+                name="type"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="DAMAGE">Damage</SelectItem>
+                      <SelectItem value="SHORTAGE">Shortage</SelectItem>
+                      <SelectItem value="MISROUTE">Misroute</SelectItem>
+                      <SelectItem value="DELAY">Delay</SelectItem>
+                      <SelectItem value="CUSTOMER_REFUSAL">Customer Refusal</SelectItem>
+                      <SelectItem value="ADDRESS_ISSUE">Address Issue</SelectItem>
+                      <SelectItem value="OTHER">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
             <div>
-              <label className="block text-xs text-muted-foreground mb-1">SEVERITY</label>
-              <select
-                {...registerRaise('severity')}
-                className="w-full bg-card border border-border rounded-lg p-2"
-              >
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
-                <option value="CRITICAL">Critical</option>
-              </select>
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">
+                Severity
+              </label>
+              <Controller
+                control={controlRaise}
+                name="severity"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select severity" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="LOW">Low</SelectItem>
+                      <SelectItem value="MEDIUM">Medium</SelectItem>
+                      <SelectItem value="HIGH">High</SelectItem>
+                      <SelectItem value="CRITICAL">Critical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
           </div>
           <div>
-            <label className="block text-xs text-muted-foreground mb-1">DESCRIPTION</label>
+            <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">
+              Description
+            </label>
             <Input {...registerRaise('description')} placeholder="Details of the issue..." />
           </div>
-          <Button type="submit" variant="danger" className="w-full mt-4" disabled={isLoading}>
+          <Button type="submit" variant="destructive" className="w-full mt-4" disabled={isLoading}>
             {isLoading ? 'Reporting...' : 'Report Exception'}
           </Button>
         </form>
@@ -270,12 +308,14 @@ export const Exceptions: React.FC = () => {
         title="Resolve Exception"
       >
         <form onSubmit={handleSubmitResolve(onResolveSubmit)} className="space-y-4">
-          <div className="bg-muted p-4 rounded text-sm mb-4">
-            <div className="font-bold">Exception: {selectedException?.type}</div>
-            <div>{selectedException?.description}</div>
+          <div className="bg-muted/50 p-4 rounded-lg text-sm mb-4 border border-border">
+            <div className="font-medium text-foreground">Exception: {selectedException?.type}</div>
+            <div className="text-muted-foreground mt-1">{selectedException?.description}</div>
           </div>
           <div>
-            <label className="block text-xs text-muted-foreground mb-1">RESOLUTION NOTE</label>
+            <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">
+              Resolution Note
+            </label>
             <Input {...registerResolve('note')} placeholder="How was this resolved?" />
           </div>
           <Button type="submit" className="w-full mt-4" disabled={isLoading}>

@@ -49,7 +49,7 @@ export function HeroSection() {
   }, []);
 
   return (
-    <main ref={containerRef} className="relative min-h-[85vh] flex flex-col items-center justify-center overflow-hidden pt-32 pb-12 w-full">
+    <main id="home" ref={containerRef} className="relative min-h-[85vh] flex flex-col items-center justify-center overflow-hidden pt-32 pb-12 w-full">
 
       {/* Background Elements */}
       {/* Ambient Center Glow (Subtler) */}

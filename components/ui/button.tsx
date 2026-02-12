@@ -17,6 +17,11 @@ const buttonVariants = cva(
         ghost: 'text-foreground hover:bg-accent hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
         success: 'bg-status-success text-white hover:bg-status-success/90 shadow-md shadow-status-success/20',
+        // Backward-compatible aliases (maps to canonical variants)
+        primary:
+          'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20',
+        danger:
+          'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md shadow-destructive/20',
       },
       size: {
         default: 'h-10 px-4 py-2',

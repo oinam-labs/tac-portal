@@ -5,6 +5,7 @@ import { Download, Plus } from 'lucide-react';
 // UI Components
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/Modal';
+import { PageHeader } from '@/components/ui/page-header';
 
 // CRUD Components
 import { CrudTable } from '@/components/crud/CrudTable';
@@ -102,14 +103,8 @@ export const Shipments: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Shipments</h1>
-          <p className="text-muted-foreground text-sm">Manage and track all logistics orders.</p>
-        </div>
-      </div>
+    <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
+      <PageHeader title="Shipments" description="Manage and track all logistics orders." />
 
       {/* Table with CRUD */}
       <CrudTable

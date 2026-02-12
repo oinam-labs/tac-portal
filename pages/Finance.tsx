@@ -5,8 +5,9 @@ import { FileText, CreditCard, Plus, Check, Printer, Mail, MessageCircle } from 
 
 // UI Components
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/CyberComponents';
+import { Card } from '@/components/ui/card';
 import { Modal } from '@/components/ui/Modal';
+import { PageHeader } from '@/components/ui/page-header';
 
 // CRUD Components
 import { CrudTable } from '@/components/crud/CrudTable';
@@ -445,16 +446,8 @@ Thank you for choosing TAC Cargo.`;
   );
 
   return (
-    <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Invoices</h1>
-          <p className="text-muted-foreground text-sm">
-            Manage invoices, billing, and payment gateways.
-          </p>
-        </div>
-      </div>
+    <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
+      <PageHeader title="Invoices" description="Manage invoices, billing, and payment gateways." />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

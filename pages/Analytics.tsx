@@ -25,6 +25,7 @@ import { useExceptions } from '../hooks/useExceptions';
 import { format, subMonths, isSameMonth } from 'date-fns';
 import { Package, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
 import { CHART_COLORS } from '../lib/design-tokens';
+import { PageHeader } from '@/components/ui/page-header';
 
 export const Analytics: React.FC = () => {
   // Use Supabase hooks instead of mock-db
@@ -87,8 +88,8 @@ export const Analytics: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
-      <h1 className="text-2xl font-bold text-foreground mb-6">Operations Analytics</h1>
+    <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
+      <PageHeader title="Operations Analytics" description="Shipment performance and operational insights." />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Area Chart with Legend - Shipment Volume (In/Out) */}

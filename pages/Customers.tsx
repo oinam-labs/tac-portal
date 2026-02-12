@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { PageHeader } from '@/components/ui/page-header';
 
 // CRUD Components
 import { CrudTable } from '@/components/crud/CrudTable';
@@ -139,14 +140,8 @@ export const Customers: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Customer Management</h1>
-          <p className="text-muted-foreground text-sm">Manage client profiles and contracts.</p>
-        </div>
-      </div>
+    <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
+      <PageHeader title="Customer Management" description="Manage client profiles and contracts." />
 
       {/* Table with CRUD */}
       <CrudTable
