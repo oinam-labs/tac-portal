@@ -9,6 +9,12 @@ import path from 'node:path';
 const authFile = path.resolve(process.cwd(), '.auth/user.json');
 
 test.describe('Enterprise Stress Tests', () => {
+  test.beforeAll(async () => {
+    if (!process.env.E2E_TEST_EMAIL || !process.env.E2E_TEST_PASSWORD) {
+      test.skip(true, 'Skipping authenticated tests: E2E_TEST_EMAIL or E2E_TEST_PASSWORD not set');
+    }
+  });
+
   test.use({ storageState: authFile });
 
   test.describe('Scanning Idempotency Stress', () => {

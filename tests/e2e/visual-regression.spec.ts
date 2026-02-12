@@ -61,6 +61,12 @@ test.describe('Visual Regression Tests', () => {
     });
 
     test.describe('Dashboard', () => {
+        test.beforeAll(async () => {
+            if (!process.env.E2E_TEST_EMAIL || !process.env.E2E_TEST_PASSWORD) {
+                test.skip(true, 'Skipping authenticated tests: E2E_TEST_EMAIL or E2E_TEST_PASSWORD not set');
+            }
+        });
+
         test.use({ storageState: authFile });
 
         test('dashboard page matches snapshot', async ({ page }) => {
@@ -108,6 +114,12 @@ test.describe('Visual Regression Tests', () => {
     });
 
     test.describe('Manifests Page', () => {
+        test.beforeAll(async () => {
+            if (!process.env.E2E_TEST_EMAIL || !process.env.E2E_TEST_PASSWORD) {
+                test.skip(true, 'Skipping authenticated tests: E2E_TEST_EMAIL or E2E_TEST_PASSWORD not set');
+            }
+        });
+
         test.use({ storageState: authFile });
 
         test('manifests page matches snapshot', async ({ page }) => {
@@ -127,6 +139,12 @@ test.describe('Visual Regression Tests', () => {
     });
 
     test.describe('Shipments Page', () => {
+        test.beforeAll(async () => {
+            if (!process.env.E2E_TEST_EMAIL || !process.env.E2E_TEST_PASSWORD) {
+                test.skip(true, 'Skipping authenticated tests: E2E_TEST_EMAIL or E2E_TEST_PASSWORD not set');
+            }
+        });
+
         test.use({ storageState: authFile });
 
         test('shipments page matches snapshot', async ({ page }) => {

@@ -6,6 +6,12 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Scanning Idempotency', () => {
+  test.beforeAll(async () => {
+    if (!process.env.E2E_TEST_EMAIL || !process.env.E2E_TEST_PASSWORD) {
+      test.skip(true, 'Skipping authenticated tests: E2E_TEST_EMAIL or E2E_TEST_PASSWORD not set');
+    }
+  });
+
   // Tests use stored auth state from setup project - no login needed
 
   test('should handle duplicate AWB scans gracefully', async ({ page }) => {

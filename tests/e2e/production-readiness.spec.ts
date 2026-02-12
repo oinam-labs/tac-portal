@@ -53,7 +53,14 @@ test.describe('Production Readiness - Domain Enforcement', () => {
     });
 });
 
-test.describe('Production Readiness - No Mock Data', () => {
+test.describe('Production Readiness', () => {
+    test.beforeAll(async () => {
+        if (!process.env.E2E_TEST_EMAIL || !process.env.E2E_TEST_PASSWORD) {
+            test.skip(true, 'Skipping authenticated tests: E2E_TEST_EMAIL or E2E_TEST_PASSWORD not set');
+        }
+    });
+
+    // Tests use stored auth state from setup project
     test.use({ storageState: authFile });
 
     test('should not show hardcoded mock data on dashboard', async ({ page }) => {

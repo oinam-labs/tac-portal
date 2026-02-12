@@ -184,7 +184,63 @@ test.describe('Enterprise Manifest Scanning', () => {
   });
 });
 
-test.describe('Manifest Scan Panel', () => {
+test.describe('Manifest Status Workflow', () => {
+  test('should display manifest status badge', async ({ page }) => {
+    await page.goto('/#/manifests');
+    await page.waitForLoadState('networkidle');
+    await waitForManifestsReady(page);
+
+    // Look for status badges (UI shows lowercase)
+    const statuses = ['draft', 'open', 'building', 'closed', 'departed', 'arrived'];
+    let found = false;
+    for (const status of statuses) {
+      const badge = page.locator('td').filter({ hasText: new RegExp(`^${status}$`, 'i') }).first();
+      if (await badge.isVisible()) {
+        found = true;
+        break;
+      }
+    }
+    expect(found).toBe(true);
+  });
+
+  test('should open manifest wizard for open manifests', async ({ page }) => {
+    await page.goto('/#/manifests');
+    await page.waitForLoadState('networkidle');
+    await waitForManifestsReady(page);
+
+    // Click on an OPEN or BUILDING manifest - use first matching cell (UI shows lowercase)
+    const openBadge = page.locator('td').filter({ hasText: /^(draft|open|building)$/i }).first();
+    if (await openBadge.isVisible()) {
+      const row = openBadge.locator('xpath=ancestor::tr').first();
+      await row.getByRole('button', { name: /view/i }).click({ force: true });
+      await page.waitForTimeout(500);
+      const dialog = page.getByRole('dialog');
+      await expect(dialog).toBeVisible({ timeout: 10000 });
+      // Verify dialog has content - just check the dialog is populated
+      expect(await dialog.locator('button, input, [role="tab"]').count()).toBeGreaterThan(0);
+    }
+  });
+
+  test('should not allow editing closed manifests', async ({ page }) => {
+    await page.goto('/#/manifests');
+    await waitForManifestsReady(page);
+
+    // Find a CLOSED manifest - use first matching row (UI shows lowercase "closed")
+    const closedBadge = page.locator('td').filter({ hasText: /^closed$/i }).first();
+    if (await closedBadge.isVisible()) {
+      const row = closedBadge.locator('xpath=ancestor::tr').first();
+      await expect(row.getByRole('button', { name: /view/i })).toHaveCount(0);
+      await expect(row.getByRole('button', { name: /depart/i })).toBeVisible();
+    }
+  });
+});
+
+test.describe('Manifest Scanning (Enterprise)', () => {
+  test.beforeAll(async () => {
+    if (!process.env.E2E_TEST_EMAIL || !process.env.E2E_TEST_PASSWORD) {
+      test.skip(true, 'Skipping authenticated tests: E2E_TEST_EMAIL or E2E_TEST_PASSWORD not set');
+    }
+  });
   // Shared helper to get to the scanning phase - always creates a new manifest
   async function enterScanPhase(page: Page) {
     await page.goto('/#/manifests');
