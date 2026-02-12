@@ -12,7 +12,7 @@ test.describe('Scanning Idempotency', () => {
 
   test('should handle duplicate AWB scans gracefully', async ({ page }) => {
     // Navigate to scanning page
-    await page.goto('/#/scanning');
+    await page.goto('/scanning');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('body')).toContainText(/(Scanning|Dashboard|TAC)/i, {
       timeout: 15000,
@@ -56,7 +56,7 @@ test.describe('Scanning Idempotency', () => {
   });
 
   test('should show scanning page without errors', async ({ page }) => {
-    await page.goto('/#/scanning');
+    await page.goto('/scanning');
 
     // Page should load without console errors
     const consoleErrors: string[] = [];
@@ -83,7 +83,7 @@ test.describe('Scanning Idempotency', () => {
   });
 
   test('should switch between scan modes', async ({ page }) => {
-    await page.goto('/#/scanning');
+    await page.goto('/scanning');
     await page.waitForLoadState('networkidle');
 
     // Find mode selector

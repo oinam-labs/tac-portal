@@ -65,7 +65,7 @@ test.describe('Enterprise Manifest Scanning', () => {
   test.use({ storageState: authFile });
   test.beforeEach(async ({ page }) => {
     // Navigate to manifests page
-    await page.goto('/#/manifests');
+    await page.goto('/manifests');
     await page.waitForLoadState('networkidle');
     await waitForManifestsReady(page);
   });
@@ -189,7 +189,7 @@ test.describe('Enterprise Manifest Scanning', () => {
 
 test.describe('Manifest Status Workflow', () => {
   test('should display manifest status badge', async ({ page }) => {
-    await page.goto('/#/manifests');
+    await page.goto('/manifests');
     await page.waitForLoadState('networkidle');
     await waitForManifestsReady(page);
 
@@ -207,7 +207,7 @@ test.describe('Manifest Status Workflow', () => {
   });
 
   test('should open manifest wizard for open manifests', async ({ page }) => {
-    await page.goto('/#/manifests');
+    await page.goto('/manifests');
     await page.waitForLoadState('networkidle');
     await waitForManifestsReady(page);
 
@@ -225,7 +225,7 @@ test.describe('Manifest Status Workflow', () => {
   });
 
   test('should not allow editing closed manifests', async ({ page }) => {
-    await page.goto('/#/manifests');
+    await page.goto('/manifests');
     await waitForManifestsReady(page);
 
     // Find a CLOSED manifest - use first matching row (UI shows lowercase "closed")
@@ -241,7 +241,7 @@ test.describe('Manifest Status Workflow', () => {
 test.describe('Manifest Scanning (Enterprise)', () => {
   // Shared helper to get to the scanning phase - always creates a new manifest
   async function enterScanPhase(page: Page) {
-    await page.goto('/#/manifests');
+    await page.goto('/manifests');
     await waitForManifestsReady(page);
 
     if (await openExistingManifestForScan(page)) {
@@ -381,7 +381,7 @@ test.describe('Manifest Shipment Table', () => {
   test.use({ storageState: authFile });
   // Helper to get to the scanning phase - creates a new manifest
   async function enterScanPhase(page: Page) {
-    await page.goto('/#/manifests');
+    await page.goto('/manifests');
     await waitForManifestsReady(page);
 
     if (await openExistingManifestForScan(page)) {
@@ -471,7 +471,7 @@ test.describe('Scan Audit Logging', () => {
   test.use({ storageState: authFile });
   // Helper to get to the scanning phase - creates a new manifest
   async function enterScanPhase(page: Page) {
-    await page.goto('/#/manifests');
+    await page.goto('/manifests');
     await waitForManifestsReady(page);
 
     if (await openExistingManifestForScan(page)) {

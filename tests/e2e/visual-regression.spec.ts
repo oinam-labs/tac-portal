@@ -24,7 +24,7 @@ test.skip(!!process.env.CI, 'Visual regression skipped in CI: snapshots are OS-s
 test.describe('Visual Regression Tests', () => {
     test.describe('Login Page', () => {
         test('login page matches snapshot', async ({ page }) => {
-            await page.goto('/#/login');
+            await page.goto('/login');
             await page.waitForLoadState('networkidle');
 
             // Wait for animations to complete
@@ -42,7 +42,7 @@ test.describe('Visual Regression Tests', () => {
         });
 
         test('login error state matches snapshot', async ({ page }) => {
-            await page.goto('/#/login');
+            await page.goto('/login');
             await page.waitForLoadState('networkidle');
 
             // Use generic selectors that work with current login form
@@ -71,7 +71,7 @@ test.describe('Visual Regression Tests', () => {
         test.use({ storageState: authFile });
 
         test('dashboard page matches snapshot', async ({ page }) => {
-            await page.goto('/#/dashboard');
+            await page.goto('/dashboard');
             await page.waitForLoadState('networkidle');
 
             // Wait for KPI data to load
@@ -89,7 +89,7 @@ test.describe('Visual Regression Tests', () => {
         });
 
         test('dashboard header matches snapshot', async ({ page }) => {
-            await page.goto('/#/dashboard');
+            await page.goto('/dashboard');
             await page.waitForLoadState('networkidle');
 
             const header = page.locator('[data-testid="dashboard-heading"]').first();
@@ -102,7 +102,7 @@ test.describe('Visual Regression Tests', () => {
 
         test.skip('quick actions matches snapshot', async ({ page }) => {
             // Skip: data-testid="quick-actions" not present in current dashboard
-            await page.goto('/#/dashboard');
+            await page.goto('/dashboard');
             await page.waitForLoadState('networkidle');
 
             const quickActions = page.locator('[data-testid="quick-actions"]');
@@ -119,7 +119,7 @@ test.describe('Visual Regression Tests', () => {
         test.use({ storageState: authFile });
 
         test('manifests page matches snapshot', async ({ page }) => {
-            await page.goto('/#/manifests');
+            await page.goto('/manifests');
             await page.waitForLoadState('networkidle');
             await page.waitForTimeout(1000);
 
@@ -139,7 +139,7 @@ test.describe('Visual Regression Tests', () => {
         test.use({ storageState: authFile });
 
         test('shipments page matches snapshot', async ({ page }) => {
-            await page.goto('/#/shipments');
+            await page.goto('/shipments');
             await page.waitForLoadState('networkidle');
             await page.waitForTimeout(1000);
 
@@ -157,7 +157,7 @@ test.describe('Visual Regression Tests', () => {
     test.describe('Responsive Design', () => {
         test('login page mobile view', async ({ page }) => {
             await page.setViewportSize({ width: 375, height: 667 });
-            await page.goto('/#/login');
+            await page.goto('/login');
             await page.waitForLoadState('networkidle');
             await page.waitForTimeout(500);
 
@@ -169,7 +169,7 @@ test.describe('Visual Regression Tests', () => {
 
         test('login page tablet view', async ({ page }) => {
             await page.setViewportSize({ width: 768, height: 1024 });
-            await page.goto('/#/login');
+            await page.goto('/login');
             await page.waitForLoadState('networkidle');
             await page.waitForTimeout(500);
 
@@ -183,7 +183,7 @@ test.describe('Visual Regression Tests', () => {
     test.describe('Dark Mode', () => {
         test('login page dark mode', async ({ page }) => {
             await page.emulateMedia({ colorScheme: 'dark' });
-            await page.goto('/#/login');
+            await page.goto('/login');
             await page.waitForLoadState('networkidle');
             await page.waitForTimeout(500);
 

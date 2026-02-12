@@ -14,7 +14,7 @@ test.describe('Shipment Workflow', () => {
 
   test('should create a new shipment', async ({ page }) => {
     // Navigate to shipments page directly
-    await page.goto('/#/shipments');
+    await page.goto('/shipments');
     await page.waitForLoadState('networkidle');
 
     // Verify we're on the shipments page
@@ -25,7 +25,7 @@ test.describe('Shipment Workflow', () => {
 
   test('should search and view shipment details', async ({ page }) => {
     // Navigate to shipments page
-    await page.goto('/#/shipments');
+    await page.goto('/shipments');
     await page.waitForLoadState('networkidle');
 
     // Wait for the page to load
@@ -46,7 +46,7 @@ test.describe('Shipment Workflow', () => {
 
   test('should track shipment status', async ({ page }) => {
     // Navigate to tracking page
-    await page.goto('/#/tracking');
+    await page.goto('/tracking');
     await page.waitForLoadState('networkidle');
 
     // Verify tracking page loaded
@@ -59,7 +59,7 @@ test.describe('Shipment Workflow', () => {
 test.describe('Public Tracking', () => {
   test('should allow public tracking without login', async ({ page }) => {
     // Navigate directly to public tracking
-    await page.goto('/#/track');
+    await page.goto('/track');
     await page.waitForLoadState('networkidle');
 
     // Verify public tracking page loads (should have tracking input)
