@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-console.log('Test file loaded: useShiftReport.test.tsx');
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useShiftReport } from '@/hooks/useShiftReport';
@@ -39,9 +38,15 @@ describe('useShiftReport', () => {
             shiftStart: new Date('2023-10-27T08:00:00Z'),
             shiftEnd: new Date('2023-10-27T20:00:00Z')
         };
-        (shiftReportService.generateReport as any).mockResolvedValue({
-            reportId: '123',
-            metrics: { totalShipments: 10 },
+        vi.mocked(shiftReportService.generateReport).mockResolvedValue({
+            generatedAt: new Date().toISOString(),
+            shiftPeriod: { start: '2023-10-27T08:00:00Z', end: '2023-10-27T20:00:00Z', durationHours: 12 },
+            shipments: { total: 10, byStatus: {}, created: 5, delivered: 3, exceptions: 0 },
+            manifests: { total: 2, opened: 1, closed: 1, departed: 0, arrived: 0 },
+            exceptions: { total: 0, bySeverity: {}, byType: {}, resolved: 0, pending: 0 },
+            scans: { total: 15, bySource: {}, uniqueShipments: 8 },
+            pendingActions: { openManifests: 1, unresolvedExceptions: 0, shipmentsAwaitingPickup: 2 },
+            recentActivity: [],
         });
 
         const { result } = renderHook(() => useShiftReport(filters), {
@@ -51,9 +56,8 @@ describe('useShiftReport', () => {
         await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
         expect(shiftReportService.generateReport).toHaveBeenCalledWith(filters);
-        expect(result.current.data).toEqual({
-            reportId: '123',
-            metrics: { totalShipments: 10 },
+        expect(result.current.data).toMatchObject({
+            shipments: { total: 10 },
         });
     });
 
@@ -64,7 +68,7 @@ describe('useShiftReport', () => {
             shiftEnd: new Date('2023-10-27T20:00:00Z')
         };
         const error = new Error('Failed to fetch');
-        (shiftReportService.generateReport as any).mockRejectedValue(error);
+        vi.mocked(shiftReportService.generateReport).mockRejectedValue(error);
 
         const { result } = renderHook(() => useShiftReport(filters), {
             wrapper: createWrapper(),
