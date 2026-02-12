@@ -90,10 +90,10 @@ export function Navbar() {
   ];
 
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, href: string) => {
-    e.preventDefault();
     const targetId = href.replace('#', '');
     const element = document.getElementById(targetId);
     if (element) {
+      e.preventDefault();
       const offsetTop = element.getBoundingClientRect().top + window.scrollY - 80; // Adjust for navbar height
       window.scrollTo({
         top: offsetTop,

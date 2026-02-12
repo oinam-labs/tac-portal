@@ -52,7 +52,8 @@ export function TrackingResultCard({ data, className, onClose }: TrackingResultC
                         {onClose && (
                             <button
                                 onClick={onClose}
-                                className="text-muted-foreground hover:text-foreground transition-colors p-1 hover:bg-white/10 rounded-full"
+                                className="text-muted-foreground hover:text-foreground transition-colors p-1 hover:bg-muted rounded-full"
+                                aria-label="Close"
                             >
                                 <X className="h-4 w-4" />
                             </button>

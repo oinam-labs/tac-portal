@@ -6,7 +6,7 @@
 
 ## INSTRUCTIONS FOR THE REVIEWER
 
-You are performing a deep, exhaustive code review of the **TAC Portal** project — a logistics/courier management SPA built with **React 18 + TypeScript**, **Vite**, **Supabase** (auth, database, edge functions, realtime), **Zustand** state management, **React Query**, **shadcn/ui** component library (Radix-based), **Framer Motion / GSAP** animations, and **Recharts** charting.
+You are performing a deep, exhaustive code review of the **TAC Portal** project — a logistics/courier management SPA built with **React 19 + TypeScript**, **Vite**, **Supabase** (auth, database, edge functions, realtime), **Zustand** state management, **React Query**, **shadcn/ui** component library (Radix-based), **Framer Motion / GSAP** animations, and **Recharts** charting.
 
 Review every file mentioned below. For each area, identify:
 1. **Bugs** — logic errors, race conditions, null/undefined risks, unhandled promise rejections.

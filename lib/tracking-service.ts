@@ -24,7 +24,7 @@ interface ShipmentQueryResult {
   status: string;
   receiver_name: string;
   receiver_address: { city?: string } | null;
-  mode: 'AIR' | 'TRUCK';
+  service_type: 'AIR' | 'TRUCK';
   origin_hub: { code: string; name: string } | null;
   destination_hub: { code: string; name: string } | null;
 }
@@ -55,7 +55,7 @@ export const getTrackingInfo = async (
                 status,
                 receiver_name,
                 receiver_address,
-                mode,
+                service_type,
                 origin_hub:hubs!shipments_origin_hub_id_fkey(code, name),
                 destination_hub:hubs!shipments_destination_hub_id_fkey(code, name)
             `
@@ -91,7 +91,7 @@ export const getTrackingInfo = async (
             consignee_city: receiverCity,
             origin: s.origin_hub?.name || 'Origin Hub',
             destination: s.destination_hub?.name || 'Destination Hub',
-            mode: s.mode,
+            mode: s.service_type,
           },
           events: ((events || []) as TrackingEventResult[]).map((e) => ({
             status: e.event_code,

@@ -295,8 +295,8 @@ export const Exceptions: React.FC = () => {
             </label>
             <Input {...registerRaise('description')} placeholder="Details of the issue..." />
           </div>
-          <Button type="submit" variant="destructive" className="w-full mt-4" disabled={isLoading}>
-            {isLoading ? 'Reporting...' : 'Report Exception'}
+          <Button type="submit" variant="destructive" className="w-full mt-4" disabled={createMutation.isPending}>
+            {createMutation.isPending ? 'Reporting...' : 'Report Exception'}
           </Button>
         </form>
       </Modal>
@@ -318,8 +318,8 @@ export const Exceptions: React.FC = () => {
             </label>
             <Input {...registerResolve('note')} placeholder="How was this resolved?" />
           </div>
-          <Button type="submit" className="w-full mt-4" disabled={isLoading}>
-            {isLoading ? 'Resolving...' : 'Confirm Resolution'}
+          <Button type="submit" className="w-full mt-4" disabled={resolveMutation.isPending}>
+            {resolveMutation.isPending ? 'Resolving...' : 'Confirm Resolution'}
           </Button>
         </form>
       </Modal>

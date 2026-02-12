@@ -170,7 +170,7 @@ export function TrackingSection() {
       {/* Tracking Result Modal */}
       <Dialog open={showResult && !!trackingData} onOpenChange={setShowResult}>
         <DialogContent
-          className="border-none bg-transparent p-0 shadow-none sm:max-w-md w-full [&>button]:hidden"
+          className="border-none bg-transparent p-0 shadow-none sm:max-w-md w-full [&>button[class*='absolute']]:hidden"
           aria-describedby={undefined}
         >
           <DialogTitle className="sr-only">
