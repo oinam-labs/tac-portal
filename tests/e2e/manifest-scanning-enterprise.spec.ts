@@ -16,11 +16,7 @@ async function waitForManifestsReady(page: Page) {
   await expect(getCreateManifestButton(page)).toBeVisible({ timeout: 20000 });
 }
 
-test.beforeAll(async () => {
-  if (!process.env.E2E_TEST_EMAIL || !process.env.E2E_TEST_PASSWORD) {
-    test.skip(true, 'Skipping authenticated tests: E2E_TEST_EMAIL or E2E_TEST_PASSWORD not set');
-  }
-});
+// Auth skip moved to individual describe blocks (file-level beforeAll crashes Firefox)
 
 async function openExistingManifestForScan(page: Page) {
   try {
@@ -65,6 +61,7 @@ async function waitForScanStepReady(page: Page, dialog: Locator) {
 }
 
 test.describe('Enterprise Manifest Scanning', () => {
+  test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');
   test.use({ storageState: authFile });
   test.beforeEach(async ({ page }) => {
     // Navigate to manifests page
@@ -380,6 +377,8 @@ test.describe('Manifest Scanning (Enterprise)', () => {
 
 
 test.describe('Manifest Shipment Table', () => {
+  test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');
+  test.use({ storageState: authFile });
   // Helper to get to the scanning phase - creates a new manifest
   async function enterScanPhase(page: Page) {
     await page.goto('/#/manifests');
@@ -468,6 +467,8 @@ test.describe('Manifest Shipment Table', () => {
 });
 
 test.describe('Scan Audit Logging', () => {
+  test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');
+  test.use({ storageState: authFile });
   // Helper to get to the scanning phase - creates a new manifest
   async function enterScanPhase(page: Page) {
     await page.goto('/#/manifests');

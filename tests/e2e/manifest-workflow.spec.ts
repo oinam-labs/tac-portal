@@ -9,14 +9,8 @@ import path from 'node:path';
 const authFile = path.resolve(process.cwd(), '.auth/user.json');
 
 test.describe('Manifest Workflow', () => {
-  test.beforeAll(async () => {
-    if (!process.env.E2E_TEST_EMAIL || !process.env.E2E_TEST_PASSWORD) {
-      test.skip(true, 'Skipping authenticated tests: E2E_TEST_EMAIL or E2E_TEST_PASSWORD not set');
-    }
-  });
-
+  test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');
   test.use({ storageState: authFile });
-  // Tests use stored auth state from setup project - no login needed
 
   test('should create a new manifest', async ({ page }) => {
     // Navigate to manifests page directly
@@ -52,8 +46,8 @@ test.describe('Manifest Workflow', () => {
 });
 
 test.describe('Scanning Workflow', () => {
+  test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');
   test.use({ storageState: authFile });
-  // Tests use stored auth state from setup project - no login needed
 
   test('should load scanning page', async ({ page }) => {
     await page.goto('/#/scanning', { waitUntil: 'domcontentloaded' });

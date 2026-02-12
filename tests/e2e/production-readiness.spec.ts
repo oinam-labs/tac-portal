@@ -14,6 +14,7 @@ import path from 'node:path';
 const authFile = path.resolve(process.cwd(), '.auth/user.json');
 
 test.describe('Production Readiness - Domain Enforcement', () => {
+    test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');
     test.use({ storageState: authFile });
 
     test('should not display IXA hub code anywhere in UI', async ({ page }) => {
@@ -54,11 +55,7 @@ test.describe('Production Readiness - Domain Enforcement', () => {
 });
 
 test.describe('Production Readiness', () => {
-    test.beforeAll(async () => {
-        if (!process.env.E2E_TEST_EMAIL || !process.env.E2E_TEST_PASSWORD) {
-            test.skip(true, 'Skipping authenticated tests: E2E_TEST_EMAIL or E2E_TEST_PASSWORD not set');
-        }
-    });
+    test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');
 
     // Tests use stored auth state from setup project
     test.use({ storageState: authFile });
@@ -96,6 +93,7 @@ test.describe('Production Readiness', () => {
 });
 
 test.describe('Production Readiness - Empty States', () => {
+    test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');
     test.use({ storageState: authFile });
 
     test('should render empty state correctly for charts with no data', async ({ page }) => {
@@ -129,6 +127,7 @@ test.describe('Production Readiness - Empty States', () => {
 });
 
 test.describe('Production Readiness - Critical User Flows', () => {
+    test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');
     test.use({ storageState: authFile });
 
     test('Invoice creation smoke check', async ({ page }) => {
@@ -210,6 +209,7 @@ test.describe('Production Readiness - Critical User Flows', () => {
 });
 
 test.describe('Production Readiness - No Console Errors', () => {
+    test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');
     test.use({ storageState: authFile });
 
     test('should not have React crashes on dashboard', async ({ page }) => {
