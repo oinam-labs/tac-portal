@@ -18,7 +18,7 @@ test.describe('Shipment Workflow', () => {
     await page.waitForLoadState('networkidle');
 
     // Verify we're on the shipments page
-    await expect(page.locator('h1, h2').filter({ hasText: /shipment/i })).toBeVisible({
+    await expect(page.getByRole('heading', { name: 'Shipments', exact: true })).toBeVisible({
       timeout: 10000,
     });
   });
@@ -29,7 +29,7 @@ test.describe('Shipment Workflow', () => {
     await page.waitForLoadState('networkidle');
 
     // Wait for the page to load
-    await expect(page.locator('h1, h2').filter({ hasText: /shipment/i })).toBeVisible({
+    await expect(page.getByRole('heading', { name: 'Shipments', exact: true })).toBeVisible({
       timeout: 10000,
     });
 

@@ -13,6 +13,11 @@ const getCreateManifestButton = (page: Page) =>
 async function waitForManifestsReady(page: Page) {
   const verifyingCredentials = page.getByText(/Verifying credentials/i).first();
   await verifyingCredentials.waitFor({ state: 'hidden', timeout: 20000 }).catch(() => undefined);
+
+  // Wait for manifests loader to disappear
+  const loader = page.locator('.animate-spin').first();
+  await loader.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => undefined);
+
   await expect(getCreateManifestButton(page)).toBeVisible({ timeout: 20000 });
 }
 
@@ -188,7 +193,46 @@ test.describe('Enterprise Manifest Scanning', () => {
 });
 
 test.describe('Manifest Status Workflow', () => {
+  test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');
+
   test('should display manifest status badge', async ({ page }) => {
+    // Ensure we have at least one manifest by creating one
+    await page.goto('/manifests');
+    await page.waitForLoadState('networkidle');
+    await waitForManifestsReady(page);
+
+    // Check if we need to create one
+    const createButton = getCreateManifestButton(page);
+    await createButton.click({ force: true });
+    await page.waitForTimeout(500);
+
+    const dialog = page.getByRole('dialog');
+    if (await dialog.isVisible()) {
+      // Quick create flow
+      const originCombobox = page.getByRole('combobox').first();
+      await originCombobox.click();
+      await page.waitForTimeout(300);
+      await page.getByRole('option').first().click();
+      await page.waitForTimeout(300);
+
+      const destCombobox = page.getByRole('combobox').nth(1);
+      await destCombobox.click();
+      await page.waitForTimeout(300);
+      await page.getByRole('option').first().click();
+      await page.waitForTimeout(300);
+
+      const randomFlight = `TEST-${Math.floor(Math.random() * 10000)}`;
+      await page.getByPlaceholder(/1234/i).fill(randomFlight);
+      await page.getByPlaceholder(/1234/i).press('Tab');
+      await page.waitForTimeout(500);
+
+      await page.getByRole('button', { name: /next/i }).click();
+      await page.waitForTimeout(1000);
+
+      // Close dialog
+      await page.keyboard.press('Escape');
+    }
+
     await page.goto('/manifests');
     await page.waitForLoadState('networkidle');
     await waitForManifestsReady(page);
@@ -197,7 +241,8 @@ test.describe('Manifest Status Workflow', () => {
     const statuses = ['draft', 'open', 'building', 'closed', 'departed', 'arrived'];
     let found = false;
     for (const status of statuses) {
-      const badge = page.locator('td').filter({ hasText: new RegExp(`^${status}$`, 'i') }).first();
+      // StatusBadge uses a span with 'capitalize' class for the text
+      const badge = page.locator('span.capitalize').filter({ hasText: new RegExp(`^${status}$`, 'i') }).first();
       if (await badge.isVisible()) {
         found = true;
         break;
@@ -212,7 +257,7 @@ test.describe('Manifest Status Workflow', () => {
     await waitForManifestsReady(page);
 
     // Click on an OPEN or BUILDING manifest - use first matching cell (UI shows lowercase)
-    const openBadge = page.locator('td').filter({ hasText: /^(draft|open|building)$/i }).first();
+    const openBadge = page.locator('span.capitalize').filter({ hasText: /^(draft|open|building)$/i }).first();
     if (await openBadge.isVisible()) {
       const row = openBadge.locator('xpath=ancestor::tr').first();
       await row.getByRole('button', { name: /view/i }).click({ force: true });
@@ -229,7 +274,7 @@ test.describe('Manifest Status Workflow', () => {
     await waitForManifestsReady(page);
 
     // Find a CLOSED manifest - use first matching row (UI shows lowercase "closed")
-    const closedBadge = page.locator('td').filter({ hasText: /^closed$/i }).first();
+    const closedBadge = page.locator('span.capitalize').filter({ hasText: /^closed$/i }).first();
     if (await closedBadge.isVisible()) {
       const row = closedBadge.locator('xpath=ancestor::tr').first();
       await expect(row.getByRole('button', { name: /view/i })).toHaveCount(0);
@@ -239,6 +284,8 @@ test.describe('Manifest Status Workflow', () => {
 });
 
 test.describe('Manifest Scanning (Enterprise)', () => {
+  test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');
+
   // Shared helper to get to the scanning phase - always creates a new manifest
   async function enterScanPhase(page: Page) {
     await page.goto('/manifests');
@@ -277,7 +324,8 @@ test.describe('Manifest Scanning (Enterprise)', () => {
     // Fill required Flight No (AIR is default)
     const flightField = page.getByPlaceholder(/1234/i);
     await expect(flightField).toBeVisible();
-    await flightField.fill('TEST001');
+    const randomFlight = `TEST-${Math.floor(Math.random() * 100000)}`;
+    await flightField.fill(randomFlight);
     // Trigger blur to ensure form validation runs
     await flightField.press('Tab');
     await page.waitForTimeout(1000); // Wait for form validation
@@ -415,7 +463,8 @@ test.describe('Manifest Shipment Table', () => {
     // Fill required Flight No and trigger validation
     const flightField = page.getByPlaceholder(/1234/i);
     await expect(flightField).toBeVisible();
-    await flightField.fill('TEST002');
+    const randomFlight = `TEST-${Math.floor(Math.random() * 100000)}`;
+    await flightField.fill(randomFlight);
     await flightField.press('Tab');
     await page.waitForTimeout(1000);
 
@@ -505,7 +554,8 @@ test.describe('Scan Audit Logging', () => {
     // Fill required Flight No and trigger validation
     const flightField = page.getByPlaceholder(/1234/i);
     await expect(flightField).toBeVisible();
-    await flightField.fill('TEST003');
+    const randomFlight = `TEST-${Math.floor(Math.random() * 100000)}`;
+    await flightField.fill(randomFlight);
     await flightField.press('Tab');
     await page.waitForTimeout(1000);
 

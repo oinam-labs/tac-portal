@@ -63,6 +63,51 @@ export type Database = {
           },
         ];
       };
+      contact_messages: {
+        Row: {
+          id: string;
+          created_at: string;
+          name: string;
+          email: string | null;
+          phone: string | null;
+          message: string;
+          status: string;
+          archived: boolean;
+          replied: boolean;
+          replied_at: string | null;
+          reply_content: string | null;
+          replies: Json | null;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          name: string;
+          email?: string | null;
+          phone?: string | null;
+          message: string;
+          status?: string;
+          archived?: boolean;
+          replied?: boolean;
+          replied_at?: string | null;
+          reply_content?: string | null;
+          replies?: Json | null;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          name?: string;
+          email?: string | null;
+          phone?: string | null;
+          message?: string;
+          status?: string;
+          archived?: boolean;
+          replied?: boolean;
+          replied_at?: string | null;
+          reply_content?: string | null;
+          replies?: Json | null;
+        };
+        Relationships: [];
+      };
       customers: {
         Row: {
           address: Json | null;

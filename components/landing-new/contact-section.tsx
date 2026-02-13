@@ -7,33 +7,50 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 
 import { Label } from '@/components/ui/label';
-import { Check, Loader2, Send } from 'lucide-react';
+import { Check, Loader2, Send, AlertCircle } from 'lucide-react';
 import { FadeUp } from '@/components/motion/FadeUp';
 import { StaggerChildren } from '@/components/motion/StaggerChildren';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 export function ContactSection() {
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
     try {
-      // Form submission logic - console logging removed for security
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const { error: insertError } = await supabase
+        .from('contact_messages')
+        .insert({
+          name,
+          phone,
+          message,
+          status: 'unread'
+        });
+
+      if (insertError) throw insertError;
+
       setName('');
-      setEmail('');
+      setPhone('');
       setMessage('');
       setIsSubmitted(true);
+      toast.success('Message sent successfully!');
+
       setTimeout(() => {
         setIsSubmitted(false);
       }, 5000);
-    } catch (error) {
-      console.error('Error submitting form:', error);
+    } catch (err: any) {
+      console.error('Error submitting form:', err);
+      setError(err.message || 'Failed to send message. Please try again.');
+      toast.error('Failed to send message.');
     } finally {
       setIsSubmitting(false);
     }
@@ -91,20 +108,20 @@ export function ContactSection() {
                       onChange={(e) => setName(e.target.value)}
                       placeholder="ENTER YOUR NAME"
                       required
-                      className="h-12 bg-background border-border/60 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium"
+                      className="h-12 bg-background border-border/60 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium rounded-none"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-foreground/80 font-medium font-mono text-xs uppercase tracking-wider">Email Address</Label>
+                    <Label htmlFor="phone" className="text-foreground/80 font-medium font-mono text-xs uppercase tracking-wider">WhatsApp Number</Label>
                     <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="ENTER YOUR EMAIL"
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="ENTER WHATSAPP NUMBER (e.g., +1234567890)"
                       required
-                      className="h-12 bg-background border-border/60 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium"
+                      className="h-12 bg-background border-border/60 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium rounded-none"
                     />
                   </div>
 
@@ -116,10 +133,17 @@ export function ContactSection() {
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="TELL US ABOUT YOUR SHIPMENT NEEDS..."
                       required
-                      className="min-h-[160px] resize-none bg-background border-border/60 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium"
+                      className="min-h-[160px] resize-none bg-background border-border/60 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium rounded-none"
                     />
                   </div>
                 </StaggerChildren>
+
+                {error && (
+                  <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 p-3 rounded-none border border-destructive/20">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{error}</span>
+                  </div>
+                )}
 
                 <FadeUp delay={0.5} className="pt-2">
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -127,7 +151,7 @@ export function ContactSection() {
                       type="submit"
                       disabled={isSubmitting}
                       size="lg"
-                      className="w-full h-12 text-base font-bold shadow-lg shadow-primary/20 rounded-xl"
+                      className="w-full h-12 text-base font-bold shadow-lg shadow-primary/20 rounded-none"
                     >
                       {isSubmitting ? (
                         <span className="flex items-center gap-2">

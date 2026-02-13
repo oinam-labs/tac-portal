@@ -13,6 +13,7 @@ import {
   Layers,
   ClipboardList,
   Briefcase,
+  Mail,
 } from 'lucide-react';
 import { useStore } from '../../store';
 import { UserRole } from '../../types';
@@ -95,6 +96,7 @@ const NAV_GROUPS: NavGroupDef[] = [
   {
     title: 'System',
     items: [
+      { label: 'Messages', icon: Mail, path: '/admin/messages', roles: ['ADMIN'] },
       { label: 'Shift Report', icon: ClipboardList, path: '/shift-report' },
       { label: 'Settings', icon: Settings, path: '/settings' }
     ],
@@ -138,20 +140,22 @@ export const Sidebar: React.FC = () => {
         {/* Logo Area */}
         <div className="h-16 flex items-center px-5 border-b border-sidebar-border bg-sidebar/50">
           <div className="flex items-center justify-center shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shadow-sm">
-              <span className="font-bold text-lg leading-none">T</span>
+            <div className="relative flex h-8 w-8 items-center justify-center bg-primary/10 transition-colors duration-300">
+              <Box className="h-4 w-4 text-primary fill-primary/20" />
             </div>
           </div>
           {!sidebarCollapsed && (
-            <span className="ml-3 font-bold text-lg tracking-tight text-foreground flex flex-col leading-none">
-              <span className="text-foreground">TAC Cargo</span>
-              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-0.5">Enterprise</span>
-            </span>
+            <div className="ml-3 flex flex-col">
+              <span className="text-foreground text-lg font-sans font-bold tracking-tight leading-none transition-colors duration-300">
+                TAC Cargo
+              </span>
+              <span className="text-[10px] text-muted-foreground font-mono tracking-widest uppercase mt-0.5">Global Logistics</span>
+            </div>
           )}
         </div>
 
         {/* Nav Items */}
-        <nav className="flex-1 px-3 py-6 space-y-8 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto">
           {NAV_GROUPS.map((group, groupIndex) => {
             const visibleItems = group.items.filter((item) => hasAccess(item.roles));
 
@@ -173,9 +177,9 @@ export const Sidebar: React.FC = () => {
                       data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                       aria-label={item.label}
                       className={({ isActive }) => `
-                      flex items-center px-3 py-2 text-sm transition-all duration-200 group rounded-md
+                      flex items-center px-3 py-1.5 text-sm transition-colors duration-100 group
                       ${isActive
-                          ? 'bg-primary text-primary-foreground font-medium shadow-sm'
+                          ? 'bg-primary text-primary-foreground font-medium'
                           : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-normal'
                         }
                     `}

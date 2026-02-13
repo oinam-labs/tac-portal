@@ -28,8 +28,8 @@ export const RecentActivity: React.FC = () => {
   }
 
   return (
-    <Card className="lg:col-span-2 h-full border-border/50 shadow-sm">
-      <div className="flex justify-between items-center mb-6 px-2">
+    <Card className="lg:col-span-2 h-full border-border/50">
+      <div className="flex justify-between items-center mb-4 px-2">
         <div>
           <h3 className="text-lg font-bold text-foreground">Recent Activity</h3>
           <p className="text-sm text-muted-foreground">Live shipment updates</p>
@@ -38,7 +38,7 @@ export const RecentActivity: React.FC = () => {
           View All
         </Button>
       </div>
-      <div className="overflow-hidden rounded-md border">
+      <div className="overflow-hidden border border-border">
         <Table>
           <TableHeader>
             <TableRow>

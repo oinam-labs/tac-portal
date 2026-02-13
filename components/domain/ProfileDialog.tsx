@@ -8,7 +8,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '../ui/dialog';
-import { Button, Input } from '../ui/CyberComponents';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Moon, Sun, Monitor } from 'lucide-react';

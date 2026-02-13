@@ -1,12 +1,12 @@
 import React from 'react';
 import { Menu, Search } from 'lucide-react';
 import { useStore } from '../../store';
-import { Input } from '../ui/CyberComponents';
+import { Input } from '@/components/ui/input';
 import { AnimatedThemeToggler } from '../ui/animated-theme-toggler';
 import { NotificationBell } from '../domain/NotificationBell';
 
 export const Header: React.FC = () => {
-  const { toggleSidebar, setMobileSidebarOpen, mobileSidebarOpen } = useStore();
+  const { toggleSidebar, setMobileSidebarOpen, mobileSidebarOpen, setTheme } = useStore();
 
   const handleMenuClick = () => {
     // On mobile (< lg breakpoint), toggle mobile sidebar overlay
@@ -41,6 +41,7 @@ export const Header: React.FC = () => {
         <AnimatedThemeToggler
           className="text-muted-foreground hover:text-primary hover:bg-primary/10"
           duration={500}
+          onThemeChange={setTheme}
         />
 
         <NotificationBell />

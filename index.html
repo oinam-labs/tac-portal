@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark notranslate" translate="no">
+<html lang="en" class="notranslate" translate="no">
 
 <head>
   <meta charset="UTF-8">
@@ -52,6 +52,19 @@
       rel="stylesheet" />
   </noscript>
 
+  <!-- Blocking: apply saved theme before first paint (prevents flash-of-wrong-theme) -->
+  <script>
+    (function() {
+      try {
+        var stored = JSON.parse(localStorage.getItem('tac-storage') || '{}');
+        var theme = (stored.state && stored.state.theme) || 'dark';
+        if (theme === 'system') {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.classList.add(theme);
+      } catch(e) { document.documentElement.classList.add('dark'); }
+    })();
+  </script>
 </head>
 
 <body>

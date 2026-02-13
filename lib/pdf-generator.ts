@@ -498,8 +498,21 @@ export async function generateEnterpriseInvoice(invoice: Invoice): Promise<strin
     opacity: 0.8,
   });
 
+  // AWB Number (below ORDER #)
+  const awbNumber = invoice.awb || (invoice as any).line_items?.awb || '';
+  if (awbNumber) {
+    page.drawText(`AWB: ${awbNumber}`, {
+      x: margin,
+      y: titleY - 32,
+      size: 10,
+      font: fontMono,
+      color: C.WHITE,
+      opacity: 0.8,
+    });
+  }
+
   // ADDRESS BLOCKS (Grid Layout)
-  const addrY = titleY - 60;
+  const addrY = titleY - 70;
   const colWidth = 180;
 
   // Label Style
@@ -574,6 +587,19 @@ export async function generateEnterpriseInvoice(invoice: Invoice): Promise<strin
     font: fontBold,
     color: C.MUTED,
   });
+
+  // AWB in metadata strip (center)
+  if (awbNumber) {
+    const awbMetaLabel = `AWB: ${awbNumber}`;
+    const awbMetaWidth = fontBold.widthOfTextAtSize(awbMetaLabel, 9);
+    page.drawText(awbMetaLabel, {
+      x: (width - awbMetaWidth) / 2,
+      y: metaY + 2,
+      size: 9,
+      font: fontBold,
+      color: C.INK,
+    });
+  }
 
   page.drawText(pdfDate(invoice.createdAt), {
     x: width - margin - 100,

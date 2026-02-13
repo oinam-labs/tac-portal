@@ -408,7 +408,7 @@ BEGIN
     RETURN jsonb_build_object(
       'success', false,
       'error', 'DESTINATION_MISMATCH',
-      'message', 'Shipment destination does not match manifest destination',
+      'message', 'Shipment routes to ' || COALESCE((SELECT code FROM public.hubs WHERE id = v_shipment.destination_hub_id), 'UNKNOWN') || ' but manifest goes to ' || COALESCE((SELECT code FROM public.hubs WHERE id = v_manifest.to_hub_id), 'UNKNOWN'),
       'shipment_id', v_shipment.id,
       'awb_number', v_shipment.awb_number
     );

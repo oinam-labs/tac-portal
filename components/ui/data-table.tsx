@@ -137,7 +137,7 @@ export function DataTable<TData, TValue>({
       )}
 
       {/* Table */}
-      <div className="rounded-md border bg-card text-card-foreground shadow-sm overflow-hidden">
+      <div className="border border-border bg-card text-card-foreground overflow-hidden">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -150,7 +150,7 @@ export function DataTable<TData, TValue>({
                           className={cn(
                             'flex items-center gap-1',
                             header.column.getCanSort() &&
-                              'cursor-pointer select-none hover:text-foreground'
+                            'cursor-pointer select-none hover:text-foreground'
                           )}
                           onClick={header.column.getToggleSortingHandler()}
                         >

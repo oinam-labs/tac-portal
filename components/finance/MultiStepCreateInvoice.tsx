@@ -4,7 +4,7 @@
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import Fuse from 'fuse.js';
-import { useForm, FormProvider as Form } from 'react-hook-form';
+import { useForm, FormProvider as Form, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
@@ -12,6 +12,13 @@ import { motion, AnimatePresence, MotionConfig } from '@/lib/motion';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 import {
   Check,
@@ -34,7 +41,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency, calculateFreight } from '@/lib/utils';
 import { validateInvoice, validateDiscount } from '@/lib/validation/invoice-validator';
-import { PAYMENT_MODES, POPULAR_CITIES, CONTENT_TYPES } from '@/lib/constants';
+import { PAYMENT_MODES, POPULAR_CITIES, CONTENT_TYPES, GSTIN_PATTERN, GSTIN_ERROR_MESSAGE } from '@/lib/constants';
 import type { CustomerAddress } from '@/hooks/useCustomers';
 
 // Hub prefill mapping for cities
@@ -69,7 +76,7 @@ const schema = z.object({
   consignorCity: z.string().min(2, 'City Required'),
   consignorState: z.string().min(2, 'State Required'),
   consignorZip: z.string().min(6, 'Zip Required'),
-  consignorGstin: z.string().optional(),
+  consignorGstin: z.string().regex(GSTIN_PATTERN, GSTIN_ERROR_MESSAGE).optional().or(z.literal('')),
 
   // Consignee
   consigneeName: z.string().min(2, 'Name Required'),
@@ -78,7 +85,7 @@ const schema = z.object({
   consigneeCity: z.string().min(2, 'City Required'),
   consigneeState: z.string().min(2, 'State Required'),
   consigneeZip: z.string().min(6, 'Zip Required'),
-  consigneeGstin: z.string().optional(),
+  consigneeGstin: z.string().regex(GSTIN_PATTERN, GSTIN_ERROR_MESSAGE).optional().or(z.literal('')),
 
   // Item Details
   contents: z.string().min(2, 'Contents required'),
@@ -733,6 +740,9 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
         due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         notes: `Contents: ${data.contents} | Payment: ${data.paymentMode}`,
         line_items: {
+          awb: data.awb,
+          paymentMode: data.paymentMode,
+          ratePerKg: financials.ratePerKg,
           baseFreight: financials.baseFreight,
           docketCharge: financials.docketCharge,
           pickupCharge: financials.pickupCharge,
@@ -741,6 +751,8 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
           handlingFee: financials.handlingFee,
           insurance: financials.insurance,
           discount: financials.discount,
+          advancePaid: financials.advancePaid,
+          balance: financials.balance,
           tax: { cgst: 0, sgst: 0, igst: tax, total: tax }, // Store tax breakdown in line_items
           consignor: {
             name: data.consignorName,
@@ -935,30 +947,31 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
               </div>
               <div className="space-y-2">
                 <Label>Transport Mode</Label>
-                <div className="relative">
-                  <select
-                    {...form.register('transportMode')}
-                    className="flex h-11 w-full rounded-md border border-input bg-background pl-12 pr-10 py-2 text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
-                  >
-                    <option value="TRUCK">🚚 Surface / Truck</option>
-                    <option value="AIR">✈️ Air Cargo</option>
-                  </select>
-                  <div
-                    className={`absolute left-2 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-md border pointer-events-none ${formValues.transportMode === 'AIR'
-                      ? 'bg-status-info/10 text-status-info border-status-info/30'
-                      : 'bg-status-warning/10 text-status-warning border-status-warning/30'
-                      }`}
-                  >
-                    {formValues.transportMode === 'AIR' ? (
-                      <Plane className="w-4 h-4" />
-                    ) : (
-                      <Truck className="w-4 h-4" />
-                    )}
-                  </div>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
-                    <ChevronDown className="w-4 h-4" />
-                  </div>
-                </div>
+                <Controller
+                  control={form.control}
+                  name="transportMode"
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="h-11 bg-background">
+                        <SelectValue placeholder="Select Mode" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="TRUCK">
+                          <div className="flex items-center gap-2">
+                            <Truck className="w-4 h-4 text-muted-foreground" />
+                            <span>Surface / Truck</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="AIR">
+                          <div className="flex items-center gap-2">
+                            <Plane className="w-4 h-4 text-muted-foreground" />
+                            <span>Air Cargo</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Payment Mode</Label>

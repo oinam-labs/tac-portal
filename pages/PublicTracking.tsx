@@ -40,24 +40,24 @@ export function PublicTracking() {
     queryFn: async (): Promise<TrackingData | null> => {
       if (!awb) return null;
 
-      // Fetch shipment
-      const { data: shipment, error: shipmentError } = await supabase
-        .from('shipments')
+      // Fetch shipment via secure public view (excludes PII like receiver_name, phone, address)
+      const { data: shipment, error: shipmentError } = await (supabase
+        .from('public_shipment_tracking' as any)
         .select(
           `
           *,
-          origin_hub:hubs!shipments_origin_hub_id_fkey(code, name),
-          destination_hub:hubs!shipments_destination_hub_id_fkey(code, name)
+          origin_hub:hubs!public_shipment_tracking_origin_hub_id_fkey(code, name),
+          destination_hub:hubs!public_shipment_tracking_destination_hub_id_fkey(code, name)
         `
         )
         .eq('awb_number', awb)
-        .single();
+        .single() as any);
 
       if (shipmentError) throw shipmentError;
 
-      // Fetch tracking events
-      const { data: events, error: eventsError } = await supabase
-        .from('tracking_events')
+      // Fetch tracking events via secure public view (excludes actor_staff_id, notes, meta)
+      const { data: events, error: eventsError } = await (supabase
+        .from('public_tracking_events' as any)
         .select(
           `
           *,
@@ -65,7 +65,7 @@ export function PublicTracking() {
         `
         )
         .eq('awb_number', awb)
-        .order('event_time', { ascending: false });
+        .order('event_time', { ascending: false }) as any);
 
       if (eventsError) throw eventsError;
 

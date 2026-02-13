@@ -12,7 +12,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useStore } from '../../store';
 import { useAuthStore } from '../../store/authStore';
-import { LogOut, User, Settings, CreditCard, ChevronRight } from 'lucide-react';
+import { LogOut, User, Settings, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ProfileDialog } from '../domain/ProfileDialog';
 import { useNavigate } from 'react-router-dom';
@@ -77,25 +77,25 @@ export const UserProfile: React.FC<UserProfileProps> = ({ collapsed, className }
                 <DropdownMenuTrigger asChild>
                     <button
                         className={cn(
-                            "flex items-center gap-3 p-1.5 md:p-2 rounded-lg hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-all duration-200 outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 w-full border border-transparent hover:border-sidebar-border/50",
+                            "flex items-center gap-3 p-2 rounded-xl hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-all duration-200 outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 w-full border border-transparent hover:border-sidebar-border/50 group",
                             collapsed ? "justify-center" : "justify-between",
                             className
                         )}
                     >
                         <div className="flex items-center gap-3 overflow-hidden">
-                            <Avatar className="h-8 w-8 border border-border/40 shrink-0 shadow-sm">
+                            <Avatar className="h-9 w-9 border border-border/40 shrink-0 shadow-sm transition-transform group-hover:scale-105">
                                 <AvatarImage src={avatarUrl || ''} alt={displayName} />
-                                <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">
+                                <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
                                     {getInitials(displayName)}
                                 </AvatarFallback>
                             </Avatar>
 
                             {!collapsed && (
                                 <div className="flex flex-col items-start text-left min-w-0">
-                                    <span className="text-sm font-semibold truncate w-full text-foreground leading-tight">
+                                    <span className="text-sm font-bold truncate w-full text-foreground leading-tight group-hover:text-primary transition-colors">
                                         {displayName}
                                     </span>
-                                    <span className="text-[10px] text-muted-foreground truncate w-full leading-tight">
+                                    <span className="text-[11px] text-muted-foreground truncate w-full leading-tight font-medium">
                                         {displayRole}
                                     </span>
                                 </div>
@@ -103,61 +103,55 @@ export const UserProfile: React.FC<UserProfileProps> = ({ collapsed, className }
                         </div>
 
                         {!collapsed && (
-                            <ChevronRight className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+                            <ChevronRight className="h-4 w-4 text-muted-foreground/50 shrink-0 group-hover:text-primary transition-colors" />
                         )}
                     </button>
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent
-                    className="w-56 mb-2"
+                    className="w-60 mb-2 p-2"
                     align={collapsed ? "center" : "start"}
                     side="right"
                     sideOffset={collapsed ? 20 : 8}
                     forceMount
                 >
-                    <DropdownMenuLabel className="font-normal">
+                    <DropdownMenuLabel className="font-normal px-2 py-3">
                         <div className="flex flex-col space-y-1">
-                            <p className="text-sm font-medium leading-none">{displayName}</p>
+                            <p className="text-sm font-bold leading-none text-primary">{displayName}</p>
                             <p className="text-xs leading-none text-muted-foreground truncate">
                                 {displayEmail}
                             </p>
                         </div>
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
+                    <DropdownMenuSeparator className="my-1" />
 
                     <DropdownMenuGroup>
                         <DropdownMenuItem
-                            className="cursor-pointer"
+                            className="cursor-pointer py-2.5"
                             onClick={() => setShowProfileDialog(true)}
                         >
-                            <User className="mr-2 h-4 w-4" />
+                            <User className="mr-3 h-4 w-4 text-muted-foreground" />
                             <span>Profile</span>
                             <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
                         </DropdownMenuItem>
 
-                        <DropdownMenuItem className="cursor-pointer">
-                            <CreditCard className="mr-2 h-4 w-4" />
-                            <span>Billing</span>
-                            <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
-                        </DropdownMenuItem>
-
                         <DropdownMenuItem
-                            className="cursor-pointer"
+                            className="cursor-pointer py-2.5"
                             onClick={() => navigate('/settings')}
                         >
-                            <Settings className="mr-2 h-4 w-4" />
+                            <Settings className="mr-3 h-4 w-4 text-muted-foreground" />
                             <span>Settings</span>
                             <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
 
-                    <DropdownMenuSeparator />
+                    <DropdownMenuSeparator className="my-1" />
 
                     <DropdownMenuItem
-                        className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                        className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 py-2.5"
                         onClick={handleSignOut}
                     >
-                        <LogOut className="mr-2 h-4 w-4" />
+                        <LogOut className="mr-3 h-4 w-4" />
                         <span>Sign out</span>
                         <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
                     </DropdownMenuItem>
