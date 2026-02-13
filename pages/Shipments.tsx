@@ -19,8 +19,9 @@ import { CreateShipmentForm } from '@/components/shipments/CreateShipmentForm';
 import { ShipmentDetails } from '@/components/shipments/ShipmentDetails';
 
 // Hooks & Data
-import { useShipments, useDeleteShipment, ShipmentWithRelations } from '@/hooks/useShipments';
+import { useShipments, useHardDeleteShipment, ShipmentWithRelations } from '@/hooks/useShipments';
 import { getShipmentsColumns } from '@/components/shipments/shipments.columns';
+import { useAuthStore } from '@/store/authStore';
 
 // Types
 import { Shipment } from '@/types';
@@ -63,6 +64,9 @@ function adaptToShipment(s: ShipmentWithRelations): Shipment {
 }
 
 export const Shipments: React.FC = () => {
+  const { user } = useAuthStore();
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+
   // Data fetching
   const {
     data: shipments,
@@ -70,7 +74,9 @@ export const Shipments: React.FC = () => {
     error,
     refetch,
   } = useShipments();
-  const deleteMutation = useDeleteShipment();
+
+  // Only Super Admin can delete
+  const hardDeleteMutation = useHardDeleteShipment();
 
   // Modal state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -87,19 +93,25 @@ export const Shipments: React.FC = () => {
           // For now, open view modal - edit form could be added later
           setSelectedShipment(row);
         },
-        onDelete: (row) => {
+        onDelete: isSuperAdmin ? (row) => {
           setRowToDelete(row);
           setDeleteOpen(true);
-        },
+        } : undefined,
       }),
-    []
+    [isSuperAdmin]
   );
 
   // Handlers
   const handleDelete = async () => {
     if (!rowToDelete) return;
-    await deleteMutation.mutateAsync(rowToDelete.id);
+
+    if (isSuperAdmin) {
+      await hardDeleteMutation.mutateAsync(rowToDelete.id);
+    }
+    // No fallback call for regular users as they shouldn't reach here
+
     setRowToDelete(null);
+    setDeleteOpen(false);
   };
 
   return (
@@ -202,9 +214,12 @@ export const Shipments: React.FC = () => {
       <CrudDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title="Delete shipment?"
-        description={`This will remove shipment "${rowToDelete?.awb_number ?? ''}" from your records. This action cannot be undone.`}
+        title={isSuperAdmin ? "Permanently Delete Shipment?" : "Archive Shipment?"}
+        description={isSuperAdmin
+          ? `This will PERMANENTLY delete shipment "${rowToDelete?.awb_number ?? ''}" and all related data. This action cannot be undone.`
+          : `This will remove shipment "${rowToDelete?.awb_number ?? ''}" from your view.`}
         onConfirm={handleDelete}
+        confirmLabel={isSuperAdmin ? "Delete Permanently" : "Archive"}
       />
     </div>
   );

@@ -8,18 +8,30 @@ import { ColumnDef } from '@tanstack/react-table';
 import {
   useManifests,
   useUpdateManifestStatus,
+  useHardDeleteManifest,
   ManifestWithRelations,
 } from '../hooks/useManifests';
 import { useRealtimeManifests } from '../hooks/useRealtime';
 import { ManifestBuilderWizard } from '../components/manifests/ManifestBuilder/ManifestBuilderWizard';
-import { Truck, Plane, Play, CheckCircle, Package, Weight, Scan, AlertCircle } from 'lucide-react';
+import { Truck, Plane, Play, CheckCircle, Package, Weight, Scan, AlertCircle, Trash2 } from 'lucide-react';
 import { Skeleton } from '../components/ui/skeleton';
+import { useAuthStore } from '@/store/authStore';
+import { CrudDeleteDialog } from '@/components/crud/CrudDeleteDialog';
 
 export const Manifests: React.FC = () => {
+  const { user } = useAuthStore();
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+
   const { data: manifests = [], isLoading, isError, error } = useManifests();
   const updateStatusMutation = useUpdateManifestStatus();
+  const hardDeleteMutation = useHardDeleteManifest();
+
   const [isEnterpriseOpen, setIsEnterpriseOpen] = useState(false);
   const [selectedManifestId, setSelectedManifestId] = useState<string | null>(null);
+
+  // Delete state
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [manifestToDelete, setManifestToDelete] = useState<ManifestWithRelations | null>(null);
 
   // Enable realtime updates
   useRealtimeManifests();
@@ -32,6 +44,18 @@ export const Manifests: React.FC = () => {
     setSelectedManifestId(id);
     setIsEnterpriseOpen(true);
   }, []);
+
+  const handleDeleteClick = useCallback((manifest: ManifestWithRelations) => {
+    setManifestToDelete(manifest);
+    setDeleteOpen(true);
+  }, []);
+
+  const handleConfirmDelete = async () => {
+    if (!manifestToDelete) return;
+    await hardDeleteMutation.mutateAsync(manifestToDelete.id);
+    setManifestToDelete(null);
+    setDeleteOpen(false);
+  };
 
   const columns: ColumnDef<ManifestWithRelations>[] = useMemo(
     () => [
@@ -102,33 +126,42 @@ export const Manifests: React.FC = () => {
         header: '',
         cell: ({ row }) => {
           const m = row.original;
-          if (m.status === 'CLOSED') {
-            return (
-              <Button size="sm" onClick={() => handleStatusChange(m.id, 'DEPARTED')}>
-                <Play className="w-3 h-3 mr-1" /> Depart
-              </Button>
-            );
-          }
-          if (m.status === 'DEPARTED') {
-            return (
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => handleStatusChange(m.id, 'ARRIVED')}
-              >
-                <CheckCircle className="w-3 h-3 mr-1" /> Arrive
-              </Button>
-            );
-          }
           return (
-            <Button size="sm" variant="ghost" onClick={() => handleEditManifest(m.id)}>
-              View
-            </Button>
+            <div className="flex items-center gap-1">
+              {m.status === 'CLOSED' && (
+                <Button size="sm" onClick={() => handleStatusChange(m.id, 'DEPARTED')}>
+                  <Play className="w-3 h-3 mr-1" /> Depart
+                </Button>
+              )}
+              {m.status === 'DEPARTED' && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => handleStatusChange(m.id, 'ARRIVED')}
+                >
+                  <CheckCircle className="w-3 h-3 mr-1" /> Arrive
+                </Button>
+              )}
+              <Button size="sm" variant="ghost" onClick={() => handleEditManifest(m.id)}>
+                View
+              </Button>
+
+              {isSuperAdmin && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => handleDeleteClick(m)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
           );
         },
       },
     ],
-    [handleStatusChange, handleEditManifest]
+    [handleStatusChange, handleEditManifest, handleDeleteClick, isSuperAdmin]
   );
 
   const openCount = manifests.filter((m) =>
@@ -268,6 +301,16 @@ export const Manifests: React.FC = () => {
           // Manifest creation complete - refresh handled by query invalidation
           setIsEnterpriseOpen(false);
         }}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <CrudDeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Permanently Delete Manifest?"
+        description={`This will PERMANENTLY delete manifest "${manifestToDelete?.manifest_no ?? ''}" and all related items. Shipments will be released back to 'Available' status. This action cannot be undone.`}
+        onConfirm={handleConfirmDelete}
+        confirmLabel="Delete Permanently"
       />
     </div>
   );

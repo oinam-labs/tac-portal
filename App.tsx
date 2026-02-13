@@ -36,6 +36,9 @@ const Dashboard = lazy(() =>
 const Shipments = lazy(() =>
   import('./pages/Shipments').then((module) => ({ default: module.Shipments }))
 );
+const ShipmentDetailsPage = lazy(() =>
+  import('./pages/ShipmentDetailsPage').then((module) => ({ default: module.ShipmentDetailsPage }))
+);
 const Finance = lazy(() =>
   import('./pages/Finance').then((module) => ({ default: module.Finance }))
 );
@@ -355,6 +358,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: UserR
     // No role restriction = everyone can access
     if (!allowedRoles || allowedRoles.length === 0) return true;
 
+    // SUPER_ADMIN has god mode
+    if (user.role === 'SUPER_ADMIN') return true;
+
     // ADMIN and MANAGER have access to everything
     if (user.role === 'ADMIN' || user.role === 'MANAGER') return true;
 
@@ -539,6 +545,16 @@ const App: React.FC = () => {
                           <ProtectedRoute>
                             <DashboardLayout>
                               <Shipments />
+                            </DashboardLayout>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/shipments/:id"
+                        element={
+                          <ProtectedRoute>
+                            <DashboardLayout>
+                              <ShipmentDetailsPage />
                             </DashboardLayout>
                           </ProtectedRoute>
                         }

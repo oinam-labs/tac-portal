@@ -111,6 +111,30 @@ export function useShipmentByAWB(awb: string | null) {
   });
 }
 
+export function useShipmentById(id: string | undefined) {
+  return useQuery({
+    queryKey: shipmentKeys.detail(id!),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('shipments')
+        .select(
+          `
+          *,
+          customer:customers(name, phone, email, address),
+          origin_hub:hubs!shipments_origin_hub_id_fkey(code, name, address),
+          destination_hub:hubs!shipments_destination_hub_id_fkey(code, name, address)
+        `
+        )
+        .eq('id', id!)
+        .single();
+
+      if (error) throw error;
+      return data as unknown as ShipmentWithRelations;
+    },
+    enabled: !!id,
+  });
+}
+
 interface CreateShipmentInput {
   customer_id: string;
   origin_hub_id: string;
@@ -135,11 +159,27 @@ export function useCreateShipment() {
 
   return useMutation({
     mutationFn: async (shipment: CreateShipmentInput) => {
-      const orgId = staffUser?.orgId || (await getOrCreateDefaultOrg());
+      console.log('Starting createShipment mutation...', shipment);
+      let orgId = staffUser?.orgId;
+      if (!orgId) {
+        console.log('No orgId in auth store, fetching default...');
+        orgId = await getOrCreateDefaultOrg();
+        console.log('Resolved orgId:', orgId);
+      } else {
+        console.log('Using auth store orgId:', orgId);
+      }
+
+      console.log('Calling generate_awb_number RPC...');
       const { data: awbResult, error: awbError } = await supabase.rpc('generate_awb_number', {
         p_org_id: orgId,
       });
-      if (awbError) throw awbError;
+
+      if (awbError) {
+        console.error('AWB Generation Error:', awbError);
+        throw awbError;
+      }
+      console.log('AWB Result:', awbResult);
+
       if (typeof awbResult !== 'string' || !awbResult) {
         throw new Error('AWB service unavailable');
       }
@@ -151,13 +191,19 @@ export function useCreateShipment() {
         status: 'CREATED' as const,
       };
 
+      console.log('Inserting shipment payload:', insertPayload);
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase.from('shipments') as any)
         .insert(insertPayload)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Shipment Insert Error:', error);
+        throw error;
+      }
+      console.log('Shipment created successfully:', data);
       return data as unknown as ShipmentWithRelations;
     },
     onSuccess: (data: ShipmentWithRelations) => {
@@ -271,6 +317,32 @@ export function useFindShipmentByAwb() {
 
       if (error) throw error;
       return data as ShipmentScanResult | null;
+    },
+  });
+}
+
+/**
+ * Hook to permanently delete a shipment (hard delete).
+ * ONLY FOR SUPER ADMINS.
+ */
+export function useHardDeleteShipment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('shipments')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: shipmentKeys.lists() });
+      toast.success('Shipment permanently deleted');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to delete shipment: ${error.message}`);
     },
   });
 }

@@ -49,21 +49,34 @@ const HUB_PREFILL: Record<string, { address: string; zip: string; state: string 
   'Imphal': { address: 'Singjamei Hub', zip: '795001', state: 'Manipur' },
   'New Delhi': { address: 'Kotla Hub', zip: '110003', state: 'Delhi' },
 };
-import { useCreateInvoice } from '@/hooks/useInvoices';
+import { useCreateInvoice, useUpdateInvoice, InvoiceWithRelations } from '@/hooks/useInvoices';
+import { useCreateShipment } from '@/hooks/useShipments';
 import { useCustomers, Customer as CustomerDB } from '@/hooks/useCustomers';
 import type { Json } from '@/lib/database.types';
-import { getOrCreateDefaultOrg } from '@/lib/org-helper';
-import { useAuthStore } from '@/store/authStore';
-import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
-import { Shipment, Invoice, ShipmentMode, ServiceLevel } from '@/types';
+import { Invoice, Shipment, ShipmentMode, ServiceLevel } from '@/types';
 import { TrackingDialog } from '@/components/landing-new/tracking-dialog';
 import { LabelPreviewDialog } from '@/components/domain/LabelPreviewDialog';
 import { generateLabelFromFormData } from '@/lib/utils/label-utils';
+import { HUBS } from '@/lib/constants';
+
+// Helper to resolve city to Hub ID
+const resolveHubId = (city: string): string => {
+  if (!city) return HUBS.NEW_DELHI.uuid;
+  const c = city.toLowerCase();
+
+  // Imphal logic
+  if (c.includes('imphal') || c.includes('manipur')) {
+    return HUBS.IMPHAL.uuid;
+  }
+
+  // Default to Delhi for everything else (Hub & Spoke model)
+  return HUBS.NEW_DELHI.uuid;
+};
 
 // --- SCHEMA (Same as original) ---
 const schema = z.object({
-  awb: z.string().min(1, 'AWB Required'),
+  awb: z.string().optional(), // Relaxed for NEW_BOOKING auto-gen
   invoiceNumber: z.string().optional(),
   bookingDate: z.string().min(1, 'Date Required'),
   paymentMode: z.enum(['PAID', 'TO_PAY', 'TBB']),
@@ -76,7 +89,7 @@ const schema = z.object({
   consignorCity: z.string().min(2, 'City Required'),
   consignorState: z.string().min(2, 'State Required'),
   consignorZip: z.string().min(6, 'Zip Required'),
-  consignorGstin: z.string().regex(GSTIN_PATTERN, GSTIN_ERROR_MESSAGE).optional().or(z.literal('')),
+  consignorGstin: z.string().optional().refine((val) => !val || GSTIN_PATTERN.test(val), GSTIN_ERROR_MESSAGE),
 
   // Consignee
   consigneeName: z.string().min(2, 'Name Required'),
@@ -85,7 +98,7 @@ const schema = z.object({
   consigneeCity: z.string().min(2, 'City Required'),
   consigneeState: z.string().min(2, 'State Required'),
   consigneeZip: z.string().min(6, 'Zip Required'),
-  consigneeGstin: z.string().regex(GSTIN_PATTERN, GSTIN_ERROR_MESSAGE).optional().or(z.literal('')),
+  consigneeGstin: z.string().optional().refine((val) => !val || GSTIN_PATTERN.test(val), GSTIN_ERROR_MESSAGE),
 
   // Item Details
   contents: z.string().min(2, 'Contents required'),
@@ -283,15 +296,17 @@ const CustomerSearch: React.FC<{
 interface Props {
   onSuccess: (invoice?: Invoice, shipment?: Shipment) => void;
   onCancel: () => void;
+  initialData?: InvoiceWithRelations;
 }
 
-export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
+export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialData }: Props) {
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState<number>(0);
   const createInvoiceMutation = useCreateInvoice();
-  const isLoading = createInvoiceMutation.isPending;
+  const createShipmentMutation = useCreateShipment();
+  const updateInvoiceMutation = useUpdateInvoice();
+  const isLoading = createInvoiceMutation.isPending || updateInvoiceMutation.isPending || createShipmentMutation.isPending;
   const { data: customers = [] } = useCustomers();
-  const staffUser = useAuthStore((s) => s.user);
 
   // Mode State
   const [mode, setMode] = useState<'NEW_BOOKING' | 'EXISTING_SHIPMENT'>('NEW_BOOKING');
@@ -355,21 +370,85 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
     return () => clearInterval(timer);
   }, [formValues]);
 
-  // Restore draft on mount
+  // Restore draft on mount or set initial data
   useEffect(() => {
-    const draft = localStorage.getItem('invoice_draft');
-    if (draft && !getValues('awb')) {
-      try {
-        const parsed = JSON.parse(draft);
-        Object.keys(parsed).forEach((key) => {
-          if (parsed[key] !== undefined) setValue(key as any, parsed[key]);
-        });
-        toast.info('Draft restored');
-      } catch (e) {
-        console.error('Failed to restore draft:', e);
+    if (initialData) {
+      setMode('NEW_BOOKING'); // Or handled dynamically if we link shipment
+
+      const lines = initialData.line_items as any;
+
+      // Basic fields
+      if (lines?.awb) setValue('awb', lines.awb);
+      // Invoice number is from DB column, but form might not need it explicitly if auto-generated or read-only
+      if (initialData.invoice_no) setValue('invoiceNumber', initialData.invoice_no);
+      if (lines?.paymentMode) setValue('paymentMode', lines.paymentMode);
+      if (lines?.transportMode) setValue('transportMode', lines.transportMode);
+
+      // Cargo
+      if (initialData.notes) {
+        // parse contents from notes "Contents: ... | Payment: ..." if needed, or rely on line_items
+        // line_items seems to have better structured data if we saved it correctly.
+      }
+      // We saved everything in line_items in onSubmit, so we trust it.
+      const directMap = [
+        'contents', 'pieces', 'declaredValue', 'dimL', 'dimB', 'dimH',
+        'actualWeight', 'chargedWeight', 'gstApplicable', 'gstRate'
+      ];
+      directMap.forEach(k => {
+        if (lines?.[k] !== undefined) setValue(k as any, lines[k]);
+      });
+
+      // Financials
+      const financialMap = [
+        'ratePerKg', 'baseFreight', 'docketCharge', 'pickupCharge',
+        'packingCharge', 'fuelSurcharge', 'handlingFee', 'insurance',
+        'discount', 'advancePaid'
+      ];
+      financialMap.forEach(k => {
+        if (lines?.[k] !== undefined) setValue(k as any, lines[k]);
+      });
+
+      // Explicit overrides for nested/complex fields
+      if (lines?.consignor) {
+        setValue('consignorName', lines.consignor.name);
+        setValue('consignorPhone', lines.consignor.phone);
+        setValue('consignorAddress', lines.consignor.address);
+        setValue('consignorCity', lines.consignor.city);
+        setValue('consignorState', lines.consignor.state);
+        setValue('consignorZip', lines.consignor.zip);
+        setValue('consignorGstin', lines.consignor.gstin);
+      }
+      if (lines?.consignee) {
+        setValue('consigneeName', lines.consignee.name);
+        setValue('consigneePhone', lines.consignee.phone);
+        setValue('consigneeAddress', lines.consignee.address);
+        setValue('consigneeCity', lines.consignee.city);
+        setValue('consigneeState', lines.consignee.state);
+        setValue('consigneeZip', lines.consignee.zip);
+        setValue('consigneeGstin', lines.consignee.gstin);
+      }
+
+      // Handle shipment link if exists (read-only mode mostly, but good to know)
+      if (initialData.shipment_id) {
+        setMode('EXISTING_SHIPMENT');
+        setSelectedShipment({ id: initialData.shipment_id } as Shipment); // Minimal shipment object
+      }
+
+    } else {
+      const draft = localStorage.getItem('invoice_draft');
+      if (draft && !getValues('awb')) {
+        try {
+          const parsed = JSON.parse(draft);
+          Object.keys(parsed).forEach((key) => {
+            if (parsed[key] !== undefined) setValue(key as any, parsed[key]);
+          });
+          toast.info('Draft restored');
+        } catch (e) {
+          console.error('Failed to restore draft:', e);
+        }
       }
     }
-  }, []);
+  }, [initialData]);
 
   // --- LOGIC: CALCULATIONS (Ported) ---
   const safeNum = useCallback((val: any) => {
@@ -428,46 +507,8 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
   const total = subtotal + tax;
   const balance = total - safeNum(formValues.advancePaid);
 
-  // --- LOGIC: AUTO ID (Smart) ---
-  useEffect(() => {
-    let cancelled = false;
-
-    const ensureAwb = async () => {
-      if (mode !== 'NEW_BOOKING') return;
-      if (getValues('awb')) return;
-
-      try {
-        const orgId = staffUser?.orgId || (await getOrCreateDefaultOrg());
-        const { data, error } = await supabase.rpc('generate_awb_number', { p_org_id: orgId });
-        if (error) throw error;
-        if (typeof data !== 'string' || !data) {
-          throw new Error('AWB generator returned empty');
-        }
-
-        if (cancelled) return;
-        setValue('awb', data);
-        setValue('invoiceNumber', '');
-      } catch (error) {
-        if (cancelled) return;
-        setValue('awb', '');
-        logger.error('AWB generation failed', {
-          env: import.meta.env.MODE,
-          org_id: staffUser?.orgId || null,
-          user_id: staffUser?.id || null,
-          auth_user_id: staffUser?.authUserId || null,
-          error: error instanceof Error ? error.message : String(error),
-        });
-        toast.error('AWB service unavailable. Contact admin.', {
-          description: 'Unable to generate an AWB number at this time.',
-        });
-      }
-    };
-
-    void ensureAwb();
-    return () => {
-      cancelled = true;
-    };
-  }, [mode, setValue, getValues, staffUser?.orgId, staffUser?.id, staffUser?.authUserId]);
+  // --- AUTO-ID REMOVED to prevent double generation (moved to onSubmit) ---
+  // We now only show placeholder for new bookings
 
   // Real-time discount validation
   useEffect(() => {
@@ -523,7 +564,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
             volumetric: 0,
             chargeable: shipmentData.total_weight || 0,
           },
-          mode: (shipmentData.mode || 'TRUCK') as ShipmentMode,
+          mode: ((shipmentData.mode?.toUpperCase() === 'AIR' ? 'AIR' : 'TRUCK') as ShipmentMode),
           serviceLevel: (shipmentData.service_level || 'STANDARD') as ServiceLevel,
         };
 
@@ -541,6 +582,12 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
         );
         setValue('ratePerKg', calcs.ratePerKg);
         setValue('baseFreight', calcs.baseFreight);
+
+        // Sync transport mode from shipment (critical for label generation)
+        if (shipment.mode) {
+          setValue('transportMode', shipment.mode);
+        }
+
         toast.success('Shipment data loaded!');
       } else {
         setSelectedShipment(null);
@@ -669,6 +716,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
   };
 
   const onSubmit = async (data: FormData) => {
+    console.log('onSubmit called with data:', data);
     try {
       const financials = {
         ratePerKg: safeNum(data.ratePerKg),
@@ -706,41 +754,226 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
         return;
       }
 
-      const validationResult = validateInvoice(
-        {
-          awb: data.awb,
-          customerId: validCustomerId,
-          paymentMode: data.paymentMode,
-          financials: financials,
-        },
-        customerContext as any
-      );
+      // Determine AWB and Shipment ID
+      let finalAwb = data.awb;
+      let finalShipmentId = selectedShipment?.id;
 
-      if (!validationResult.isValid) {
-        // Show all errors
-        validationResult.errors.forEach((err) => toast.error(err.message));
-        return; // Stop submission
+      if (mode === 'NEW_BOOKING' && !finalAwb) {
+        // PRE-VALIDATION CHECK (Avoid ghost shipments)
+        // Validate with a dummy AWB to ensure other fields are correct before creating shipment
+        const dummyValidation = validateInvoice(
+          {
+            awb: 'TAC00000000', // Dummy valid format
+            customerId: validCustomerId,
+            paymentMode: data.paymentMode,
+            financials: financials,
+          },
+          customerContext as any
+        );
+
+        if (!dummyValidation.isValid) {
+          // Filter out random errors, though dummy AWB should pass AWB check
+          const realErrors = dummyValidation.errors.filter(e => e.field !== 'awb');
+          if (realErrors.length > 0) {
+            realErrors.forEach((err) => toast.error(err.message));
+            return;
+          }
+        }
+
+        // CREATE SHIPMENT
+        try {
+          const originHubId = resolveHubId(data.consignorCity);
+          let destHubId = resolveHubId(data.consigneeCity);
+
+          // Fallback if same hub resolved
+          if (originHubId === destHubId) {
+            destHubId = originHubId === HUBS.IMPHAL.uuid ? HUBS.NEW_DELHI.uuid : HUBS.IMPHAL.uuid;
+          }
+
+          const newShipment = await createShipmentMutation.mutateAsync({
+            customer_id: validCustomerId,
+            origin_hub_id: originHubId,
+            destination_hub_id: destHubId,
+            mode: data.transportMode,
+            service_level: 'STANDARD', // Default
+            package_count: data.pieces,
+            total_weight: data.chargedWeight,
+            declared_value: data.declaredValue,
+            receiver_name: data.consigneeName,
+            receiver_phone: data.consigneePhone,
+            receiver_address: {
+              line1: data.consigneeAddress,
+              city: data.consigneeCity,
+              state: data.consigneeState,
+              zip: data.consigneeZip
+            },
+            sender_name: data.consignorName,
+            sender_phone: data.consignorPhone,
+            sender_address: {
+              line1: data.consignorAddress,
+              city: data.consignorCity,
+              state: data.consignorState,
+              zip: data.consignorZip
+            },
+            special_instructions: data.contents
+          });
+
+          finalAwb = newShipment.awb_number;
+          finalShipmentId = newShipment.id;
+          toast.success(`Shipment created: ${finalAwb}`);
+        } catch (error) {
+          console.error('Shipment creation failed:', error);
+          toast.error('Failed to create shipment. Invoice cancelled.');
+          return;
+        }
+
+      } else {
+        // EXISTING/MANUAL AWB VALIDATION
+        const validationResult = validateInvoice(
+          {
+            awb: data.awb,
+            customerId: validCustomerId,
+            paymentMode: data.paymentMode,
+            financials: financials,
+          },
+          customerContext as any
+        );
+
+        if (!validationResult.isValid) {
+          validationResult.errors.forEach((err) => toast.error(err.message));
+          return;
+        }
+
+        if (validationResult.warnings.length > 0) {
+          validationResult.warnings.forEach((warn) => toast.warning(warn));
+        }
       }
 
-      if (validationResult.warnings.length > 0) {
-        validationResult.warnings.forEach((warn) => toast.warning(warn));
-        // We could block here for "Manager Approval", but for now we just warn and proceed
-      }
-      // VALIDATION END
+      // VALIDATION END (Proceed to create invoice with finalAwb)
 
-      // Create invoice in Supabase
-      const createdInvoice = await createInvoiceMutation.mutateAsync({
-        customer_id: validCustomerId, // Use validated customer ID (never hardcoded)
-        shipment_id: selectedShipment?.id,
-        subtotal: subtotal,
-        tax_amount: tax, // DB column is tax_amount (number)
-        total: total, // DB column name (not total_amount)
-        discount: safeNum(data.discount),
-        issue_date: new Date().toISOString().split('T')[0],
-        due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        notes: `Contents: ${data.contents} | Payment: ${data.paymentMode}`,
+      // Create or Update invoice in Supabase
+      let resultInvoice;
+
+      if (initialData?.id) {
+        // UPDATE MODE
+        const updated = await updateInvoiceMutation.mutateAsync({
+          id: initialData.id,
+          customer_id: validCustomerId,
+          shipment_id: finalShipmentId || initialData.shipment_id || undefined,
+          subtotal: subtotal,
+          tax_amount: tax,
+          total: total,
+          discount: safeNum(data.discount),
+          issue_date: initialData.issue_date || new Date().toISOString().split('T')[0], // Preserve or update?
+          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          notes: `Contents: ${data.contents} | Payment: ${data.paymentMode}`,
+          line_items: {
+            awb: finalAwb,
+            transportMode: data.transportMode,
+            paymentMode: data.paymentMode,
+            ratePerKg: financials.ratePerKg,
+            baseFreight: financials.baseFreight,
+            docketCharge: financials.docketCharge,
+            pickupCharge: financials.pickupCharge,
+            packingCharge: financials.packingCharge,
+            fuelSurcharge: financials.fuelSurcharge,
+            handlingFee: financials.handlingFee,
+            insurance: financials.insurance,
+            discount: financials.discount,
+            advancePaid: financials.advancePaid,
+            balance: financials.balance,
+            tax: { cgst: 0, sgst: 0, igst: tax, total: tax },
+            consignor: {
+              name: data.consignorName,
+              phone: data.consignorPhone,
+              address: data.consignorAddress,
+              city: data.consignorCity,
+              state: data.consignorState,
+              zip: data.consignorZip,
+              gstin: data.consignorGstin
+            },
+            consignee: {
+              name: data.consigneeName,
+              phone: data.consigneePhone,
+              address: data.consigneeAddress,
+              city: data.consigneeCity,
+              state: data.consigneeState,
+              zip: data.consigneeZip,
+              gstin: data.consigneeGstin
+            },
+          },
+        });
+        resultInvoice = updated;
+        toast.success('Invoice updated successfully');
+      } else {
+        // CREATE MODE
+        const created = await createInvoiceMutation.mutateAsync({
+          customer_id: validCustomerId, // Use validated customer ID (never hardcoded)
+          shipment_id: finalShipmentId,
+          subtotal: subtotal,
+          tax_amount: tax, // DB column is tax_amount (number)
+          total: total, // DB column name (not total_amount)
+          discount: safeNum(data.discount),
+          issue_date: new Date().toISOString().split('T')[0],
+          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          notes: `Contents: ${data.contents} | Payment: ${data.paymentMode}`,
+          line_items: {
+            awb: finalAwb,
+            transportMode: data.transportMode,
+            paymentMode: data.paymentMode,
+            ratePerKg: financials.ratePerKg,
+            baseFreight: financials.baseFreight,
+            docketCharge: financials.docketCharge,
+            pickupCharge: financials.pickupCharge,
+            packingCharge: financials.packingCharge,
+            fuelSurcharge: financials.fuelSurcharge,
+            handlingFee: financials.handlingFee,
+            insurance: financials.insurance,
+            discount: financials.discount,
+            advancePaid: financials.advancePaid,
+            balance: financials.balance,
+            tax: { cgst: 0, sgst: 0, igst: tax, total: tax }, // Store tax breakdown in line_items
+            consignor: {
+              name: data.consignorName,
+              phone: data.consignorPhone,
+              address: data.consignorAddress,
+              city: data.consignorCity,
+              state: data.consignorState,
+              zip: data.consignorZip,
+            },
+            consignee: {
+              name: data.consigneeName,
+              phone: data.consigneePhone,
+              address: data.consigneeAddress,
+              city: data.consigneeCity,
+              state: data.consigneeState,
+              zip: data.consigneeZip,
+            },
+          },
+        });
+        resultInvoice = created;
+      }
+
+      // Clear draft after success
+      localStorage.removeItem('invoice_draft');
+
+      // Build invoice object for success dialog (include consignor/consignee for label generation)
+      const invoiceForDialog: Invoice = {
+        id: resultInvoice.id,
+        invoiceNumber: resultInvoice.invoice_no, // Use DB column name
+        customerId: resultInvoice.customer_id,
+        customerName: data.consigneeName,
+        shipmentId: resultInvoice.shipment_id || '',
+        awb: data.awb,
+        status: resultInvoice.status as any,
+        createdAt: resultInvoice.created_at,
+        dueDate: resultInvoice.due_date || '',
+        paymentMode: data.paymentMode,
+        financials: financials as any,
+        // Include line_items for label generation in success dialog
         line_items: {
           awb: data.awb,
+          transportMode: data.transportMode,
           paymentMode: data.paymentMode,
           ratePerKg: financials.ratePerKg,
           baseFreight: financials.baseFreight,
@@ -753,7 +986,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
           discount: financials.discount,
           advancePaid: financials.advancePaid,
           balance: financials.balance,
-          tax: { cgst: 0, sgst: 0, igst: tax, total: tax }, // Store tax breakdown in line_items
+          tax: { cgst: 0, sgst: 0, igst: tax, total: tax },
           consignor: {
             name: data.consignorName,
             phone: data.consignorPhone,
@@ -761,6 +994,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
             city: data.consignorCity,
             state: data.consignorState,
             zip: data.consignorZip,
+            gstin: data.consignorGstin
           },
           consignee: {
             name: data.consigneeName,
@@ -769,33 +1003,18 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
             city: data.consigneeCity,
             state: data.consigneeState,
             zip: data.consigneeZip,
-          },
+            gstin: data.consigneeGstin
+          }
         },
-      });
-
-      // Clear draft after success
-      localStorage.removeItem('invoice_draft');
-
-      // Build invoice object for success dialog (include consignor/consignee for label generation)
-      const invoiceForDialog: Invoice = {
-        id: createdInvoice.id,
-        invoiceNumber: createdInvoice.invoice_no, // Use DB column name
-        customerId: createdInvoice.customer_id,
-        customerName: data.consigneeName,
-        shipmentId: createdInvoice.shipment_id || '',
-        awb: data.awb,
-        status: createdInvoice.status as any,
-        createdAt: createdInvoice.created_at,
-        dueDate: createdInvoice.due_date || '',
-        paymentMode: data.paymentMode,
-        financials: financials as any,
-        // Include consignor/consignee for label generation when no shipment exists
+        // Include consignor/consignee (legacy fallback)
         consignor: {
           name: data.consignorName,
           phone: data.consignorPhone,
           address: data.consignorAddress,
           city: data.consignorCity,
           state: data.consignorState,
+          zip: data.consignorZip,
+          gstin: data.consignorGstin
         },
         consignee: {
           name: data.consigneeName,
@@ -803,6 +1022,8 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
           address: data.consigneeAddress,
           city: data.consigneeCity,
           state: data.consigneeState,
+          zip: data.consigneeZip,
+          gstin: data.consigneeGstin
         },
       } as Invoice;
 
@@ -824,7 +1045,10 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
     {
       title: 'Parties',
       description: 'Sender & Receiver',
-      fields: ['consignorName', 'consigneeName', 'consignorPhone', 'consigneePhone'],
+      fields: [
+        'consignorName', 'consignorPhone', 'consignorAddress', 'consignorCity', 'consignorState', 'consignorZip', 'consignorGstin',
+        'consigneeName', 'consigneePhone', 'consigneeAddress', 'consigneeCity', 'consigneeState', 'consigneeZip', 'consigneeGstin'
+      ],
     },
     {
       title: 'Cargo',
@@ -836,13 +1060,19 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
 
   const nextStep = async () => {
     const fieldsToValidate = steps[currentStep].fields;
+    console.log('Validating fields:', fieldsToValidate);
     const valid = await trigger(fieldsToValidate as any);
+    console.log('Validation result:', valid, form.formState.errors);
     if (valid) {
       if (currentStep < steps.length - 1) {
         setDirection(1);
         setCurrentStep((prev) => prev + 1);
       } else {
-        form.handleSubmit(onSubmit)();
+        console.log('Submitting form...');
+        form.handleSubmit(onSubmit, (errors) => {
+          console.error('Form validation failed:', errors);
+          toast.error('Please check for errors in the form');
+        })();
       }
     }
   };
@@ -1237,6 +1467,24 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
                   </div>
                 </div>
               </div>
+
+              <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border/50">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">
+                    Mode: {formValues.transportMode || 'None'} | Debug: {JSON.stringify(watch('transportMode'))}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowLabelPreview(true)}
+                    className="gap-2"
+                  >
+                    <Printer className="w-4 h-4" />
+                    Preview Label
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -1510,6 +1758,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel }: Props) {
         open={showLabelPreview}
         onOpenChange={setShowLabelPreview}
         shipmentData={generateLabelFromFormData(formValues)}
+        key={formValues.transportMode}
       />
     </Form>
   );

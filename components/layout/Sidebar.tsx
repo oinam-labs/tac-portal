@@ -116,7 +116,7 @@ export const Sidebar: React.FC = () => {
     if (!allowedRoles) return true;
     if (!user) return false;
     // ADMIN and MANAGER have access to everything
-    if (user.role === 'ADMIN' || user.role === 'MANAGER') return true;
+    if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN' || user.role === 'MANAGER') return true;
     return allowedRoles.includes(user.role);
   };
 
