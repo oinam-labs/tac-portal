@@ -86,7 +86,7 @@ export const AnimatedThemeToggler = ({
     }
 
     setTimeout(() => setIsAnimating(false), duration);
-  }, [isDark, duration]);
+  }, [isDark, duration, onThemeChange]);
 
   return (
     <button

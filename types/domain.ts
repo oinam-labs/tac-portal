@@ -97,6 +97,9 @@ export enum UserRole {
   OPS = 'OPS',
   INVOICE = 'INVOICE',
   SUPPORT = 'SUPPORT',
+  WAREHOUSE_STAFF = 'WAREHOUSE_STAFF',
+  OPS_STAFF = 'OPS_STAFF',
+  FINANCE_STAFF = 'FINANCE_STAFF',
 }
 
 export enum TransportMode {
@@ -238,6 +241,30 @@ export const ROLE_PERMISSIONS = {
     canViewAuditLogs: false,
     canResolveExceptions: false,
     readOnly: true,
+  },
+  [UserRole.WAREHOUSE_STAFF]: {
+    modules: ['scanning', 'inventory', 'shipments'] as string[],
+    canViewFinance: false,
+    canEditManifests: false,
+    canManageUsers: false,
+    canViewAuditLogs: false,
+    canResolveExceptions: false,
+  },
+  [UserRole.OPS_STAFF]: {
+    modules: ['shipments', 'manifests', 'tracking', 'exceptions'] as string[],
+    canViewFinance: false,
+    canEditManifests: true,
+    canManageUsers: false,
+    canViewAuditLogs: false,
+    canResolveExceptions: false,
+  },
+  [UserRole.FINANCE_STAFF]: {
+    modules: ['finance', 'customers', 'shipments'] as string[],
+    canViewFinance: true,
+    canEditManifests: false,
+    canManageUsers: false,
+    canViewAuditLogs: false,
+    canResolveExceptions: false,
   },
 } as const;
 

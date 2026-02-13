@@ -1,7 +1,7 @@
 import React from 'react';
 import './star-border.css';
 
-interface StarBorderProps extends React.ComponentPropsWithoutRef<any> {
+interface StarBorderProps extends React.HTMLAttributes<HTMLElement> {
     as?: React.ElementType;
     className?: string;
     color?: string;

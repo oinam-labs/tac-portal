@@ -90,10 +90,10 @@ export function Navbar() {
   ];
 
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, href: string) => {
-    e.preventDefault();
     const targetId = href.replace('#', '');
     const element = document.getElementById(targetId);
     if (element) {
+      e.preventDefault();
       const offsetTop = element.getBoundingClientRect().top + window.scrollY - 80; // Adjust for navbar height
       window.scrollTo({
         top: offsetTop,
@@ -124,7 +124,11 @@ export function Navbar() {
 
         <div className="relative container mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group relative z-50">
+          <Link
+            to="/"
+            className="flex items-center gap-3 group relative z-50"
+            onClick={(e) => handleScroll(e, '#home')}
+          >
             <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
               <Box className="h-5 w-5 text-primary fill-primary/20 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" />
             </div>

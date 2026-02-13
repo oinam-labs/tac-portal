@@ -41,7 +41,7 @@ export const CustomerDetails: React.FC<CustomerDetailsProps> = ({ customer, onCl
               <h2 className="text-2xl font-bold text-foreground">
                 {customer.companyName || customer.name}
               </h2>
-              <Badge variant={customer.tier === 'ENTERPRISE' ? 'neon' : 'default'}>
+              <Badge variant={customer.tier === 'ENTERPRISE' ? 'secondary' : 'default'}>
                 {customer.tier}
               </Badge>
             </div>

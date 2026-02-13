@@ -5,16 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { PackageTrackerCard } from '@/components/ui/tracker-card';
+import { TrackingResultCard } from '@/components/landing-new/tracking-result-card';
 import { toast } from 'sonner';
 import { getTrackingInfo, TrackingData } from '@/lib/tracking-service';
 import { FadeUp } from '@/components/motion/FadeUp';
 
 // --- Components ---
 
-const formatStatus = (status: string): string => {
-  return status.replace(/_/g, ' ').toUpperCase();
-};
+
 
 
 export function TrackingSection() {
@@ -172,29 +170,19 @@ export function TrackingSection() {
       {/* Tracking Result Modal */}
       <Dialog open={showResult && !!trackingData} onOpenChange={setShowResult}>
         <DialogContent
-          className="border-none bg-transparent p-0 shadow-none sm:max-w-md w-full"
+          className="border-none bg-transparent p-0 shadow-none sm:max-w-md w-full [&>button[class*='absolute']]:hidden"
           aria-describedby={undefined}
         >
           <DialogTitle className="sr-only">
             Tracking Information for {trackingData?.shipment.reference}
           </DialogTitle>
           {trackingData && (
-            <PackageTrackerCard
-              status={formatStatus(trackingData.shipment.status)}
-              packageNumber={trackingData.shipment.reference}
-              destination={`${trackingData.shipment.origin} -> ${trackingData.shipment.destination}`}
-              destinationFlag={
-                <span className="text-xl" role="img" aria-label="India flag">
-                  🇮🇳
-                </span>
-              }
-              date={
-                trackingData.events.length > 0
-                  ? `Last update: ${new Date(trackingData.events[0].created_at).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}`
-                  : 'Awaiting updates'
-              }
-              qrCodeValue={`https://tac.logistics/track/${encodeURIComponent(trackingData.shipment.reference)}`}
-            />
+            <div className="p-4">
+              <TrackingResultCard
+                data={trackingData}
+                onClose={() => setShowResult(false)}
+              />
+            </div>
           )}
         </DialogContent>
       </Dialog>

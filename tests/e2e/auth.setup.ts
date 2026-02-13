@@ -35,8 +35,15 @@ setup('authenticate', async ({ page }) => {
 
   // Without configured credentials, create empty auth state and skip
   if (!testEmail || !testPassword) {
-    console.log('⚠️ E2E_TEST_EMAIL or E2E_TEST_PASSWORD not configured - creating empty auth state');
-    console.log('   Set E2E_TEST_EMAIL and E2E_TEST_PASSWORD env vars/secrets for full E2E testing');
+    console.log('⚠️ E2E_TEST_EMAIL or E2E_TEST_PASSWORD not configured');
+
+    if (process.env.CI) {
+      console.error('❌ FATAL: CI run detected but no E2E credentials found.');
+      console.error('   Set E2E_TEST_EMAIL and E2E_TEST_PASSWORD secrets in GitHub.');
+      throw new Error('Missing E2E credentials in CI');
+    }
+
+    console.log('   Creating empty auth state for unauthenticated tests (local dev only)...');
 
     // Create empty auth state so tests can run (unauthenticated)
     writeFileSync(
@@ -75,17 +82,11 @@ setup('authenticate', async ({ page }) => {
   } catch (error) {
     console.error('❌ Authentication failed:', error);
 
-    // In CI, create empty auth state so other tests can still run
+    // In CI, we MUST fail if auth fails. Creating empty auth state causes
+    // all authenticated tests to fail with obscure timeouts (redirect to landing page).
+    // Better to fail the setup step explicitly.
     if (process.env.CI) {
-      console.log('   Creating empty auth state for unauthenticated tests...');
-      writeFileSync(
-        authFile,
-        JSON.stringify({
-          cookies: [],
-          origins: [],
-        })
-      );
-    } else {
+      console.error('   FATAL: Auth setup failed in CI. Check E2E_TEST_EMAIL/PASSWORD secrets.');
       throw error;
     }
   }

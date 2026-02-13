@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- Data mapping requires any */
 import React, { useRef } from 'react';
 import { useManifest, useManifestItems, useUpdateManifestStatus } from '../../hooks/useManifests';
 import { Button, Card, Table, Th, Td } from '../ui/CyberComponents';

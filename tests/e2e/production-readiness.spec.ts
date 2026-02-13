@@ -14,27 +14,28 @@ import path from 'node:path';
 const authFile = path.resolve(process.cwd(), '.auth/user.json');
 
 test.describe('Production Readiness - Domain Enforcement', () => {
+    test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');
     test.use({ storageState: authFile });
 
     test('should not display IXA hub code anywhere in UI', async ({ page }) => {
         // Check Dashboard
-        await page.goto('/#/dashboard');
+        await page.goto('/dashboard');
         await page.waitForLoadState('networkidle');
         await expect(page.locator('body')).not.toContainText('IXA');
 
         // Check Manifests
-        await page.goto('/#/manifests');
+        await page.goto('/manifests');
         await page.waitForLoadState('networkidle');
         await expect(page.locator('body')).not.toContainText('IXA');
 
         // Check Shipments
-        await page.goto('/#/shipments');
+        await page.goto('/shipments');
         await page.waitForLoadState('networkidle');
         await expect(page.locator('body')).not.toContainText('IXA');
     });
 
     test('should show Imphal Hub with IMF code in manifest creation', async ({ page }) => {
-        await page.goto('/#/manifests');
+        await page.goto('/manifests');
         await page.waitForLoadState('networkidle');
 
         // Click create manifest to see hub dropdowns
@@ -53,11 +54,14 @@ test.describe('Production Readiness - Domain Enforcement', () => {
     });
 });
 
-test.describe('Production Readiness - No Mock Data', () => {
+test.describe('Production Readiness', () => {
+    test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');
+
+    // Tests use stored auth state from setup project
     test.use({ storageState: authFile });
 
     test('should not show hardcoded mock data on dashboard', async ({ page }) => {
-        await page.goto('/#/dashboard');
+        await page.goto('/dashboard');
         await page.waitForLoadState('networkidle');
 
         const bodyText = await page.locator('body').textContent() || '';
@@ -73,7 +77,7 @@ test.describe('Production Readiness - No Mock Data', () => {
 
     test('should show empty state when no data exists', async ({ page }) => {
         // This test assumes a clean database or filtered view with no data
-        await page.goto('/#/dashboard');
+        await page.goto('/dashboard');
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(1000);
 
@@ -89,10 +93,11 @@ test.describe('Production Readiness - No Mock Data', () => {
 });
 
 test.describe('Production Readiness - Empty States', () => {
+    test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');
     test.use({ storageState: authFile });
 
     test('should render empty state correctly for charts with no data', async ({ page }) => {
-        await page.goto('/#/dashboard');
+        await page.goto('/dashboard');
         await page.waitForLoadState('networkidle');
 
         // Wait for initial render
@@ -122,12 +127,13 @@ test.describe('Production Readiness - Empty States', () => {
 });
 
 test.describe('Production Readiness - Critical User Flows', () => {
+    test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');
     test.use({ storageState: authFile });
 
     test('Invoice creation smoke check', async ({ page }) => {
         // Smoke test: verify invoice creation UI is accessible
         // Full E2E flow requires manual QA (see PRODUCTION_READINESS_CHECKLIST.md)
-        await page.goto('/#/finance');
+        await page.goto('/finance');
         await page.waitForLoadState('networkidle');
 
         // Verify invoice creation button exists
@@ -137,7 +143,7 @@ test.describe('Production Readiness - Critical User Flows', () => {
 
     test('Shipment page should not show label generation error', async ({ page }) => {
         // Verify the forbidden error message is not displayed
-        await page.goto('/#/shipments');
+        await page.goto('/shipments');
         await page.waitForLoadState('networkidle');
 
         // Should not show error: "No shipment data found. Please generate label from Invoices dashboard."
@@ -161,7 +167,7 @@ test.describe('Production Readiness - Critical User Flows', () => {
             }
         });
 
-        await page.goto('/#/manifests');
+        await page.goto('/manifests');
         await page.waitForLoadState('networkidle');
 
         // Try to open create manifest
@@ -178,7 +184,7 @@ test.describe('Production Readiness - Critical User Flows', () => {
     });
 
     test('Hub dropdown should show IMF correctly', async ({ page }) => {
-        await page.goto('/#/manifests');
+        await page.goto('/manifests');
         await page.waitForLoadState('networkidle');
 
         const createBtn = page.getByRole('button', { name: /create manifest/i }).first();
@@ -203,6 +209,7 @@ test.describe('Production Readiness - Critical User Flows', () => {
 });
 
 test.describe('Production Readiness - No Console Errors', () => {
+    test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');
     test.use({ storageState: authFile });
 
     test('should not have React crashes on dashboard', async ({ page }) => {
@@ -214,7 +221,7 @@ test.describe('Production Readiness - No Console Errors', () => {
             }
         });
 
-        await page.goto('/#/dashboard');
+        await page.goto('/dashboard');
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(2000);
 

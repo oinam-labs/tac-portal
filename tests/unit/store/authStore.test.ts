@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAuthStore } from '@/store/authStore';
 import { supabase } from '@/lib/supabase';
 import { orgService } from '@/lib/services/orgService';
+import { AuthError } from '@supabase/supabase-js';
 
 // Mock dependencies
 vi.mock('@/lib/supabase', () => ({
@@ -47,16 +48,16 @@ describe('authStore', () => {
   });
 
   it('sets loading state during sign in', async () => {
-    (supabase.auth.signInWithPassword as any).mockImplementation(() => new Promise(() => { }));
+    vi.mocked(supabase.auth.signInWithPassword).mockImplementation(() => new Promise(() => { }));
     useAuthStore.getState().signIn('test@example.com', 'password');
     expect(useAuthStore.getState().isLoading).toBe(true);
     // await the promise to avoid open handles, though we mocked it to hang, so maybe ignore
   });
 
   it('handles sign in error', async () => {
-    (supabase.auth.signInWithPassword as any).mockResolvedValue({
+    vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({
       data: { session: null, user: null },
-      error: { message: 'Invalid credentials' },
+      error: new AuthError('Invalid credentials'),
     });
 
     const result = await useAuthStore.getState().signIn('test@example.com', 'password');
@@ -69,7 +70,7 @@ describe('authStore', () => {
   it('clears session on sign out', async () => {
     // Set initial state
     useAuthStore.setState({
-      // @ts-ignore
+      // @ts-expect-error -- partial session mock for testing sign out behavior
       session: { user: { id: '123' } },
       isAuthenticated: true,
     });

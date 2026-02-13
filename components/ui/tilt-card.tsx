@@ -57,7 +57,7 @@ export function TiltCard({ children, className, tiltStrength = 5, ...props }: Ti
                 transformStyle: 'preserve-3d',
             }}
             className={cn("relative will-change-transform", className)}
-            {...props as any}
+            {...(props as React.ComponentPropsWithoutRef<typeof motion.div>)}
         >
             {children}
         </motion.div>
