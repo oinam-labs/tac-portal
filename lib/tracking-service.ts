@@ -45,23 +45,21 @@ export const getTrackingInfo = async (
   const ref = trackingNumber.trim().toUpperCase();
 
   try {
-    // Search in Supabase by AWB number
-    const { data: shipment, error: shipmentError } = await supabase
-      .from('shipments')
+    // Search in Supabase by AWB number using secure public view (excludes PII)
+    const { data: shipment, error: shipmentError } = await (supabase
+      .from('public_shipment_tracking' as any)
       .select(
         `
                 id,
                 awb_number,
                 status,
-                receiver_name,
-                receiver_address,
-                service_type,
-                origin_hub:hubs!shipments_origin_hub_id_fkey(code, name),
-                destination_hub:hubs!shipments_destination_hub_id_fkey(code, name)
+                mode,
+                origin_hub:hubs!public_shipment_tracking_origin_hub_id_fkey(code, name),
+                destination_hub:hubs!public_shipment_tracking_destination_hub_id_fkey(code, name)
             `
       )
       .eq('awb_number', ref)
-      .maybeSingle();
+      .maybeSingle() as any);
 
     if (shipmentError) throw shipmentError;
 
@@ -69,17 +67,14 @@ export const getTrackingInfo = async (
       // Cast to our expected type
       const s = shipment as unknown as ShipmentQueryResult;
 
-      // Get tracking events for this shipment
-      const { data: events, error: eventsError } = await supabase
-        .from('tracking_events')
-        .select('event_code, notes, created_at')
+      // Get tracking events using secure public view (excludes actor_staff_id, notes, meta)
+      const { data: events, error: eventsError } = await (supabase
+        .from('public_tracking_events' as any)
+        .select('event_code, created_at')
         .eq('shipment_id', s.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as any);
 
       if (eventsError) throw eventsError;
-
-      // Parse receiver address to get city
-      const receiverCity = s.receiver_address?.city || null;
 
       return {
         success: true,
@@ -87,15 +82,15 @@ export const getTrackingInfo = async (
           shipment: {
             reference: s.awb_number,
             status: s.status,
-            consignee_name: s.receiver_name,
-            consignee_city: receiverCity,
+            consignee_name: 'Consignee', // PII not exposed in public view
+            consignee_city: null,
             origin: s.origin_hub?.name || 'Origin Hub',
             destination: s.destination_hub?.name || 'Destination Hub',
-            mode: s.service_type,
+            mode: (s as any).mode,
           },
           events: ((events || []) as TrackingEventResult[]).map((e) => ({
             status: e.event_code,
-            description: e.notes,
+            description: '',
             created_at: e.created_at || new Date().toISOString(),
           })),
         },

@@ -3,14 +3,24 @@ import { supabase } from './supabase';
 // Direct supabase usage - types from database.types.ts
 
 /**
- * Ensures a default organization exists for the demo environment.
+ * Ensures a default organization exists for the demo/development environment.
  *
  * Strategy:
  * 1. Try to fetch the first existing organization.
  * 2. If none exists, create a new one with a valid UUID.
  * 3. Return the organization ID.
+ *
+ * WARNING: This is demo/dev code and should NOT be used in production.
  */
 export async function getOrCreateDefaultOrg(): Promise<string> {
+  // Gate: Only allow in development
+  if (import.meta.env.PROD) {
+    throw new Error(
+      'getOrCreateDefaultOrg() is a development utility and cannot be used in production. ' +
+      'Organizations should be created through proper onboarding flows.'
+    );
+  }
+
   try {
     // 1. Try to find any existing org
     const { data: existingOrg, error: existingOrgError } = await supabase
@@ -29,7 +39,7 @@ export async function getOrCreateDefaultOrg(): Promise<string> {
     // Note: in a real app, this would be handled by auth/onboarding
     const demoOrgId = '00000000-0000-0000-0000-000000000001';
 
-    // Check if our specific demo org exists (might have failed previously due to rls but checking anyway)
+    // Check if our specific demo org exists
     const { data: demoOrg, error: demoOrgError } = await supabase
       .from('orgs')
       .select('id')
@@ -55,17 +65,13 @@ export async function getOrCreateDefaultOrg(): Promise<string> {
 
     if (error) {
       console.error('Failed to create default org:', error);
-      // Fallback: If insert fails (likely RLS), we can't do much but throw
-      // However, for the specific error "22P02" (invalid input syntax for uuid),
-      // it usually means we sent a string like 'tac-cargo-demo' for the ID column.
-      // Here we are sending a valid UUID, so that error should be resolved.
       throw error;
     }
 
     return newOrg.id;
   } catch (error) {
     console.error('Error in getOrCreateDefaultOrg:', error);
-    // If everything fails, try to query one last time without single() to see if ANY exist
+    // If everything fails, try to query one last time
     const { data: fallbackOrgs, error: fallbackError } = await supabase
       .from('orgs')
       .select('id')

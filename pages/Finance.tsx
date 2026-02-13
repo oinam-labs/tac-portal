@@ -15,6 +15,10 @@ import { CrudDeleteDialog } from '@/components/crud/CrudDeleteDialog';
 
 // Domain Components
 import { CreateInvoiceForm } from '@/components/finance/CreateInvoiceForm';
+import InvoiceDetails from '@/components/finance/InvoiceDetails';
+import { LabelPreviewDialog } from '@/components/domain/LabelPreviewDialog';
+import { generateLabelFromShipment } from '@/lib/utils/label-utils';
+import { LabelData } from '@/components/domain/LabelGenerator';
 
 // Hooks & Data
 import { useInvoices, useUpdateInvoiceStatus } from '@/hooks/useInvoices';
@@ -46,6 +50,14 @@ export const Finance: React.FC = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState<Invoice | null>(null);
   const [labelDownloading, setLabelDownloading] = useState(false);
+
+  // View detail modal state
+  const [viewInvoice, setViewInvoice] = useState<Invoice | null>(null);
+  const [viewShipment, setViewShipment] = useState<Shipment | undefined>(undefined);
+
+  // Label preview dialog state
+  const [labelPreviewOpen, setLabelPreviewOpen] = useState(false);
+  const [labelPreviewData, setLabelPreviewData] = useState<Partial<LabelData> | undefined>(undefined);
 
   // Helper to get shipment from Supabase (include hub + customer relations for label mapping)
   const getShipment = async (awb: string) => {
@@ -220,7 +232,7 @@ export const Finance: React.FC = () => {
 
     return {
       id: inv.id,
-      awb: inv.awb || 'TAC00000000',
+      awb: inv.awb || '',
       customerId: inv.customerId || '',
       customerName: consignee.name || inv.customerName || 'Unknown',
       originHub: 'NEW_DELHI' as HubLocation,
@@ -261,38 +273,33 @@ export const Finance: React.FC = () => {
     setLabelDownloading(true);
     logger.debug('[Label] handleDownloadLabel called', { id: inv.id, awb: inv.awb });
     try {
-      // Check if we have an AWB
-      if (!inv.awb) {
-        console.error('[Label] No AWB found on invoice');
-        toast.error('No AWB number found for this invoice');
-        return;
+      toast.info('Preparing label preview...');
+
+      // Try to load shipment from DB if AWB exists
+      let shipment: Shipment | null = null;
+      if (inv.awb) {
+        const shipmentRow = await getShipment(inv.awb);
+        if (shipmentRow) {
+          shipment = mapShipmentForLabel(shipmentRow);
+        }
       }
 
-      toast.info('Opening label preview...');
-
-      const shipmentRow = await getShipment(inv.awb);
-      logger.debug('[Label] Shipment row from DB', { found: !!shipmentRow });
-
-      // Use DB shipment if exists, otherwise build from invoice data
-      const shipment = shipmentRow
-        ? mapShipmentForLabel(shipmentRow)
-        : buildShipmentFromInvoice(inv);
+      // If no DB shipment, build from invoice data (works without AWB)
+      if (!shipment) {
+        shipment = buildShipmentFromInvoice(inv);
+      }
 
       logger.debug('[Label] Shipment object built', {
         awb: shipment.awb,
         consignee: shipment.consignee?.name,
       });
 
-      // Store shipment data in sessionStorage for the PrintLabel page
-      const storageKey = `print_shipping_label_${shipment.awb}`;
-      sessionStorage.setItem(storageKey, JSON.stringify(shipment));
-      logger.debug('[Label] Shipment stored in sessionStorage', { key: storageKey });
+      // Generate label data and open inline preview dialog
+      const labelData = generateLabelFromShipment(shipment, inv);
+      setLabelPreviewData(labelData);
+      setLabelPreviewOpen(true);
 
-      // Navigate to PrintLabel page which uses the polished LabelGenerator component
-      navigate(`/print/label/${shipment.awb}`);
-      logger.debug('[Label] Navigating to PrintLabel page');
-
-      toast.success('Label ready for printing!');
+      logger.debug('[Label] Label preview dialog opened');
     } catch (error) {
       console.error('Label error:', error);
       toast.error('Failed to generate label');
@@ -355,72 +362,78 @@ Thank you for choosing TAC Cargo.`;
     setDeleteOpen(false);
   };
 
+  // Helper to build Invoice object from DB row
+  // AWB priority: shipment FK join → line_items JSONB → empty
+  const buildInvoiceFromRow = (row: any): Invoice => {
+    const lineItems = row.line_items || {};
+    const awb = row.shipment?.awb_number || lineItems.awb || '';
+    const tax = lineItems.tax ?? { cgst: 0, sgst: 0, igst: 0, total: row.tax_amount ?? 0 };
+
+    return {
+      id: row.id,
+      invoiceNumber: row.invoice_no,
+      customerId: row.customer_id,
+      customerName: row.customer?.name || 'Unknown',
+      shipmentId: row.shipment_id || '',
+      awb,
+      status: row.status,
+      createdAt: row.created_at,
+      dueDate: row.due_date || '',
+      paymentMode: lineItems.paymentMode || 'PAID',
+      financials: {
+        ratePerKg: lineItems.ratePerKg ?? 0,
+        baseFreight: lineItems.baseFreight ?? row.subtotal ?? 0,
+        docketCharge: lineItems.docketCharge ?? 0,
+        pickupCharge: lineItems.pickupCharge ?? 0,
+        packingCharge: lineItems.packingCharge ?? 0,
+        fuelSurcharge: lineItems.fuelSurcharge ?? 0,
+        handlingFee: lineItems.handlingFee ?? 0,
+        insurance: lineItems.insurance ?? 0,
+        tax,
+        discount: lineItems.discount ?? row.discount ?? 0,
+        totalAmount: row.total ?? 0,
+        advancePaid: lineItems.advancePaid ?? 0,
+        balance: lineItems.balance ?? row.total ?? 0,
+      },
+      // Preserve line_items for downstream use (label gen, PDF)
+      ...(Object.keys(lineItems).length > 0 ? { line_items: lineItems } : {}),
+    } as Invoice;
+  };
+
+  // Open invoice detail view
+  const handleViewInvoice = async (row: any) => {
+    const inv = buildInvoiceFromRow(row);
+    setViewInvoice(inv);
+    // Try to load shipment data for route info
+    if (inv.awb) {
+      try {
+        const shipmentRow = await getShipment(inv.awb);
+        if (shipmentRow) {
+          setViewShipment(mapShipmentForLabel(shipmentRow));
+        } else {
+          setViewShipment(undefined);
+        }
+      } catch {
+        setViewShipment(undefined);
+      }
+    } else {
+      setViewShipment(undefined);
+    }
+  };
+
   // Table columns with callbacks
   const columns = useMemo(
     () =>
       getInvoicesColumns({
-        onView: (row) => navigate(`/tracking?awb=${(row as any).awb_number || (row as any).awb}`),
-        onDownload: (row) => {
-          const inv: Invoice = {
-            id: row.id,
-            invoiceNumber: row.invoice_no, // DB column name
-            customerId: row.customer_id,
-            customerName: row.customer?.name || 'Unknown',
-            shipmentId: row.shipment_id || '',
-            awb: row.shipment?.awb_number || '', // Get from shipment relation
-            status: row.status,
-            createdAt: row.created_at,
-            dueDate: row.due_date || '',
-            paymentMode: 'PAID',
-            financials: {
-              ratePerKg: 0,
-              baseFreight: row.subtotal,
-              docketCharge: 0,
-              pickupCharge: 0,
-              packingCharge: 0,
-              fuelSurcharge: 0,
-              handlingFee: 0,
-              insurance: 0,
-              tax: { cgst: 0, sgst: 0, igst: 0, total: row.tax_amount ?? 0 },
-              discount: 0,
-              totalAmount: row.total, // DB column name
-              advancePaid: 0,
-              balance: row.total, // DB column name
-            },
-          };
-          handleDownloadInvoice(inv);
-        },
+        onView: (row) => handleViewInvoice(row),
+        onDownload: (row) => handleDownloadInvoice(buildInvoiceFromRow(row)),
+        onDownloadLabel: (row) => handleDownloadLabel(buildInvoiceFromRow(row)),
         onMarkPaid: (row) => handleStatusUpdate(row.id, 'PAID'),
         onCancel: (row) => handleStatusUpdate(row.id, 'CANCELLED'),
+        onShareWhatsapp: (row) => handleShareWhatsapp(buildInvoiceFromRow(row)),
+        onShareEmail: (row) => handleShareEmail(buildInvoiceFromRow(row)),
         onDelete: (row) => {
-          const inv: Invoice = {
-            id: row.id,
-            invoiceNumber: row.invoice_no, // DB column name
-            customerId: row.customer_id,
-            customerName: row.customer?.name || 'Unknown',
-            shipmentId: row.shipment_id || '',
-            awb: row.shipment?.awb_number || '', // Get from shipment relation
-            status: row.status,
-            createdAt: row.created_at,
-            dueDate: row.due_date || '',
-            paymentMode: 'PAID',
-            financials: {
-              ratePerKg: 0,
-              baseFreight: row.subtotal,
-              docketCharge: 0,
-              pickupCharge: 0,
-              packingCharge: 0,
-              fuelSurcharge: 0,
-              handlingFee: 0,
-              insurance: 0,
-              tax: { cgst: 0, sgst: 0, igst: 0, total: row.tax_amount ?? 0 },
-              discount: 0,
-              totalAmount: row.total, // DB column name
-              advancePaid: 0,
-              balance: row.total, // DB column name
-            },
-          };
-          setRowToDelete(inv);
+          setRowToDelete(buildInvoiceFromRow(row));
           setDeleteOpen(true);
         },
       }),
@@ -450,44 +463,53 @@ Thank you for choosing TAC Cargo.`;
       <PageHeader title="Invoices" description="Manage invoices, billing, and payment gateways." />
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-card border-border shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-full bg-status-success/10 text-status-success">
-              <CreditCard className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="text-sm text-muted-foreground">Total Revenue (Paid)</div>
-              <div className="text-2xl font-bold text-foreground font-mono">
-                {formatCurrency(totalRevenue)}
-              </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="p-6 border-border flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Invoices</div>
+            <div className="p-2 bg-primary/10 text-primary rounded-none">
+              <FileText className="w-4 h-4" />
             </div>
           </div>
-        </Card>
-        <Card className="bg-card border-border shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-full bg-status-warning/10 text-status-warning">
-              <FileText className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="text-sm text-muted-foreground">Pending Invoices</div>
-              <div className="text-2xl font-bold text-foreground font-mono">
-                {formatCurrency(pendingAmount)}
-              </div>
-            </div>
+          <div className="text-3xl font-bold text-foreground font-mono leading-none">
+            {invoicesData.length}
           </div>
         </Card>
-        <Card className="bg-card border-border shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-full bg-status-error/10 text-status-error">
-              <FileText className="w-6 h-6" />
+
+        <Card className="p-6 border-border flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Revenue (Paid)</div>
+            <div className="p-2 bg-status-success/10 text-status-success rounded-none">
+              <CreditCard className="w-4 h-4" />
             </div>
-            <div>
-              <div className="text-sm text-muted-foreground">Overdue</div>
-              <div className="text-2xl font-bold text-foreground font-mono">
-                {formatCurrency(overdueAmount)}
-              </div>
+          </div>
+          <div className="text-2xl font-bold text-foreground font-mono leading-none truncate" title={formatCurrency(totalRevenue)}>
+            {formatCurrency(totalRevenue)}
+          </div>
+        </Card>
+
+        <Card className="p-6 border-border flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Pending</div>
+            <div className="p-2 bg-status-warning/10 text-status-warning rounded-none">
+              <FileText className="w-4 h-4" />
             </div>
+          </div>
+          <div className="text-2xl font-bold text-foreground font-mono leading-none truncate" title={formatCurrency(pendingAmount)}>
+            {formatCurrency(pendingAmount)}
+          </div>
+        </Card>
+
+        <Card className="p-6 border-border flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Overdue</div>
+            <div className="p-2 bg-status-error/10 text-status-error rounded-none">
+              <FileText className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-foreground font-mono leading-none truncate" title={formatCurrency(overdueAmount)}>
+            {formatCurrency(overdueAmount)}
           </div>
         </Card>
       </div>
@@ -575,6 +597,26 @@ Thank you for choosing TAC Cargo.`;
         )}
       </Modal>
 
+      {/* Invoice Detail View Modal */}
+      <Modal
+        isOpen={!!viewInvoice}
+        onClose={() => { setViewInvoice(null); setViewShipment(undefined); }}
+        title="Invoice Details"
+        size="4xl"
+      >
+        {viewInvoice && (
+          <InvoiceDetails
+            invoice={viewInvoice}
+            shipment={viewShipment}
+            onClose={() => { setViewInvoice(null); setViewShipment(undefined); }}
+            onDownloadInvoice={handleDownloadInvoice}
+            onDownloadLabel={handleDownloadLabel}
+            onMarkPaid={(id) => handleStatusUpdate(id, 'PAID')}
+            onCancel={(id) => handleStatusUpdate(id, 'CANCELLED')}
+          />
+        )}
+      </Modal>
+
       {/* Delete Confirmation Dialog */}
       <CrudDeleteDialog
         open={deleteOpen}
@@ -583,6 +625,13 @@ Thank you for choosing TAC Cargo.`;
         description={`This will cancel invoice "${rowToDelete?.invoiceNumber ?? ''}". This action cannot be undone.`}
         onConfirm={handleDelete}
         confirmLabel="Cancel Invoice"
+      />
+
+      {/* Inline Label Preview Dialog */}
+      <LabelPreviewDialog
+        shipmentData={labelPreviewData}
+        open={labelPreviewOpen}
+        onOpenChange={setLabelPreviewOpen}
       />
     </div>
   );

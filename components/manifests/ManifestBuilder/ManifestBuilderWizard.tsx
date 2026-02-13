@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, ArrowRight, Save, Lock, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -24,7 +23,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/lib/supabase';
 import { useManifestBuilder } from '@/hooks/useManifestBuilder';
 import { useStaff } from '@/hooks/useStaff';
 import { WizardStepper } from './WizardStepper';
@@ -32,7 +30,7 @@ import { StepManifestSetup, type ManifestSettingsValues } from './steps/StepMani
 import { StepAddShipments } from './steps/StepAddShipments';
 import { StepReviewFinalize } from './steps/StepReviewFinalize';
 import type { CreateManifestParams, ManifestStatus } from '@/lib/services/manifestService';
-import type { HubOption } from './manifest-builder.types';
+
 
 interface ManifestBuilderWizardProps {
   open: boolean;
@@ -74,20 +72,7 @@ function combineDateTimeWithPeriod(
   return clone.toISOString();
 }
 
-function useHubs() {
-  return useQuery({
-    queryKey: ['hubs'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('hubs')
-        .select('id, code, name')
-        .eq('is_active', true)
-        .order('name');
-      if (error) throw error;
-      return (data ?? []) as HubOption[];
-    },
-  });
-}
+import { useHubs } from '@/hooks/useHubs';
 
 export function ManifestBuilderWizard({
   open,
@@ -351,6 +336,8 @@ export function ManifestBuilderWizard({
                       excludeCod: setupData.excludeCod,
                     }}
                     items={builder.items}
+                    fromHub={hubs.find((h) => h.id === setupData.fromHubId) ?? null}
+                    toHub={hubs.find((h) => h.id === setupData.toHubId) ?? null}
                     isLoading={builder.isLoading}
                     isEditable={builder.isEditable}
                     onItemsChanged={builder.refetch}

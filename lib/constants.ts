@@ -53,66 +53,11 @@ export const PAYMENT_MODES = [
 export const INDIAN_STATES = [
   'Manipur',
   'Delhi', // Priority States
-  'Andhra Pradesh',
-  'Arunachal Pradesh',
-  'Assam',
-  'Bihar',
-  'Chhattisgarh',
-  'Goa',
-  'Gujarat',
-  'Haryana',
-  'Himachal Pradesh',
-  'Jharkhand',
-  'Karnataka',
-  'Kerala',
-  'Madhya Pradesh',
-  'Maharashtra',
-  'Meghalaya',
-  'Mizoram',
-  'Nagaland',
-  'Odisha',
-  'Punjab',
-  'Rajasthan',
-  'Sikkim',
-  'Tamil Nadu',
-  'Telangana',
-  'Tripura',
-  'Uttar Pradesh',
-  'Uttarakhand',
-  'West Bengal',
-  'Andaman and Nicobar Islands',
-  'Chandigarh',
-  'Dadra and Nagar Haveli and Daman and Diu',
-  'Lakshadweep',
-  'Puducherry',
-  'Ladakh',
-  'Jammu and Kashmir',
 ];
 
 export const POPULAR_CITIES = [
   'Imphal',
   'New Delhi',
-  'Guwahati',
-  'Dimapur',
-  'Kohima',
-  'Aizawl',
-  'Shillong',
-  'Agartala',
-  'Kolkata',
-  'Mumbai',
-  'Bangalore',
-  'Chennai',
-  'Hyderabad',
-  'Pune',
-  'Ahmedabad',
-  'Jaipur',
-  'Lucknow',
-  'Churachandpur',
-  'Thoubal',
-  'Kakching',
-  'Senapati',
-  'Ukhrul',
-  'Bishnupur',
 ];
 
 export const CONTENT_TYPES = [
@@ -129,3 +74,6 @@ export const CONTENT_TYPES = [
   'Machinery Parts',
   'Sports Goods',
 ];
+
+export const GSTIN_PATTERN = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+export const GSTIN_ERROR_MESSAGE = 'Invalid GSTIN. Format: 27ABCDE1234F1Z5';

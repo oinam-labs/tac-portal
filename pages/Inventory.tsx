@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
-import { Card, Table, Th, Td, Badge, Input, Button } from '../components/ui/CyberComponents';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { PageHeader } from '@/components/ui/page-header';
 import { useShipments } from '../hooks/useShipments';
-import { Search, Warehouse } from 'lucide-react';
+import { Search, Warehouse, Package } from 'lucide-react';
 import { HubLocation } from '../types';
 import { HUBS } from '../lib/constants';
 import { TableSkeleton } from '../components/ui/skeleton';
@@ -75,15 +80,8 @@ export const Inventory: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Inventory Management</h1>
-            <p className="text-muted-foreground text-sm">
-              Real-time stock view across hub network.
-            </p>
-          </div>
-        </div>
+      <div className="space-y-4 animate-[fadeIn_0.3s_ease-out]">
+        <PageHeader title="Inventory Management" description="Real-time stock view across hub network." />
         <Card>
           <TableSkeleton rows={5} columns={6} />
         </Card>
@@ -92,47 +90,56 @@ export const Inventory: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Inventory Management</h1>
-          <p className="text-muted-foreground text-sm">Real-time stock view across hub network.</p>
-        </div>
-        <div className="flex gap-2">
+    <div className="space-y-4 animate-[fadeIn_0.3s_ease-out]">
+      <PageHeader title="Inventory Management" description="Real-time stock view across hub network.">
+        <div className="flex gap-1">
           <Button
-            variant={filterHub === 'ALL' ? 'primary' : 'secondary'}
+            variant={filterHub === 'ALL' ? 'default' : 'outline'}
+            size="sm"
             onClick={() => setFilterHub('ALL')}
           >
             All Hubs
           </Button>
           <Button
-            variant={filterHub === 'IMPHAL' ? 'primary' : 'secondary'}
+            variant={filterHub === 'IMPHAL' ? 'default' : 'outline'}
+            size="sm"
             onClick={() => setFilterHub('IMPHAL')}
           >
             Imphal
           </Button>
           <Button
-            variant={filterHub === 'NEW_DELHI' ? 'primary' : 'secondary'}
+            variant={filterHub === 'NEW_DELHI' ? 'default' : 'outline'}
+            size="sm"
             onClick={() => setFilterHub('NEW_DELHI')}
           >
             New Delhi
           </Button>
         </div>
-      </div>
+      </PageHeader>
 
-      <div className="grid grid-cols-2 gap-4 mb-2">
-        <Card className="p-4 bg-muted flex justify-between items-center">
-          <span className="text-sm text-muted-foreground">Total In Stock</span>
-          <span className="text-xl font-bold text-foreground">{stats.total} Pkgs</span>
-        </Card>
-        <Card className="p-4 bg-muted flex justify-between items-center">
-          <span className="text-sm text-muted-foreground">Aging Critical (24h+)</span>
-          <span className="text-xl font-bold text-status-error">{stats.critical} Pkgs</span>
-        </Card>
-      </div>
+      <Card className="grid grid-cols-2 divide-x divide-border">
+        <div className="p-6 flex items-center gap-4">
+          <div className="p-3 bg-primary/10 text-primary rounded-none">
+            <Package className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Total In Stock</div>
+            <div className="text-3xl font-bold text-foreground font-mono leading-none">{stats.total} <span className="text-sm font-normal text-muted-foreground ml-1">Pkgs</span></div>
+          </div>
+        </div>
+        <div className="p-6 flex items-center gap-4">
+          <div className="p-3 bg-status-error/10 text-status-error rounded-none">
+            <Warehouse className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Aging Critical (24h+)</div>
+            <div className="text-3xl font-bold text-status-error font-mono leading-none">{stats.critical} <span className="text-sm font-normal text-muted-foreground ml-1">Pkgs</span></div>
+          </div>
+        </div>
+      </Card>
 
       <Card>
-        <div className="flex justify-between mb-4">
+        <div className="flex justify-between items-center mb-4">
           <div className="relative w-64">
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
             <Input
@@ -142,59 +149,64 @@ export const Inventory: React.FC = () => {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+          <div className="text-xs text-muted-foreground font-mono">
+            {inventoryItems.length} items
+          </div>
         </div>
 
-        <Table>
-          <thead>
-            <tr>
-              <Th>AWB</Th>
-              <Th>Packages</Th>
-              <Th>Weight</Th>
-              <Th>Location Hub</Th>
-              <Th>Status</Th>
-              <Th>Aging</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {inventoryItems.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="text-center py-10 text-muted-foreground">
-                  No items currently in inventory matching filters.
-                </td>
-              </tr>
-            ) : (
-              inventoryItems.map((s) => {
-                const location = getInventoryLocation(s);
-                const hubName = location ? HUBS[location].name : 'Unknown';
-                const bucket = getAgingBucket(s.created_at);
+        <div className="border border-border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>AWB</TableHead>
+                <TableHead>Packages</TableHead>
+                <TableHead>Weight</TableHead>
+                <TableHead>Location Hub</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Aging</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {inventoryItems.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                    No items currently in inventory matching filters.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                inventoryItems.map((s) => {
+                  const location = getInventoryLocation(s);
+                  const hubName = location ? HUBS[location].name : 'Unknown';
+                  const bucket = getAgingBucket(s.created_at);
 
-                return (
-                  <tr key={s.id} className="hover:bg-muted transition-colors">
-                    <Td>
-                      <span className="font-mono text-foreground font-bold">{s.awb_number}</span>
-                    </Td>
-                    <Td>
-                      <span className="font-mono">{s.package_count}</span>
-                    </Td>
-                    <Td>{s.total_weight} kg</Td>
-                    <Td>
-                      <div className="flex items-center gap-2">
-                        <Warehouse className="w-4 h-4 text-muted-foreground" />
-                        {hubName}
-                      </div>
-                    </Td>
-                    <Td>
-                      <Badge variant="outline">{s.status.replace(/_/g, ' ')}</Badge>
-                    </Td>
-                    <Td>
-                      <span className={`font-mono font-bold ${bucketColor(bucket)}`}>{bucket}</span>
-                    </Td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </Table>
+                  return (
+                    <TableRow key={s.id}>
+                      <TableCell>
+                        <span className="font-mono text-foreground font-bold">{s.awb_number}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-mono">{s.package_count}</span>
+                      </TableCell>
+                      <TableCell className="font-mono">{s.total_weight} kg</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Warehouse className="w-4 h-4 text-muted-foreground" />
+                          {hubName}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{s.status.replace(/_/g, ' ')}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`font-mono font-bold ${bucketColor(bucket)}`}>{bucket}</span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </Card>
     </div>
   );

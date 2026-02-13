@@ -62,7 +62,7 @@ const KPICard = React.memo(({ kpi, index }: KPICardProps) => {
         <div className="p-6 relative">
           <div className="flex justify-between items-start mb-4">
             {/* Icon Badge */}
-            <div className={`p-2.5 rounded-lg border shadow-sm ${colorMap[kpi.color]}`}>
+            <div className={`p-2 border ${colorMap[kpi.color]}`}>
               <kpi.icon className="w-5 h-5" />
             </div>
           </div>
@@ -148,7 +148,7 @@ export const KPIGrid: React.FC<KPIGridProps> = ({ isLoading: externalLoading = f
   }
 
   return (
-    <div data-testid="kpi-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+    <div data-testid="kpi-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px bg-border mb-6">
       {kpis.map((kpi, index) => (
         <KPICard key={kpi.label} kpi={kpi} index={index} />
       ))}

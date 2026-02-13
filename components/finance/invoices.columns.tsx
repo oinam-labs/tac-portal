@@ -3,8 +3,23 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { CrudRowActions } from '@/components/crud/CrudRowActions';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Download, CheckCircle, XCircle } from 'lucide-react';
+import {
+  FileText,
+  Download,
+  CheckCircle,
+  XCircle,
+  Printer,
+  Eye,
+  MessageCircle,
+  Mail,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { InvoiceWithRelations } from '@/hooks/useInvoices';
 
 // Status color mapping using semantic badge classes
@@ -16,17 +31,29 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED: 'badge--cancelled',
 };
 
+// Amount color based on status
+const AMOUNT_STATUS_COLORS: Record<string, string> = {
+  PAID: 'text-status-success',
+  ISSUED: 'text-status-warning',
+  OVERDUE: 'text-status-error',
+  DRAFT: 'text-muted-foreground',
+  CANCELLED: 'text-muted-foreground line-through',
+};
+
 export interface InvoicesColumnsParams {
   onView: (row: InvoiceWithRelations) => void;
   onDownload: (row: InvoiceWithRelations) => void;
+  onDownloadLabel: (row: InvoiceWithRelations) => void;
   onMarkPaid: (row: InvoiceWithRelations) => void;
   onCancel: (row: InvoiceWithRelations) => void;
   onDelete: (row: InvoiceWithRelations) => void;
+  onShareWhatsapp?: (row: InvoiceWithRelations) => void;
+  onShareEmail?: (row: InvoiceWithRelations) => void;
 }
 
 /**
  * Generate column definitions for the invoices table.
- * Includes callbacks for view, download, status updates, and delete actions.
+ * Includes callbacks for view, download, label print, status updates, and delete actions.
  */
 export function getInvoicesColumns(
   params: InvoicesColumnsParams
@@ -36,39 +63,58 @@ export function getInvoicesColumns(
       accessorKey: 'invoice_no',
       header: 'Invoice',
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
+        <button
+          className="flex items-center gap-2 hover:underline cursor-pointer text-left"
+          onClick={() => params.onView(row.original)}
+        >
           <FileText className="w-4 h-4 text-primary" />
           <span className="font-mono font-bold text-primary">{row.original.invoice_no}</span>
-        </div>
+        </button>
       ),
+    },
+    {
+      accessorKey: 'awb',
+      header: 'AWB',
+      accessorFn: (row) =>
+        row.shipment?.awb_number || (row.line_items as any)?.awb || '',
+      cell: ({ row }) => {
+        const awb =
+          row.original.shipment?.awb_number ||
+          (row.original.line_items as any)?.awb ||
+          '';
+        return awb ? (
+          <span className="font-mono text-sm font-medium text-foreground">
+            {awb}
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground italic">—</span>
+        );
+      },
+      enableGlobalFilter: true,
     },
     {
       accessorKey: 'customer',
       header: 'Customer',
       cell: ({ row }) => (
-        <div>
-          <div className="font-medium text-foreground">{row.original.customer?.name || '—'}</div>
-          {row.original.shipment?.awb_number && (
-            <div className="text-xs text-muted-foreground font-mono">
-              AWB: {row.original.shipment.awb_number}
-            </div>
-          )}
-        </div>
+        <div className="font-medium text-foreground">{row.original.customer?.name || '—'}</div>
       ),
     },
     {
       accessorKey: 'total',
       header: 'Amount',
-      cell: ({ row }) => (
-        <div className="text-right">
-          <div className="font-bold text-lg">
-            ₹{row.original.total?.toLocaleString('en-IN') ?? '0'}
+      cell: ({ row }) => {
+        const statusColor = AMOUNT_STATUS_COLORS[row.original.status] || 'text-foreground';
+        return (
+          <div className="text-right">
+            <div className={`font-bold text-lg ${statusColor}`}>
+              ₹{row.original.total?.toLocaleString('en-IN') ?? '0'}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Tax: ₹{(row.original.tax_amount ?? 0).toLocaleString('en-IN')}
+            </div>
           </div>
-          <div className="text-xs text-muted-foreground">
-            Tax: ₹{(row.original.tax_amount ?? 0).toLocaleString('en-IN')}
-          </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       accessorKey: 'due_date',
@@ -94,31 +140,79 @@ export function getInvoicesColumns(
       id: 'actions',
       header: '',
       cell: ({ row }) => (
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" onClick={() => params.onDownload(row.original)}>
-            <Download className="w-4 h-4" />
-          </Button>
-          <CrudRowActions
-            onEdit={() => params.onView(row.original)}
-            onDelete={() => params.onDelete(row.original)}
-            extraItems={[
-              ...(row.original.status === 'ISSUED'
-                ? [
-                  {
-                    label: 'Mark as Paid',
-                    icon: <CheckCircle className="w-4 h-4" />,
-                    onClick: () => params.onMarkPaid(row.original),
-                  },
-                  {
-                    label: 'Cancel',
-                    icon: <XCircle className="w-4 h-4" />,
-                    onClick: () => params.onCancel(row.original),
-                  },
-                ]
-                : []),
-            ]}
-          />
-        </div>
+        <TooltipProvider>
+          <div className="flex items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" onClick={() => params.onDownload(row.original)}>
+                  <Download className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Download Invoice</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" onClick={() => params.onDownloadLabel(row.original)}>
+                  <Printer className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Print Label</TooltipContent>
+            </Tooltip>
+            <CrudRowActions
+              onEdit={() => params.onView(row.original)}
+              onDelete={() => params.onDelete(row.original)}
+              extraItems={[
+                {
+                  label: 'View Details',
+                  icon: <Eye className="w-4 h-4" />,
+                  onClick: () => params.onView(row.original),
+                },
+                {
+                  label: 'Download Invoice',
+                  icon: <Download className="w-4 h-4" />,
+                  onClick: () => params.onDownload(row.original),
+                },
+                {
+                  label: 'Print Label',
+                  icon: <Printer className="w-4 h-4" />,
+                  onClick: () => params.onDownloadLabel(row.original),
+                },
+                ...(params.onShareWhatsapp
+                  ? [
+                    {
+                      label: 'Share WhatsApp',
+                      icon: <MessageCircle className="w-4 h-4" />,
+                      onClick: () => params.onShareWhatsapp!(row.original),
+                    },
+                  ]
+                  : []),
+                ...(params.onShareEmail
+                  ? [
+                    {
+                      label: 'Share Email',
+                      icon: <Mail className="w-4 h-4" />,
+                      onClick: () => params.onShareEmail!(row.original),
+                    },
+                  ]
+                  : []),
+                ...(row.original.status === 'ISSUED'
+                  ? [
+                    {
+                      label: 'Mark as Paid',
+                      icon: <CheckCircle className="w-4 h-4" />,
+                      onClick: () => params.onMarkPaid(row.original),
+                    },
+                    {
+                      label: 'Cancel',
+                      icon: <XCircle className="w-4 h-4" />,
+                      onClick: () => params.onCancel(row.original),
+                    },
+                  ]
+                  : []),
+              ]}
+            />
+          </div>
+        </TooltipProvider>
       ),
     },
   ];

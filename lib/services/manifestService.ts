@@ -74,17 +74,17 @@ export function mapManifestItemWithShipment(item: any): ManifestItemWithShipment
     ...item,
     shipment: item.shipment
       ? {
-          ...item.shipment,
-          // Map to expected interface names (columns use receiver_*/sender_* names)
-          receiver_name: item.shipment.receiver_name,
-          receiver_phone: item.shipment.receiver_phone,
-          receiver_address: item.shipment.receiver_address,
-          sender_name: item.shipment.sender_name,
-          sender_phone: item.shipment.sender_phone,
-          package_count: item.shipment.package_count,
-          total_weight: item.shipment.total_weight,
-          receiver_city: item.shipment.receiver_address?.city,
-        }
+        ...item.shipment,
+        // Map to expected interface names (columns use receiver_*/sender_* names)
+        receiver_name: item.shipment.receiver_name,
+        receiver_phone: item.shipment.receiver_phone,
+        receiver_address: item.shipment.receiver_address,
+        sender_name: item.shipment.sender_name,
+        sender_phone: item.shipment.sender_phone,
+        package_count: item.shipment.package_count,
+        total_weight: item.shipment.total_weight,
+        receiver_city: item.shipment.receiver_address?.city,
+      }
       : undefined,
   };
 }
@@ -581,10 +581,10 @@ export const manifestService = {
         };
       }
 
-      // Find shipment by AWB or ID
+      // Find shipment by AWB or ID (include destination hub for error messages)
       const { data: shipment } = await supabase
         .from('shipments')
-        .select('*')
+        .select('*, destination_hub:hubs!shipments_destination_hub_id_fkey(code, name)')
         .eq('org_id', orgId)
         .is('deleted_at', null)
         .or(`awb_number.ilike.%${normalized}%,id.eq.${scanToken}`)
@@ -639,10 +639,12 @@ export const manifestService = {
 
       // Validate destination
       if (validateDestination && shipment.destination_hub_id !== manifest.to_hub_id) {
+        const shipDestCode = (shipment as any).destination_hub?.code || 'UNKNOWN';
+        const manDestCode = (manifest as any).to_hub?.code || 'UNKNOWN';
         return {
           success: false,
           error: 'DESTINATION_MISMATCH',
-          message: 'Shipment destination does not match manifest destination',
+          message: `Shipment routes to ${shipDestCode} but manifest goes to ${manDestCode}`,
           shipment_id: shipment.id,
           awb_number: shipment.awb_number,
         };
@@ -784,15 +786,15 @@ export const manifestService = {
     const vehicleMeta =
       params.type === 'AIR'
         ? {
-            flight_no: params.flightNumber,
-            flight_date: params.flightDate,
-            airline_code: params.airlineCode,
-          }
+          flight_no: params.flightNumber,
+          flight_date: params.flightDate,
+          airline_code: params.airlineCode,
+        }
         : {
-            vehicle_no: params.vehicleNumber,
-            driver_name: params.driverName,
-            driver_phone: params.driverPhone,
-          };
+          vehicle_no: params.vehicleNumber,
+          driver_name: params.driverName,
+          driver_phone: params.driverPhone,
+        };
 
     const { data, error } = await (supabase.from('manifests') as any)
       .insert({

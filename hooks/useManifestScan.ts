@@ -345,13 +345,12 @@ export function useScanInput(
       e?.preventDefault();
       if (!inputValue.trim()) return;
 
-      const result = await scanner.scanManual(inputValue);
+      await scanner.scanManual(inputValue);
 
-      if (result.success) {
-        setInputValue('');
-        // Refocus input for next scan
-        inputRef?.current?.focus();
-      }
+      // Always clear input for next scan (success, error, or duplicate)
+      setInputValue('');
+      // Refocus input for next scan
+      inputRef?.current?.focus();
     },
     [inputValue, scanner, inputRef]
   );

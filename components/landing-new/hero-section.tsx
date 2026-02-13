@@ -53,7 +53,7 @@ export function HeroSection() {
 
       {/* Background Elements */}
       {/* Ambient Center Glow (Subtler) */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/05 dark:bg-primary/20 rounded-full blur-[80px] pointer-events-none z-0"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/05 dark:bg-primary/20 blur-[80px] pointer-events-none z-0 rotate-45"></div>
 
       {/* Light Rays - Deep Dive Implementation */}
       <LightRays
@@ -91,7 +91,7 @@ export function HeroSection() {
         <div ref={ctaRef} className="flex flex-col md:flex-row items-center justify-center gap-4 opacity-0">
           {/* Primary CTA */}
           <Link to="/login">
-            <Button size="lg" className="rounded-full px-8 font-medium group">
+            <Button size="lg" className="px-8 font-medium group">
               Book Shipment
               <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
             </Button>
@@ -100,7 +100,7 @@ export function HeroSection() {
           {/* Secondary CTA */}
           <TrackingDialog
             trigger={
-              <Button variant="outline" size="lg" className="rounded-full px-8 font-medium">
+              <Button variant="outline" size="lg" className="px-8 font-medium">
                 Track Cargo
               </Button>
             }

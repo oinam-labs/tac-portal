@@ -83,6 +83,9 @@ const SentryTest = lazy(() =>
 );
 const ShiftReport = lazy(() => import('./pages/ShiftReport'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const Messages = lazy(() =>
+  import('./pages/admin/Messages').then(module => ({ default: module.Messages }))
+);
 
 // Login Page Component with Supabase Auth
 const Login: React.FC = () => {
@@ -150,8 +153,8 @@ const Login: React.FC = () => {
       {/* Gradient Background — adapative to project theme */}
       <div className="fixed inset-0 -z-10 bg-gradient-to-br from-background via-muted/50 to-background dark:from-background dark:via-primary/5 dark:to-background transition-colors duration-500">
         {/* Ambient blobs using project vars */}
-        <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] rounded-full bg-primary/20 sm:bg-primary/10 blur-[120px] animate-pulse" />
-        <div className="absolute bottom-1/4 -right-20 w-[400px] h-[400px] rounded-full bg-accent/20 sm:bg-accent/10 blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-primary/20 sm:bg-primary/10 blur-[120px] animate-pulse rotate-45" />
+        <div className="absolute bottom-1/4 -right-20 w-[400px] h-[400px] bg-accent/20 sm:bg-accent/10 blur-[100px] animate-pulse rotate-45" style={{ animationDelay: '2s' }} />
       </div>
 
       {/* Top Controls */}
@@ -159,7 +162,7 @@ const Login: React.FC = () => {
         {/* Back Arrow */}
         <button
           onClick={() => navigate('/')}
-          className="group flex items-center gap-2 rounded-full border border-border/40 bg-background/50 backdrop-blur-md px-3 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-background/80 hover:border-border transition-all"
+          className="group flex items-center gap-2 border border-border/40 bg-background/50 backdrop-blur-md px-3 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-background/80 hover:border-border transition-all"
           aria-label="Back to home"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -174,7 +177,7 @@ const Login: React.FC = () => {
       <main className="relative flex min-h-screen items-center justify-center p-4 sm:p-6">
         {/* Card */}
         <div className="relative z-10 w-full max-w-3xl">
-          <div className="group relative overflow-hidden rounded-2xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/10 backdrop-blur-xl shadow-2xl shadow-black/10 dark:shadow-black/40 ring-1 ring-black/5 dark:ring-white/10 transition-all duration-300 hover:border-black/15 dark:hover:border-white/20 hover:ring-black/10 dark:hover:ring-white/20">
+          <div className="group relative overflow-hidden border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/10 backdrop-blur-xl shadow-2xl shadow-black/10 dark:shadow-black/40 ring-1 ring-black/5 dark:ring-white/10 transition-all duration-300 hover:border-black/15 dark:hover:border-white/20 hover:ring-black/10 dark:hover:ring-white/20">
             {/* Top hairline */}
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-black/10 dark:via-white/20 to-transparent" />
 
@@ -190,7 +193,7 @@ const Login: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-tr from-black/60 via-black/30 to-transparent" />
 
                 {/* Overlay badge */}
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between rounded-lg border border-white/10 bg-black/30 px-3 py-2 backdrop-blur-md">
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between border border-white/10 bg-black/30 px-3 py-2 backdrop-blur-md">
                   <div className="flex items-center gap-2 text-xs text-white/75">
                     <Box className="h-3.5 w-3.5" />
                     Secure channel
@@ -204,7 +207,7 @@ const Login: React.FC = () => {
                 {/* Logo */}
                 <div className="mb-6 flex items-center justify-between">
                   <Link to="/" className="flex items-center gap-3 group">
-                    <div className="grid h-10 w-10 place-items-center text-foreground/80 dark:text-white/90 bg-black/5 dark:bg-white/10 border border-black/10 dark:border-white/15 rounded-xl shadow-sm group-hover:bg-black/10 dark:group-hover:bg-white/20 transition-colors">
+                    <div className="grid h-10 w-10 place-items-center text-foreground/80 dark:text-white/90 bg-black/5 dark:bg-white/10 border border-black/10 dark:border-white/15 shadow-sm group-hover:bg-black/10 dark:group-hover:bg-white/20 transition-colors">
                       <Box className="h-5 w-5" />
                     </div>
                     <div>
@@ -223,7 +226,7 @@ const Login: React.FC = () => {
 
                 {/* Error */}
                 {error && (
-                  <div data-testid="login-error-message" className="mb-4 p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive dark:text-red-300 text-sm backdrop-blur-sm">
+                  <div data-testid="login-error-message" className="mb-4 p-3 border border-destructive/30 bg-destructive/10 text-destructive dark:text-red-300 text-sm backdrop-blur-sm">
                     {error}
                   </div>
                 )}
@@ -233,7 +236,7 @@ const Login: React.FC = () => {
                   {/* Email */}
                   <div className="space-y-2">
                     <label htmlFor="login-email" className="block text-sm text-foreground/80 dark:text-white/80">Email</label>
-                    <div className="group/input relative flex items-center rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/5 px-3 py-2.5 transition-all hover:border-black/20 dark:hover:border-white/20 focus-within:border-primary/40 dark:focus-within:border-white/25 focus-within:bg-black/[0.05] dark:focus-within:bg-white/[0.07]">
+                    <div className="group/input relative flex items-center border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/5 px-3 py-2.5 transition-all hover:border-black/20 dark:hover:border-white/20 focus-within:border-primary/40 dark:focus-within:border-white/25 focus-within:bg-black/[0.05] dark:focus-within:bg-white/[0.07]">
                       <Mail className="mr-2 h-4 w-4 text-muted-foreground dark:text-white/50 shrink-0" />
                       <input
                         id="login-email"
@@ -247,14 +250,14 @@ const Login: React.FC = () => {
                         data-testid="login-email-input"
                         className="w-full bg-transparent text-sm text-foreground dark:text-white placeholder:text-muted-foreground/60 dark:placeholder:text-white/40 focus:outline-none disabled:opacity-50"
                       />
-                      <div className="pointer-events-none absolute inset-0 rounded-xl ring-0 ring-primary/0 transition-all group-focus-within/input:ring-2 group-focus-within/input:ring-primary/25" />
+                      <div className="pointer-events-none absolute inset-0 ring-0 ring-primary/0 transition-all group-focus-within/input:ring-2 group-focus-within/input:ring-primary/25" />
                     </div>
                   </div>
 
                   {/* Password */}
                   <div className="space-y-2">
                     <label htmlFor="login-password" className="block text-sm text-foreground/80 dark:text-white/80">Password</label>
-                    <div className="group/input relative flex items-center rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/5 px-3 py-2.5 transition-all hover:border-black/20 dark:hover:border-white/20 focus-within:border-primary/40 dark:focus-within:border-white/25 focus-within:bg-black/[0.05] dark:focus-within:bg-white/[0.07]">
+                    <div className="group/input relative flex items-center border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/5 px-3 py-2.5 transition-all hover:border-black/20 dark:hover:border-white/20 focus-within:border-primary/40 dark:focus-within:border-white/25 focus-within:bg-black/[0.05] dark:focus-within:bg-white/[0.07]">
                       <Lock className="mr-2 h-4 w-4 text-muted-foreground dark:text-white/50 shrink-0" />
                       <input
                         id="login-password"
@@ -270,13 +273,13 @@ const Login: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="ml-2 grid h-8 w-8 shrink-0 place-items-center rounded-lg text-muted-foreground dark:text-white/60 hover:text-foreground dark:hover:text-white/90 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                        className="ml-2 grid h-8 w-8 shrink-0 place-items-center text-muted-foreground dark:text-white/60 hover:text-foreground dark:hover:text-white/90 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                         tabIndex={-1}
                         aria-label="Toggle password visibility"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
-                      <div className="pointer-events-none absolute inset-0 rounded-xl ring-0 ring-primary/0 transition-all group-focus-within/input:ring-2 group-focus-within/input:ring-primary/25" />
+                      <div className="pointer-events-none absolute inset-0 ring-0 ring-primary/0 transition-all group-focus-within/input:ring-2 group-focus-within/input:ring-primary/25" />
                     </div>
                   </div>
 
@@ -289,9 +292,9 @@ const Login: React.FC = () => {
                       type="submit"
                       disabled={isLoading}
                       data-testid="login-submit-button"
-                      className="group relative inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-lg shadow-primary/30 outline-none ring-1 ring-primary/30 transition-all hover:shadow-primary/40 hover:brightness-110 hover:saturate-125 focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
+                      className="group relative inline-flex items-center justify-center bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-lg shadow-primary/30 outline-none ring-1 ring-primary/30 transition-all hover:shadow-primary/40 hover:brightness-110 hover:saturate-125 focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <span className="absolute inset-0 -z-10 rounded-xl bg-primary/20 opacity-0 blur-xl transition-opacity group-hover:opacity-100" />
+                      <span className="absolute inset-0 -z-10 bg-primary/20 opacity-0 blur-xl transition-opacity group-hover:opacity-100" />
                       <LogIn className="mr-2 h-4 w-4" />
                       {isLoading ? 'Signing in...' : 'Sign in'}
                     </button>
@@ -306,7 +309,7 @@ const Login: React.FC = () => {
             </div>
 
             {/* Bottom footer */}
-            <div className="flex items-center justify-between rounded-b-2xl border-t border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] px-6 py-3 text-[11px] text-muted-foreground dark:text-white/55">
+            <div className="flex items-center justify-between border-t border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] px-6 py-3 text-[11px] text-muted-foreground dark:text-white/55">
               <div className="flex items-center gap-2">
                 <Shield className="h-3.5 w-3.5" />
                 <span>Secured access</span>
@@ -622,6 +625,16 @@ const App: React.FC = () => {
                           <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
                             <DashboardLayout>
                               <Management />
+                            </DashboardLayout>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/messages"
+                        element={
+                          <ProtectedRoute allowedRoles={['ADMIN']}>
+                            <DashboardLayout>
+                              <Messages />
                             </DashboardLayout>
                           </ProtectedRoute>
                         }

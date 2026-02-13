@@ -10,7 +10,7 @@ const Command = React.forwardRef<
   <CommandPrimitive
     ref={ref}
     className={cn(
-      'flex h-full w-full flex-col overflow-hidden rounded-xl bg-card border border-white/10 text-foreground',
+      'flex h-full w-full flex-col overflow-hidden bg-card border border-border text-foreground',
       className
     )}
     {...props}
@@ -22,7 +22,7 @@ const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
-  <div className="flex items-center border-b border-white/10 px-3" cmdk-input-wrapper="">
+  <div className="flex items-center border-b border-border px-3" cmdk-input-wrapper="">
     <Search className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
     <CommandPrimitive.Input
       ref={ref}
@@ -81,7 +81,7 @@ const CommandSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.Separator
     ref={ref}
-    className={cn('-mx-1 h-px bg-white/10', className)}
+    className={cn('-mx-1 h-px bg-border', className)}
     {...props}
   />
 ));
@@ -94,7 +94,7 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      'relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none aria-selected:bg-primary/20 aria-selected:text-primary hover:bg-white/5 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      'relative flex cursor-pointer select-none items-center px-3 py-2 text-sm outline-none aria-selected:bg-primary/20 aria-selected:text-primary hover:bg-muted/50 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       className
     )}
     {...props}
