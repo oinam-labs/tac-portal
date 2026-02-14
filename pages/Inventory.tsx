@@ -65,24 +65,11 @@ export const Inventory: React.FC = () => {
 
   const bucketColor = (bucket: string) => {
     switch (bucket) {
-<<<<<<< HEAD
       case '0-6h': return 'text-status-success';
       case '6-12h': return 'text-status-warning';
       case '12-24h': return 'text-status-warning';
       case '24h+': return 'text-status-error font-bold';
       default: return 'text-muted-foreground';
-=======
-      case '0-6h':
-        return 'text-status-success';
-      case '6-12h':
-        return 'text-status-warning';
-      case '12-24h':
-        return 'text-status-warning';
-      case '24h+':
-        return 'text-status-error font-bold';
-      default:
-        return 'text-muted-foreground';
->>>>>>> origin/chore/full-project-review-feb-2026
     }
   };
 
@@ -129,7 +116,6 @@ export const Inventory: React.FC = () => {
         </div>
       </PageHeader>
 
-<<<<<<< HEAD
       <Card className="grid grid-cols-2 divide-x divide-border">
         {/* Stats are strictly for current page now, which is a trade-off until we implement aggregate API */}
         <div className="p-6 flex items-center gap-4">
@@ -151,18 +137,6 @@ export const Inventory: React.FC = () => {
           </div>
         </div>
       </Card>
-=======
-      <div className="grid grid-cols-2 gap-4 mb-2">
-        <Card className="p-4 bg-muted flex justify-between items-center">
-          <span className="text-sm text-muted-foreground">Total In Stock</span>
-          <span className="text-xl font-bold text-foreground">{stats.total} Pkgs</span>
-        </Card>
-        <Card className="p-4 bg-muted flex justify-between items-center">
-          <span className="text-sm text-muted-foreground">Aging Critical (24h+)</span>
-          <span className="text-xl font-bold text-status-error">{stats.critical} Pkgs</span>
-        </Card>
-      </div>
->>>>>>> origin/chore/full-project-review-feb-2026
 
       <Card>
         <div className="flex justify-between items-center mb-4 p-4 pb-0">

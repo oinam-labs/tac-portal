@@ -255,26 +255,6 @@ export function BarcodeScanner({
 
       {/* Overlay */}
       <div className="absolute inset-0 pointer-events-none">
-<<<<<<< HEAD
-        {/* Safe Area / Frame */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-2 border-primary/50 rounded-lg shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]">
-          <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary -ml-[2px] -mt-[2px]" />
-          <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary -mr-[2px] -mt-[2px]" />
-          <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary -ml-[2px] -mb-[2px]" />
-          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary -mr-[2px] -mb-[2px]" />
-
-          {/* Laser Line */}
-          {isScanning && (
-            <div className="absolute top-1/2 left-2 right-2 h-0.5 bg-red-500 shadow-[0_0_8px_rgba(255,0,0,0.8)] animate-pulse" />
-          )}
-        </div>
-
-        {/* Status */}
-        <div className="absolute top-4 left-4 right-16 flex items-center justify-between pointer-events-auto">
-          <div className="bg-black/60 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${isScanning ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`} />
-            {isScanning ? 'Scanning active' : 'Initializing...'}
-=======
         {/* Corner brackets */}
         <div className="absolute inset-8 border-2 border-primary/30 rounded-lg">
           <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-primary rounded-tl-lg" />
@@ -302,12 +282,11 @@ export function BarcodeScanner({
         </div>
 
         {/* Last scan indicator */}
-        {lastScanned && (
+        {lastScannedRef.current && (
           <div className="absolute bottom-4 left-4 right-4 bg-status-success/90 text-white px-4 py-2 rounded-lg text-center font-mono text-sm animate-pulse">
-            ✓ {lastScanned}
->>>>>>> origin/chore/full-project-review-feb-2026
+            ✓ {lastScannedRef.current}
           </div>
-        </div>
+        )}
       </div>
 
       {/* Controls */}

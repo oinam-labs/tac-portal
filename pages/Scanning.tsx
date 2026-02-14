@@ -298,26 +298,14 @@ export const Scanning: React.FC = () => {
   return (
     <div className="space-y-6 h-[calc(100vh-140px)] flex flex-col animate-[fadeIn_0.5s_ease-out]">
       <div className="flex justify-between items-center">
-<<<<<<< HEAD
         <PageHeader title="Terminal Scanner" description="Process incoming/outgoing shipments." />
-        <div className="flex gap-1 bg-card p-1 border border-border">
-=======
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Terminal Scanner</h1>
-          <p className="text-sm text-muted-foreground">Process incoming/outgoing shipments.</p>
-        </div>
         <div className="flex gap-2 bg-card p-1 rounded-lg border border-border">
->>>>>>> origin/chore/full-project-review-feb-2026
           <button
             onClick={() => {
               setScanMode('RECEIVE');
               setActiveManifest(null);
             }}
-<<<<<<< HEAD
-            className={`px-3 py-1.5 text-xs font-bold transition-colors ${scanMode === 'RECEIVE' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-=======
             className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'RECEIVE' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
->>>>>>> origin/chore/full-project-review-feb-2026
           >
             RECEIVE
           </button>
@@ -382,21 +370,13 @@ export const Scanning: React.FC = () => {
           <div className="absolute top-4 left-4 z-20 flex gap-2">
             <button
               onClick={() => setUseCameraScanner(true)}
-<<<<<<< HEAD
-              className={`p-2 transition-colors ${useCameraScanner ? 'bg-primary text-primary-foreground' : 'bg-black/50 text-white hover:bg-black/70'}`}
-=======
               className={`p-2 rounded-lg transition-all ${useCameraScanner ? 'bg-primary text-primary-foreground' : 'bg-black/50 text-white hover:bg-black/70'}`}
->>>>>>> origin/chore/full-project-review-feb-2026
             >
               <Camera className="w-4 h-4" />
             </button>
             <button
               onClick={() => setUseCameraScanner(false)}
-<<<<<<< HEAD
-              className={`p-2 transition-colors ${!useCameraScanner ? 'bg-primary text-primary-foreground' : 'bg-black/50 text-white hover:bg-black/70'}`}
-=======
               className={`p-2 rounded-lg transition-all ${!useCameraScanner ? 'bg-primary text-primary-foreground' : 'bg-black/50 text-white hover:bg-black/70'}`}
->>>>>>> origin/chore/full-project-review-feb-2026
             >
               <Keyboard className="w-4 h-4" />
             </button>
@@ -476,7 +456,7 @@ export const Scanning: React.FC = () => {
                         <AlertTriangle className="w-4 h-4 text-status-error" />
                       ) : (
                         <Box
-                          className={`w-4 h-4 ${item.status === 'SUCCESS' ? 'text-status-success' : 'text-status-error'}`}
+                           className={`w-4 h-4 ${item.status === 'SUCCESS' ? 'text-status-success' : 'text-status-error'}`}
                         />
                       )}
                       <div>
