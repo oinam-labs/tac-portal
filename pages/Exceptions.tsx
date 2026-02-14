@@ -187,7 +187,6 @@ export const Exceptions: React.FC = () => {
   };
 
   return (
-<<<<<<< HEAD
     <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
       <PageHeader
         title="Exceptions & Alerts"
@@ -195,15 +194,6 @@ export const Exceptions: React.FC = () => {
         icon={<AlertTriangle className="text-destructive w-7 h-7" />}
       >
         <Button variant="destructive" onClick={() => setIsRaiseModalOpen(true)}>
-=======
-    <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-          <AlertTriangle className="text-destructive w-8 h-8" />
-          Exceptions & Alerts
-        </h1>
-        <Button onClick={() => setIsRaiseModalOpen(true)} variant="danger">
->>>>>>> origin/chore/full-project-review-feb-2026
           <Plus className="w-4 h-4 mr-2" /> Raise Exception
         </Button>
       </PageHeader>
@@ -252,7 +242,6 @@ export const Exceptions: React.FC = () => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-<<<<<<< HEAD
               <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">
                 Type
               </label>
@@ -298,33 +287,6 @@ export const Exceptions: React.FC = () => {
                   </Select>
                 )}
               />
-=======
-              <label className="block text-xs text-muted-foreground mb-1">TYPE</label>
-              <select
-                {...registerRaise('type')}
-                className="w-full bg-card border border-border rounded-lg p-2"
-              >
-                <option value="DAMAGE">Damage</option>
-                <option value="SHORTAGE">Shortage</option>
-                <option value="MISROUTE">Misroute</option>
-                <option value="DELAY">Delay</option>
-                <option value="CUSTOMER_REFUSAL">Customer Refusal</option>
-                <option value="ADDRESS_ISSUE">Address Issue</option>
-                <option value="OTHER">Other</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-muted-foreground mb-1">SEVERITY</label>
-              <select
-                {...registerRaise('severity')}
-                className="w-full bg-card border border-border rounded-lg p-2"
-              >
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
-                <option value="CRITICAL">Critical</option>
-              </select>
->>>>>>> origin/chore/full-project-review-feb-2026
             </div>
           </div>
           <div>

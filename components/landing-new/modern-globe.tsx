@@ -1,10 +1,6 @@
 'use client';
 
-<<<<<<< HEAD
 import { useEffect, useRef, useCallback } from 'react';
-=======
-import { useEffect, useRef } from 'react';
->>>>>>> origin/chore/full-project-review-feb-2026
 import { motion } from 'framer-motion';
 import gsap from 'gsap';
 
@@ -74,11 +70,7 @@ export function ModernGlobe({ className }: { className?: string }) {
     };
 
     // Handle Resize & Colors
-<<<<<<< HEAD
     const handleResize = useCallback(() => {
-=======
-    const handleResize = () => {
->>>>>>> origin/chore/full-project-review-feb-2026
         if (!canvasRef.current || !containerRef.current) return;
 
         const rect = containerRef.current.getBoundingClientRect();
@@ -110,11 +102,7 @@ export function ModernGlobe({ className }: { className?: string }) {
 
         state.current.colors.foreground = getColor('--foreground');
         state.current.colors.primary = getColor('--primary');
-<<<<<<< HEAD
     }, []);
-=======
-    };
->>>>>>> origin/chore/full-project-review-feb-2026
 
     useEffect(() => {
         initPoints();
@@ -173,21 +161,12 @@ export function ModernGlobe({ className }: { className?: string }) {
 
             points.forEach(p => {
                 // Rotate Y
-<<<<<<< HEAD
                 const x1 = p.baseX * cosY - p.baseZ * sinY;
                 const z1 = p.baseZ * cosY + p.baseX * sinY;
 
                 // Rotate X
                 const y1 = p.baseY * cosX - z1 * sinX;
                 const z2 = z1 * cosX + p.baseY * sinX;
-=======
-                let x1 = p.baseX * cosY - p.baseZ * sinY;
-                let z1 = p.baseZ * cosY + p.baseX * sinY;
-
-                // Rotate X
-                let y1 = p.baseY * cosX - z1 * sinX;
-                let z2 = z1 * cosX + p.baseY * sinX;
->>>>>>> origin/chore/full-project-review-feb-2026
 
                 // Simple Perspective (Safe division)
                 const perspective = 400;
@@ -255,11 +234,7 @@ export function ModernGlobe({ className }: { className?: string }) {
             window.removeEventListener('mousemove', handleMouseMove);
             observer.disconnect();
         };
-<<<<<<< HEAD
     }, [handleResize]);
-=======
-    }, []);
->>>>>>> origin/chore/full-project-review-feb-2026
 
     const scalePoint = (z: number) => {
         // Scale dot size based on depth

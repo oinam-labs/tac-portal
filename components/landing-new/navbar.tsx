@@ -10,10 +10,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/s
 import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
 import { useGSAP, gsap } from '@/lib/gsap';
 import { MOTION_TOKENS } from '@/lib/animation-tokens';
-<<<<<<< HEAD
 import { useStore } from '@/store';
-=======
->>>>>>> origin/chore/full-project-review-feb-2026
 
 export function Navbar() {
   const { setTheme } = useStore();
@@ -95,17 +92,10 @@ export function Navbar() {
   ];
 
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, href: string) => {
-<<<<<<< HEAD
-    const targetId = href.replace('#', '');
-    const element = document.getElementById(targetId);
-    if (element) {
-      e.preventDefault();
-=======
     e.preventDefault();
     const targetId = href.replace('#', '');
     const element = document.getElementById(targetId);
     if (element) {
->>>>>>> origin/chore/full-project-review-feb-2026
       const offsetTop = element.getBoundingClientRect().top + window.scrollY - 80; // Adjust for navbar height
       window.scrollTo({
         top: offsetTop,
@@ -136,17 +126,12 @@ export function Navbar() {
 
         <div className="relative container mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6">
           {/* Logo */}
-<<<<<<< HEAD
           <Link
             to="/"
             className="flex items-center gap-3 group relative z-50"
             onClick={(e) => handleScroll(e, '#home')}
           >
-            <div className="relative flex h-10 w-10 items-center justify-center bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
-=======
-          <Link to="/" className="flex items-center gap-3 group relative z-50">
             <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
->>>>>>> origin/chore/full-project-review-feb-2026
               <Box className="h-5 w-5 text-primary fill-primary/20 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" />
             </div>
             <div className="flex flex-col">
@@ -158,11 +143,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-<<<<<<< HEAD
-          <div className="hidden md:flex items-center gap-1 border border-border/50 bg-background/50 p-1 backdrop-blur-md shadow-sm">
-=======
           <div className="hidden md:flex items-center gap-1 rounded-full border border-border/50 bg-background/50 p-1 backdrop-blur-md shadow-sm">
->>>>>>> origin/chore/full-project-review-feb-2026
             {navLinks.map((link, index) => {
               const isActive = activeSection === link.href;
               return (
@@ -180,11 +161,7 @@ export function Navbar() {
                   {/* Active indicator (persistent) */}
                   {isActive && hoveredIndex === null && (
                     <motion.span
-<<<<<<< HEAD
-                      className="absolute inset-0 bg-primary/10 border border-primary/20 shadow-sm"
-=======
                       className="absolute inset-0 rounded-full bg-primary/10 border border-primary/20 shadow-sm"
->>>>>>> origin/chore/full-project-review-feb-2026
                       layoutId="activeBackground"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -195,11 +172,7 @@ export function Navbar() {
                   <AnimatePresence>
                     {hoveredIndex === index && (
                       <motion.span
-<<<<<<< HEAD
-                        className="absolute inset-0 bg-muted shadow-sm"
-=======
                         className="absolute inset-0 rounded-full bg-muted shadow-sm"
->>>>>>> origin/chore/full-project-review-feb-2026
                         layoutId="hoverBackground"
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -216,26 +189,15 @@ export function Navbar() {
 
           {/* Right Actions */}
           <div className="hidden md:flex items-center gap-3">
-<<<<<<< HEAD
             <AnimatedThemeToggler onThemeChange={setTheme} />
             <div className="w-px h-6 bg-border/60 mx-1" />
             <Link to="/login">
-              <Button variant="ghost" className="font-medium hover:bg-muted/50">
-=======
-            <AnimatedThemeToggler />
-            <div className="w-px h-6 bg-border/60 mx-1" />
-            <Link to="/login">
               <Button variant="ghost" className="rounded-full font-medium hover:bg-muted/50">
->>>>>>> origin/chore/full-project-review-feb-2026
                 Login
               </Button>
             </Link>
             <Link to="/login">
-<<<<<<< HEAD
-              <Button className="relative overflow-hidden px-6 font-semibold shadow-glow-primary transition-all duration-300 hover:scale-105 active:scale-95 group">
-=======
               <Button className="relative overflow-hidden rounded-full px-6 font-semibold shadow-glow-primary transition-all duration-300 hover:scale-105 active:scale-95 group">
->>>>>>> origin/chore/full-project-review-feb-2026
                 <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                 <span className="relative z-10">Book Shipment</span>
               </Button>
@@ -244,19 +206,11 @@ export function Navbar() {
 
           {/* Mobile Menu */}
           <div className="flex items-center gap-3 md:hidden relative z-50">
-<<<<<<< HEAD
             <AnimatedThemeToggler onThemeChange={setTheme} />
             {mounted && (
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="hover:bg-muted/50">
-=======
-            <AnimatedThemeToggler />
-            {mounted && (
-              <Sheet open={isOpen} onOpenChange={setIsOpen}>
-                <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted/50">
->>>>>>> origin/chore/full-project-review-feb-2026
                     <Menu className="h-6 w-6" />
                   </Button>
                 </SheetTrigger>
@@ -268,11 +222,7 @@ export function Navbar() {
                     <div className="h-20 flex items-center justify-between px-6 border-b border-border/50">
                       <span className="font-sans font-bold text-lg">Menu</span>
                       <SheetClose asChild>
-<<<<<<< HEAD
-                        <Button variant="ghost" size="icon" className="-mr-2">
-=======
                         <Button variant="ghost" size="icon" className="rounded-full -mr-2">
->>>>>>> origin/chore/full-project-review-feb-2026
                           <X className="h-5 w-5" />
                         </Button>
                       </SheetClose>
@@ -294,20 +244,12 @@ export function Navbar() {
                     </div>
                     <div className="p-6 mt-auto space-y-4">
                       <Link to="/login" className="block" onClick={() => setIsOpen(false)}>
-<<<<<<< HEAD
-                        <Button variant="outline" className="w-full h-12 text-base font-medium">
-=======
                         <Button variant="outline" className="w-full rounded-full h-12 text-base font-medium">
->>>>>>> origin/chore/full-project-review-feb-2026
                           Login
                         </Button>
                       </Link>
                       <Link to="/login" className="block" onClick={() => setIsOpen(false)}>
-<<<<<<< HEAD
-                        <Button className="w-full h-12 text-base font-medium shadow-lg shadow-primary/20">
-=======
                         <Button className="w-full rounded-full h-12 text-base font-medium shadow-lg shadow-primary/20">
->>>>>>> origin/chore/full-project-review-feb-2026
                           Book Shipment
                         </Button>
                       </Link>

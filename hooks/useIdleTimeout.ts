@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import { useCallback, useEffect, useRef } from 'react';
-=======
-import { useEffect, useRef } from 'react';
->>>>>>> origin/chore/full-project-review-feb-2026
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 
@@ -14,7 +10,6 @@ export function useIdleTimeout() {
     const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
     const warningTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-<<<<<<< HEAD
     const handleLogout = useCallback(async () => {
         if (isAuthenticated) {
             await signOut();
@@ -25,9 +20,6 @@ export function useIdleTimeout() {
     }, [isAuthenticated, signOut]);
 
     const resetTimer = useCallback(() => {
-=======
-    const resetTimer = () => {
->>>>>>> origin/chore/full-project-review-feb-2026
         if (!isAuthenticated) return;
 
         if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
@@ -43,20 +35,7 @@ export function useIdleTimeout() {
         idleTimerRef.current = setTimeout(() => {
             handleLogout();
         }, IDLE_TIMEOUT);
-<<<<<<< HEAD
     }, [isAuthenticated, handleLogout]);
-=======
-    };
-
-    const handleLogout = async () => {
-        if (isAuthenticated) {
-            await signOut();
-            toast.error('Session expired', {
-                description: 'You have been logged out due to inactivity.',
-            });
-        }
-    };
->>>>>>> origin/chore/full-project-review-feb-2026
 
     useEffect(() => {
         if (!isAuthenticated) return;
@@ -91,9 +70,5 @@ export function useIdleTimeout() {
                 window.removeEventListener(event, throttledHandler);
             });
         };
-<<<<<<< HEAD
     }, [isAuthenticated, signOut, resetTimer]);
-=======
-    }, [isAuthenticated, signOut]);
->>>>>>> origin/chore/full-project-review-feb-2026
 }

@@ -233,7 +233,7 @@ export const Manifests: React.FC = () => {
             setSelectedManifestId(null);
             setIsEnterpriseOpen(true);
           }}
-          variant="primary"
+          variant="default"
           data-testid="create-manifest-button"
         >
           <Scan className="w-4 h-4 mr-2" /> Create Manifest

@@ -96,10 +96,7 @@ const NAV_GROUPS: NavGroupDef[] = [
   {
     title: 'System',
     items: [
-<<<<<<< HEAD
       { label: 'Messages', icon: Mail, path: '/admin/messages', roles: ['ADMIN'] },
-=======
->>>>>>> origin/chore/full-project-review-feb-2026
       { label: 'Shift Report', icon: ClipboardList, path: '/shift-report' },
       { label: 'Settings', icon: Settings, path: '/settings' }
     ],

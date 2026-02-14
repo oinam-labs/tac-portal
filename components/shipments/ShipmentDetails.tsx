@@ -29,11 +29,6 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
     try {
       const storageKey = `print_shipping_label_${shipment.awb}`;
       localStorage.setItem(storageKey, JSON.stringify(shipment));
-<<<<<<< HEAD
-=======
-
-      // Open print page in a popup (consistent with Invoice section)
->>>>>>> origin/chore/full-project-review-feb-2026
       const width = 440;
       const height = 650;
       const left = (window.screen.width - width) / 2;
@@ -87,7 +82,6 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
         </div>
       </div>
 
-<<<<<<< HEAD
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Route & Tracking */}
         <div className="lg:col-span-2 space-y-6">
@@ -134,72 +128,6 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
                   <Scale className="w-4 h-4 text-primary" />
                   {shipment.totalWeight.chargeable} kg
                 </div>
-=======
-      {/* Route & Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="md:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">{origin.code}</div>
-              <div className="text-xs text-muted-foreground">{origin.name}</div>
-            </div>
-            <div className="flex-1 px-4 flex flex-col items-center">
-              <div className="w-full h-0.5 bg-border relative">
-                <div className="absolute top-1/2 left-0 -translate-y-1/2 w-2 h-2 rounded-full bg-muted-foreground"></div>
-                <div className="absolute top-1/2 right-0 -translate-y-1/2 w-2 h-2 rounded-full bg-primary"></div>
-                <div className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 bg-card px-2 text-xs text-muted-foreground">
-                  {shipment.mode}
-                </div>
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary">{dest.code}</div>
-              <div className="text-xs text-muted-foreground">{dest.name}</div>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-4 border-t border-border pt-4">
-            <div>
-              <div className="text-xs text-muted-foreground">Service</div>
-              <div className="font-bold text-sm">{shipment.serviceLevel}</div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">Weight</div>
-              <div className="font-bold text-sm">{shipment.totalWeight.chargeable} kg</div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">Packages</div>
-              <div className="font-bold text-sm">{shipment.totalPackageCount}</div>
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <h3 className="text-sm font-bold mb-3">Customer</h3>
-          <div className="text-sm font-medium">{shipment.customerName}</div>
-          <div className="text-xs text-muted-foreground mt-1">ID: {shipment.customerId}</div>
-
-          <h3 className="text-sm font-bold mt-4 mb-2">ETA</h3>
-          <div className="text-lg font-mono text-status-success">{shipment.eta}</div>
-        </Card>
-      </div>
-
-      {/* Tracking History */}
-      <Card>
-        <h3 className="text-sm font-bold mb-4 flex items-center gap-2">
-          <Clock className="w-4 h-4" /> Tracking History
-        </h3>
-        <div className="space-y-6 pl-2">
-          {trackingEvents.map((evt, idx) => (
-            <div
-              key={evt.id}
-              className="relative pl-6 border-l border-border last:border-0 pb-1"
-            >
-              <div
-                className={`absolute left-[-5px] top-0 w-2.5 h-2.5 rounded-full ${idx === 0 ? 'bg-primary shadow-neon' : 'bg-muted-foreground'}`}
-              ></div>
-              <div className="text-sm font-bold text-foreground">
-                {evt.event_code.replace(/_/g, ' ')}
->>>>>>> origin/chore/full-project-review-feb-2026
               </div>
               <div className="p-4 flex flex-col items-center">
                 <span className="text-xs text-muted-foreground mb-1">Packages</span>
