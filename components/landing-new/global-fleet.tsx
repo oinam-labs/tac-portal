@@ -8,44 +8,28 @@ const fleetItems = [
         id: 'air-freight',
         title: 'Air Domination',
         subtitle: 'Strategic heavy-lift capabilities for urgent global deployment.',
-<<<<<<< HEAD
         image: '/fleet-manifest1.png',
-=======
-        image: '/assets/express-air-cargo.svg',
->>>>>>> origin/chore/full-project-review-feb-2026
         color: 'var(--color-feature-air)', // Emerald/Primary
     },
     {
         id: 'surface-transport',
         title: 'Surface Grid',
         subtitle: 'High-density ground logistics network with autonomous handoffs.',
-<<<<<<< HEAD
         image: '/fleet-manifest2.png',
-=======
-        image: '/assets/surface-cargo.svg',
->>>>>>> origin/chore/full-project-review-feb-2026
         color: 'var(--color-feature-ground)', // Amber/Accent
     },
     {
         id: 'last-mile',
         title: 'Precision Drop',
         subtitle: 'Urban tactical delivery systems for final-mile execution.',
-<<<<<<< HEAD
         image: '/fleet-manifest3.png',
-=======
-        image: '/assets/pick-n-drop.svg',
->>>>>>> origin/chore/full-project-review-feb-2026
         color: 'var(--color-feature-delivery)', // Sky Blue
     },
     {
         id: 'global-hub',
         title: 'Command Nodes',
         subtitle: '24/7 automated sorting facilities with AI-driven routing.',
-<<<<<<< HEAD
         image: '/fleet-manifest4.png',
-=======
-        image: '/assets/tac-hero-bg.svg',
->>>>>>> origin/chore/full-project-review-feb-2026
         color: 'var(--color-primary)', // Purple/Secondary
     },
 ];

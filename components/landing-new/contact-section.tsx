@@ -7,17 +7,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 
 import { Label } from '@/components/ui/label';
-<<<<<<< HEAD
 import { Check, Loader2, Send, AlertCircle } from 'lucide-react';
 import { FadeUp } from '@/components/motion/FadeUp';
 import { StaggerChildren } from '@/components/motion/StaggerChildren';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-=======
-import { Check, Loader2, Send } from 'lucide-react';
-import { FadeUp } from '@/components/motion/FadeUp';
-import { StaggerChildren } from '@/components/motion/StaggerChildren';
->>>>>>> origin/chore/full-project-review-feb-2026
 
 export function ContactSection() {
   const [name, setName] = useState('');
@@ -25,10 +19,7 @@ export function ContactSection() {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-<<<<<<< HEAD
   const [error, setError] = useState<string | null>(null);
-=======
->>>>>>> origin/chore/full-project-review-feb-2026
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,16 +108,11 @@ export function ContactSection() {
                       onChange={(e) => setName(e.target.value)}
                       placeholder="ENTER YOUR NAME"
                       required
-<<<<<<< HEAD
                       className="h-12 bg-background border-border/60 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium rounded-none"
-=======
-                      className="h-12 bg-background border-border/60 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium"
->>>>>>> origin/chore/full-project-review-feb-2026
                     />
                   </div>
 
                   <div className="space-y-2">
-<<<<<<< HEAD
                     <Label htmlFor="phone" className="text-foreground/80 font-medium font-mono text-xs uppercase tracking-wider">WhatsApp Number</Label>
                     <Input
                       id="phone"
@@ -136,17 +122,6 @@ export function ContactSection() {
                       placeholder="ENTER WHATSAPP NUMBER (e.g., +1234567890)"
                       required
                       className="h-12 bg-background border-border/60 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium rounded-none"
-=======
-                    <Label htmlFor="email" className="text-foreground/80 font-medium font-mono text-xs uppercase tracking-wider">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="ENTER YOUR EMAIL"
-                      required
-                      className="h-12 bg-background border-border/60 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium"
->>>>>>> origin/chore/full-project-review-feb-2026
                     />
                   </div>
 
@@ -158,36 +133,24 @@ export function ContactSection() {
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="TELL US ABOUT YOUR SHIPMENT NEEDS..."
                       required
-<<<<<<< HEAD
                       className="min-h-[160px] resize-none bg-background border-border/60 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium rounded-none"
-=======
-                      className="min-h-[160px] resize-none bg-background border-border/60 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium"
->>>>>>> origin/chore/full-project-review-feb-2026
                     />
                   </div>
                 </StaggerChildren>
 
-<<<<<<< HEAD
                 {error && (
                   <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 p-3 rounded-none border border-destructive/20">
                     <AlertCircle className="h-4 w-4" />
                     <span>{error}</span>
                   </div>
                 )}
-
-=======
->>>>>>> origin/chore/full-project-review-feb-2026
                 <FadeUp delay={0.5} className="pt-2">
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
                       type="submit"
                       disabled={isSubmitting}
                       size="lg"
-<<<<<<< HEAD
                       className="w-full h-12 text-base font-bold shadow-lg shadow-primary/20 rounded-none"
-=======
-                      className="w-full h-12 text-base font-bold shadow-lg shadow-primary/20 rounded-xl"
->>>>>>> origin/chore/full-project-review-feb-2026
                     >
                       {isSubmitting ? (
                         <span className="flex items-center gap-2">
