@@ -7,6 +7,7 @@ import { Shipment, HubLocation, ShipmentMode, ServiceLevel, PaymentMode } from '
 import { HUBS } from '../lib/constants';
 import { logger } from '../lib/logger';
 import { supabase } from '../lib/supabase';
+import { sanitizeString } from '../lib/utils/sanitize';
 
 const getAddressValue = (value: unknown): string => (typeof value === 'string' ? value.trim() : '');
 
@@ -68,6 +69,9 @@ const mapShipmentRowToShipment = (row: any): Shipment => {
   const originHub = resolveHubLocation(row, 'origin');
   const destinationHub = resolveHubLocation(row, 'destination');
   const weight = Number(row.total_weight ?? row.totalWeight ?? 0);
+  // Prioritize explicit mode field for transport mode, fallback to service type
+  const modeValue = row.mode || row.transport_mode || row.service_level || row.service_type;
+  // Service level should look at service fields first
   const serviceValue = row.service_level || row.service_type || row.mode;
   const senderAddressParts = resolveAddressParts(row.sender_address);
   const receiverAddressParts = resolveAddressParts(row.receiver_address);
@@ -79,7 +83,7 @@ const mapShipmentRowToShipment = (row: any): Shipment => {
     customerName: row.customer?.name || row.receiver_name || 'Unknown',
     originHub,
     destinationHub,
-    mode: resolveMode(serviceValue),
+    mode: resolveMode(modeValue),
     serviceLevel: resolveServiceLevel(serviceValue),
     totalPackageCount: row.total_packages ?? row.package_count ?? 1,
     totalWeight: {
@@ -284,6 +288,17 @@ export const PrintLabel: React.FC = () => {
       isMounted = false;
     };
   }, [awb, retryCount]);
+
+  // Set document title for printing
+  useEffect(() => {
+    if (data) {
+      const titleName = data.recipient?.name || data.awb || 'Label';
+      document.title = `LABEL-${data.awb}-${sanitizeString(titleName)}`;
+    }
+    return () => {
+      document.title = 'TAC Portal';
+    };
+  }, [data]);
 
   // Auto print when loaded - MUST be before any conditional returns!
   useEffect(() => {

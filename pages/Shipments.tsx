@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- Data mapping between Supabase and UI types */
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Download, Plus } from 'lucide-react';
 
 // UI Components
@@ -19,8 +20,10 @@ import { CreateShipmentForm } from '@/components/shipments/CreateShipmentForm';
 import { ShipmentDetails } from '@/components/shipments/ShipmentDetails';
 
 // Hooks & Data
-import { useShipments, useDeleteShipment, ShipmentWithRelations } from '@/hooks/useShipments';
+import { useShipments, useHardDeleteShipment, ShipmentWithRelations } from '@/hooks/useShipments';
 import { getShipmentsColumns } from '@/components/shipments/shipments.columns';
+import { useAuthStore } from '@/store/authStore';
+import { useDebounce } from '@/hooks/useDebounce';
 
 // Types
 import { Shipment } from '@/types';
@@ -63,14 +66,45 @@ function adaptToShipment(s: ShipmentWithRelations): Shipment {
 }
 
 export const Shipments: React.FC = () => {
+  const { user } = useAuthStore();
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+
+  // Search state
+  // Search state synced with URL
+  const [searchParams, setSearchParams] = useSearchParams();
+  const querySearch = searchParams.get('search') || '';
+  const [searchTerm, setSearchTerm] = useState(querySearch);
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
+  // Sync URL -> State (External navigation)
+  useEffect(() => {
+    if (querySearch !== searchTerm) {
+      setSearchTerm(querySearch);
+    }
+  }, [querySearch]);
+
+  // Sync State -> URL (User typing)
+  useEffect(() => {
+    if (debouncedSearch !== querySearch) {
+      setSearchParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        if (debouncedSearch) newParams.set('search', debouncedSearch);
+        else newParams.delete('search');
+        return newParams;
+      }, { replace: true });
+    }
+  }, [debouncedSearch]);
+
   // Data fetching
   const {
     data: shipments,
     isLoading,
     error,
     refetch,
-  } = useShipments();
-  const deleteMutation = useDeleteShipment();
+  } = useShipments({ search: debouncedSearch }); // Pass search term
+
+  // Only Super Admin can delete
+  const hardDeleteMutation = useHardDeleteShipment();
 
   // Modal state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -87,19 +121,25 @@ export const Shipments: React.FC = () => {
           // For now, open view modal - edit form could be added later
           setSelectedShipment(row);
         },
-        onDelete: (row) => {
+        onDelete: isSuperAdmin ? (row) => {
           setRowToDelete(row);
           setDeleteOpen(true);
-        },
+        } : undefined,
       }),
-    []
+    [isSuperAdmin]
   );
 
   // Handlers
   const handleDelete = async () => {
     if (!rowToDelete) return;
-    await deleteMutation.mutateAsync(rowToDelete.id);
+
+    if (isSuperAdmin) {
+      await hardDeleteMutation.mutateAsync(rowToDelete.id);
+    }
+    // No fallback call for regular users as they shouldn't reach here
+
     setRowToDelete(null);
+    setDeleteOpen(false);
   };
 
   return (
@@ -110,8 +150,11 @@ export const Shipments: React.FC = () => {
       <CrudTable
         columns={columns}
         data={shipments ?? []}
-        searchKey="awb_number"
-        searchPlaceholder="Search by AWB..."
+        searchKey="awb_number" // Keep for prop requirement, but onSearch overrides behavior
+
+        searchPlaceholder="Search by AWB, Invoice, Name, Phone..."
+        onSearch={setSearchTerm} // Pass handleSearch
+        searchValue={searchTerm} // Sync input value
         isLoading={isLoading}
         loadingState={<TableSkeleton />}
         emptyState={({ isFiltered }) =>
@@ -125,12 +168,12 @@ export const Shipments: React.FC = () => {
             <EmptyState
               title="No shipments found"
               description={
-                isFiltered
+                isFiltered || debouncedSearch
                   ? 'No shipments match the selected filters.'
                   : 'Shipments will appear here once created or imported.'
               }
-              actionLabel={isFiltered ? undefined : 'Create shipment'}
-              onAction={isFiltered ? undefined : () => setIsCreateModalOpen(true)}
+              actionLabel={isFiltered || debouncedSearch ? undefined : 'Create shipment'}
+              onAction={isFiltered || debouncedSearch ? undefined : () => setIsCreateModalOpen(true)}
             />
           )
         }
@@ -202,9 +245,12 @@ export const Shipments: React.FC = () => {
       <CrudDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title="Delete shipment?"
-        description={`This will remove shipment "${rowToDelete?.awb_number ?? ''}" from your records. This action cannot be undone.`}
+        title={isSuperAdmin ? "Permanently Delete Shipment?" : "Archive Shipment?"}
+        description={isSuperAdmin
+          ? `This will PERMANENTLY delete shipment "${rowToDelete?.awb_number ?? ''}" and all related data. This action cannot be undone.`
+          : `This will remove shipment "${rowToDelete?.awb_number ?? ''}" from your view.`}
         onConfirm={handleDelete}
+        confirmLabel={isSuperAdmin ? "Delete Permanently" : "Archive"}
       />
     </div>
   );

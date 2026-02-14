@@ -38,7 +38,8 @@ export const generateLabelFromShipment = (
 ): LabelData => {
   const serviceLevel = normalizeServiceLevel(shipment.serviceLevel);
 
-  const transportMode: TransportMode = shipment.mode === 'AIR' ? 'AIR' : 'TRUCK';
+  const modeInput = String(shipment.mode || '').toUpperCase().trim();
+  const transportMode: TransportMode = modeInput === 'AIR' || modeInput === 'AIR CARGO' ? 'AIR' : 'TRUCK';
 
   const serviceLevelCode: Record<ServiceLevel, string> = {
     STANDARD: 'STD',
@@ -105,7 +106,9 @@ export const generateLabelFromShipment = (
 
 export const generateLabelFromFormData = (formData: any): LabelData => {
   const serviceLevel = normalizeServiceLevel(formData.serviceLevel);
-  const transportMode: TransportMode = formData.transportMode === 'AIR' ? 'AIR' : 'TRUCK';
+  const modeInput = String(formData.transportMode || '').toUpperCase().trim();
+  const transportMode: TransportMode = modeInput === 'AIR' || modeInput === 'AIR CARGO' ? 'AIR' : 'TRUCK';
+  console.log('[DEBUG-LABEL] generating label from form data:', { raw: formData.transportMode, modeInput, transportMode });
   const serviceLevelCode: Record<ServiceLevel, string> = {
     STANDARD: 'STD',
     EXPRESS: 'EXP',

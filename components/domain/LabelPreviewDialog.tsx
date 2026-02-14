@@ -21,6 +21,7 @@ import {
 import { Printer, Download, Eye } from 'lucide-react';
 import { LabelGenerator, LabelData, ServiceLevel, TransportMode } from './LabelGenerator';
 import { toast } from 'sonner';
+import { sanitizeString } from '../../lib/utils/sanitize';
 
 interface LabelPreviewDialogProps {
   trigger?: React.ReactNode;
@@ -42,6 +43,19 @@ export const LabelPreviewDialog: React.FC<LabelPreviewDialogProps> = ({
   const [transportMode, setTransportMode] = useState<TransportMode>(
     shipmentData?.transportMode || 'TRUCK'
   );
+
+  // Sync state with props when dialog opens or data changes
+  // Sync state with props when dialog opens or data changes
+  React.useEffect(() => {
+    if (shipmentData) {
+      if (shipmentData.transportMode) {
+        setTransportMode(shipmentData.transportMode);
+      }
+      if (shipmentData.serviceLevel) {
+        setServiceLevel(shipmentData.serviceLevel);
+      }
+    }
+  }, [shipmentData]);
 
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
@@ -92,6 +106,19 @@ export const LabelPreviewDialog: React.FC<LabelPreviewDialogProps> = ({
   const handleDownload = () => {
     toast.success('Label downloaded as PDF');
   };
+
+  // Set document title for printing
+  React.useEffect(() => {
+    if (shipmentData?.recipient?.name) {
+      document.title = `LABEL-${shipmentData.awb}-${sanitizeString(shipmentData.recipient.name)}`;
+    } else {
+      document.title = `LABEL-${shipmentData?.awb || 'PREVIEW'}`;
+    }
+    // Cleanup
+    return () => {
+      document.title = 'TAC Portal';
+    };
+  }, [shipmentData]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

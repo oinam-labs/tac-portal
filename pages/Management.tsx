@@ -1,10 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { z } from 'zod';
+import { toast } from 'sonner';
 
 // UI Components
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Modal } from '@/components/ui/Modal';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -13,6 +16,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { useAuthStore } from '@/store/authStore';
+import { supabase } from '@/lib/supabase';
+import { queryClient } from '@/lib/query-client';
+
 
 // CRUD Components
 import { CrudTable } from '@/components/crud/CrudTable';
@@ -139,6 +146,48 @@ export const Management: React.FC = () => {
     setRowToDelete(null);
   };
 
+  // --- SUPER ADMIN LOGIC ---
+  const { user } = useAuthStore();
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+
+  const [createUserOpen, setCreateUserOpen] = useState(false);
+  const [createUserForm, setCreateUserForm] = useState({
+    email: '',
+    password: '',
+    fullName: '',
+    role: 'OPS',
+    hubCode: '',
+  });
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: createUserForm,
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      toast.success('User created successfully!');
+      setCreateUserOpen(false);
+      // Reset form
+      setCreateUserForm({
+        email: '',
+        password: '',
+        fullName: '',
+        role: 'OPS',
+        hubCode: '',
+      });
+      // Refresh list
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+    } catch (error) {
+      console.error('Create user failed:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to create user');
+    }
+  };
+
+
   return (
     <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
       {/* Header */}
@@ -147,6 +196,11 @@ export const Management: React.FC = () => {
           <h1 className="text-2xl font-bold text-foreground">Staff & Hubs</h1>
           <p className="text-muted-foreground text-sm">Manage access control and personnel.</p>
         </div>
+        {isSuperAdmin && (
+          <Button onClick={() => setCreateUserOpen(true)} variant="destructive">
+            <Plus className="w-4 h-4 mr-2" /> Super Admin: Create User
+          </Button>
+        )}
       </div>
 
       {/* Table with CRUD */}
@@ -169,6 +223,87 @@ export const Management: React.FC = () => {
           </Button>
         }
       />
+
+      {/* Super Admin Create User Modal */}
+      <Modal
+        isOpen={createUserOpen}
+        onClose={() => setCreateUserOpen(false)}
+        title="Super Admin: Create User"
+        size="lg"
+      >
+        <form onSubmit={handleCreateUser} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Email</Label>
+            <Input
+              type="email"
+              required
+              value={createUserForm.email}
+              onChange={(e) =>
+                setCreateUserForm((prev) => ({ ...prev, email: e.target.value }))
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Password</Label>
+            <Input
+              type="text"
+              required
+              value={createUserForm.password}
+              onChange={(e) =>
+                setCreateUserForm((prev) => ({ ...prev, password: e.target.value }))
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Full Name</Label>
+            <Input
+              required
+              value={createUserForm.fullName}
+              onChange={(e) =>
+                setCreateUserForm((prev) => ({ ...prev, fullName: e.target.value }))
+              }
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Role</Label>
+              <Select
+                value={createUserForm.role}
+                onValueChange={(val) =>
+                  setCreateUserForm((prev) => ({ ...prev, role: val }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ADMIN">Admin</SelectItem>
+                  <SelectItem value="MANAGER">Manager</SelectItem>
+                  <SelectItem value="OPS">Operations</SelectItem>
+                  <SelectItem value="INVOICE">Finance</SelectItem>
+                  <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Hub Code (Optional)</Label>
+              <Input
+                placeholder="e.g. IMF, DEL"
+                value={createUserForm.hubCode}
+                onChange={(e) =>
+                  setCreateUserForm((prev) => ({ ...prev, hubCode: e.target.value }))
+                }
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={() => setCreateUserOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit">Create User</Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Upsert Dialog */}
       <CrudUpsertDialog

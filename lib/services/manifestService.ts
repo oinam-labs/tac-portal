@@ -15,6 +15,7 @@ import { supabase } from '@/lib/supabase';
 import { mapSupabaseError, ValidationError } from '@/lib/errors';
 import { orgService } from './orgService';
 import type { Database } from '@/lib/database.types';
+import { ScanSource } from '@/types';
 
 type Manifest = Database['public']['Tables']['manifests']['Row'];
 type ManifestInsert = Database['public']['Tables']['manifests']['Insert'];
@@ -29,7 +30,7 @@ export type ManifestStatus =
   | 'ARRIVED'
   | 'RECONCILED';
 export type ManifestType = 'AIR' | 'TRUCK';
-export type ScanSource = 'CAMERA' | 'MANUAL' | 'BARCODE_SCANNER';
+export type { ScanSource };
 export type ScanResult =
   | 'SUCCESS'
   | 'DUPLICATE'

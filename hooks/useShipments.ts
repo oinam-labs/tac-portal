@@ -15,8 +15,14 @@ import { logger } from '../lib/logger';
 export const shipmentKeys = {
   all: ['shipments'] as const,
   lists: () => [...shipmentKeys.all, 'list'] as const,
-  list: (filters?: { limit?: number; status?: string; orgId?: string }) =>
-    [...shipmentKeys.lists(), filters] as const,
+  list: (filters?: {
+    limit?: number;
+    status?: string;
+    orgId?: string;
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  }) => [...shipmentKeys.lists(), filters] as const,
   details: () => [...shipmentKeys.all, 'detail'] as const,
   detail: (id: string) => [...shipmentKeys.details(), id] as const,
   byAwb: (awb: string) => [...shipmentKeys.all, 'awb', awb] as const,
@@ -49,38 +55,76 @@ export interface ShipmentWithRelations {
   destination_hub?: { code: string; name: string };
 }
 
-export function useShipments(options?: { limit?: number; status?: string }) {
-  const orgId = useAuthStore((s) => s.user?.orgId);
+export function useShipments(options?: {
+  limit?: number;
+  status?: string;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+  orgId?: string;
+}) {
+  const authOrgId = useAuthStore((s) => s.user?.orgId);
+  const orgId = options?.orgId !== undefined ? options.orgId : authOrgId;
+  const page = options?.page || 1;
+  const pageSize = options?.pageSize || 20;
+  const offset = (page - 1) * pageSize;
 
   return useQuery({
-    queryKey: shipmentKeys.list({ ...options, orgId }),
+    queryKey: shipmentKeys.list({ ...options, orgId, page, pageSize }),
     queryFn: async () => {
-      let query = supabase
-        .from('shipments')
-        .select(
-          `
+      let query;
+
+      if (options?.search) {
+        // Use RPC for search
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        query = (supabase as any)
+          .rpc('search_shipments', {
+            p_search_text: options.search,
+            p_org_id: orgId || '',
+            p_status: options.status || null,
+            p_limit: pageSize,
+            p_offset: offset,
+          })
+          .select(
+            `
           *,
           customer:customers(name, phone),
           origin_hub:hubs!shipments_origin_hub_id_fkey(code, name),
           destination_hub:hubs!shipments_destination_hub_id_fkey(code, name)
         `
-        )
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false });
+          );
+      } else {
+        // Standard list query
+        query = supabase
+          .from('shipments')
+          .select(
+            `
+          *,
+          customer:customers(name, phone),
+          origin_hub:hubs!shipments_origin_hub_id_fkey(code, name),
+          destination_hub:hubs!shipments_destination_hub_id_fkey(code, name)
+        `
+          )
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false });
 
-      if (orgId) {
-        query = query.eq('org_id', orgId);
+        if (orgId) {
+          query = query.eq('org_id', orgId);
+        }
+
+        if (options?.status) {
+          query = query.eq('status', options.status);
+        }
+
+        if (options?.limit) {
+          query = query.limit(options.limit);
+        } else {
+          query = query.range(offset, offset + pageSize - 1);
+        }
       }
 
-      if (options?.status) {
-        query = query.eq('status', options.status);
-      }
-
-      if (options?.limit) {
-        query = query.limit(options.limit);
-      }
-
-      const { data, error } = await query;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (query as any);
       if (error) throw error;
       return (data ?? []) as unknown as ShipmentWithRelations[];
     },
@@ -111,6 +155,30 @@ export function useShipmentByAWB(awb: string | null) {
   });
 }
 
+export function useShipmentById(id: string | undefined) {
+  return useQuery({
+    queryKey: shipmentKeys.detail(id!),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('shipments')
+        .select(
+          `
+          *,
+          customer:customers(name, phone, email, address),
+          origin_hub:hubs!shipments_origin_hub_id_fkey(code, name, address),
+          destination_hub:hubs!shipments_destination_hub_id_fkey(code, name, address)
+        `
+        )
+        .eq('id', id!)
+        .single();
+
+      if (error) throw error;
+      return data as unknown as ShipmentWithRelations;
+    },
+    enabled: !!id,
+  });
+}
+
 interface CreateShipmentInput {
   customer_id: string;
   origin_hub_id: string;
@@ -135,11 +203,27 @@ export function useCreateShipment() {
 
   return useMutation({
     mutationFn: async (shipment: CreateShipmentInput) => {
-      const orgId = staffUser?.orgId || (await getOrCreateDefaultOrg());
+      console.log('Starting createShipment mutation...', shipment);
+      let orgId = staffUser?.orgId;
+      if (!orgId) {
+        console.log('No orgId in auth store, fetching default...');
+        orgId = await getOrCreateDefaultOrg();
+        console.log('Resolved orgId:', orgId);
+      } else {
+        console.log('Using auth store orgId:', orgId);
+      }
+
+      console.log('Calling generate_awb_number RPC...');
       const { data: awbResult, error: awbError } = await supabase.rpc('generate_awb_number', {
         p_org_id: orgId,
       });
-      if (awbError) throw awbError;
+
+      if (awbError) {
+        console.error('AWB Generation Error:', awbError);
+        throw awbError;
+      }
+      console.log('AWB Result:', awbResult);
+
       if (typeof awbResult !== 'string' || !awbResult) {
         throw new Error('AWB service unavailable');
       }
@@ -151,13 +235,19 @@ export function useCreateShipment() {
         status: 'CREATED' as const,
       };
 
+      console.log('Inserting shipment payload:', insertPayload);
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase.from('shipments') as any)
         .insert(insertPayload)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Shipment Insert Error:', error);
+        throw error;
+      }
+      console.log('Shipment created successfully:', data);
       return data as unknown as ShipmentWithRelations;
     },
     onSuccess: (data: ShipmentWithRelations) => {
@@ -271,6 +361,32 @@ export function useFindShipmentByAwb() {
 
       if (error) throw error;
       return data as ShipmentScanResult | null;
+    },
+  });
+}
+
+/**
+ * Hook to permanently delete a shipment (hard delete).
+ * ONLY FOR SUPER ADMINS.
+ */
+export function useHardDeleteShipment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('shipments')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: shipmentKeys.lists() });
+      toast.success('Shipment permanently deleted');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to delete shipment: ${error.message}`);
     },
   });
 }

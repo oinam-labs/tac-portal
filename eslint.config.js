@@ -29,6 +29,7 @@ export default tseslint.config(
             'playwright.config.ts',
             'supabase/functions/**', // Edge functions use Deno runtime
             'scripts/**/*.mjs', // Node.js scripts
+            '**/_backup/**', // Backup files
         ],
     },
 

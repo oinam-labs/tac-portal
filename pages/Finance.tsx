@@ -21,8 +21,9 @@ import { generateLabelFromShipment } from '@/lib/utils/label-utils';
 import { LabelData } from '@/components/domain/LabelGenerator';
 
 // Hooks & Data
-import { useInvoices, useUpdateInvoiceStatus } from '@/hooks/useInvoices';
+import { useInvoices, useUpdateInvoiceStatus, useHardDeleteInvoice, InvoiceWithRelations } from '@/hooks/useInvoices';
 import { getInvoicesColumns } from '@/components/finance/invoices.columns';
+import { useAuthStore } from '@/store/authStore';
 
 // Utils
 import { formatCurrency } from '@/lib/utils';
@@ -36,13 +37,17 @@ import { logger } from '@/lib/logger';
 
 export const Finance: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
 
   // Use Supabase hooks for invoices
   const { data: invoicesData = [], refetch: refetchInvoices } = useInvoices();
   const updateStatusMutation = useUpdateInvoiceStatus();
+  const hardDeleteMutation = useHardDeleteInvoice();
 
   // Modal state
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState<InvoiceWithRelations | null>(null);
   const [successData, setSuccessData] = useState<{
     invoice: Invoice;
     shipment: Shipment | undefined;
@@ -96,7 +101,7 @@ export const Finance: React.FC = () => {
 
   const buildInvoiceFilename = (inv: Invoice, consignor: any, consignee: any) => {
     const rawName = sanitizeString(
-      consignee?.name || inv.customerName || consignor?.name || 'Customer'
+      inv.customerName || consignee?.name || consignor?.name || 'Customer'
     );
     const safeName = rawName
       .toLowerCase()
@@ -237,7 +242,7 @@ export const Finance: React.FC = () => {
       customerName: consignee.name || inv.customerName || 'Unknown',
       originHub: 'NEW_DELHI' as HubLocation,
       destinationHub: 'IMPHAL' as HubLocation,
-      mode: 'TRUCK' as ShipmentMode,
+      mode: (lineItems.transportMode as ShipmentMode) || 'TRUCK',
       serviceLevel: 'STANDARD' as ServiceLevel,
       totalPackageCount: 1,
       totalWeight: { dead: 0, volumetric: 0, chargeable: 0 },
@@ -347,6 +352,7 @@ Thank you for choosing TAC Cargo.`;
 
   const onInvoiceCreated = (invoice?: Invoice, shipment?: Shipment) => {
     setIsCreateOpen(false);
+    setEditingInvoice(null);
     // Show success dialog if invoice was created
     if (invoice) {
       setSuccessData({ invoice, shipment });
@@ -357,7 +363,14 @@ Thank you for choosing TAC Cargo.`;
 
   const handleDelete = async () => {
     if (!rowToDelete) return;
-    await updateStatusMutation.mutateAsync({ id: rowToDelete.id, status: 'CANCELLED' });
+
+    if (isSuperAdmin) {
+      await hardDeleteMutation.mutateAsync(rowToDelete.id);
+    } else {
+      // Fallback: If delete button was somehow accessible (shouldn't be), just cancel
+      await updateStatusMutation.mutateAsync({ id: rowToDelete.id, status: 'CANCELLED' });
+    }
+
     setRowToDelete(null);
     setDeleteOpen(false);
   };
@@ -421,10 +434,16 @@ Thank you for choosing TAC Cargo.`;
     }
   };
 
+  const handleEditInvoice = (row: InvoiceWithRelations) => {
+    setEditingInvoice(row);
+    setIsCreateOpen(true);
+  };
+
   // Table columns with callbacks
   const columns = useMemo(
     () =>
       getInvoicesColumns({
+        onEdit: (row) => handleEditInvoice(row),
         onView: (row) => handleViewInvoice(row),
         onDownload: (row) => handleDownloadInvoice(buildInvoiceFromRow(row)),
         onDownloadLabel: (row) => handleDownloadLabel(buildInvoiceFromRow(row)),
@@ -432,13 +451,13 @@ Thank you for choosing TAC Cargo.`;
         onCancel: (row) => handleStatusUpdate(row.id, 'CANCELLED'),
         onShareWhatsapp: (row) => handleShareWhatsapp(buildInvoiceFromRow(row)),
         onShareEmail: (row) => handleShareEmail(buildInvoiceFromRow(row)),
-        onDelete: (row) => {
+        onDelete: isSuperAdmin ? (row) => {
           setRowToDelete(buildInvoiceFromRow(row));
           setDeleteOpen(true);
-        },
+        } : undefined,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [navigate]
+    [navigate, isSuperAdmin]
   );
 
   // Use Supabase data directly - already in correct format
@@ -462,7 +481,6 @@ Thank you for choosing TAC Cargo.`;
     <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
       <PageHeader title="Invoices" description="Manage invoices, billing, and payment gateways." />
 
-      {/* Stats Cards */}
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-6 border-border flex flex-col justify-between">
@@ -532,11 +550,15 @@ Thank you for choosing TAC Cargo.`;
       {/* Create Invoice Modal */}
       <Modal
         isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-        title="Generate New Invoice"
+        onClose={() => { setIsCreateOpen(false); setEditingInvoice(null); }}
+        title={editingInvoice ? `Edit Invoice ${editingInvoice.invoice_no}` : "Generate New Invoice"}
         size="4xl"
       >
-        <CreateInvoiceForm onSuccess={onInvoiceCreated} onCancel={() => setIsCreateOpen(false)} />
+        <CreateInvoiceForm
+          onSuccess={onInvoiceCreated}
+          onCancel={() => { setIsCreateOpen(false); setEditingInvoice(null); }}
+          initialData={editingInvoice || undefined}
+        />
       </Modal>
 
       {/* Success Modal */}
@@ -621,10 +643,12 @@ Thank you for choosing TAC Cargo.`;
       <CrudDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title="Cancel invoice?"
-        description={`This will cancel invoice "${rowToDelete?.invoiceNumber ?? ''}". This action cannot be undone.`}
+        title={isSuperAdmin ? "Permanently Delete Invoice?" : "Cancel invoice?"}
+        description={isSuperAdmin
+          ? `This will PERMANENTLY delete invoice "${rowToDelete?.invoiceNumber ?? ''}". This action cannot be undone.`
+          : `This will cancel invoice "${rowToDelete?.invoiceNumber ?? ''}".`}
         onConfirm={handleDelete}
-        confirmLabel="Cancel Invoice"
+        confirmLabel={isSuperAdmin ? "Delete Permanently" : "Cancel Invoice"}
       />
 
       {/* Inline Label Preview Dialog */}

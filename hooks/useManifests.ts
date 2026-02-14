@@ -406,3 +406,29 @@ export function useCheckManifestItem() {
     },
   });
 }
+
+/**
+ * Hook to permanently delete a manifest (hard delete).
+ * ONLY FOR SUPER ADMINS.
+ */
+export function useHardDeleteManifest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('manifests')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: manifestKeys.lists() });
+      toast.success('Manifest permanently deleted');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to delete manifest: ${error.message}`);
+    },
+  });
+}

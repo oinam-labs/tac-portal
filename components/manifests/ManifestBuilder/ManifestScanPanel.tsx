@@ -64,12 +64,8 @@ export function ManifestScanPanel({
     playSound: true,
   });
 
-  React.useEffect(() => {
-    if (scanMode === 'scanner') {
-      return scanner.enableKeyboardWedge();
-    }
-    return undefined;
-  }, [scanMode, scanner]);
+
+
 
   React.useEffect(() => {
     if (!disabled) {
