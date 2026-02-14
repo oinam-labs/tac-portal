@@ -1,49 +1,11 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useShipmentById, ShipmentWithRelations } from '@/hooks/useShipments';
+import { useShipmentById } from '@/hooks/useShipments';
 import { ShipmentDetails } from '@/components/shipments/ShipmentDetails';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { Shipment } from '@/types';
-
-// Adapter: Convert ShipmentWithRelations to Shipment type
-// Duplicated from Shipments.tsx - consider moving to a utility file
-function adaptToShipment(s: ShipmentWithRelations): Shipment {
-    return {
-        id: s.id,
-        awb: s.awb_number,
-        customerId: s.customer_id,
-        customerName: s.customer?.name || '',
-        originHub: (s.origin_hub?.code as any) || (s.origin_hub_id as any),
-        destinationHub: (s.destination_hub?.code as any) || (s.destination_hub_id as any),
-        mode: s.mode,
-        serviceLevel: s.service_level,
-        status: s.status as any,
-        totalPackageCount: s.package_count,
-        totalWeight: {
-            dead: s.total_weight,
-            volumetric: 0,
-            chargeable: s.total_weight,
-        },
-        eta: '',
-        createdAt: s.created_at,
-        updatedAt: s.updated_at,
-        consignor: {
-            name: s.sender_name || '',
-            phone: s.sender_phone || '',
-            address: typeof s.sender_address === 'string' ? s.sender_address : '',
-        },
-        consignee: {
-            name: s.receiver_name || '',
-            phone: s.receiver_phone || '',
-            address: typeof s.receiver_address === 'string' ? s.receiver_address : '',
-        },
-        declaredValue: s.declared_value ?? undefined,
-        contentsDescription: s.special_instructions || 'General Cargo',
-        bookingDate: s.created_at,
-    };
-}
+import { adaptToShipment } from '@/lib/utils/shipment-adapter';
 
 export const ShipmentDetailsPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
