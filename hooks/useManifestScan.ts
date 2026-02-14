@@ -14,9 +14,10 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   manifestService,
   type ScanResponse,
-  type ScanSource,
 } from '@/lib/services/manifestService';
+import { ScanSource } from '@/types';
 import { parseScanInput } from '@/lib/scanParser';
+import { useScanner } from '@/context/useScanner';
 
 export interface ScanOptions {
   manifestId: string;
@@ -46,7 +47,7 @@ export interface ScanHistoryEntry extends ScanResponse {
 }
 
 const SCAN_DEBOUNCE_MS = 100;
-const KEYBOARD_BUFFER_TIMEOUT_MS = 50;
+
 
 export function useManifestScan(options: ScanOptions) {
   const {
@@ -61,6 +62,8 @@ export function useManifestScan(options: ScanOptions) {
     debounceMs = SCAN_DEBOUNCE_MS,
   } = options;
 
+  const { subscribe } = useScanner();
+
   const [state, setState] = useState<ScanState>({
     isScanning: false,
     lastResult: null,
@@ -71,10 +74,11 @@ export function useManifestScan(options: ScanOptions) {
     scanHistory: [],
   });
 
+
+
   // Refs for debouncing and keyboard buffer
   const lastScanTimeRef = useRef<number>(0);
-  const keyboardBufferRef = useRef<string>('');
-  const keyboardTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
 
   // Audio feedback
   const playBeep = useCallback(
@@ -114,7 +118,7 @@ export function useManifestScan(options: ScanOptions) {
 
   // Core scan function
   const processScan = useCallback(
-    async (scanToken: string, source: ScanSource = 'MANUAL'): Promise<ScanResponse> => {
+    async (scanToken: string, source: ScanSource = ScanSource.MANUAL): Promise<ScanResponse> => {
       const trimmed = scanToken.trim();
       if (!trimmed) {
         return { success: false, error: 'EMPTY_SCAN', message: 'Empty scan token' };
@@ -237,58 +241,31 @@ export function useManifestScan(options: ScanOptions) {
   );
 
   // Manual scan (from input field)
-  const scanManual = useCallback((token: string) => processScan(token, 'MANUAL'), [processScan]);
+  const scanManual = useCallback((token: string) => processScan(token, ScanSource.MANUAL), [processScan]);
+
+  // Listen to global scanner events
+  useEffect(() => {
+    const unsubscribe = subscribe((token, source) => {
+      // Only process barcode scans automatically
+      // Manual/Camera scans are handled by their respective UI inputs/actions
+      if (source === 'BARCODE_SCANNER') {
+        processScan(token, source);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [subscribe, processScan]);
 
   // Barcode scanner scan (keyboard wedge)
   const scanBarcode = useCallback(
-    (token: string) => processScan(token, 'BARCODE_SCANNER'),
+    (token: string) => processScan(token, ScanSource.BARCODE_SCANNER),
     [processScan]
   );
 
   // Camera scan
-  const scanCamera = useCallback((token: string) => processScan(token, 'CAMERA'), [processScan]);
+  const scanCamera = useCallback((token: string) => processScan(token, ScanSource.CAMERA), [processScan]);
 
-  // Keyboard wedge handler - detects rapid keystrokes from barcode scanner
-  const handleKeyboardWedge = useCallback(
-    (event: KeyboardEvent) => {
-      // Most barcode scanners end with Enter
-      if (event.key === 'Enter') {
-        if (keyboardBufferRef.current.length >= 3) {
-          // Process buffered scan
-          scanBarcode(keyboardBufferRef.current);
-        }
-        keyboardBufferRef.current = '';
-        if (keyboardTimeoutRef.current) {
-          clearTimeout(keyboardTimeoutRef.current);
-          keyboardTimeoutRef.current = null;
-        }
-        return;
-      }
 
-      // Only capture printable characters
-      if (event.key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey) {
-        keyboardBufferRef.current += event.key;
-
-        // Clear timeout and set new one
-        if (keyboardTimeoutRef.current) {
-          clearTimeout(keyboardTimeoutRef.current);
-        }
-
-        keyboardTimeoutRef.current = setTimeout(() => {
-          // If buffer has content after timeout, it was manual typing not scanner
-          keyboardBufferRef.current = '';
-          keyboardTimeoutRef.current = null;
-        }, KEYBOARD_BUFFER_TIMEOUT_MS);
-      }
-    },
-    [scanBarcode]
-  );
-
-  // Enable/disable keyboard wedge listener
-  const enableKeyboardWedge = useCallback(() => {
-    document.addEventListener('keydown', handleKeyboardWedge);
-    return () => document.removeEventListener('keydown', handleKeyboardWedge);
-  }, [handleKeyboardWedge]);
 
   // Reset stats
   const resetStats = useCallback(() => {
@@ -303,14 +280,7 @@ export function useManifestScan(options: ScanOptions) {
     });
   }, []);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (keyboardTimeoutRef.current) {
-        clearTimeout(keyboardTimeoutRef.current);
-      }
-    };
-  }, []);
+
 
   return {
     // State
@@ -321,7 +291,6 @@ export function useManifestScan(options: ScanOptions) {
     scanBarcode,
     scanCamera,
     processScan,
-    enableKeyboardWedge,
     resetStats,
 
     // Utilities

@@ -90,6 +90,7 @@ export enum ExceptionStatus {
 }
 
 export enum UserRole {
+  SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN = 'ADMIN',
   MANAGER = 'MANAGER',
   WAREHOUSE_IMPHAL = 'WAREHOUSE_IMPHAL',
@@ -183,6 +184,14 @@ export const isValidManifestTransition = (from: ManifestStatus, to: ManifestStat
 // ============================================================================
 
 export const ROLE_PERMISSIONS = {
+  [UserRole.SUPER_ADMIN]: {
+    modules: ['*'] as string[],
+    canViewFinance: true,
+    canEditManifests: true,
+    canManageUsers: true,
+    canViewAuditLogs: true,
+    canResolveExceptions: true,
+  },
   [UserRole.ADMIN]: {
     modules: ['*'] as string[],
     canViewFinance: true,
@@ -267,6 +276,22 @@ export const ROLE_PERMISSIONS = {
     canResolveExceptions: false,
   },
 } as const;
+
+// Role-based access control helper
+type UserRoleType = UserRole;
+export const ROLE_HIERARCHY: Record<UserRoleType, number> = {
+  [UserRole.SUPER_ADMIN]: 1000,
+  [UserRole.ADMIN]: 100,
+  [UserRole.MANAGER]: 90,
+  [UserRole.OPS]: 80,
+  [UserRole.INVOICE]: 70,
+  [UserRole.WAREHOUSE_IMPHAL]: 60,
+  [UserRole.WAREHOUSE_DELHI]: 60,
+  [UserRole.WAREHOUSE_STAFF]: 50,
+  [UserRole.OPS_STAFF]: 40,
+  [UserRole.FINANCE_STAFF]: 30,
+  [UserRole.SUPPORT]: 20,
+};
 
 export const hasPermission = (
   role: UserRole,

@@ -1,27 +1,29 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { BarcodeScanner } from '../components/scanning/BarcodeScanner';
+import { BarcodeScanner } from '@/components/scanning/BarcodeScanner';
 import { PageHeader } from '@/components/ui/page-header';
 import { ScanLine, Box, Check, X, Truck, AlertTriangle, Camera, Keyboard } from 'lucide-react';
-import { parseScanInput } from '../lib/scanParser';
-import { useScanQueue } from '../store/scanQueueStore';
-import { useAuthStore } from '../store/authStore';
-import { useUpdateShipmentStatus, useFindShipmentByAwb } from '../hooks/useShipments';
+import { parseScanInput } from '@/lib/scanParser';
+import { useScanQueue } from '@/store/scanQueueStore';
+import { useAuthStore } from '@/store/authStore';
+import { useUpdateShipmentStatus, useFindShipmentByAwb } from '@/hooks/useShipments';
 import {
   useFindManifestByCode,
   useCheckManifestItem,
   ManifestLookupResult,
-} from '../hooks/useManifests';
-import { useCreateException } from '../hooks/useExceptions';
-import { manifestService } from '../lib/services/manifestService';
+} from '@/hooks/useManifests';
+import { useCreateException } from '@/hooks/useExceptions';
+import { manifestService } from '@/lib/services/manifestService';
 import {
   playSuccessFeedback,
   playErrorFeedback,
   playWarningFeedback,
   playManifestActivatedFeedback,
-} from '../lib/feedback';
+} from '@/lib/feedback';
+import { useScanner } from '@/context/useScanner';
+import { ScanSource } from '@/types';
 
 type ScanMode = 'RECEIVE' | 'DELIVER' | 'LOAD_MANIFEST' | 'VERIFY_MANIFEST';
 
@@ -43,6 +45,9 @@ export const Scanning: React.FC = () => {
   const [useCameraScanner, setUseCameraScanner] = useState(true);
   const [scanCount, setScanCount] = useState({ success: 0, error: 0 });
 
+  // Global Scanner Context
+  const { subscribe } = useScanner();
+
   // Offline queue
   const { addScan, pendingScans, isOnline, syncPending } = useScanQueue();
 
@@ -53,6 +58,28 @@ export const Scanning: React.FC = () => {
   const checkManifestItem = useCheckManifestItem();
   const createException = useCreateException();
   const staffUser = useAuthStore((state) => state.user);
+
+  // Stable refs for mutations to prevent processScan from re-creating on each render (Bug F)
+  const updateStatusRef = useRef(updateStatus);
+  updateStatusRef.current = updateStatus;
+  const findManifestRef = useRef(findManifest);
+  findManifestRef.current = findManifest;
+  const findShipmentRef = useRef(findShipment);
+  findShipmentRef.current = findShipment;
+  const checkManifestItemRef = useRef(checkManifestItem);
+  checkManifestItemRef.current = checkManifestItem;
+  const createExceptionRef = useRef(createException);
+  createExceptionRef.current = createException;
+  const staffUserRef = useRef(staffUser);
+  staffUserRef.current = staffUser;
+  const scanModeRef = useRef(scanMode);
+  scanModeRef.current = scanMode;
+  const activeManifestRef = useRef(activeManifest);
+  activeManifestRef.current = activeManifest;
+  const isOnlineRef = useRef(isOnline);
+  isOnlineRef.current = isOnline;
+  const addScanRef = useRef(addScan);
+  addScanRef.current = addScan;
 
   // Sync pending scans when online
   useEffect(() => {
@@ -90,22 +117,30 @@ export const Scanning: React.FC = () => {
     []
   );
 
-  const processScan = useCallback(async (input: string) => {
-    // Parse scan input using the scan parser
+  const processScan = useCallback(async (input: string, source: ScanSource = ScanSource.MANUAL) => {
+    // Parse scan input — gracefully handle parser errors (Bug E)
     let scanResult;
+    console.log('[Scanning Page] Processing scan:', { input, source });
     try {
       scanResult = parseScanInput(input);
+      console.log('[Scanning Page] Parsed result:', scanResult);
     } catch (e) {
-      addScanResult(input, 'ERROR', e instanceof Error ? e.message : 'Invalid scan format');
-      return;
+      console.warn('[Scanning Page] Parser error (using raw fallthrough):', e);
+      // Parser doesn't recognize format — treat as raw AWB lookup
+      scanResult = { type: 'shipment' as const, awb: input.trim().toUpperCase(), raw: input };
     }
+
+    // Read current values from refs (Bug F — stable closure)
+    const currentScanMode = scanModeRef.current;
+    const currentActiveManifest = activeManifestRef.current;
+    const currentIsOnline = isOnlineRef.current;
 
     // Handle Manifest scans
     if (scanResult.type === 'manifest') {
-      if (!activeManifest) {
+      if (!currentActiveManifest) {
         try {
           // Use hook to find manifest
-          const manifest = await findManifest.mutateAsync(
+          const manifest = await findManifestRef.current.mutateAsync(
             scanResult.manifestId || scanResult.manifestNo || input
           );
 
@@ -115,18 +150,18 @@ export const Scanning: React.FC = () => {
           }
 
           const m = manifest as ManifestLookupResult;
-          if (scanMode === 'LOAD_MANIFEST' && m.status !== 'OPEN') {
+          if (currentScanMode === 'LOAD_MANIFEST' && m.status !== 'OPEN') {
             addScanResult(input, 'ERROR', `Manifest is ${m.status}, cannot load.`);
             return;
           }
 
-          if (scanMode === 'VERIFY_MANIFEST' && m.status !== 'DEPARTED') {
+          if (currentScanMode === 'VERIFY_MANIFEST' && m.status !== 'DEPARTED') {
             addScanResult(input, 'ERROR', `Manifest is ${m.status}, cannot verify.`);
             return;
           }
 
           setActiveManifest(m);
-          const action = scanMode === 'LOAD_MANIFEST' ? 'load packages' : 'verify arrival';
+          const action = currentScanMode === 'LOAD_MANIFEST' ? 'load packages' : 'verify arrival';
           addScanResult(
             m.manifest_no,
             'SUCCESS',
@@ -152,11 +187,12 @@ export const Scanning: React.FC = () => {
     }
 
     // If offline, queue the scan
-    if (!isOnline) {
-      addScan({
+    if (!currentIsOnline) {
+      addScanRef.current({
         awb,
-        mode: scanMode,
-        manifestId: activeManifest?.id,
+        mode: currentScanMode,
+        manifestId: currentActiveManifest?.id,
+        source,
       });
       addScanResult(awb, 'SUCCESS', 'Queued for sync (offline)');
       return;
@@ -164,23 +200,22 @@ export const Scanning: React.FC = () => {
 
     try {
       // Use hook to fetch shipment
-      const shipment = await findShipment.mutateAsync(awb);
+      const shipment = await findShipmentRef.current.mutateAsync(awb);
 
       if (!shipment) {
         addScanResult(awb, 'ERROR', 'Shipment not found in system.');
         return;
       }
 
-      if (scanMode === 'RECEIVE') {
+      if (currentScanMode === 'RECEIVE') {
         const newStatus = shipment.status === 'CREATED' ? 'RECEIVED_AT_ORIGIN' : 'RECEIVED_AT_DEST';
-        await updateStatus.mutateAsync({ id: shipment.id, status: newStatus });
+        await updateStatusRef.current.mutateAsync({ id: shipment.id, status: newStatus });
         addScanResult(awb, 'SUCCESS', `Status updated to ${newStatus}`);
-      } else if (scanMode === 'LOAD_MANIFEST') {
-        if (!activeManifest) throw new Error('No Active Manifest.');
-        const scanSource = useCameraScanner ? 'CAMERA' : 'MANUAL';
-        const response = await manifestService.addShipmentByScan(activeManifest.id, awb, {
-          staffId: staffUser?.id ?? undefined,
-          scanSource,
+      } else if (currentScanMode === 'LOAD_MANIFEST') {
+        if (!currentActiveManifest) throw new Error('No Active Manifest.');
+        const response = await manifestService.addShipmentByScan(currentActiveManifest.id, awb, {
+          staffId: staffUserRef.current?.id ?? undefined,
+          scanSource: source,
         });
 
         if (!response.success) {
@@ -194,44 +229,54 @@ export const Scanning: React.FC = () => {
         }
 
         // Update shipment status
-        await updateStatus.mutateAsync({ id: shipment.id, status: 'IN_TRANSIT' });
-        addScanResult(awb, 'SUCCESS', `Loaded to ${activeManifest.manifest_no}`);
-      } else if (scanMode === 'VERIFY_MANIFEST') {
-        if (!activeManifest) throw new Error('No Active Manifest.');
+        await updateStatusRef.current.mutateAsync({ id: shipment.id, status: 'IN_TRANSIT' });
+        addScanResult(awb, 'SUCCESS', `Loaded to ${currentActiveManifest.manifest_no}`);
+      } else if (currentScanMode === 'VERIFY_MANIFEST') {
+        if (!currentActiveManifest) throw new Error('No Active Manifest.');
 
         // Check if shipment is in manifest using hook
-        const isInManifest = await checkManifestItem.mutateAsync({
-          manifest_id: activeManifest.id,
+        const isInManifest = await checkManifestItemRef.current.mutateAsync({
+          manifest_id: currentActiveManifest.id,
           shipment_id: shipment.id,
         });
 
         if (isInManifest) {
-          await updateStatus.mutateAsync({ id: shipment.id, status: 'RECEIVED_AT_DEST' });
+          await updateStatusRef.current.mutateAsync({ id: shipment.id, status: 'RECEIVED_AT_DEST' });
           addScanResult(awb, 'SUCCESS', 'Verified & Received');
         } else {
           // Create exception using hook
-          await createException.mutateAsync({
+          await createExceptionRef.current.mutateAsync({
             shipment_id: shipment.id,
             awb_number: awb,
             type: 'MISROUTE',
             severity: 'HIGH',
-            description: `Scanned with Manifest ${activeManifest.manifest_no} but not listed.`,
+            description: `Scanned with Manifest ${currentActiveManifest.manifest_no} but not listed.`,
           });
           addScanResult(awb, 'ERROR', 'EXCEPTION: Shipment not in Manifest!');
         }
-      } else if (scanMode === 'DELIVER') {
-        await updateStatus.mutateAsync({ id: shipment.id, status: 'DELIVERED' });
+      } else if (currentScanMode === 'DELIVER') {
+        await updateStatusRef.current.mutateAsync({ id: shipment.id, status: 'DELIVERED' });
         addScanResult(awb, 'SUCCESS', 'Marked as Delivered');
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       addScanResult(awb, 'ERROR', errorMessage);
     }
-  }, [scanMode, activeManifest, isOnline, addScan, findShipment, findManifest, updateStatus, checkManifestItem, createException, addScanResult, useCameraScanner, staffUser]);
+  }, [addScanResult]);
+
+  // Subscribe to global scanner events (Bug B — clear currentCode to prevent double-processing)
+  useEffect(() => {
+    const unsubscribe = subscribe((data, source) => {
+      processScan(data, source);
+      // Clear the input to prevent the form submit from re-processing
+      setCurrentCode('');
+    });
+    return unsubscribe;
+  }, [subscribe, processScan]);
 
   const handleCameraScan = useCallback(
     (result: string) => {
-      processScan(result);
+      processScan(result, ScanSource.CAMERA);
     },
     [processScan]
   );
@@ -239,7 +284,8 @@ export const Scanning: React.FC = () => {
   const handleScanSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (currentCode) {
-      processScan(currentCode);
+      // Manual entry via input — will not fire for scanner since subscribe clears currentCode
+      processScan(currentCode, ScanSource.MANUAL);
       setCurrentCode('');
     }
   };
@@ -253,13 +299,13 @@ export const Scanning: React.FC = () => {
     <div className="space-y-6 h-[calc(100vh-140px)] flex flex-col animate-[fadeIn_0.5s_ease-out]">
       <div className="flex justify-between items-center">
         <PageHeader title="Terminal Scanner" description="Process incoming/outgoing shipments." />
-        <div className="flex gap-1 bg-card p-1 border border-border">
+        <div className="flex gap-2 bg-card p-1 rounded-lg border border-border">
           <button
             onClick={() => {
               setScanMode('RECEIVE');
               setActiveManifest(null);
             }}
-            className={`px-3 py-1.5 text-xs font-bold transition-colors ${scanMode === 'RECEIVE' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${scanMode === 'RECEIVE' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
             RECEIVE
           </button>
@@ -324,13 +370,13 @@ export const Scanning: React.FC = () => {
           <div className="absolute top-4 left-4 z-20 flex gap-2">
             <button
               onClick={() => setUseCameraScanner(true)}
-              className={`p-2 transition-colors ${useCameraScanner ? 'bg-primary text-primary-foreground' : 'bg-black/50 text-white hover:bg-black/70'}`}
+              className={`p-2 rounded-lg transition-all ${useCameraScanner ? 'bg-primary text-primary-foreground' : 'bg-black/50 text-white hover:bg-black/70'}`}
             >
               <Camera className="w-4 h-4" />
             </button>
             <button
               onClick={() => setUseCameraScanner(false)}
-              className={`p-2 transition-colors ${!useCameraScanner ? 'bg-primary text-primary-foreground' : 'bg-black/50 text-white hover:bg-black/70'}`}
+              className={`p-2 rounded-lg transition-all ${!useCameraScanner ? 'bg-primary text-primary-foreground' : 'bg-black/50 text-white hover:bg-black/70'}`}
             >
               <Keyboard className="w-4 h-4" />
             </button>
@@ -410,7 +456,7 @@ export const Scanning: React.FC = () => {
                         <AlertTriangle className="w-4 h-4 text-status-error" />
                       ) : (
                         <Box
-                          className={`w-4 h-4 ${item.status === 'SUCCESS' ? 'text-status-success' : 'text-status-error'}`}
+                           className={`w-4 h-4 ${item.status === 'SUCCESS' ? 'text-status-success' : 'text-status-error'}`}
                         />
                       )}
                       <div>

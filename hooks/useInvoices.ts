@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 import { getOrCreateDefaultOrg } from '../lib/org-helper';
+import { InvoiceStatus } from '../types';
 
 import type { Database } from '../lib/database.types';
 
@@ -153,6 +154,54 @@ export function useCreateInvoice() {
   });
 }
 
+export interface UpdateInvoiceInput {
+  id: string;
+  customer_id?: string;
+  shipment_id?: string;
+  subtotal?: number;
+  tax_amount?: number;
+  total?: number;
+  issue_date?: string;
+  due_date?: string;
+  notes?: string;
+  line_items?: Json;
+  discount?: number;
+  status?: InvoiceStatus;
+}
+
+export function useUpdateInvoice() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (invoice: UpdateInvoiceInput) => {
+      const { id, ...updates } = invoice;
+
+      const updatePayload: any = {
+        updated_at: new Date().toISOString(),
+        ...updates
+      };
+
+      const { data, error } = await supabase
+        .from('invoices')
+        .update(updatePayload)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as unknown as InvoiceWithRelations;
+    },
+    onSuccess: (data: InvoiceWithRelations) => {
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(data.id) });
+      toast.success(`Invoice ${data.invoice_no} updated successfully`);
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to update invoice: ${error.message}`);
+    },
+  });
+}
+
 export function useUpdateInvoiceStatus() {
   const queryClient = useQueryClient();
 
@@ -214,6 +263,32 @@ export function useDeleteInvoice() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
       toast.success('Invoice deleted successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to delete invoice: ${error.message}`);
+    },
+  });
+}
+
+/**
+ * Hook to HARD delete an invoice (remove from DB).
+ * SUPER_ADMIN only.
+ */
+export function useHardDeleteInvoice() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('invoices')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
+      toast.success('Invoice permanently deleted');
     },
     onError: (error: Error) => {
       toast.error(`Failed to delete invoice: ${error.message}`);

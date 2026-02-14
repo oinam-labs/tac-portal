@@ -10,7 +10,7 @@ import {
   getPaginationRowModel,
   getFilteredRowModel,
 } from '@tanstack/react-table';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,10 +34,14 @@ export interface CrudTableProps<TData> {
   emptyMessage?: string;
   loadingState?: React.ReactNode;
   emptyState?:
-    | React.ReactNode
-    | ((ctx: { isFiltered: boolean; filter: string }) => React.ReactNode);
+  | React.ReactNode
+  | ((ctx: { isFiltered: boolean; filter: string }) => React.ReactNode);
   /** Toolbar content (e.g., filters, create button) */
   toolbar?: React.ReactNode;
+  /** Optional callback for server-side search */
+  onSearch?: (term: string) => void;
+  /** Optional controlled search value */
+  searchValue?: string;
 }
 
 /**
@@ -55,7 +59,10 @@ export function CrudTable<TData>({
   emptyMessage = 'No results found.',
   loadingState,
   emptyState,
+
   toolbar,
+  onSearch,
+  searchValue,
 }: CrudTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
@@ -80,6 +87,13 @@ export function CrudTable<TData>({
     },
   });
 
+  // Sync internal state with controlled prop
+  useEffect(() => {
+    if (searchValue !== undefined) {
+      setGlobalFilter(searchValue);
+    }
+  }, [searchValue]);
+
   return (
     <div className={cn('space-y-4', className)}>
       {/* Toolbar */}
@@ -90,7 +104,11 @@ export function CrudTable<TData>({
             <Input
               placeholder={searchPlaceholder}
               value={globalFilter ?? ''}
-              onChange={(e) => setGlobalFilter(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setGlobalFilter(value);
+                onSearch?.(value);
+              }}
               className="pl-9"
             />
           </div>
@@ -123,7 +141,7 @@ export function CrudTable<TData>({
                             className={cn(
                               'flex items-center gap-1',
                               header.column.getCanSort() &&
-                                'cursor-pointer select-none hover:text-foreground'
+                              'cursor-pointer select-none hover:text-foreground'
                             )}
                             onClick={header.column.getToggleSortingHandler()}
                           >

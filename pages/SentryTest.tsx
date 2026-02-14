@@ -157,7 +157,7 @@ export const SentryTest: React.FC = () => {
 
                     <Button
                         onClick={handleTestError}
-                        variant="danger"
+                        variant="destructive"
                         size="sm"
                         className="w-full text-sm flex items-center justify-center gap-2"
                     >
@@ -229,7 +229,7 @@ export const SentryTest: React.FC = () => {
                                 alert('Feedback integration not found. Make sure Sentry is initialized with feedbackIntegration.');
                             }
                         }}
-                        variant="primary"
+                        variant="default"
                         size="sm"
                         className="w-full text-sm flex items-center justify-center gap-2"
                     >

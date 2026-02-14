@@ -67,6 +67,7 @@ export type PasswordResetInput = z.infer<typeof passwordResetSchema>;
 
 // User role enum
 export const UserRole = z.enum([
+  'SUPER_ADMIN',
   'ADMIN',
   'MANAGER',
   'OPS_STAFF',
@@ -88,6 +89,7 @@ export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 
 // Role-based access control helper
 export const ROLE_HIERARCHY: Record<UserRoleType, number> = {
+  SUPER_ADMIN: 1000,
   ADMIN: 100,
   MANAGER: 80,
   FINANCE_STAFF: 60,
@@ -107,5 +109,5 @@ export function hasPermission(userRole: UserRoleType, requiredRole: UserRoleType
  * Check if user can access a specific feature
  */
 export function canAccess(userRole: UserRoleType, allowedRoles: UserRoleType[]): boolean {
-  return allowedRoles.includes(userRole) || userRole === 'ADMIN';
+  return allowedRoles.includes(userRole) || userRole === 'SUPER_ADMIN' || userRole === 'ADMIN';
 }

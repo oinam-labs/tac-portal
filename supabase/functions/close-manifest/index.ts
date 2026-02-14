@@ -1,22 +1,21 @@
-// @ts-nocheck - Deno Edge Function (different runtime than Node.js TypeScript)
+// @ts-nocheck - Deno Edge Function
 /**
  * Close Manifest Edge Function
  * Atomic operation to close a manifest and update all related shipments
  *
- * This function:
- * 1. Validates the manifest exists and is in OPEN status
- * 2. Updates manifest status to CLOSED
- * 3. Updates all linked shipments to IN_TRANSIT
- * 4. Creates tracking events for each shipment
- * 5. Calculates and updates manifest totals
+ * Security:
+ * - Validates JWT from Authorization header
+ * - Verifies staff profile exists for the user
+ * - Ensures staff belongs to the same organization as the manifest
  */
 
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+
 interface CloseManifestRequest {
   manifest_id: string;
-  staff_id?: string;
   notes?: string;
+  // staff_id removed from request body - derived from auth token
 }
 
 interface CloseManifestResponse {
@@ -61,8 +60,49 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   try {
+    // 1. Authorization Check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ success: false, error: 'Authorization header missing' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Create Supabase client with service role for admin tasks
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Validate Token
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid token' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Get Staff Profile & Verify Access
+    const { data: staff, error: staffError } = await supabase
+      .from('staff')
+      .select('id, org_id')
+      .eq('auth_user_id', user.id)
+      .single();
+
+    if (staffError || !staff) {
+      return new Response(JSON.stringify({ success: false, error: 'Staff profile not found' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const start_staff_id = staff.id;
+
     // Parse request body
-    const { manifest_id, staff_id, notes }: CloseManifestRequest = await req.json();
+    const { manifest_id, notes }: CloseManifestRequest = await req.json();
 
     if (!manifest_id) {
       return new Response(JSON.stringify({ success: false, error: 'manifest_id is required' }), {
@@ -71,12 +111,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    // Create Supabase client with service role for full access
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // 1. Fetch manifest and validate
+    // 2. Fetch manifest and validate
     const { data: manifest, error: manifestError } = await supabase
       .from('manifests')
       .select('*')
@@ -86,6 +121,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
     if (manifestError || !manifest) {
       return new Response(JSON.stringify({ success: false, error: 'Manifest not found' }), {
         status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Security: Ensure staff belongs to the same org
+    if (manifest.org_id !== staff.org_id) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized: Org mismatch' }), {
+        status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -100,7 +143,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    // 2. Get all shipments linked to this manifest
+    // 3. Get all shipments linked to this manifest
     const { data: manifestItems, error: itemsError } = await supabase
       .from('manifest_items')
       .select(
@@ -119,7 +162,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       .map((item: ManifestItem) => item.shipment)
       .filter((s): s is ManifestShipment => s !== null);
 
-    // 3. Calculate totals
+    // 4. Calculate totals
     const totalShipments = shipments.length;
     const totalPackages = shipments.reduce(
       (sum: number, s: ManifestShipment) => sum + (s.package_count || 0),
@@ -130,7 +173,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       0
     );
 
-    // 4. Update manifest status to CLOSED
+    // 5. Update manifest status to CLOSED
     const { error: updateManifestError } = await supabase
       .from('manifests')
       .update({
@@ -139,7 +182,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         total_packages: totalPackages,
         total_weight: totalWeight,
         closed_at: new Date().toISOString(),
-        closed_by_staff_id: staff_id || null,
+        closed_by_staff_id: start_staff_id, // Use validated staff id
         notes: notes || manifest.notes,
         updated_at: new Date().toISOString(),
       })
@@ -149,7 +192,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       throw new Error(`Failed to update manifest: ${updateManifestError.message}`);
     }
 
-    // 5. Update all shipments to IN_TRANSIT
+    // 6. Update all shipments to IN_TRANSIT
     let shipmentsUpdated = 0;
     const shipmentIds = shipments.map((s: ManifestShipment) => s.id);
 
@@ -169,7 +212,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       shipmentsUpdated = count || shipmentIds.length;
     }
 
-    // 6. Create tracking events for each shipment
+    // 7. Create tracking events for each shipment
     let trackingEventsCreated = 0;
     const trackingEvents = shipments.map((s: ManifestShipment) => ({
       org_id: manifest.org_id,
@@ -178,13 +221,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
       event_code: 'IN_TRANSIT',
       event_time: new Date().toISOString(),
       hub_id: manifest.from_hub_id,
-      actor_staff_id: staff_id || null,
+      actor_staff_id: start_staff_id, // Use validated staff id
       source: 'SYSTEM',
       meta: {
         manifest_id: manifest_id,
         manifest_no: manifest.manifest_no,
         action: 'MANIFEST_CLOSED',
       },
+      description: `Manifest ${manifest.manifest_no} closed`
     }));
 
     if (trackingEvents.length > 0) {
@@ -200,7 +244,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
     }
 
-    // 7. Return success response
+    // 8. Return success response
     const response: CloseManifestResponse = {
       success: true,
       manifest: {

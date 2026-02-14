@@ -25,39 +25,46 @@ export function useRealtimeShipments() {
 
     // Prevent duplicate subscriptions
     if (isSubscribedRef.current) return;
-    isSubscribedRef.current = true;
 
-    const channel = supabase
-      .channel('shipments-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'shipments',
-        },
-        (payload) => {
-          logger.debug('[Realtime] Shipment changed', { eventType: payload.eventType });
+    const setupSubscription = () => {
+      isSubscribedRef.current = true;
 
-          // Invalidate shipments queries
-          queryClient.invalidateQueries({ queryKey: queryKeys.shipments.all });
+      const channel = supabase
+        .channel('shipments-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'shipments',
+          },
+          (payload) => {
+            logger.debug('[Realtime] Shipment changed', { eventType: payload.eventType });
 
-          // If it's a specific shipment, invalidate that too
-          const newRecord = payload.new as Record<string, unknown> | null;
-          if (newRecord?.id && typeof newRecord.id === 'string') {
-            queryClient.invalidateQueries({
-              queryKey: queryKeys.shipments.detail(newRecord.id),
-            });
+            // Invalidate shipments queries
+            queryClient.invalidateQueries({ queryKey: queryKeys.shipments.all });
+
+            // If it's a specific shipment, invalidate that too
+            const newRecord = payload.new as Record<string, unknown> | null;
+            if (newRecord?.id && typeof newRecord.id === 'string') {
+              queryClient.invalidateQueries({
+                queryKey: queryKeys.shipments.detail(newRecord.id),
+              });
+            }
           }
-        }
-      )
-      .subscribe((status) => {
-        logger.debug('[Realtime] Shipments subscription', { status });
-      });
+        )
+        .subscribe((status) => {
+          logger.debug('[Realtime] Shipments subscription', { status });
+        });
 
-    channelRef.current = channel;
+      channelRef.current = channel;
+    };
+
+    // Debounce subscription to handle Strict Mode
+    const timeoutId = setTimeout(setupSubscription, 100);
 
     return () => {
+      clearTimeout(timeoutId);
       isSubscribedRef.current = false;
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
@@ -81,27 +88,34 @@ export function useRealtimeManifests() {
 
     // Prevent duplicate subscriptions
     if (isSubscribedRef.current) return;
-    isSubscribedRef.current = true;
 
-    const channel = supabase
-      .channel('manifests-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'manifests',
-        },
-        (payload) => {
-          logger.debug('[Realtime] Manifest changed', { eventType: payload.eventType });
-          queryClient.invalidateQueries({ queryKey: queryKeys.manifests.all });
-        }
-      )
-      .subscribe();
+    const setupSubscription = () => {
+      isSubscribedRef.current = true;
 
-    channelRef.current = channel;
+      const channel = supabase
+        .channel('manifests-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'manifests',
+          },
+          (payload) => {
+            logger.debug('[Realtime] Manifest changed', { eventType: payload.eventType });
+            queryClient.invalidateQueries({ queryKey: queryKeys.manifests.all });
+          }
+        )
+        .subscribe();
+
+      channelRef.current = channel;
+    };
+
+    // Debounce subscription to handle Strict Mode
+    const timeoutId = setTimeout(setupSubscription, 100);
 
     return () => {
+      clearTimeout(timeoutId);
       isSubscribedRef.current = false;
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
@@ -133,29 +147,36 @@ export function useRealtimeTracking(awb?: string) {
 
     // Prevent duplicate subscriptions
     if (isSubscribedRef.current && currentAwbRef.current === awb) return;
-    isSubscribedRef.current = true;
-    currentAwbRef.current = awb;
 
-    const channel = supabase
-      .channel(`tracking-${awb}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'tracking_events',
-          filter: `awb_number=eq.${awb}`,
-        },
-        () => {
-          logger.debug('[Realtime] New tracking event', { awb });
-          queryClient.invalidateQueries({ queryKey: queryKeys.tracking.byAwb(awb) });
-        }
-      )
-      .subscribe();
+    const setupSubscription = () => {
+      isSubscribedRef.current = true;
+      currentAwbRef.current = awb;
 
-    channelRef.current = channel;
+      const channel = supabase
+        .channel(`tracking-${awb}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'tracking_events',
+            filter: `awb_number=eq.${awb}`,
+          },
+          () => {
+            logger.debug('[Realtime] New tracking event', { awb });
+            queryClient.invalidateQueries({ queryKey: queryKeys.tracking.byAwb(awb) });
+          }
+        )
+        .subscribe();
+
+      channelRef.current = channel;
+    };
+
+    // Debounce subscription to handle Strict Mode
+    const timeoutId = setTimeout(setupSubscription, 100);
 
     return () => {
+      clearTimeout(timeoutId);
       isSubscribedRef.current = false;
       currentAwbRef.current = undefined;
       if (channelRef.current) {
@@ -180,27 +201,34 @@ export function useRealtimeExceptions() {
 
     // Prevent duplicate subscriptions
     if (isSubscribedRef.current) return;
-    isSubscribedRef.current = true;
 
-    const channel = supabase
-      .channel('exceptions-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'exceptions',
-        },
-        (payload) => {
-          logger.debug('[Realtime] Exception changed', { eventType: payload.eventType });
-          queryClient.invalidateQueries({ queryKey: queryKeys.exceptions.all });
-        }
-      )
-      .subscribe();
+    const setupSubscription = () => {
+      isSubscribedRef.current = true;
 
-    channelRef.current = channel;
+      const channel = supabase
+        .channel('exceptions-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'exceptions',
+          },
+          (payload) => {
+            logger.debug('[Realtime] Exception changed', { eventType: payload.eventType });
+            queryClient.invalidateQueries({ queryKey: queryKeys.exceptions.all });
+          }
+        )
+        .subscribe();
+
+      channelRef.current = channel;
+    };
+
+    // Debounce subscription to handle Strict Mode
+    const timeoutId = setTimeout(setupSubscription, 100);
 
     return () => {
+      clearTimeout(timeoutId);
       isSubscribedRef.current = false;
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);

@@ -41,12 +41,13 @@ const AMOUNT_STATUS_COLORS: Record<string, string> = {
 };
 
 export interface InvoicesColumnsParams {
+  onEdit: (row: InvoiceWithRelations) => void;
   onView: (row: InvoiceWithRelations) => void;
   onDownload: (row: InvoiceWithRelations) => void;
   onDownloadLabel: (row: InvoiceWithRelations) => void;
   onMarkPaid: (row: InvoiceWithRelations) => void;
   onCancel: (row: InvoiceWithRelations) => void;
-  onDelete: (row: InvoiceWithRelations) => void;
+  onDelete?: (row: InvoiceWithRelations) => void;
   onShareWhatsapp?: (row: InvoiceWithRelations) => void;
   onShareEmail?: (row: InvoiceWithRelations) => void;
 }
@@ -158,9 +159,31 @@ export function getInvoicesColumns(
               </TooltipTrigger>
               <TooltipContent>Print Label</TooltipContent>
             </Tooltip>
+
+            {params.onDelete && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => params.onDelete!(row.original)}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <div className="w-4 h-4">
+                      {/* Trash icon directly locally or imported */}
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
+                    </div>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete Permanently</TooltipContent>
+              </Tooltip>
+            )}
+
             <CrudRowActions
-              onEdit={() => params.onView(row.original)}
-              onDelete={() => params.onDelete(row.original)}
+              onEdit={() => params.onEdit(row.original)}
+              // Don't pass onDelete here to avoid duplication, or pass it if you want it in both places.
+              // Let's remove it from dropdown if it's visible outside to avoid clutter? 
+              // Actually, keeping it in dropdown is standard, but let's prioritize the visible one.
               extraItems={[
                 {
                   label: 'View Details',

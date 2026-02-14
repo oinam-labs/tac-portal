@@ -25,6 +25,7 @@ import { AnimatedThemeToggler } from './components/ui/animated-theme-toggler';
 import { ErrorBoundary } from './components/ui/error-boundary';
 import { PageTransition } from './components/ui/page-transition';
 import { SentryErrorBoundary, setUserContext, addBreadcrumb } from './lib/sentry';
+import { ScanningProvider } from './context/ScanningProvider';
 
 // Lazy Load Pages
 const Landing = lazy(() =>
@@ -35,6 +36,9 @@ const Dashboard = lazy(() =>
 );
 const Shipments = lazy(() =>
   import('./pages/Shipments').then((module) => ({ default: module.Shipments }))
+);
+const ShipmentDetailsPage = lazy(() =>
+  import('./pages/ShipmentDetailsPage').then((module) => ({ default: module.ShipmentDetailsPage }))
 );
 const Finance = lazy(() =>
   import('./pages/Finance').then((module) => ({ default: module.Finance }))
@@ -85,6 +89,9 @@ const ShiftReport = lazy(() => import('./pages/ShiftReport'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Messages = lazy(() =>
   import('./pages/admin/Messages').then(module => ({ default: module.Messages }))
+);
+const SearchResults = lazy(() =>
+  import('./pages/SearchResults').then(module => ({ default: module.SearchResults }))
 );
 
 // Login Page Component with Supabase Auth
@@ -153,8 +160,8 @@ const Login: React.FC = () => {
       {/* Gradient Background — adapative to project theme */}
       <div className="fixed inset-0 -z-10 bg-gradient-to-br from-background via-muted/50 to-background dark:from-background dark:via-primary/5 dark:to-background transition-colors duration-500">
         {/* Ambient blobs using project vars */}
-        <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-primary/20 sm:bg-primary/10 blur-[120px] animate-pulse rotate-45" />
-        <div className="absolute bottom-1/4 -right-20 w-[400px] h-[400px] bg-accent/20 sm:bg-accent/10 blur-[100px] animate-pulse rotate-45" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] rounded-full bg-primary/20 sm:bg-primary/10 blur-[120px] animate-pulse" />
+        <div className="absolute bottom-1/4 -right-20 w-[400px] h-[400px] rounded-full bg-accent/20 sm:bg-accent/10 blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
 
       {/* Top Controls */}
@@ -162,7 +169,7 @@ const Login: React.FC = () => {
         {/* Back Arrow */}
         <button
           onClick={() => navigate('/')}
-          className="group flex items-center gap-2 border border-border/40 bg-background/50 backdrop-blur-md px-3 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-background/80 hover:border-border transition-all"
+          className="group flex items-center gap-2 rounded-full border border-border/40 bg-background/50 backdrop-blur-md px-3 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-background/80 hover:border-border transition-all"
           aria-label="Back to home"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -173,11 +180,10 @@ const Login: React.FC = () => {
         <AnimatedThemeToggler onThemeChange={setTheme} />
       </div>
 
-      {/* Main */}
       <main className="relative flex min-h-screen items-center justify-center p-4 sm:p-6">
         {/* Card */}
         <div className="relative z-10 w-full max-w-3xl">
-          <div className="group relative overflow-hidden border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/10 backdrop-blur-xl shadow-2xl shadow-black/10 dark:shadow-black/40 ring-1 ring-black/5 dark:ring-white/10 transition-all duration-300 hover:border-black/15 dark:hover:border-white/20 hover:ring-black/10 dark:hover:ring-white/20">
+          <div className="group relative overflow-hidden rounded-2xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/10 backdrop-blur-xl shadow-2xl shadow-black/10 dark:shadow-black/40 ring-1 ring-black/5 dark:ring-white/10 transition-all duration-300 hover:border-black/15 dark:hover:border-white/20 hover:ring-black/10 dark:hover:ring-white/20">
             {/* Top hairline */}
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-black/10 dark:via-white/20 to-transparent" />
 
@@ -193,7 +199,7 @@ const Login: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-tr from-black/60 via-black/30 to-transparent" />
 
                 {/* Overlay badge */}
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between border border-white/10 bg-black/30 px-3 py-2 backdrop-blur-md">
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between rounded-lg border border-white/10 bg-black/30 px-3 py-2 backdrop-blur-md">
                   <div className="flex items-center gap-2 text-xs text-white/75">
                     <Box className="h-3.5 w-3.5" />
                     Secure channel
@@ -207,7 +213,7 @@ const Login: React.FC = () => {
                 {/* Logo */}
                 <div className="mb-6 flex items-center justify-between">
                   <Link to="/" className="flex items-center gap-3 group">
-                    <div className="grid h-10 w-10 place-items-center text-foreground/80 dark:text-white/90 bg-black/5 dark:bg-white/10 border border-black/10 dark:border-white/15 shadow-sm group-hover:bg-black/10 dark:group-hover:bg-white/20 transition-colors">
+                    <div className="grid h-10 w-10 place-items-center text-foreground/80 dark:text-white/90 bg-black/5 dark:bg-white/10 border border-black/10 dark:border-white/15 rounded-xl shadow-sm group-hover:bg-black/10 dark:group-hover:bg-white/20 transition-colors">
                       <Box className="h-5 w-5" />
                     </div>
                     <div>
@@ -226,7 +232,7 @@ const Login: React.FC = () => {
 
                 {/* Error */}
                 {error && (
-                  <div data-testid="login-error-message" className="mb-4 p-3 border border-destructive/30 bg-destructive/10 text-destructive dark:text-red-300 text-sm backdrop-blur-sm">
+                  <div data-testid="login-error-message" className="mb-4 p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive dark:text-red-300 text-sm backdrop-blur-sm">
                     {error}
                   </div>
                 )}
@@ -236,7 +242,7 @@ const Login: React.FC = () => {
                   {/* Email */}
                   <div className="space-y-2">
                     <label htmlFor="login-email" className="block text-sm text-foreground/80 dark:text-white/80">Email</label>
-                    <div className="group/input relative flex items-center border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/5 px-3 py-2.5 transition-all hover:border-black/20 dark:hover:border-white/20 focus-within:border-primary/40 dark:focus-within:border-white/25 focus-within:bg-black/[0.05] dark:focus-within:bg-white/[0.07]">
+                    <div className="group/input relative flex items-center rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/5 px-3 py-2.5 transition-all hover:border-black/20 dark:hover:border-white/20 focus-within:border-primary/40 dark:focus-within:border-white/25 focus-within:bg-black/[0.05] dark:focus-within:bg-white/[0.07]">
                       <Mail className="mr-2 h-4 w-4 text-muted-foreground dark:text-white/50 shrink-0" />
                       <input
                         id="login-email"
@@ -250,14 +256,14 @@ const Login: React.FC = () => {
                         data-testid="login-email-input"
                         className="w-full bg-transparent text-sm text-foreground dark:text-white placeholder:text-muted-foreground/60 dark:placeholder:text-white/40 focus:outline-none disabled:opacity-50"
                       />
-                      <div className="pointer-events-none absolute inset-0 ring-0 ring-primary/0 transition-all group-focus-within/input:ring-2 group-focus-within/input:ring-primary/25" />
+                      <div className="pointer-events-none absolute inset-0 rounded-xl ring-0 ring-primary/0 transition-all group-focus-within/input:ring-2 group-focus-within/input:ring-primary/25" />
                     </div>
                   </div>
 
                   {/* Password */}
                   <div className="space-y-2">
                     <label htmlFor="login-password" className="block text-sm text-foreground/80 dark:text-white/80">Password</label>
-                    <div className="group/input relative flex items-center border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/5 px-3 py-2.5 transition-all hover:border-black/20 dark:hover:border-white/20 focus-within:border-primary/40 dark:focus-within:border-white/25 focus-within:bg-black/[0.05] dark:focus-within:bg-white/[0.07]">
+                    <div className="group/input relative flex items-center rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/5 px-3 py-2.5 transition-all hover:border-black/20 dark:hover:border-white/20 focus-within:border-primary/40 dark:focus-within:border-white/25 focus-within:bg-black/[0.05] dark:focus-within:bg-white/[0.07]">
                       <Lock className="mr-2 h-4 w-4 text-muted-foreground dark:text-white/50 shrink-0" />
                       <input
                         id="login-password"
@@ -273,13 +279,13 @@ const Login: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="ml-2 grid h-8 w-8 shrink-0 place-items-center text-muted-foreground dark:text-white/60 hover:text-foreground dark:hover:text-white/90 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                        className="ml-2 grid h-8 w-8 shrink-0 place-items-center rounded-lg text-muted-foreground dark:text-white/60 hover:text-foreground dark:hover:text-white/90 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                         tabIndex={-1}
                         aria-label="Toggle password visibility"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
-                      <div className="pointer-events-none absolute inset-0 ring-0 ring-primary/0 transition-all group-focus-within/input:ring-2 group-focus-within/input:ring-primary/25" />
+                      <div className="pointer-events-none absolute inset-0 rounded-xl ring-0 ring-primary/0 transition-all group-focus-within/input:ring-2 group-focus-within/input:ring-primary/25" />
                     </div>
                   </div>
 
@@ -292,9 +298,9 @@ const Login: React.FC = () => {
                       type="submit"
                       disabled={isLoading}
                       data-testid="login-submit-button"
-                      className="group relative inline-flex items-center justify-center bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-lg shadow-primary/30 outline-none ring-1 ring-primary/30 transition-all hover:shadow-primary/40 hover:brightness-110 hover:saturate-125 focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
+                      className="group relative inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-lg shadow-primary/30 outline-none ring-1 ring-primary/30 transition-all hover:shadow-primary/40 hover:brightness-110 hover:saturate-125 focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <span className="absolute inset-0 -z-10 bg-primary/20 opacity-0 blur-xl transition-opacity group-hover:opacity-100" />
+                      <span className="absolute inset-0 -z-10 rounded-xl bg-primary/20 opacity-0 blur-xl transition-opacity group-hover:opacity-100" />
                       <LogIn className="mr-2 h-4 w-4" />
                       {isLoading ? 'Signing in...' : 'Sign in'}
                     </button>
@@ -309,7 +315,7 @@ const Login: React.FC = () => {
             </div>
 
             {/* Bottom footer */}
-            <div className="flex items-center justify-between border-t border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] px-6 py-3 text-[11px] text-muted-foreground dark:text-white/55">
+            <div className="flex items-center justify-between rounded-b-2xl border-t border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] px-6 py-3 text-[11px] text-muted-foreground dark:text-white/55">
               <div className="flex items-center gap-2">
                 <Shield className="h-3.5 w-3.5" />
                 <span>Secured access</span>
@@ -354,6 +360,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: UserR
   const hasAccess = (() => {
     // No role restriction = everyone can access
     if (!allowedRoles || allowedRoles.length === 0) return true;
+
+    // SUPER_ADMIN has god mode
+    if (user.role === 'SUPER_ADMIN') return true;
 
     // ADMIN and MANAGER have access to everything
     if (user.role === 'ADMIN' || user.role === 'MANAGER') return true;
@@ -466,245 +475,264 @@ const App: React.FC = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        {/* Skip to main content link for accessibility (WCAG 2.4.1) */}
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-        >
-          Skip to main content
-        </a>
-        <div className="min-h-screen">
-          <SentryErrorBoundary
-            fallback={({ error, resetError }) => (
-              <div className="min-h-screen flex items-center justify-center bg-background p-4">
-                <Card className="max-w-lg p-8 text-center">
-                  <h1 className="text-2xl font-bold text-red-500 mb-4">Something went wrong</h1>
-                  <p className="text-muted-foreground mb-6">
-                    {error instanceof Error ? error.message : 'An unexpected error occurred'}
-                  </p>
-                  <Button onClick={resetError}>Try Again</Button>
-                </Card>
-              </div>
-            )}
+      <ScanningProvider>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          {/* Skip to main content link for accessibility (WCAG 2.4.1) */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           >
-            <Suspense
-              fallback={
-                <div className="min-h-screen flex items-center justify-center bg-background">
-                  <div className="w-full max-w-7xl p-6">
-                    <PageSkeleton />
-                  </div>
+            Skip to main content
+          </a>
+          <div className="min-h-screen">
+            <SentryErrorBoundary
+              fallback={({ error, resetError }) => (
+                <div className="min-h-screen flex items-center justify-center bg-background p-4">
+                  <Card className="max-w-lg p-8 text-center">
+                    <h1 className="text-2xl font-bold text-red-500 mb-4">Something went wrong</h1>
+                    <p className="text-muted-foreground mb-6">
+                      {error instanceof Error ? error.message : 'An unexpected error occurred'}
+                    </p>
+                    <Button onClick={resetError}>Try Again</Button>
+                  </Card>
                 </div>
-              }
+              )}
             >
-              <ErrorBoundary>
-                <PageTransition>
-                  <main id="main-content" tabIndex={-1} className="outline-none">
-                    <Routes>
-                      {/* Public Landing Page */}
-                      <Route path="/" element={<Landing />} />
+              <Suspense
+                fallback={
+                  <div className="min-h-screen flex items-center justify-center bg-background">
+                    <div className="w-full max-w-7xl p-6">
+                      <PageSkeleton />
+                    </div>
+                  </div>
+                }
+              >
+                <ErrorBoundary>
+                  <PageTransition>
+                    <main id="main-content" tabIndex={-1} className="outline-none">
+                      <Routes>
+                        {/* Public Landing Page */}
+                        <Route path="/" element={<Landing />} />
 
-                      {/* Public Tracking Page */}
-                      <Route path="/track" element={<PublicTracking />} />
-                      <Route path="/track/:awb" element={<PublicTracking />} />
+                        {/* Public Tracking Page */}
+                        <Route path="/track" element={<PublicTracking />} />
+                        <Route path="/track/:awb" element={<PublicTracking />} />
 
-                      <Route path="/login" element={<Login />} />
+                        <Route path="/login" element={<Login />} />
 
-                      {/* Dashboard Routes (Protected) */}
-                      <Route
-                        path="/dashboard"
-                        element={
-                          <ProtectedRoute>
-                            <DashboardLayout>
-                              <Dashboard />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/analytics"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF']}>
-                            <DashboardLayout>
-                              <Analytics />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
+                        {/* Dashboard Routes (Protected) */}
+                        <Route
+                          path="/dashboard"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardLayout>
+                                <Dashboard />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/analytics"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF']}>
+                              <DashboardLayout>
+                                <Analytics />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
 
-                      {/* Operations Routes */}
-                      <Route
-                        path="/shipments"
-                        element={
-                          <ProtectedRoute>
-                            <DashboardLayout>
-                              <Shipments />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/tracking"
-                        element={
-                          <ProtectedRoute>
-                            <DashboardLayout>
-                              <Tracking />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/manifests"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF']}>
-                            <DashboardLayout>
-                              <Manifests />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/scanning"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}>
-                            <DashboardLayout>
-                              <Scanning />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/inventory"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}>
-                            <DashboardLayout>
-                              <Inventory />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/exceptions"
-                        element={
-                          <ProtectedRoute
-                            allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF', 'WAREHOUSE_STAFF']}
-                          >
-                            <DashboardLayout>
-                              <Exceptions />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
+                        {/* Operations Routes */}
+                        <Route
+                          path="/search"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardLayout>
+                                <SearchResults />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/shipments"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardLayout>
+                                <Shipments />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/shipments/:id"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardLayout>
+                                <ShipmentDetailsPage />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/tracking"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardLayout>
+                                <Tracking />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/manifests"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF']}>
+                              <DashboardLayout>
+                                <Manifests />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/scanning"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}>
+                              <DashboardLayout>
+                                <Scanning />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/inventory"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}>
+                              <DashboardLayout>
+                                <Inventory />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/exceptions"
+                          element={
+                            <ProtectedRoute
+                              allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF', 'WAREHOUSE_STAFF']}
+                            >
+                              <DashboardLayout>
+                                <Exceptions />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
 
-                      {/* Business Routes */}
-                      <Route
-                        path="/finance"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF']}>
-                            <DashboardLayout>
-                              <Finance />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/customers"
-                        element={
-                          <ProtectedRoute
-                            allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF', 'OPS_STAFF']}
-                          >
-                            <DashboardLayout>
-                              <Customers />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/management"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
-                            <DashboardLayout>
-                              <Management />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/admin/messages"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN']}>
-                            <DashboardLayout>
-                              <Messages />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
+                        {/* Business Routes */}
+                        <Route
+                          path="/finance"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF']}>
+                              <DashboardLayout>
+                                <Finance />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/customers"
+                          element={
+                            <ProtectedRoute
+                              allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF', 'OPS_STAFF']}
+                            >
+                              <DashboardLayout>
+                                <Customers />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/management"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
+                              <DashboardLayout>
+                                <Management />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/admin/messages"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN']}>
+                              <DashboardLayout>
+                                <Messages />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
 
-                      {/* System Routes */}
-                      <Route
-                        path="/settings"
-                        element={
-                          <ProtectedRoute>
-                            <DashboardLayout>
-                              <Settings />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/shift-report"
-                        element={
-                          <ProtectedRoute>
-                            <DashboardLayout>
-                              <ShiftReport />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/notifications"
-                        element={
-                          <ProtectedRoute>
-                            <DashboardLayout>
-                              <Notifications />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/print/label/:awb"
-                        element={<PrintLabel />}
-                      />
+                        {/* System Routes */}
+                        <Route
+                          path="/settings"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardLayout>
+                                <Settings />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/shift-report"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardLayout>
+                                <ShiftReport />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/notifications"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardLayout>
+                                <Notifications />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route path="/print/label/:awb" element={<PrintLabel />} />
 
-                      {/* Dev Routes (ADMIN only) */}
-                      <Route
-                        path="/dev/ui-kit"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN']}>
-                            <DevUIKit />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/dev/sentry"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN']}>
-                            <SentryTest />
-                          </ProtectedRoute>
-                        }
-                      />
+                        {/* Dev Routes (ADMIN only) */}
+                        <Route
+                          path="/dev/ui-kit"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN']}>
+                              <DevUIKit />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/dev/sentry"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN']}>
+                              <SentryTest />
+                            </ProtectedRoute>
+                          }
+                        />
 
-                      {/* 404 – Not Found */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </main>
-                </PageTransition>
-              </ErrorBoundary>
-            </Suspense>
-            <Toaster position="top-right" richColors />
-          </SentryErrorBoundary>
-        </div>
-      </Router>
+                        {/* 404 – Not Found */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </main>
+                  </PageTransition>
+                </ErrorBoundary>
+              </Suspense>
+              <Toaster position="top-right" richColors />
+            </SentryErrorBoundary>
+          </div>
+        </Router>
+      </ScanningProvider>
     </QueryClientProvider>
   );
 };

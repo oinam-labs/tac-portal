@@ -25,7 +25,9 @@
 
 ## Overview
 
-TAC Cargo Enterprise Portal is a modern, React-based logistics management system designed for cargo operations. The platform provides end-to-end visibility and control over:
+TAC Cargo Enterprise Portal is a modern, React-based logistics management system designed for cargo operations.
+For full documentation, please see the [docs](./docs) directory.
+The platform provides end-to-end visibility and control over:
 
 - **Shipment Management** - Create, track, and manage cargo shipments
 - **Manifest Operations** - Group shipments for linehaul transport

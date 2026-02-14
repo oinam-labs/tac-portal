@@ -46,3 +46,4 @@ export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
 export { Calendar } from './calendar';
 export { Popover, PopoverContent, PopoverTrigger } from './popover';
 export { DatePicker, TimePicker, DateTimePicker, DateRangePicker } from './date-time-picker';
+export { Slider } from './slider';

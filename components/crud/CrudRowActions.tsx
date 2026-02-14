@@ -12,7 +12,7 @@ import {
 
 export interface CrudRowActionsProps {
   onEdit: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
   extraItems?: { label: string; icon?: React.ReactNode; onClick: () => void }[];
   disabled?: boolean;
 }
@@ -49,15 +49,18 @@ export function CrudRowActions({
           </DropdownMenuItem>
         ))}
 
-        <DropdownMenuSeparator />
-
-        <DropdownMenuItem
-          onClick={onDelete}
-          className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          Delete
-        </DropdownMenuItem>
+        {onDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={onDelete}
+              className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

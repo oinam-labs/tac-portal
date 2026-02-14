@@ -120,7 +120,7 @@ export const SentryTestButton: React.FC = () => {
 
       <Button
         onClick={handleTestError}
-        variant="danger"
+        variant="destructive"
         size="sm"
         className="text-xs flex items-center gap-2"
       >

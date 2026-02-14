@@ -8,7 +8,8 @@ import { visualizer } from 'rollup-plugin-visualizer';
 export default defineConfig(() => {
   return {
     server: {
-      port: 3000,
+      port: 0,
+      strictPort: true, // Fail if port is taken
       host: '0.0.0.0',
       allowedHosts: ['.ngrok-free.app', '.ngrok.io', '.loca.lt'],
     },
