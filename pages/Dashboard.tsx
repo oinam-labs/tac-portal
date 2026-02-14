@@ -11,8 +11,6 @@ import { ErrorBoundary, InlineError } from '../components/ui/error-boundary';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../lib/queryKeys';
 import { useRealtimeShipments, useRealtimeExceptions } from '../hooks/useRealtime';
-import { useShipments } from '../hooks/useShipments';
-import { useInvoices } from '../hooks/useInvoices';
 
 export const Dashboard: React.FC = () => {
   const queryClient = useQueryClient();
@@ -30,18 +28,46 @@ export const Dashboard: React.FC = () => {
   };
 
   // Data for Report Generation
-  const { data: shipments = [] } = useShipments();
-  const { data: invoices = [] } = useInvoices();
+  // Removed top-level hooks to prevent fetching all data on mount (performance optimization)
 
   const handleDownloadReport = async () => {
     try {
       const { toast } = await import('sonner');
+      const { supabase } = await import('../lib/supabase');
       toast.info('Generating report...');
+
+      // Fetch all data on-demand
+      const [shipmentsResult, invoicesResult] = await Promise.all([
+        supabase
+          .from('shipments')
+          .select(`
+            *,
+            customer:customers(name, phone),
+            origin_hub:hubs!origin_hub_id(code, name),
+            destination_hub:hubs!destination_hub_id(code, name)
+          `)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('invoices')
+          .select(`
+            *,
+            customer:customers(name, phone, email),
+            shipment:shipments(awb_number)
+          `)
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false })
+      ]);
+
+      if (shipmentsResult.error) throw shipmentsResult.error;
+      if (invoicesResult.error) throw invoicesResult.error;
+
+      const shipments = (shipmentsResult.data || []) as unknown as any[];
+      const invoices = (invoicesResult.data || []) as unknown as any[];
 
       const { generateDashboardReport } = await import('../lib/dashboard-report-generator');
 
       // Calculate Inventory (Approximate logic from Inventory.tsx)
-      const inventoryCount = shipments.filter(s =>
+      const inventoryCount = shipments.filter((s: any) =>
         ['RECEIVED_AT_ORIGIN', 'RECEIVED_AT_DEST', 'EXCEPTION'].includes(s.status)
       ).length;
 

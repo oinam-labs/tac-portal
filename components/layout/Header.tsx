@@ -1,17 +1,18 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, Search, ScanBarcode } from 'lucide-react';
 import { useStore } from '@/store';
 import { Input } from '@/components/ui/input';
 import { AnimatedThemeToggler } from '../ui/animated-theme-toggler';
 import { NotificationBell } from '../domain/NotificationBell';
-import { useScanner } from '@/context/ScanningProvider';
+import { useScanner } from '@/context/useScanner';
 import { toast } from 'sonner';
 
 export const Header: React.FC = () => {
   const { toggleSidebar, setMobileSidebarOpen, mobileSidebarOpen, setTheme } = useStore();
-  const { scan } = useScanner();
+  const { scan, subscribe } = useScanner();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleMenuClick = () => {
     // On mobile (< lg breakpoint), toggle mobile sidebar overlay
@@ -23,37 +24,56 @@ export const Header: React.FC = () => {
     }
   };
 
+  const processScanResult = React.useCallback((result: string) => {
+    // Ignore global scans if we are on the dedicated scanning page
+    if (location.pathname.startsWith('/scanning')) {
+      console.log('[Header] Ignoring scan on scanning page');
+      return;
+    }
+
+    let cleanResult = result.trim();
+
+    // If it's a URL, try to extract the last segment or query param
+    if (cleanResult.startsWith('http')) {
+      try {
+        const url = new URL(cleanResult);
+        // Check for 'id' param first
+        const idParam = url.searchParams.get('id');
+        if (idParam) {
+          cleanResult = idParam;
+        } else {
+          // Fallback to last path segment
+          const pathSegments = url.pathname.split('/').filter(Boolean);
+          if (pathSegments.length > 0) {
+            cleanResult = pathSegments[pathSegments.length - 1];
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to parse scanned URL:', e);
+      }
+    }
+
+    toast.success(`Scanned: ${cleanResult}`);
+
+    // Navigate to global search with auto-redirect enabled
+    if (cleanResult) {
+      navigate(`/search?q=${encodeURIComponent(cleanResult)}&auto=true`);
+    }
+  }, [navigate, location]);
+
+  // Subscribe to global scanner events (always-on scanning)
+  React.useEffect(() => {
+    const unsubscribe = subscribe((data, source) => {
+      console.log('[Header] Global scan received:', data, source);
+      processScanResult(data);
+    });
+    return unsubscribe;
+  }, [subscribe, processScanResult]);
+
   const handleGlobalScan = async () => {
     try {
       const result = await scan();
-      let cleanResult = result.trim();
-
-      // If it's a URL, try to extract the last segment or query param
-      if (cleanResult.startsWith('http')) {
-        try {
-          const url = new URL(cleanResult);
-          // Check for 'id' param first
-          const idParam = url.searchParams.get('id');
-          if (idParam) {
-            cleanResult = idParam;
-          } else {
-            // Fallback to last path segment
-            const pathSegments = url.pathname.split('/').filter(Boolean);
-            if (pathSegments.length > 0) {
-              cleanResult = pathSegments[pathSegments.length - 1];
-            }
-          }
-        } catch (e) {
-          console.warn('Failed to parse scanned URL:', e);
-        }
-      }
-
-      toast.success(`Scanned: ${cleanResult}`);
-
-      // Navigate to global search with auto-redirect enabled
-      if (cleanResult) {
-        navigate(`/search?q=${encodeURIComponent(cleanResult)}&auto=true`);
-      }
+      processScanResult(result);
     } catch (e) {
       // User cancelled
       console.debug('Scan cancelled');

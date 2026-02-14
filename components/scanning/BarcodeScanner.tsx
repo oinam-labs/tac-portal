@@ -24,19 +24,29 @@ export function BarcodeScanner({
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const controlsRef = useRef<any>(null);
 
+  // Stable refs for callbacks to prevent stale closures in decode loop
+  const onScanRef = useRef(onScan);
+  onScanRef.current = onScan;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+
   const [hasCamera, setHasCamera] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [torchEnabled, setTorchEnabled] = useState(initialTorch);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [capabilities, setCapabilities] = useState<MediaTrackCapabilities | null>(null);
-  const [lastScanned, setLastScanned] = useState<string | null>(null);
+  const lastScannedRef = useRef<string | null>(null);
+  const lastScannedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [selectedCamera, setSelectedCamera] = useState<string>('');
 
-  // Success beep sound
+  const soundEnabledRef = useRef(soundEnabled);
+  soundEnabledRef.current = soundEnabled;
+
+  // Success beep sound (uses ref to stay stable)
   const playBeep = useCallback(() => {
-    if (!soundEnabled) return;
+    if (!soundEnabledRef.current) return;
     try {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioContextClass) return;
@@ -60,12 +70,13 @@ export function BarcodeScanner({
     } catch (e) {
       console.error("Audio playback failed", e);
     }
-  }, [soundEnabled]);
+  }, []);
 
   // Initialize scanner
   useEffect(() => {
     if (!active) return;
 
+    console.log('[BarcodeScanner] Initializing camera...', { active });
     const reader = new BrowserMultiFormatReader();
     readerRef.current = reader;
 
@@ -73,6 +84,7 @@ export function BarcodeScanner({
     reader
       .listVideoInputDevices()
       .then((devices) => {
+        console.log('[BarcodeScanner] Cameras found:', devices);
         setCameras(devices);
         if (devices.length > 0) {
           // Prefer back camera on mobile
@@ -87,13 +99,14 @@ export function BarcodeScanner({
       .catch((err) => {
         console.error('Camera access error:', err);
         setHasCamera(false);
-        onError?.(err);
+        onErrorRef.current?.(err);
       });
 
     return () => {
       stopScanning();
     };
-  }, [active]); // Removed onError to avoid re-init loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
 
   const stopScanning = () => {
     if (controlsRef.current) {
@@ -136,13 +149,16 @@ export function BarcodeScanner({
       (result, _error) => {
         if (result) {
           const text = result.getText();
-          // Debounce
-          if (text !== lastScanned) {
-            setLastScanned(text);
+          console.log('[BarcodeScanner] Decoded text:', text);
+          // Debounce: skip if same barcode scanned within 2s
+          if (text !== lastScannedRef.current) {
+            console.log('[BarcodeScanner] Valid new scan (not debounced):', text);
+            lastScannedRef.current = text;
             playBeep();
-            onScan(text);
+            onScanRef.current(text);
             // Reset debounce after 2s
-            setTimeout(() => setLastScanned(null), 2000);
+            if (lastScannedTimerRef.current) clearTimeout(lastScannedTimerRef.current);
+            lastScannedTimerRef.current = setTimeout(() => { lastScannedRef.current = null; }, 2000);
           }
         }
       }
@@ -154,19 +170,21 @@ export function BarcodeScanner({
         ? videoRef.current.srcObject.getVideoTracks()[0]
         : null;
 
-      if (track && !capabilities) {
+      if (track) {
         setCapabilities(track.getCapabilities());
       }
     }).catch(err => {
       console.error("Decode error", err);
       setIsScanning(false);
-      onError?.(err);
+      onErrorRef.current?.(err);
     });
 
     return () => {
       // Cleanup handled by main effect
     };
-  }, [selectedCamera, active, onScan, onError, playBeep, lastScanned]); // Removed zoom/torch from deps to avoid full restart
+    // Only re-init when camera selection or active state changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCamera, active]);
 
   // Apply track constraints when zoom/torch changes without restarting stream
   useEffect(() => {

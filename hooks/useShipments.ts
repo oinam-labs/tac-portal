@@ -15,8 +15,14 @@ import { logger } from '../lib/logger';
 export const shipmentKeys = {
   all: ['shipments'] as const,
   lists: () => [...shipmentKeys.all, 'list'] as const,
-  list: (filters?: { limit?: number; status?: string; orgId?: string; search?: string }) =>
-    [...shipmentKeys.lists(), filters] as const,
+  list: (filters?: {
+    limit?: number;
+    status?: string;
+    orgId?: string;
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  }) => [...shipmentKeys.lists(), filters] as const,
   details: () => [...shipmentKeys.all, 'detail'] as const,
   detail: (id: string) => [...shipmentKeys.details(), id] as const,
   byAwb: (awb: string) => [...shipmentKeys.all, 'awb', awb] as const,
@@ -49,11 +55,22 @@ export interface ShipmentWithRelations {
   destination_hub?: { code: string; name: string };
 }
 
-export function useShipments(options?: { limit?: number; status?: string; search?: string }) {
-  const orgId = useAuthStore((s) => s.user?.orgId);
+export function useShipments(options?: {
+  limit?: number;
+  status?: string;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+  orgId?: string;
+}) {
+  const authOrgId = useAuthStore((s) => s.user?.orgId);
+  const orgId = options?.orgId !== undefined ? options.orgId : authOrgId;
+  const page = options?.page || 1;
+  const pageSize = options?.pageSize || 20;
+  const offset = (page - 1) * pageSize;
 
   return useQuery({
-    queryKey: shipmentKeys.list({ ...options, orgId }),
+    queryKey: shipmentKeys.list({ ...options, orgId, page, pageSize }),
     queryFn: async () => {
       let query;
 
@@ -65,8 +82,8 @@ export function useShipments(options?: { limit?: number; status?: string; search
             p_search_text: options.search,
             p_org_id: orgId || '',
             p_status: options.status || null,
-            p_limit: options.limit || 50,
-            p_offset: 0,
+            p_limit: pageSize,
+            p_offset: offset,
           })
           .select(
             `
@@ -101,6 +118,8 @@ export function useShipments(options?: { limit?: number; status?: string; search
 
         if (options?.limit) {
           query = query.limit(options.limit);
+        } else {
+          query = query.range(offset, offset + pageSize - 1);
         }
       }
 

@@ -39,3 +39,5 @@ manifest_analysis.md
 
 stats.html
 typecheck_output.txt
+
+debug_output_*.txt

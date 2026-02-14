@@ -28,7 +28,7 @@ BEGIN
       s.id,
       'shipment'::text as entity_type,
       s.awb_number as title,
-      COALESCE(s.order_reference, 'No Reference') as subtitle,
+      COALESCE(s.special_instructions, 'No Instructions') as subtitle,
       '/shipments/' || s.id as link,
       jsonb_build_object(
         'status', s.status,
@@ -42,9 +42,10 @@ BEGIN
     LEFT JOIN hubs dh ON s.destination_hub_id = dh.id
     WHERE s.org_id = p_org_id
       AND (
-        OR s.receiver_name ILIKE '%' || p_query || '%'
-        OR s.sender_phone ILIKE '%' || p_query || '%'
-        OR s.receiver_phone ILIKE '%' || p_query || '%'
+        s.awb_number ILIKE query_term OR 
+        s.receiver_name ILIKE query_term OR 
+        s.sender_phone ILIKE query_term OR 
+        s.receiver_phone ILIKE query_term
       )
 
     UNION ALL

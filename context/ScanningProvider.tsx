@@ -1,53 +1,59 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react';
-// import { BarcodeScanner } from '@/components/scanning/BarcodeScanner';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { useState, useCallback, useEffect, useRef, ReactNode } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { X, ScanBarcode, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { ScanSource } from '@/types';
-
-type ScanCallback = (data: string, source: ScanSource) => void;
-
-interface ScanningContextType {
-    scan: () => Promise<string>;
-    isScanning: boolean;
-    cancelScan: () => void;
-    subscribe: (callback: ScanCallback) => () => void;
-}
-
-const ScanningContext = createContext<ScanningContextType | undefined>(undefined);
-
-export function useScanner() {
-    const context = useContext(ScanningContext);
-    if (!context) {
-        throw new Error('useScanner must be used within a ScanningProvider');
-    }
-    return context;
-}
+import { ScanningContext, type ScanCallback } from './ScanningContext';
 
 interface ScanningProviderProps {
     children: ReactNode;
 }
 
+// --- Constants ---
+// If keystrokes arrive faster than this, they are from a scanner, not a human.
+const SCANNER_SPEED_THRESHOLD_MS = 60;
+// Minimum number of characters for a valid scan sequence.
+const MIN_SCAN_LENGTH = 3;
+// If no key arrives within this window, the buffer is considered stale and reset.
+const BUFFER_STALE_TIMEOUT_MS = 500;
+
 export function ScanningProvider({ children }: ScanningProviderProps) {
     const [isScanning, setIsScanning] = useState(false);
-    const [resolveScan, setResolveScan] = useState<((value: string) => void) | null>(null);
-    const [rejectScan, setRejectScan] = useState<((reason?: any) => void) | null>(null);
     const listenersRef = useRef<Set<ScanCallback>>(new Set());
     const inputRef = useRef<HTMLInputElement>(null);
 
+    // Use refs for values that the keyboard handler needs, to avoid stale closures (BUG 1 fix)
+    const isScanningRef = useRef(false);
+    const resolveScanRef = useRef<((value: string) => void) | null>(null);
+    const rejectScanRef = useRef<((reason?: unknown) => void) | null>(null);
+
+    // Scanner detection state (all in refs to keep the handler closure stable)
+    const bufferRef = useRef<string>('');
+    const lastKeyTimeRef = useRef<number>(0);
+    const keyTimingsRef = useRef<number[]>([]); // Inter-key delays for speed detection
+
+    // Keep the ref in sync with state
+    useEffect(() => {
+        isScanningRef.current = isScanning;
+    }, [isScanning]);
+
     const subscribe = useCallback((callback: ScanCallback) => {
         listenersRef.current.add(callback);
-
         return () => {
             listenersRef.current.delete(callback);
         };
     }, []);
 
+    // Lifecycle logging (Removed for production cleanup)
+    useEffect(() => {
+        return () => {
+            // cleanup
+        };
+    }, []);
+
     const notifyListeners = useCallback((data: string, source: ScanSource) => {
-        // Log for debugging
-        console.log(`[ScanningProvider] Scan detected: ${data} via ${source}`);
         if (listenersRef.current.size > 0) {
             listenersRef.current.forEach(cb => {
                 try {
@@ -57,110 +63,146 @@ export function ScanningProvider({ children }: ScanningProviderProps) {
                 }
             });
         } else {
-            // If no listeners, at least show a toast so user knows something happened
-            // But only for HID, as Camera is explicit intent
+            console.warn('[ScanningProvider] No listeners registered for this scan.');
             if (source === ScanSource.BARCODE_SCANNER) {
                 toast.success(`Scanned: ${data}`);
             }
         }
     }, []);
 
-    // Keyboard listener for hardware scanners (HID mode)
-    useEffect(() => {
-        let buffer = '';
-        let lastKeyTime = 0;
+    /**
+     * Determines if the accumulated key timings indicate scanner-speed input.
+     * Scanners typically send keys <50ms apart consistently.
+     * Humans rarely sustain <60ms per key for more than 2-3 keys.
+     */
+    const isScannerSpeed = useCallback((timings: number[]): boolean => {
+        if (timings.length < 2) return false; // Need at least 3 characters (2 intervals)
+        const avgDelay = timings.reduce((a, b) => a + b, 0) / timings.length;
+        return avgDelay < SCANNER_SPEED_THRESHOLD_MS;
+    }, []);
 
+    // Keyboard listener for hardware scanners (HID mode) — registered ONCE (BUG 1 fix)
+    useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            // Ignore if user is typing in an input
-            if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') {
+            const target = e.target as HTMLElement;
+            const isScannerInput = target === inputRef.current;
+
+            const currentTime = Date.now();
+            const timeSinceLastKey = currentTime - lastKeyTimeRef.current;
+
+            // Reset buffer if stale (no key for BUFFER_STALE_TIMEOUT_MS)
+            if (timeSinceLastKey > BUFFER_STALE_TIMEOUT_MS) {
+                bufferRef.current = '';
+                keyTimingsRef.current = [];
+            }
+
+            lastKeyTimeRef.current = currentTime;
+
+            // Handle terminator keys (Enter / Tab)
+            if (e.key === 'Enter' || e.key === 'Tab') {
+                const buffer = bufferRef.current;
+                const timings = keyTimingsRef.current;
+                const scannerDetected = buffer.length >= MIN_SCAN_LENGTH && isScannerSpeed(timings);
+
+                if (scannerDetected) {
+                    // Prevent the Enter/Tab from doing its default action (form submit, tab navigation)
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // If the scan landed in an input field, clear it (BUG 5 fix)
+                    if (target.tagName === 'INPUT' && target !== inputRef.current) {
+                        (target as HTMLInputElement).value = '';
+                        // Also dispatch input event so React state stays in sync
+                        target.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+
+                    // Pass raw buffer directly to listeners — no parseScanInput (BUG 2 fix)
+                    const cleanCode = buffer.trim();
+                    notifyListeners(cleanCode, ScanSource.BARCODE_SCANNER);
+
+                    // If the scan dialog is open, also resolve the promise (BUG 1 fix — uses ref)
+                    if (isScanningRef.current && resolveScanRef.current) {
+                        resolveScanRef.current(cleanCode);
+                        cleanupInternal();
+                    }
+                }
+                // else: Not scanner speed, let the event propagate normally
+                // (allows manual Enter in search bars, forms, etc.)
+
+                // Always reset buffer after terminator
+                bufferRef.current = '';
+                keyTimingsRef.current = [];
                 return;
             }
 
-            const currentTime = Date.now();
+            // Accumulate printable characters
+            if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                // Record inter-key timing
+                if (bufferRef.current.length > 0) {
+                    keyTimingsRef.current.push(timeSinceLastKey);
+                }
+                bufferRef.current += e.key;
 
-            // Hardware scanners typically send characters very quickly (e.g. < 50ms)
-            if (currentTime - lastKeyTime > 100) {
-                buffer = '';
-            }
-
-            lastKeyTime = currentTime;
-
-            if (e.key === 'Enter') {
-                if (buffer.length > 3) { // Minimum length to consider a valid scan
-                    // Notify listeners
-                    notifyListeners(buffer, ScanSource.BARCODE_SCANNER);
-
-                    // If we have an active promise (camera UI open), resolve it too
-                    if (isScanning && resolveScan) {
-                        resolveScan(buffer);
-                        // We do NOT cleanup here immediately to allow generic handling? 
-                        // Actually yes, if UI is open and they scan, it counts as the result.
-                        cleanup();
+                // If we're accumulating in an input that isn't our scanner input,
+                // and the speed indicates scanner, prevent the character from going into the input.
+                // We do this proactively after accumulating enough evidence.
+                if (!isScannerInput && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+                    const timings = keyTimingsRef.current;
+                    if (timings.length >= 2 && isScannerSpeed(timings)) {
+                        // This is likely a scanner — prevent character from entering the focused input
+                        e.preventDefault();
                     }
                 }
-                buffer = '';
-            } else if (e.key.length === 1) {
-                buffer += e.key;
             }
         };
 
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isScanning, resolveScan, notifyListeners]);
+        // Use capture phase so we can intercept before any other handlers
+        window.addEventListener('keydown', handleKeyDown, true);
+        return () => window.removeEventListener('keydown', handleKeyDown, true);
+    }, [notifyListeners, isScannerSpeed]); // Stable deps only — no state variables
 
-    const cleanup = useCallback(() => {
+    const cleanupInternal = () => {
+        isScanningRef.current = false;
+        resolveScanRef.current = null;
+        rejectScanRef.current = null;
         setIsScanning(false);
-        setResolveScan(null);
-        setRejectScan(null);
-    }, []);
+    };
 
     const scan = useCallback(() => {
-        if (isScanning) {
+        if (isScanningRef.current) {
             return Promise.reject(new Error('Scan already in progress'));
         }
 
         return new Promise<string>((resolve, reject) => {
+            isScanningRef.current = true;
+            resolveScanRef.current = resolve;
+            rejectScanRef.current = reject;
             setIsScanning(true);
-            setResolveScan(() => resolve);
-            setRejectScan(() => reject);
         });
-    }, [isScanning]);
+    }, []);
 
     const cancelScan = useCallback(() => {
-        if (rejectScan) {
-            rejectScan(new Error('Scan cancelled by user'));
+        if (rejectScanRef.current) {
+            rejectScanRef.current(new Error('Scan cancelled by user'));
         }
-        cleanup();
-    }, [cleanup, rejectScan]);
+        cleanupInternal();
+    }, []);
 
-    // const handleScanResult = (result: string) => {
-    //     notifyListeners(result, ScanSource.CAMERA);
-    //     if (resolveScan) {
-    //         resolveScan(result);
-    //     }
-    //     cleanup(); // Close scanner immediately after success
-    // };
-
-    // const handleScanError = (error: Error) => {
-    //     console.error("Scanner error:", error);
-    //     // Don't close on error, let user try again or cancel
-    //     toast.error("Failed to scan. Please try again.");
-    // Force focus on input when scanning starts
-    // Force focus on input when scanning starts
-    // useEffect(() => {
-    //     if (isScanning && inputRef.current) {
-    //         console.log('[ScanningProvider] useEffect force focus');
-    //         // Small timeout to ensure dialog animation is done/mounted
-    //         setTimeout(() => {
-    //             inputRef.current?.focus();
-    //         }, 100);
-    //     }
-    // }, [isScanning]);
+    // Focus the input when the scanning dialog opens
+    useEffect(() => {
+        if (isScanning && inputRef.current) {
+            const timer = setTimeout(() => {
+                inputRef.current?.focus();
+            }, 50);
+            return () => clearTimeout(timer);
+        }
+    }, [isScanning]);
 
     const handleManualSubmit = () => {
-        if (inputRef.current?.value && resolveScan) {
-            resolveScan(inputRef.current.value.trim());
-            cleanup();
+        const value = inputRef.current?.value?.trim();
+        if (value && resolveScanRef.current) {
+            resolveScanRef.current(value);
+            cleanupInternal();
         }
     };
 
@@ -173,12 +215,12 @@ export function ScanningProvider({ children }: ScanningProviderProps) {
                     className="sm:max-w-md p-0 overflow-hidden bg-black border-zinc-800 text-white gap-0"
                     aria-describedby="scan-instructions"
                     onOpenAutoFocus={(e) => {
-                        // Prevent Radix from focusing the first focusable element automatically
-                        // We handle it manually to ensure our input gets it
                         e.preventDefault();
-                        inputRef.current?.focus();
                     }}
                 >
+                    <DialogDescription className="sr-only">
+                        Use your barcode scanner or type manually to search.
+                    </DialogDescription>
                     <div className="relative w-full aspect-[4/3] bg-black">
                         <div className="flex flex-col items-center justify-center w-full h-full p-8 text-center space-y-4">
                             <div className="relative">
@@ -199,6 +241,9 @@ export function ScanningProvider({ children }: ScanningProviderProps) {
                                     className="bg-zinc-900 border-zinc-700 text-center text-lg h-12 flex-1 focus:ring-2 focus:ring-primary text-white placeholder:text-zinc-500"
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
+                                            // Stop propagation so the global handler doesn't also
+                                            // try to process this as a scanner scan (BUG 7 fix)
+                                            e.stopPropagation();
                                             e.preventDefault();
                                             handleManualSubmit();
                                         }
