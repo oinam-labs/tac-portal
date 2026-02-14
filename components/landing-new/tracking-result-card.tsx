@@ -1,24 +1,38 @@
 'use client';
 
 import { motion } from '@/lib/motion';
+<<<<<<< HEAD
 import { Plane, Wifi, Battery, Signal, Calendar, MapPin, Truck, LucideIcon, X } from 'lucide-react';
+=======
+import { Plane, Wifi, Battery, Signal, Calendar, MapPin, Truck, LucideIcon } from 'lucide-react';
+>>>>>>> origin/chore/full-project-review-feb-2026
 import { cn } from '@/lib/utils';
 import { TrackingData } from '@/lib/tracking-service';
 
 interface TrackingResultCardProps {
     data: TrackingData;
     className?: string;
+<<<<<<< HEAD
     onClose?: () => void;
 }
 
 export function TrackingResultCard({ data, className, onClose }: TrackingResultCardProps) {
+=======
+}
+
+export function TrackingResultCard({ data, className }: TrackingResultCardProps) {
+>>>>>>> origin/chore/full-project-review-feb-2026
     const { shipment, events } = data;
     const latestEvent = events[0];
 
     return (
         <motion.div
             className={cn(
+<<<<<<< HEAD
                 'w-full font-sans overflow-hidden shadow-2xl bg-card dark:bg-black/40 border border-border dark:border-border/50 backdrop-blur-xl relative group',
+=======
+                'w-full font-sans rounded-3xl overflow-hidden shadow-2xl bg-card/40 dark:bg-black/40 border border-border/50 backdrop-blur-xl relative group',
+>>>>>>> origin/chore/full-project-review-feb-2026
                 className
             )}
             initial={{ opacity: 0, y: 30 }}
@@ -26,6 +40,7 @@ export function TrackingResultCard({ data, className, onClose }: TrackingResultC
             transition={{ duration: 0.5, ease: 'easeOut' }}
         >
             {/* Neon Glow Effect */}
+<<<<<<< HEAD
             <div className="absolute -inset-[1px] bg-gradient-to-br from-primary/30 via-transparent to-secondary/10 opacity-50 blur-lg pointer-events-none" />
 
             {/* Main Content Wrapper */}
@@ -35,6 +50,17 @@ export function TrackingResultCard({ data, className, onClose }: TrackingResultC
                 <div className="absolute top-0 left-0 right-0 h-16 border-b border-border dark:border-border/20 flex justify-between items-center px-6 bg-muted dark:bg-black/20 z-20">
                     <div className="flex gap-2">
                         <div className="pl-2 pr-3 py-1 bg-status-live/10 border border-status-live/20 text-status-live text-[10px] font-mono font-bold flex items-center gap-2 backdrop-blur-md">
+=======
+            <div className="absolute -inset-[1px] bg-gradient-to-br from-primary/30 via-transparent to-secondary/10 rounded-[2rem] opacity-50 blur-lg pointer-events-none" />
+
+            {/* Main Content Wrapper */}
+            <div className="relative h-full rounded-[2rem] overflow-hidden border border-border/20 bg-card/10">
+
+                {/* Header Status Bar */}
+                <div className="absolute top-0 left-0 right-0 h-16 border-b border-border/20 flex justify-between items-center px-6 bg-muted/20 dark:bg-black/20 z-20">
+                    <div className="flex gap-2">
+                        <div className="pl-2 pr-3 py-1 rounded-full bg-status-live/10 border border-status-live/20 text-status-live text-[10px] font-mono font-bold flex items-center gap-2 backdrop-blur-md">
+>>>>>>> origin/chore/full-project-review-feb-2026
                             <span className="relative flex h-1.5 w-1.5">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-status-live opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-status-live"></span>
@@ -42,6 +68,7 @@ export function TrackingResultCard({ data, className, onClose }: TrackingResultC
                             LIVE_TRACKING
                         </div>
                     </div>
+<<<<<<< HEAD
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2 text-muted-foreground dark:text-muted-foreground/50 text-[10px] font-mono">
                             <Wifi className="h-3 w-3" />
@@ -58,13 +85,26 @@ export function TrackingResultCard({ data, className, onClose }: TrackingResultC
                                 <X className="h-4 w-4" />
                             </button>
                         )}
+=======
+                    <div className="flex items-center gap-2 text-muted-foreground/50 text-[10px] font-mono">
+                        <Wifi className="h-3 w-3" />
+                        <Battery className="h-3 w-3" />
+                        <Signal className="h-3 w-3" />
+                        <span>SYS_OK</span>
+>>>>>>> origin/chore/full-project-review-feb-2026
                     </div>
                 </div>
 
                 {/* Map Visualization Area (Abstract) */}
+<<<<<<< HEAD
                 <div className="relative h-48 w-full overflow-hidden bg-muted/50 dark:bg-black/40 mt-16">
                     {/* Grid Overlay */}
                     <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px]" />
+=======
+                <div className="relative h-48 w-full overflow-hidden bg-muted/20 dark:bg-black/40 mt-16">
+                    {/* Grid Overlay */}
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px]" />
+>>>>>>> origin/chore/full-project-review-feb-2026
 
                     {/* Flight Path Graphic */}
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -80,11 +120,15 @@ export function TrackingResultCard({ data, className, onClose }: TrackingResultC
                                     transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                                     className="absolute top-1/2 -translate-y-1/2 left-1/2"
                                 >
+<<<<<<< HEAD
                                     {shipment.mode === 'AIR' ? (
                                         <Plane className="w-5 h-5 text-primary fill-primary/20 rotate-90" />
                                     ) : (
                                         <Truck className="w-5 h-5 text-primary fill-primary/20" />
                                     )}
+=======
+                                    <Plane className="w-5 h-5 text-primary fill-primary/20 rotate-90" />
+>>>>>>> origin/chore/full-project-review-feb-2026
                                 </motion.div>
                             </div>
                             <div className="flex flex-col items-center gap-2">
@@ -101,6 +145,7 @@ export function TrackingResultCard({ data, className, onClose }: TrackingResultC
                         <InfoBlock label="AWB REF" value={shipment.reference} />
                         <InfoBlock label="STATUS" value={shipment.status.replace(/_/g, ' ')} highlight />
                         <InfoBlock label="DESTINATION" value={shipment.destination} icon={Calendar} />
+<<<<<<< HEAD
                         <InfoBlock
                             label="CARRIER"
                             value={shipment.mode === 'AIR' ? "TAC Air Freight" : "TAC Surface Express"}
@@ -110,6 +155,13 @@ export function TrackingResultCard({ data, className, onClose }: TrackingResultC
 
                     {/* Latest Event */}
                     <div className="bg-muted/50 dark:bg-white/5 border border-border dark:border-white/5 p-4">
+=======
+                        <InfoBlock label="CARRIER" value="TAC Air Freight" icon={Truck} />
+                    </div>
+
+                    {/* Latest Event */}
+                    <div className="rounded-xl bg-muted/20 dark:bg-white/5 border border-border/20 dark:border-white/5 p-4">
+>>>>>>> origin/chore/full-project-review-feb-2026
                         <div className="flex justify-between items-start mb-1">
                             <span className="text-[10px] uppercase text-muted-foreground font-mono">Latest Event</span>
                             <span className="text-[10px] text-muted-foreground/70">{latestEvent ? new Date(latestEvent.created_at).toLocaleString() : 'No updates'}</span>
@@ -128,7 +180,11 @@ export function TrackingResultCard({ data, className, onClose }: TrackingResultC
 
 const InfoBlock = ({ label, value, highlight, icon: Icon }: { label: string, value: string, highlight?: boolean, icon?: LucideIcon }) => (
     <div className="flex flex-col">
+<<<<<<< HEAD
         <span className="text-[9px] uppercase tracking-wider text-muted-foreground dark:text-muted-foreground mb-1 font-bold">{label}</span>
+=======
+        <span className="text-[9px] uppercase tracking-wider text-muted-foreground mb-1">{label}</span>
+>>>>>>> origin/chore/full-project-review-feb-2026
         <div className={cn("text-sm font-bold font-mono flex items-center gap-2", highlight ? "text-primary" : "text-foreground")}>
             {Icon && <Icon className="w-3 h-3 opacity-70" />}
             {value}

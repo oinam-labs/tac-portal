@@ -10,7 +10,11 @@ const Command = React.forwardRef<
   <CommandPrimitive
     ref={ref}
     className={cn(
+<<<<<<< HEAD
       'flex h-full w-full flex-col overflow-hidden bg-card border border-border text-foreground',
+=======
+      'flex h-full w-full flex-col overflow-hidden rounded-xl bg-card border border-white/10 text-foreground',
+>>>>>>> origin/chore/full-project-review-feb-2026
       className
     )}
     {...props}
@@ -94,7 +98,11 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
+<<<<<<< HEAD
       'relative flex cursor-pointer select-none items-center px-3 py-2 text-sm outline-none aria-selected:bg-primary/20 aria-selected:text-primary hover:bg-muted/50 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+=======
+      'relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none aria-selected:bg-primary/20 aria-selected:text-primary hover:bg-white/5 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+>>>>>>> origin/chore/full-project-review-feb-2026
       className
     )}
     {...props}

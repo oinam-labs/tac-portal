@@ -255,6 +255,7 @@ export function BarcodeScanner({
 
       {/* Overlay */}
       <div className="absolute inset-0 pointer-events-none">
+<<<<<<< HEAD
         {/* Safe Area / Frame */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-2 border-primary/50 rounded-lg shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]">
           <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary -ml-[2px] -mt-[2px]" />
@@ -273,6 +274,38 @@ export function BarcodeScanner({
           <div className="bg-black/60 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-2">
             <span className={`w-2 h-2 rounded-full ${isScanning ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`} />
             {isScanning ? 'Scanning active' : 'Initializing...'}
+=======
+        {/* Corner brackets */}
+        <div className="absolute inset-8 border-2 border-primary/30 rounded-lg">
+          <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-primary rounded-tl-lg" />
+          <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-primary rounded-tr-lg" />
+          <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-primary rounded-bl-lg" />
+          <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-primary rounded-br-lg" />
+        </div>
+
+        {/* Scanning line animation */}
+        {isScanning && (
+          <div className="absolute left-8 right-8 h-0.5 bg-gradient-to-r from-transparent via-status-error to-transparent shadow-[0_0_10px_var(--color-status-error)] animate-scan" />
+        )}
+
+        {/* Status indicator */}
+        <div className="absolute top-4 left-4 flex items-center gap-2">
+          <span
+            className={cn(
+              'w-3 h-3 rounded-full',
+              isScanning ? 'bg-status-success animate-pulse' : 'bg-status-warning'
+            )}
+          />
+          <span className="text-xs font-medium text-white bg-black/50 px-2 py-1 rounded">
+            {isScanning ? 'Scanning...' : 'Initializing...'}
+          </span>
+        </div>
+
+        {/* Last scan indicator */}
+        {lastScanned && (
+          <div className="absolute bottom-4 left-4 right-4 bg-status-success/90 text-white px-4 py-2 rounded-lg text-center font-mono text-sm animate-pulse">
+            ✓ {lastScanned}
+>>>>>>> origin/chore/full-project-review-feb-2026
           </div>
         </div>
       </div>

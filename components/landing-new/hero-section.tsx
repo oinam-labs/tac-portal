@@ -49,11 +49,19 @@ export function HeroSection() {
   }, []);
 
   return (
+<<<<<<< HEAD
     <main id="home" ref={containerRef} className="relative min-h-[85vh] flex flex-col items-center justify-center overflow-hidden pt-32 pb-12 w-full">
 
       {/* Background Elements */}
       {/* Ambient Center Glow (Subtler) */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/05 dark:bg-primary/20 blur-[80px] pointer-events-none z-0 rotate-45"></div>
+=======
+    <main ref={containerRef} className="relative min-h-[85vh] flex flex-col items-center justify-center overflow-hidden pt-32 pb-12 w-full">
+
+      {/* Background Elements */}
+      {/* Ambient Center Glow (Subtler) */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/05 dark:bg-primary/20 rounded-full blur-[80px] pointer-events-none z-0"></div>
+>>>>>>> origin/chore/full-project-review-feb-2026
 
       {/* Light Rays - Deep Dive Implementation */}
       <LightRays
@@ -91,7 +99,11 @@ export function HeroSection() {
         <div ref={ctaRef} className="flex flex-col md:flex-row items-center justify-center gap-4 opacity-0">
           {/* Primary CTA */}
           <Link to="/login">
+<<<<<<< HEAD
             <Button size="lg" className="px-8 font-medium group">
+=======
+            <Button size="lg" className="rounded-full px-8 font-medium group">
+>>>>>>> origin/chore/full-project-review-feb-2026
               Book Shipment
               <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
             </Button>
@@ -100,7 +112,11 @@ export function HeroSection() {
           {/* Secondary CTA */}
           <TrackingDialog
             trigger={
+<<<<<<< HEAD
               <Button variant="outline" size="lg" className="px-8 font-medium">
+=======
+              <Button variant="outline" size="lg" className="rounded-full px-8 font-medium">
+>>>>>>> origin/chore/full-project-review-feb-2026
                 Track Cargo
               </Button>
             }

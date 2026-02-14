@@ -3,7 +3,11 @@
  * @param data Array of objects to export
  * @param filename Name of the file to download
  */
+<<<<<<< HEAD
 export function exportToCSV<T extends Record<string, unknown>>(data: T[], filename: string) {
+=======
+export function exportToCSV<T extends Record<string, any>>(data: T[], filename: string) {
+>>>>>>> origin/chore/full-project-review-feb-2026
     if (!data || data.length === 0) {
         return;
     }

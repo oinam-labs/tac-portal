@@ -86,6 +86,7 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
+<<<<<<< HEAD
     <div data-testid="dashboard-page" className="space-y-8 animate-[fadeIn_0.2s_ease-out] pb-8">
       <PageHeader
         title="Mission Control"
@@ -100,6 +101,25 @@ export const Dashboard: React.FC = () => {
           <span className="sm:hidden">Report</span>
         </Button>
       </PageHeader>
+=======
+    <div data-testid="dashboard-page" className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 data-testid="dashboard-heading" className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Mission Control</h1>
+          <p className="text-muted-foreground mt-1">Real-time logistics overview and operations.</p>
+        </div>
+        <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
+          <Button data-testid="dashboard-refresh-button" variant="ghost" onClick={refreshData} className="flex-1 sm:flex-none">
+            <RefreshCw className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
+          <Button data-testid="dashboard-download-button" variant="secondary" className="flex-1 sm:flex-none" onClick={() => { import('sonner').then(({ toast }) => toast.info('Report download coming soon — export is planned for the next release.')); }}>
+            <span className="hidden sm:inline">Download Report</span>
+            <span className="sm:hidden">Report</span>
+          </Button>
+        </div>
+      </div>
+>>>>>>> origin/chore/full-project-review-feb-2026
 
       <ErrorBoundary fallback={<InlineError message="Failed to load quick actions" />}>
         <QuickActions />

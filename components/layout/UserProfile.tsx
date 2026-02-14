@@ -148,7 +148,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ collapsed, className }
                     <DropdownMenuSeparator className="my-1" />
 
                     <DropdownMenuItem
+<<<<<<< HEAD
                         className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 py-2.5"
+=======
+                        className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+>>>>>>> origin/chore/full-project-review-feb-2026
                         onClick={handleSignOut}
                     >
                         <LogOut className="mr-3 h-4 w-4" />

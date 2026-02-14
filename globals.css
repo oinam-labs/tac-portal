@@ -71,6 +71,7 @@
   --color-feature-ground: oklch(var(--feature-ground));
   --color-feature-delivery: oklch(var(--feature-delivery));
   --color-grid-line: var(--grid-line);
+<<<<<<< HEAD
   --radius-sm: 0px;
   --radius-md: 0px;
   --radius-lg: 0px;
@@ -78,6 +79,15 @@
   --radius-2xl: 0px;
   --radius-3xl: 0px;
   --radius-4xl: 0px;
+=======
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+>>>>>>> origin/chore/full-project-review-feb-2026
 }
 
 :root {
@@ -97,15 +107,24 @@
   --accent-foreground: oklch(30.15% 0.0572 282.4176deg);
   --destructive: oklch(68.61% 0.2061 14.9941deg);
   --destructive-foreground: oklch(100% 0 0deg);
+<<<<<<< HEAD
   --border: oklch(82% 0.025 286deg);
   --input: oklch(82% 0.025 286deg);
+=======
+  --border: oklch(87% 0.02 286deg);
+  --input: oklch(87% 0.02 286deg);
+>>>>>>> origin/chore/full-project-review-feb-2026
   --ring: oklch(54.17% 0.179 288.0332deg);
   --chart-1: oklch(54.17% 0.179 288.0332deg);
   --chart-2: oklch(70.42% 0.1602 288.988deg);
   --chart-3: oklch(56.79% 0.2113 276.7065deg);
   --chart-4: oklch(63.56% 0.1922 281.8054deg);
   --chart-5: oklch(45.09% 0.1758 279.3838deg);
+<<<<<<< HEAD
   --radius: 0px;
+=======
+  --radius: 0.5rem;
+>>>>>>> origin/chore/full-project-review-feb-2026
   --sidebar: oklch(98.5% 0 0deg);
   --sidebar-foreground: oklch(30.15% 0.0572 282.4176deg);
   --sidebar-primary: oklch(54.17% 0.179 288.0332deg);
@@ -114,6 +133,7 @@
   --sidebar-accent-foreground: oklch(30.15% 0.0572 282.4176deg);
   --sidebar-border: oklch(87% 0.02 286deg);
   --sidebar-ring: oklch(54.17% 0.179 288.0332deg);
+<<<<<<< HEAD
   --shadow-2xs: none;
   --shadow-xs: none;
   --shadow-sm: none;
@@ -122,6 +142,16 @@
   --shadow-lg: none;
   --shadow-xl: none;
   --shadow-2xl: none;
+=======
+  --shadow-2xs: 0px 1px 2px 0px rgb(0 0 0 / 5%);
+  --shadow-xs: 0px 1px 2px 0px rgb(0 0 0 / 5%);
+  --shadow-sm: 0px 1px 3px 0px rgb(0 0 0 / 10%), 0px 1px 2px -1px rgb(0 0 0 / 10%);
+  --shadow: 0px 4px 6px -1px rgb(0 0 0 / 10%), 0px 2px 4px -2px rgb(0 0 0 / 10%);
+  --shadow-md: 0px 4px 6px -1px rgb(0 0 0 / 10%), 0px 2px 4px -2px rgb(0 0 0 / 10%);
+  --shadow-lg: 0px 10px 15px -3px rgb(0 0 0 / 10%), 0px 4px 6px -4px rgb(0 0 0 / 10%);
+  --shadow-xl: 0px 20px 25px -5px rgb(0 0 0 / 10%), 0px 8px 10px -6px rgb(0 0 0 / 10%);
+  --shadow-2xl: 0px 25px 50px -12px rgb(0 0 0 / 25%);
+>>>>>>> origin/chore/full-project-review-feb-2026
   --bg-app: var(--background);
   --bg-surface: var(--card);
   --bg-muted: var(--muted);
@@ -217,15 +247,24 @@
   --accent-foreground: oklch(91.85% 0.0257 285.8834deg);
   --destructive: oklch(68.61% 0.2061 14.9941deg);
   --destructive-foreground: oklch(100% 0 0deg);
+<<<<<<< HEAD
   --border: oklch(35% 0.065 282deg);
   --input: oklch(35% 0.065 282deg);
+=======
+  --border: oklch(32.61% 0.0597 282.5832deg);
+  --input: oklch(32.61% 0.0597 282.5832deg);
+>>>>>>> origin/chore/full-project-review-feb-2026
   --ring: oklch(71.62% 0.1597 290.3962deg);
   --chart-1: oklch(71.62% 0.1597 290.3962deg);
   --chart-2: oklch(63.82% 0.1047 274.9117deg);
   --chart-3: oklch(74.82% 0.1235 244.7492deg);
   --chart-4: oklch(71.24% 0.0977 186.6761deg);
   --chart-5: oklch(75.46% 0.1831 346.8124deg);
+<<<<<<< HEAD
   --radius: 0px;
+=======
+  --radius: 0.5rem;
+>>>>>>> origin/chore/full-project-review-feb-2026
   --sidebar: oklch(22.84% 0.0384 282.9324deg);
   --sidebar-foreground: oklch(91.85% 0.0257 285.8834deg);
   --sidebar-primary: oklch(71.62% 0.1597 290.3962deg);
@@ -234,6 +273,7 @@
   --sidebar-accent-foreground: oklch(91.85% 0.0257 285.8834deg);
   --sidebar-border: oklch(32.61% 0.0597 282.5832deg);
   --sidebar-ring: oklch(71.62% 0.1597 290.3962deg);
+<<<<<<< HEAD
   --shadow-2xs: none;
   --shadow-xs: none;
   --shadow-sm: none;
@@ -242,6 +282,16 @@
   --shadow-lg: none;
   --shadow-xl: none;
   --shadow-2xl: none;
+=======
+  --shadow-2xs: 0px 4px 10px 0px hsl(240deg 30% 25% / 6%);
+  --shadow-xs: 0px 4px 10px 0px hsl(240deg 30% 25% / 6%);
+  --shadow-sm: 0px 4px 10px 0px hsl(240deg 30% 25% / 12%), 0px 1px 2px -1px hsl(240deg 30% 25% / 12%);
+  --shadow: 0px 4px 10px 0px hsl(240deg 30% 25% / 12%), 0px 1px 2px -1px hsl(240deg 30% 25% / 12%);
+  --shadow-md: 0px 4px 10px 0px hsl(240deg 30% 25% / 12%), 0px 2px 4px -1px hsl(240deg 30% 25% / 12%);
+  --shadow-lg: 0px 4px 10px 0px hsl(240deg 30% 25% / 12%), 0px 4px 6px -1px hsl(240deg 30% 25% / 12%);
+  --shadow-xl: 0px 4px 10px 0px hsl(240deg 30% 25% / 12%), 0px 8px 10px -1px hsl(240deg 30% 25% / 12%);
+  --shadow-2xl: 0px 4px 10px 0px hsl(240deg 30% 25% / 30%);
+>>>>>>> origin/chore/full-project-review-feb-2026
   --bg-app: var(--background);
   --bg-surface: var(--card);
   --bg-muted: var(--muted);
@@ -394,6 +444,7 @@
     text-shadow: 0 0 20px oklch(var(--primary) / 50%);
   }
 
+<<<<<<< HEAD
   /* Glassmorphism Presets — disabled for industrial aesthetic */
   .glass-panel {
     @apply bg-background border border-border;
@@ -401,6 +452,15 @@
 
   .glass-card {
     @apply bg-card border border-border;
+=======
+  /* Glassmorphism Presets */
+  .glass-panel {
+    @apply bg-background/60 backdrop-blur-xl border border-white/10 dark:border-white/5;
+  }
+
+  .glass-card {
+    @apply bg-card/40 backdrop-blur-md border border-white/10 dark:border-white/5 shadow-xl;
+>>>>>>> origin/chore/full-project-review-feb-2026
   }
 
   /* NEXUS Spotlight Effect */
