@@ -2,26 +2,28 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { BarcodeScanner } from '../components/scanning/BarcodeScanner';
+import { BarcodeScanner } from '@/components/scanning/BarcodeScanner';
 import { PageHeader } from '@/components/ui/page-header';
 import { ScanLine, Box, Check, X, Truck, AlertTriangle, Camera, Keyboard } from 'lucide-react';
-import { parseScanInput } from '../lib/scanParser';
-import { useScanQueue } from '../store/scanQueueStore';
-import { useAuthStore } from '../store/authStore';
-import { useUpdateShipmentStatus, useFindShipmentByAwb } from '../hooks/useShipments';
+import { parseScanInput } from '@/lib/scanParser';
+import { useScanQueue } from '@/store/scanQueueStore';
+import { useAuthStore } from '@/store/authStore';
+import { useUpdateShipmentStatus, useFindShipmentByAwb } from '@/hooks/useShipments';
 import {
   useFindManifestByCode,
   useCheckManifestItem,
   ManifestLookupResult,
-} from '../hooks/useManifests';
-import { useCreateException } from '../hooks/useExceptions';
-import { manifestService } from '../lib/services/manifestService';
+} from '@/hooks/useManifests';
+import { useCreateException } from '@/hooks/useExceptions';
+import { manifestService } from '@/lib/services/manifestService';
 import {
   playSuccessFeedback,
   playErrorFeedback,
   playWarningFeedback,
   playManifestActivatedFeedback,
-} from '../lib/feedback';
+} from '@/lib/feedback';
+import { useScanner } from '@/context/ScanningProvider';
+import { ScanSource } from '@/types';
 
 type ScanMode = 'RECEIVE' | 'DELIVER' | 'LOAD_MANIFEST' | 'VERIFY_MANIFEST';
 
@@ -42,6 +44,9 @@ export const Scanning: React.FC = () => {
   const [activeManifest, setActiveManifest] = useState<ActiveManifest | null>(null);
   const [useCameraScanner, setUseCameraScanner] = useState(true);
   const [scanCount, setScanCount] = useState({ success: 0, error: 0 });
+
+  // Global Scanner Context
+  const { subscribe } = useScanner();
 
   // Offline queue
   const { addScan, pendingScans, isOnline, syncPending } = useScanQueue();
@@ -90,7 +95,7 @@ export const Scanning: React.FC = () => {
     []
   );
 
-  const processScan = useCallback(async (input: string) => {
+  const processScan = useCallback(async (input: string, source: ScanSource = ScanSource.MANUAL) => {
     // Parse scan input using the scan parser
     let scanResult;
     try {
@@ -157,6 +162,7 @@ export const Scanning: React.FC = () => {
         awb,
         mode: scanMode,
         manifestId: activeManifest?.id,
+        source,
       });
       addScanResult(awb, 'SUCCESS', 'Queued for sync (offline)');
       return;
@@ -177,10 +183,9 @@ export const Scanning: React.FC = () => {
         addScanResult(awb, 'SUCCESS', `Status updated to ${newStatus}`);
       } else if (scanMode === 'LOAD_MANIFEST') {
         if (!activeManifest) throw new Error('No Active Manifest.');
-        const scanSource = useCameraScanner ? 'CAMERA' : 'MANUAL';
         const response = await manifestService.addShipmentByScan(activeManifest.id, awb, {
           staffId: staffUser?.id ?? undefined,
-          scanSource,
+          scanSource: source,
         });
 
         if (!response.success) {
@@ -227,11 +232,19 @@ export const Scanning: React.FC = () => {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       addScanResult(awb, 'ERROR', errorMessage);
     }
-  }, [scanMode, activeManifest, isOnline, addScan, findShipment, findManifest, updateStatus, checkManifestItem, createException, addScanResult, useCameraScanner, staffUser]);
+  }, [scanMode, activeManifest, isOnline, addScan, findShipment, findManifest, updateStatus, checkManifestItem, createException, addScanResult, staffUser]);
+
+  // Subscribe to global scanner events
+  useEffect(() => {
+    const unsubscribe = subscribe((data, source) => {
+      processScan(data, source);
+    });
+    return unsubscribe;
+  }, [subscribe, processScan]);
 
   const handleCameraScan = useCallback(
     (result: string) => {
-      processScan(result);
+      processScan(result, ScanSource.CAMERA);
     },
     [processScan]
   );
@@ -239,7 +252,8 @@ export const Scanning: React.FC = () => {
   const handleScanSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (currentCode) {
-      processScan(currentCode);
+      // Manual entry via input
+      processScan(currentCode, ScanSource.MANUAL);
       setCurrentCode('');
     }
   };

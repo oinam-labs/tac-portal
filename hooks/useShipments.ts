@@ -15,7 +15,7 @@ import { logger } from '../lib/logger';
 export const shipmentKeys = {
   all: ['shipments'] as const,
   lists: () => [...shipmentKeys.all, 'list'] as const,
-  list: (filters?: { limit?: number; status?: string; orgId?: string }) =>
+  list: (filters?: { limit?: number; status?: string; orgId?: string; search?: string }) =>
     [...shipmentKeys.lists(), filters] as const,
   details: () => [...shipmentKeys.all, 'detail'] as const,
   detail: (id: string) => [...shipmentKeys.details(), id] as const,
@@ -49,38 +49,63 @@ export interface ShipmentWithRelations {
   destination_hub?: { code: string; name: string };
 }
 
-export function useShipments(options?: { limit?: number; status?: string }) {
+export function useShipments(options?: { limit?: number; status?: string; search?: string }) {
   const orgId = useAuthStore((s) => s.user?.orgId);
 
   return useQuery({
     queryKey: shipmentKeys.list({ ...options, orgId }),
     queryFn: async () => {
-      let query = supabase
-        .from('shipments')
-        .select(
-          `
+      let query;
+
+      if (options?.search) {
+        // Use RPC for search
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        query = (supabase as any)
+          .rpc('search_shipments', {
+            p_search_text: options.search,
+            p_org_id: orgId || '',
+            p_status: options.status || null,
+            p_limit: options.limit || 50,
+            p_offset: 0,
+          })
+          .select(
+            `
           *,
           customer:customers(name, phone),
           origin_hub:hubs!shipments_origin_hub_id_fkey(code, name),
           destination_hub:hubs!shipments_destination_hub_id_fkey(code, name)
         `
-        )
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false });
+          );
+      } else {
+        // Standard list query
+        query = supabase
+          .from('shipments')
+          .select(
+            `
+          *,
+          customer:customers(name, phone),
+          origin_hub:hubs!shipments_origin_hub_id_fkey(code, name),
+          destination_hub:hubs!shipments_destination_hub_id_fkey(code, name)
+        `
+          )
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false });
 
-      if (orgId) {
-        query = query.eq('org_id', orgId);
+        if (orgId) {
+          query = query.eq('org_id', orgId);
+        }
+
+        if (options?.status) {
+          query = query.eq('status', options.status);
+        }
+
+        if (options?.limit) {
+          query = query.limit(options.limit);
+        }
       }
 
-      if (options?.status) {
-        query = query.eq('status', options.status);
-      }
-
-      if (options?.limit) {
-        query = query.limit(options.limit);
-      }
-
-      const { data, error } = await query;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (query as any);
       if (error) throw error;
       return (data ?? []) as unknown as ShipmentWithRelations[];
     },

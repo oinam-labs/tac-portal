@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
 serve(async (req: Request) => {
@@ -11,28 +11,40 @@ serve(async (req: Request) => {
 
     try {
         // 1. Verify Authentication & Authorization
-        const supabaseClient = createClient(
-            Deno.env.get('SUPABASE_URL') ?? '',
-            Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-            { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
-        )
-
-        const {
-            data: { user },
-        } = await supabaseClient.auth.getUser()
-
-        if (!user) {
-            throw new Error('Unauthorized')
+        // We use the Authorization header to identify the requester
+        const authHeader = req.headers.get('Authorization');
+        if (!authHeader) {
+            return new Response(JSON.stringify({ error: 'Missing Authorization header' }), {
+                status: 401,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            })
         }
 
-        // Check if user is SUPER_ADMIN
-        const { data: staffData, error: staffError } = await supabaseClient
+        // Create Supabase client with Service Role for Admin actions
+        // We need service role to manage users and staff table
+        const supabaseAdmin = createClient(
+            Deno.env.get('SUPABASE_URL') ?? '',
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        )
+
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+
+        if (authError || !user) {
+            return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+                status: 401,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            })
+        }
+
+        // Check if requester is SUPER_ADMIN and get their Org ID
+        const { data: requesterProfile, error: profileError } = await supabaseAdmin
             .from('staff')
-            .select('role')
+            .select('role, org_id')
             .eq('auth_user_id', user.id)
             .single()
 
-        if (staffError || staffData?.role !== 'SUPER_ADMIN') {
+        if (profileError || requesterProfile?.role !== 'SUPER_ADMIN') {
             return new Response(JSON.stringify({ error: 'Forbidden: Super Admin access required' }), {
                 status: 403,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -50,11 +62,6 @@ serve(async (req: Request) => {
         }
 
         // 3. Create User via Admin API
-        const supabaseAdmin = createClient(
-            Deno.env.get('SUPABASE_URL') ?? '',
-            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-        )
-
         const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
             email,
             password,
@@ -63,33 +70,37 @@ serve(async (req: Request) => {
         })
 
         if (createError) throw createError
+        if (!newUser.user) throw new Error('User creation returned no user')
 
         // 4. Create Staff Profile
-        // We do this to ensure the trigger or manual insert handles the profile creation
-        // If your system relies on triggers on auth.users, this might be redundant but safer to be explicit
-        // However, given the existing system likely has triggers or manual profile creation, let's explicit insert into staff
+        try {
+            const { error: insertError } = await supabaseAdmin
+                .from('staff')
+                .insert({
+                    auth_user_id: newUser.user.id,
+                    email: email,
+                    full_name: fullName,
+                    role: role,
+                    org_id: requesterProfile.org_id, // Inherit Org from Creator
+                    hub_id: hubCode ? (await getHubId(supabaseAdmin, hubCode)) : null,
+                    is_active: true
+                })
 
-        // First check if staff already exists (unlikely for new user but possible if cleanup failed)
-        const { error: profileError } = await supabaseAdmin
-            .from('staff')
-            .insert({
-                auth_user_id: newUser.user.id,
-                email: email,
-                full_name: fullName,
-                role: role,
-                org_id: '00000000-0000-0000-0000-000000000001', // Default Org
-                hub_id: hubCode ? (await getHubId(supabaseAdmin, hubCode)) : null,
-                is_active: true
-            })
+            if (insertError) throw insertError
 
-        if (profileError) {
-            // cleanup auth user if profile creation fails? 
-            // For now, let's just log and return error, enabling manual fix
-            console.error('Failed to create staff profile:', profileError)
-            return new Response(JSON.stringify({ error: 'User created but profile failed: ' + profileError.message }), {
-                status: 500,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            })
+        } catch (profileCreationError) {
+            // ROLLBACK: Delete the created Auth User if profile creation fails
+            console.error('Profile creation failed, rolling back Auth User:', profileCreationError)
+
+            // Attempt to delete the just-created user to avoid orphan record
+            const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(newUser.user.id)
+
+            if (deleteError) {
+                console.error('CRITICAL: Failed to rollback user creation:', deleteError)
+                // We still throw the original error, but log the critical failure
+            }
+
+            throw new Error(`Failed to create staff profile: ${profileCreationError.message}. User creation rolled back.`)
         }
 
         return new Response(JSON.stringify({ user: newUser.user, message: 'User created successfully' }), {

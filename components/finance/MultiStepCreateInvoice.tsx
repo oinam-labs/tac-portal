@@ -38,6 +38,7 @@ import {
   Plane,
   Truck,
   Printer,
+  Sparkles,
 } from 'lucide-react';
 import { formatCurrency, calculateFreight } from '@/lib/utils';
 import { validateInvoice, validateDiscount } from '@/lib/validation/invoice-validator';
@@ -314,6 +315,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_searchError, setSearchError] = useState('');
+  const [isGeneratingAwb, setIsGeneratingAwb] = useState(false);
 
   // Field Modes
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -599,6 +601,25 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
       setSelectedShipment(null);
       setSearchError('Search failed.');
       toast.error('Failed to search shipment');
+    }
+  };
+
+  const handleGenerateAwb = async () => {
+    setIsGeneratingAwb(true);
+    try {
+      // Create a plain object without arguments to satisfy the "no args" overload
+      const { data: awb, error } = await supabase.rpc('generate_awb_number', {});
+
+      if (error) throw error;
+      if (awb) {
+        setValue('awb', awb);
+        toast.success(`Generated AWB: ${awb}`);
+      }
+    } catch (error) {
+      console.error('Failed to generate AWB:', error);
+      toast.error('Failed to generate AWB');
+    } finally {
+      setIsGeneratingAwb(false);
     }
   };
 
@@ -1144,11 +1165,30 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
             <div className="grid grid-cols-2 gap-5">
               <div className="space-y-2">
                 <Label>AWB Number</Label>
-                <Input
-                  {...form.register('awb')}
-                  readOnly
-                  className="h-11 font-mono bg-muted/40 border-border/60 text-sm"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    {...form.register('awb')}
+                    readOnly
+                    className="h-11 font-mono bg-muted/40 border-border/60 text-sm"
+                    placeholder="Auto-generated on save"
+                  />
+                  {mode === 'NEW_BOOKING' && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-11 px-3"
+                      onClick={handleGenerateAwb}
+                      disabled={isGeneratingAwb || !!watch('awb')}
+                      title="Generate AWB Now"
+                    >
+                      {isGeneratingAwb ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-4 h-4 text-primary" />
+                      )}
+                    </Button>
+                  )}
+                </div>
                 {form.formState.errors.awb && (
                   <span className="text-xs text-destructive">{form.formState.errors.awb.message}</span>
                 )}

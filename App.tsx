@@ -25,6 +25,7 @@ import { AnimatedThemeToggler } from './components/ui/animated-theme-toggler';
 import { ErrorBoundary } from './components/ui/error-boundary';
 import { PageTransition } from './components/ui/page-transition';
 import { SentryErrorBoundary, setUserContext, addBreadcrumb } from './lib/sentry';
+import { ScanningProvider } from './context/ScanningProvider';
 
 // Lazy Load Pages
 const Landing = lazy(() =>
@@ -88,6 +89,10 @@ const ShiftReport = lazy(() => import('./pages/ShiftReport'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Messages = lazy(() =>
   import('./pages/admin/Messages').then(module => ({ default: module.Messages }))
+);
+
+const SearchResults = lazy(() =>
+  import('./pages/SearchResults').then(module => ({ default: module.SearchResults }))
 );
 
 // Login Page Component with Supabase Auth
@@ -472,255 +477,267 @@ const App: React.FC = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        {/* Skip to main content link for accessibility (WCAG 2.4.1) */}
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-        >
-          Skip to main content
-        </a>
-        <div className="min-h-screen">
-          <SentryErrorBoundary
-            fallback={({ error, resetError }) => (
-              <div className="min-h-screen flex items-center justify-center bg-background p-4">
-                <Card className="max-w-lg p-8 text-center">
-                  <h1 className="text-2xl font-bold text-red-500 mb-4">Something went wrong</h1>
-                  <p className="text-muted-foreground mb-6">
-                    {error instanceof Error ? error.message : 'An unexpected error occurred'}
-                  </p>
-                  <Button onClick={resetError}>Try Again</Button>
-                </Card>
-              </div>
-            )}
+      <ScanningProvider>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          {/* Skip to main content link for accessibility (WCAG 2.4.1) */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           >
-            <Suspense
-              fallback={
-                <div className="min-h-screen flex items-center justify-center bg-background">
-                  <div className="w-full max-w-7xl p-6">
-                    <PageSkeleton />
-                  </div>
+            Skip to main content
+          </a>
+          <div className="min-h-screen">
+            <SentryErrorBoundary
+              fallback={({ error, resetError }) => (
+                <div className="min-h-screen flex items-center justify-center bg-background p-4">
+                  <Card className="max-w-lg p-8 text-center">
+                    <h1 className="text-2xl font-bold text-red-500 mb-4">Something went wrong</h1>
+                    <p className="text-muted-foreground mb-6">
+                      {error instanceof Error ? error.message : 'An unexpected error occurred'}
+                    </p>
+                    <Button onClick={resetError}>Try Again</Button>
+                  </Card>
                 </div>
-              }
+              )}
             >
-              <ErrorBoundary>
-                <PageTransition>
-                  <main id="main-content" tabIndex={-1} className="outline-none">
-                    <Routes>
-                      {/* Public Landing Page */}
-                      <Route path="/" element={<Landing />} />
+              <Suspense
+                fallback={
+                  <div className="min-h-screen flex items-center justify-center bg-background">
+                    <div className="w-full max-w-7xl p-6">
+                      <PageSkeleton />
+                    </div>
+                  </div>
+                }
+              >
+                <ErrorBoundary>
+                  <PageTransition>
+                    <main id="main-content" tabIndex={-1} className="outline-none">
+                      <Routes>
+                        {/* Public Landing Page */}
+                        <Route path="/" element={<Landing />} />
 
-                      {/* Public Tracking Page */}
-                      <Route path="/track" element={<PublicTracking />} />
-                      <Route path="/track/:awb" element={<PublicTracking />} />
+                        {/* Public Tracking Page */}
+                        <Route path="/track" element={<PublicTracking />} />
+                        <Route path="/track/:awb" element={<PublicTracking />} />
 
-                      <Route path="/login" element={<Login />} />
+                        <Route path="/login" element={<Login />} />
 
-                      {/* Dashboard Routes (Protected) */}
-                      <Route
-                        path="/dashboard"
-                        element={
-                          <ProtectedRoute>
-                            <DashboardLayout>
-                              <Dashboard />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/analytics"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF']}>
-                            <DashboardLayout>
-                              <Analytics />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
+                        {/* Dashboard Routes (Protected) */}
+                        <Route
+                          path="/dashboard"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardLayout>
+                                <Dashboard />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/analytics"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF']}>
+                              <DashboardLayout>
+                                <Analytics />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
 
-                      {/* Operations Routes */}
-                      <Route
-                        path="/shipments"
-                        element={
-                          <ProtectedRoute>
-                            <DashboardLayout>
-                              <Shipments />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/shipments/:id"
-                        element={
-                          <ProtectedRoute>
-                            <DashboardLayout>
-                              <ShipmentDetailsPage />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/tracking"
-                        element={
-                          <ProtectedRoute>
-                            <DashboardLayout>
-                              <Tracking />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/manifests"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF']}>
-                            <DashboardLayout>
-                              <Manifests />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/scanning"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}>
-                            <DashboardLayout>
-                              <Scanning />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/inventory"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}>
-                            <DashboardLayout>
-                              <Inventory />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/exceptions"
-                        element={
-                          <ProtectedRoute
-                            allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF', 'WAREHOUSE_STAFF']}
-                          >
-                            <DashboardLayout>
-                              <Exceptions />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
+                        {/* Operations Routes */}
+                        <Route
+                          path="/search"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardLayout>
+                                <SearchResults />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/shipments"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardLayout>
+                                <Shipments />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/shipments/:id"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardLayout>
+                                <ShipmentDetailsPage />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/tracking"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardLayout>
+                                <Tracking />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/manifests"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF']}>
+                              <DashboardLayout>
+                                <Manifests />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/scanning"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}>
+                              <DashboardLayout>
+                                <Scanning />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/inventory"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}>
+                              <DashboardLayout>
+                                <Inventory />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/exceptions"
+                          element={
+                            <ProtectedRoute
+                              allowedRoles={['ADMIN', 'MANAGER', 'OPS_STAFF', 'WAREHOUSE_STAFF']}
+                            >
+                              <DashboardLayout>
+                                <Exceptions />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
 
-                      {/* Business Routes */}
-                      <Route
-                        path="/finance"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF']}>
-                            <DashboardLayout>
-                              <Finance />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/customers"
-                        element={
-                          <ProtectedRoute
-                            allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF', 'OPS_STAFF']}
-                          >
-                            <DashboardLayout>
-                              <Customers />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/management"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
-                            <DashboardLayout>
-                              <Management />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/admin/messages"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN']}>
-                            <DashboardLayout>
-                              <Messages />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
+                        {/* Business Routes */}
+                        <Route
+                          path="/finance"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF']}>
+                              <DashboardLayout>
+                                <Finance />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/customers"
+                          element={
+                            <ProtectedRoute
+                              allowedRoles={['ADMIN', 'MANAGER', 'FINANCE_STAFF', 'OPS_STAFF']}
+                            >
+                              <DashboardLayout>
+                                <Customers />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/management"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
+                              <DashboardLayout>
+                                <Management />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/admin/messages"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN']}>
+                              <DashboardLayout>
+                                <Messages />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
 
-                      {/* System Routes */}
-                      <Route
-                        path="/settings"
-                        element={
-                          <ProtectedRoute>
-                            <DashboardLayout>
-                              <Settings />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/shift-report"
-                        element={
-                          <ProtectedRoute>
-                            <DashboardLayout>
-                              <ShiftReport />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/notifications"
-                        element={
-                          <ProtectedRoute>
-                            <DashboardLayout>
-                              <Notifications />
-                            </DashboardLayout>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/print/label/:awb"
-                        element={<PrintLabel />}
-                      />
+                        {/* System Routes */}
+                        <Route
+                          path="/settings"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardLayout>
+                                <Settings />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/shift-report"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardLayout>
+                                <ShiftReport />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/notifications"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardLayout>
+                                <Notifications />
+                              </DashboardLayout>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/print/label/:awb"
+                          element={<PrintLabel />}
+                        />
 
-                      {/* Dev Routes (ADMIN only) */}
-                      <Route
-                        path="/dev/ui-kit"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN']}>
-                            <DevUIKit />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/dev/sentry"
-                        element={
-                          <ProtectedRoute allowedRoles={['ADMIN']}>
-                            <SentryTest />
-                          </ProtectedRoute>
-                        }
-                      />
+                        {/* Dev Routes (ADMIN only) */}
+                        <Route
+                          path="/dev/ui-kit"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN']}>
+                              <DevUIKit />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/dev/sentry"
+                          element={
+                            <ProtectedRoute allowedRoles={['ADMIN']}>
+                              <SentryTest />
+                            </ProtectedRoute>
+                          }
+                        />
 
-                      {/* 404 – Not Found */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </main>
-                </PageTransition>
-              </ErrorBoundary>
-            </Suspense>
-            <Toaster position="top-right" richColors />
-          </SentryErrorBoundary>
-        </div>
-      </Router>
+                        {/* 404 – Not Found */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </main>
+                  </PageTransition>
+                </ErrorBoundary>
+              </Suspense>
+              <Toaster position="top-right" richColors />
+            </SentryErrorBoundary>
+          </div>
+        </Router>
+      </ScanningProvider>
     </QueryClientProvider>
   );
 };
