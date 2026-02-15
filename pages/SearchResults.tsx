@@ -9,157 +9,174 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export const SearchResults: React.FC = () => {
-    const [searchParams] = useSearchParams();
-    const query = searchParams.get('q') || '';
-    const navigate = useNavigate();
-    const { data: results, isLoading, error } = useGlobalSearch(query);
-    const isAuto = searchParams.get('auto') === 'true';
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get('q') || '';
+  const navigate = useNavigate();
+  const { data: results, isLoading, error } = useGlobalSearch(query);
+  const isAuto = searchParams.get('auto') === 'true';
 
-    // Auto-redirect if only one result found and auto mode is on
-    React.useEffect(() => {
-        if (isAuto && !isLoading && results?.length === 1) {
-            const result = results[0];
-            navigate(result.link, { replace: true });
-            toast.success(`Found ${result.entity_type}: ${result.title}`);
-        }
-    }, [isAuto, isLoading, results, navigate]);
-
-    if (!query) {
-        return (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <PageHeader title="Search Results" description="Enter a query to search across the platform." />
-                <Card className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border-dashed">
-                    <div className="mb-4 p-4 rounded-full bg-muted/50">
-                        <Box className="w-8 h-8 opacity-50" />
-                    </div>
-                    <p className="text-lg font-medium">Start typing to search</p>
-                    <p className="text-sm">Search by AWB, Name, Phone, Invoice No, etc.</p>
-                </Card>
-            </div>
-        );
+  // Auto-redirect if only one result found and auto mode is on
+  React.useEffect(() => {
+    if (isAuto && !isLoading && results?.length === 1) {
+      const result = results[0];
+      navigate(result.link, { replace: true });
+      toast.success(`Found ${result.entity_type}: ${result.title}`);
     }
+  }, [isAuto, isLoading, results, navigate]);
 
+  if (!query) {
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <PageHeader
-                title={`Search Results for "${query}"`}
-                description={isLoading ? 'Searching...' : `Found ${results?.length || 0} matches.`}
-            />
-
-            {isLoading ? (
-                <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-            ) : error ? (
-                <Card className="p-8 text-center text-destructive border-destructive/20 bg-destructive/5">
-                    <p>Failed to load search results. Please try again.</p>
-                </Card>
-            ) : results?.length === 0 ? (
-                <Card className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border-dashed">
-                    <div className="mb-4 p-4 rounded-full bg-muted/50">
-                        <Box className="w-8 h-8 opacity-50" />
-                    </div>
-                    <p className="text-lg font-medium">No results found</p>
-                    <p className="text-sm">Try using different keywords or verify the spelling.</p>
-                </Card>
-            ) : (
-                <div className="grid gap-4 md:grid-cols-1">
-                    {results?.map((result) => (
-                        <div
-                            key={`${result.entity_type}-${result.id}`}
-                            onClick={() => navigate(result.link)}
-                            className="group cursor-pointer"
-                        >
-                            <Card className="hover:shadow-md transition-shadow dark:hover:bg-primary/5">
-                                <CardContent className="p-4">
-                                    {result.entity_type === 'shipment' && (
-                                        <div className="flex items-start justify-between">
-                                            <div>
-                                                <div className="font-medium text-white">{result.title}</div>
-                                                <div className="text-sm text-zinc-400">{result.subtitle}</div>
-                                                <div className="flex gap-2 mt-2">
-                                                    <Badge variant="outline" className="text-xs border-zinc-700 text-zinc-400">
-                                                        {result.metadata.status}
-                                                    </Badge>
-                                                    <Badge variant="outline" className="text-xs border-zinc-700 text-zinc-400">
-                                                        {result.metadata.origin} → {result.metadata.destination}
-                                                    </Badge>
-                                                </div>
-                                            </div>
-                                            <ArrowRight className="w-5 h-5 text-zinc-500" />
-                                        </div>
-                                    )}
-
-                                    {result.entity_type === 'customer' && (
-                                        <div className="flex items-start justify-between">
-                                            <div>
-                                                <div className="font-medium text-white">{result.title}</div>
-                                                <div className="text-sm text-zinc-400">{result.subtitle}</div>
-                                                <div className="mt-1 text-xs text-zinc-500 font-mono">
-                                                    {result.metadata.code}
-                                                </div>
-                                            </div>
-                                            <ArrowRight className="w-5 h-5 text-zinc-500" />
-                                        </div>
-                                    )}
-
-                                    {result.entity_type === 'invoice' && (
-                                        <div className="flex items-start justify-between">
-                                            <div>
-                                                <div className="font-medium text-white flex items-center gap-2">
-                                                    <FileText className="w-4 h-4 text-zinc-400" />
-                                                    {result.title}
-                                                </div>
-                                                <div className="text-sm text-zinc-400">{result.subtitle}</div>
-                                                <div className="mt-1">
-                                                    <Badge variant="outline" className={cn(
-                                                        "text-xs border-zinc-700",
-                                                        result.metadata.status === 'paid' ? "text-green-400 bg-green-400/10" : "text-amber-400 bg-amber-400/10"
-                                                    )}>
-                                                        {result.metadata.status}
-                                                    </Badge>
-                                                </div>
-                                            </div>
-                                            <ArrowRight className="w-5 h-5 text-zinc-500" />
-                                        </div>
-                                    )}
-
-                                    {result.entity_type === 'manifest' && (
-                                        <div className="flex items-start justify-between">
-                                            <div>
-                                                <div className="font-medium text-white flex items-center gap-2">
-                                                    <Truck className="w-4 h-4 text-zinc-400" />
-                                                    {result.title}
-                                                </div>
-                                                <div className="text-sm text-zinc-400">{result.subtitle}</div>
-                                                <div className="flex gap-2 mt-2">
-                                                    <Badge variant="outline" className="text-xs border-zinc-700 text-zinc-400">
-                                                        {result.metadata.status}
-                                                    </Badge>
-                                                    <div className="text-xs text-zinc-500 flex items-center gap-1">
-                                                        {result.metadata.vehicle}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <ArrowRight className="w-5 h-5 text-zinc-500" />
-                                        </div>
-                                    )}
-
-                                    {(result.entity_type === 'staff' || result.entity_type === 'hub') && (
-                                        <div className="flex items-start justify-between">
-                                            <div>
-                                                <div className="font-medium text-white">{result.title}</div>
-                                                <div className="text-sm text-zinc-400">{result.subtitle}</div>
-                                            </div>
-                                            <ArrowRight className="w-5 h-5 text-zinc-500" />
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <PageHeader
+          title="Search Results"
+          description="Enter a query to search across the platform."
+        />
+        <Card className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border-dashed">
+          <div className="mb-4 p-4 rounded-full bg-muted/50">
+            <Box className="w-8 h-8 opacity-50" />
+          </div>
+          <p className="text-lg font-medium">Start typing to search</p>
+          <p className="text-sm">Search by AWB, Name, Phone, Invoice No, etc.</p>
+        </Card>
+      </div>
     );
+  }
+
+  return (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <PageHeader
+        title={`Search Results for "${query}"`}
+        description={isLoading ? 'Searching...' : `Found ${results?.length || 0} matches.`}
+      />
+
+      {isLoading ? (
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      ) : error ? (
+        <Card className="p-8 text-center text-destructive border-destructive/20 bg-destructive/5">
+          <p>Failed to load search results. Please try again.</p>
+        </Card>
+      ) : results?.length === 0 ? (
+        <Card className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border-dashed">
+          <div className="mb-4 p-4 rounded-full bg-muted/50">
+            <Box className="w-8 h-8 opacity-50" />
+          </div>
+          <p className="text-lg font-medium">No results found</p>
+          <p className="text-sm">Try using different keywords or verify the spelling.</p>
+        </Card>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-1">
+          {results?.map((result) => (
+            <div
+              key={`${result.entity_type}-${result.id}`}
+              onClick={() => navigate(result.link)}
+              className="group cursor-pointer"
+            >
+              <Card className="hover:shadow-md transition-shadow dark:hover:bg-primary/5">
+                <CardContent className="p-4">
+                  {result.entity_type === 'shipment' && (
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="font-medium text-white">{result.title}</div>
+                        <div className="text-sm text-zinc-400">{result.subtitle}</div>
+                        <div className="flex gap-2 mt-2">
+                          <Badge
+                            variant="outline"
+                            className="text-xs border-zinc-700 text-zinc-400"
+                          >
+                            {result.metadata.status}
+                          </Badge>
+                          <Badge
+                            variant="outline"
+                            className="text-xs border-zinc-700 text-zinc-400"
+                          >
+                            {result.metadata.origin} → {result.metadata.destination}
+                          </Badge>
+                        </div>
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-zinc-500" />
+                    </div>
+                  )}
+
+                  {result.entity_type === 'customer' && (
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="font-medium text-white">{result.title}</div>
+                        <div className="text-sm text-zinc-400">{result.subtitle}</div>
+                        <div className="mt-1 text-xs text-zinc-500 font-mono">
+                          {result.metadata.code}
+                        </div>
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-zinc-500" />
+                    </div>
+                  )}
+
+                  {result.entity_type === 'invoice' && (
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="font-medium text-white flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-zinc-400" />
+                          {result.title}
+                        </div>
+                        <div className="text-sm text-zinc-400">{result.subtitle}</div>
+                        <div className="mt-1">
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              'text-xs border-zinc-700',
+                              result.metadata.status === 'paid'
+                                ? 'text-green-400 bg-green-400/10'
+                                : 'text-amber-400 bg-amber-400/10'
+                            )}
+                          >
+                            {result.metadata.status}
+                          </Badge>
+                        </div>
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-zinc-500" />
+                    </div>
+                  )}
+
+                  {result.entity_type === 'manifest' && (
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="font-medium text-white flex items-center gap-2">
+                          <Truck className="w-4 h-4 text-zinc-400" />
+                          {result.title}
+                        </div>
+                        <div className="text-sm text-zinc-400">{result.subtitle}</div>
+                        <div className="flex gap-2 mt-2">
+                          <Badge
+                            variant="outline"
+                            className="text-xs border-zinc-700 text-zinc-400"
+                          >
+                            {result.metadata.status}
+                          </Badge>
+                          <div className="text-xs text-zinc-500 flex items-center gap-1">
+                            {result.metadata.vehicle}
+                          </div>
+                        </div>
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-zinc-500" />
+                    </div>
+                  )}
+
+                  {(result.entity_type === 'staff' || result.entity_type === 'hub') && (
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="font-medium text-white">{result.title}</div>
+                        <div className="text-sm text-zinc-400">{result.subtitle}</div>
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-zinc-500" />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 };

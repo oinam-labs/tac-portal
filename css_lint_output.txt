@@ -1,0 +1,4 @@
+
+> tac-cargo@1.0.0 lint:css
+> stylelint "**/*.css" --fix
+

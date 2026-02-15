@@ -8,7 +8,9 @@ import path from 'node:path';
 
 const authFile = path.resolve(process.cwd(), '.auth/user.json');
 const getCreateManifestButton = (page: Page) =>
-  page.locator('[data-testid="create-manifest-button"], [data-testid="create-manifest-button-empty"]').first();
+  page
+    .locator('[data-testid="create-manifest-button"], [data-testid="create-manifest-button-empty"]')
+    .first();
 
 async function waitForManifestsReady(page: Page) {
   const verifyingCredentials = page.getByText(/Verifying credentials/i).first();
@@ -56,7 +58,9 @@ async function waitForScanStepReady(page: Page, dialog: Locator) {
   if (await errorToast.isVisible()) {
     const permissionError = page.getByText(/Insufficient database permissions/i).first();
     if (await permissionError.isVisible()) {
-      throw new Error('Manifest creation failed: Insufficient database permissions for the test user.');
+      throw new Error(
+        'Manifest creation failed: Insufficient database permissions for the test user.'
+      );
     }
     throw new Error('Manifest creation failed: ' + (await errorToast.textContent()));
   }
@@ -127,7 +131,9 @@ test.describe('Enterprise Manifest Scanning', () => {
     await expect(dialog).toBeVisible({ timeout: 10000 });
 
     // Wait for dialog content to load
-    await expect(dialog.getByText(/Route Selection|Origin|From/i).first()).toBeVisible({ timeout: 5000 });
+    await expect(dialog.getByText(/Route Selection|Origin|From/i).first()).toBeVisible({
+      timeout: 5000,
+    });
 
     const originLabel = dialog.getByText(/origin|from/i).first();
     const destLabel = dialog.getByText(/destination|to/i).first();
@@ -242,7 +248,10 @@ test.describe('Manifest Status Workflow', () => {
     let found = false;
     for (const status of statuses) {
       // StatusBadge uses a span with 'capitalize' class for the text
-      const badge = page.locator('span.capitalize').filter({ hasText: new RegExp(`^${status}$`, 'i') }).first();
+      const badge = page
+        .locator('span.capitalize')
+        .filter({ hasText: new RegExp(`^${status}$`, 'i') })
+        .first();
       if (await badge.isVisible()) {
         found = true;
         break;
@@ -257,7 +266,10 @@ test.describe('Manifest Status Workflow', () => {
     await waitForManifestsReady(page);
 
     // Click on an OPEN or BUILDING manifest - use first matching cell (UI shows lowercase)
-    const openBadge = page.locator('span.capitalize').filter({ hasText: /^(draft|open|building)$/i }).first();
+    const openBadge = page
+      .locator('span.capitalize')
+      .filter({ hasText: /^(draft|open|building)$/i })
+      .first();
     if (await openBadge.isVisible()) {
       const row = openBadge.locator('xpath=ancestor::tr').first();
       await row.getByRole('button', { name: /view/i }).click({ force: true });
@@ -274,7 +286,10 @@ test.describe('Manifest Status Workflow', () => {
     await waitForManifestsReady(page);
 
     // Find a CLOSED manifest - use first matching row (UI shows lowercase "closed")
-    const closedBadge = page.locator('span.capitalize').filter({ hasText: /^closed$/i }).first();
+    const closedBadge = page
+      .locator('span.capitalize')
+      .filter({ hasText: /^closed$/i })
+      .first();
     if (await closedBadge.isVisible()) {
       const row = closedBadge.locator('xpath=ancestor::tr').first();
       await expect(row.getByRole('button', { name: /view/i })).toHaveCount(0);
@@ -421,8 +436,6 @@ test.describe('Manifest Scanning (Enterprise)', () => {
     await expect(page.locator('body')).toBeVisible();
   });
 });
-
-
 
 test.describe('Manifest Shipment Table', () => {
   test.skip(!process.env.E2E_TEST_EMAIL, 'Requires auth credentials');

@@ -31,7 +31,7 @@ export function FadeUp({
   const variants: Variants = {
     hidden: {
       opacity: 0,
-      y: shouldReduceMotion ? 0 : y
+      y: shouldReduceMotion ? 0 : y,
     },
     visible: {
       opacity: 1,
@@ -40,7 +40,7 @@ export function FadeUp({
         duration,
         delay,
         ease: MOTION_TOKENS.ease.default,
-      }
+      },
     },
   };
 

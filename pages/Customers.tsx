@@ -91,16 +91,16 @@ export const Customers: React.FC = () => {
   // Form default values for editing
   const formDefaultValues: CustomerFormValues = activeRow
     ? {
-      type: activeRow.type as 'INDIVIDUAL' | 'BUSINESS' | 'CORPORATE',
-      name: activeRow.name,
-      companyName: activeRow.companyName ?? '',
-      email: activeRow.email ?? '',
-      phone: activeRow.phone,
-      address: typeof activeRow.address === 'string' ? activeRow.address : '',
-      tier: (activeRow.tier as 'STANDARD' | 'PRIORITY' | 'ENTERPRISE') ?? 'STANDARD',
-      gstin: activeRow.gstin ?? '',
-      credit_limit: activeRow.credit_limit ?? 0,
-    }
+        type: activeRow.type as 'INDIVIDUAL' | 'BUSINESS' | 'CORPORATE',
+        name: activeRow.name,
+        companyName: activeRow.companyName ?? '',
+        email: activeRow.email ?? '',
+        phone: activeRow.phone,
+        address: typeof activeRow.address === 'string' ? activeRow.address : '',
+        tier: (activeRow.tier as 'STANDARD' | 'PRIORITY' | 'ENTERPRISE') ?? 'STANDARD',
+        gstin: activeRow.gstin ?? '',
+        credit_limit: activeRow.credit_limit ?? 0,
+      }
     : defaultFormValues;
 
   // Handlers

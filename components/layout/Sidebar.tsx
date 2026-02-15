@@ -98,7 +98,7 @@ const NAV_GROUPS: NavGroupDef[] = [
     items: [
       { label: 'Messages', icon: Mail, path: '/admin/messages', roles: ['ADMIN'] },
       { label: 'Shift Report', icon: ClipboardList, path: '/shift-report' },
-      { label: 'Settings', icon: Settings, path: '/settings' }
+      { label: 'Settings', icon: Settings, path: '/settings' },
     ],
   },
 ];
@@ -116,7 +116,8 @@ export const Sidebar: React.FC = () => {
     if (!allowedRoles) return true;
     if (!user) return false;
     // ADMIN and MANAGER have access to everything
-    if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN' || user.role === 'MANAGER') return true;
+    if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN' || user.role === 'MANAGER')
+      return true;
     return allowedRoles.includes(user.role);
   };
 
@@ -149,7 +150,9 @@ export const Sidebar: React.FC = () => {
               <span className="text-foreground text-lg font-sans font-bold tracking-tight leading-none transition-colors duration-300">
                 TAC Cargo
               </span>
-              <span className="text-[10px] text-muted-foreground font-mono tracking-widest uppercase mt-0.5">Global Logistics</span>
+              <span className="text-[10px] text-muted-foreground font-mono tracking-widest uppercase mt-0.5">
+                Global Logistics
+              </span>
             </div>
           )}
         </div>
@@ -178,10 +181,11 @@ export const Sidebar: React.FC = () => {
                       aria-label={item.label}
                       className={({ isActive }) => `
                       flex items-center px-3 py-1.5 text-sm transition-colors duration-100 group
-                      ${isActive
+                      ${
+                        isActive
                           ? 'bg-primary text-primary-foreground font-medium'
                           : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-normal'
-                        }
+                      }
                     `}
                     >
                       {({ isActive }) => (

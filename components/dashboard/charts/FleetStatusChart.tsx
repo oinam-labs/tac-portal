@@ -21,7 +21,9 @@ import { ChartSkeleton } from '../../ui/skeleton';
 import { useManifests } from '../../../hooks/useManifests';
 import { CHART_COLORS } from '../../../lib/design-tokens';
 
-export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({ isLoading: externalLoading }) => {
+export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({
+  isLoading: externalLoading,
+}) => {
   const { data: manifests = [], isLoading: manifestsLoading } = useManifests();
   const isLoading = externalLoading || manifestsLoading;
 
@@ -46,7 +48,7 @@ export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({ isLoading:
         route,
         ...counts,
       }))
-      .sort((a, b) => (b.active + b.idle) - (a.active + a.idle))
+      .sort((a, b) => b.active + b.idle - (a.active + a.idle))
       .slice(0, 5);
   }, [manifests]);
 
@@ -65,7 +67,9 @@ export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({ isLoading:
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
             <p className="text-muted-foreground">No manifests created</p>
-            <p className="text-sm text-muted-foreground mt-1">Create your first manifest to track fleet status</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Create your first manifest to track fleet status
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -101,10 +105,19 @@ export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({ isLoading:
                 axisLine={false}
                 tick={{ fill: CHART_COLORS.axis, fontSize: 12 }}
               />
-              <YAxis tickLine={false} axisLine={false} tick={{ fill: CHART_COLORS.axis, fontSize: 12 }} />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tick={{ fill: CHART_COLORS.axis, fontSize: 12 }}
+              />
               <Tooltip contentStyle={tooltipStyle} />
               <Legend />
-              <Bar dataKey="active" name="Active" fill={CHART_COLORS.primary} radius={[4, 4, 0, 0]} />
+              <Bar
+                dataKey="active"
+                name="Active"
+                fill={CHART_COLORS.primary}
+                radius={[4, 4, 0, 0]}
+              />
               <Bar dataKey="idle" name="Idle" fill={CHART_COLORS.secondary} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>

@@ -227,7 +227,10 @@ test.describe('Enterprise Stress Tests', () => {
   });
 
   test.describe('Error Recovery Tests', () => {
-    test('should handle API failures gracefully without exposing raw errors', async ({ page, context }) => {
+    test('should handle API failures gracefully without exposing raw errors', async ({
+      page,
+      context,
+    }) => {
       await page.goto('/dashboard');
       await page.waitForLoadState('networkidle');
 

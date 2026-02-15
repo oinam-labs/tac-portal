@@ -63,10 +63,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
     // 1. Authorization Check
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(JSON.stringify({ success: false, error: 'Authorization header missing' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({ success: false, error: 'Authorization header missing' }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Create Supabase client with service role for admin tasks
@@ -76,7 +79,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     // Validate Token
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
       return new Response(JSON.stringify({ success: false, error: 'Invalid token' }), {
@@ -228,7 +234,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         manifest_no: manifest.manifest_no,
         action: 'MANIFEST_CLOSED',
       },
-      description: `Manifest ${manifest.manifest_no} closed`
+      description: `Manifest ${manifest.manifest_no} closed`,
     }));
 
     if (trackingEvents.length > 0) {

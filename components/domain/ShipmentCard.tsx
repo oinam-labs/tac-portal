@@ -95,17 +95,13 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
           <div
             className={cn(
               'p-2.5 rounded-lg',
-              shipment.mode === 'AIR'
-                ? 'bg-primary/10'
-                : 'bg-status-in-transit/20'
+              shipment.mode === 'AIR' ? 'bg-primary/10' : 'bg-status-in-transit/20'
             )}
           >
             <ModeIcon
               className={cn(
                 'w-5 h-5',
-                shipment.mode === 'AIR'
-                  ? 'text-primary'
-                  : 'text-status-in-transit'
+                shipment.mode === 'AIR' ? 'text-primary' : 'text-status-in-transit'
               )}
             />
           </div>

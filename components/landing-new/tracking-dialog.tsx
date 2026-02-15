@@ -36,8 +36,6 @@ export function TrackingDialog({ trigger, children }: TrackingDialogProps) {
     }
   };
 
-
-
   return (
     <Dialog>
       <DialogTrigger asChild>

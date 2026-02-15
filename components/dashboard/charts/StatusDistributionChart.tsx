@@ -21,7 +21,9 @@ const STATUS_COLORS = [
   CHART_COLORS.error,
 ];
 
-export const StatusDistributionChart: React.FC<{ isLoading?: boolean }> = ({ isLoading: externalLoading }) => {
+export const StatusDistributionChart: React.FC<{ isLoading?: boolean }> = ({
+  isLoading: externalLoading,
+}) => {
   const { data: shipments = [], isLoading: shipmentsLoading } = useShipments();
   const isLoading = externalLoading || shipmentsLoading;
 
@@ -60,7 +62,9 @@ export const StatusDistributionChart: React.FC<{ isLoading?: boolean }> = ({ isL
         <CardContent className="flex-1 flex items-center justify-center">
           <div className="text-center py-12">
             <p className="text-muted-foreground">No shipments yet</p>
-            <p className="text-sm text-muted-foreground mt-1">Create your first shipment to see status distribution</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Create your first shipment to see status distribution
+            </p>
           </div>
         </CardContent>
       </Card>

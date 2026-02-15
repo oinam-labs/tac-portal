@@ -12,10 +12,6 @@ import { FadeUp } from '@/components/motion/FadeUp';
 
 // --- Components ---
 
-
-
-
-
 export function TrackingSection() {
   const [trackingMode, setTrackingMode] = useState<'gps' | 'custody'>('gps');
   const [trackingNumber, setTrackingNumber] = useState('');
@@ -50,7 +46,6 @@ export function TrackingSection() {
     <section id="tracking" className="relative w-full py-24 lg:py-32 overflow-hidden">
       <div className="container mx-auto px-4 relative z-10">
         <div className="flex flex-col items-center justify-center max-w-5xl mx-auto text-center">
-
           {/* Badge */}
           <FadeUp delay={0.1} className="mb-8">
             <Badge variant="secondary" className="gap-2 px-4 py-2 rounded-full backdrop-blur-sm">
@@ -68,8 +63,8 @@ export function TrackingSection() {
             </h2>
             <FadeUp delay={0.2}>
               <p className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground font-light leading-relaxed">
-                Real-time visibility into your supply chain with millisecond precision telemetry
-                and blockchain-verified custody logs.
+                Real-time visibility into your supply chain with millisecond precision telemetry and
+                blockchain-verified custody logs.
               </p>
             </FadeUp>
           </div>
@@ -77,7 +72,6 @@ export function TrackingSection() {
           {/* Tracking Interface */}
           <FadeUp delay={0.3} className="w-full max-w-xl mt-12">
             <div className="relative p-2 rounded-[2.5rem] bg-background/50 backdrop-blur-xl border border-border/50 shadow-2xl shadow-primary/5">
-
               {/* Tabs */}
               <div className="flex justify-center mb-6 pt-4">
                 <Tabs
@@ -110,7 +104,9 @@ export function TrackingSection() {
                 <div className="flex-1 w-full relative">
                   <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                   <Input
-                    placeholder={trackingMode === 'gps' ? "ENTER AWB / HAWB ID" : "ENTER CUSTODY ID"}
+                    placeholder={
+                      trackingMode === 'gps' ? 'ENTER AWB / HAWB ID' : 'ENTER CUSTODY ID'
+                    }
                     className="w-full h-12 pl-14 pr-4 bg-transparent border-none text-base font-mono placeholder:text-muted-foreground/50 focus-visible:ring-0 shadow-none"
                     value={trackingNumber}
                     onChange={(e) => setTrackingNumber(e.target.value)}
@@ -135,9 +131,7 @@ export function TrackingSection() {
                   Recent Traces
                 </p>
                 <div className="flex flex-wrap justify-center gap-3">
-                  {[
-                    'TAC882190', 'TAC-02531', 'DEL-98234', 'IMP-45621'
-                  ].map((example) => (
+                  {['TAC882190', 'TAC-02531', 'DEL-98234', 'IMP-45621'].map((example) => (
                     <button
                       key={example}
                       type="button"
@@ -154,7 +148,10 @@ export function TrackingSection() {
 
           {/* System Status */}
           <FadeUp delay={0.4} className="mt-12">
-            <Badge variant="outline" className="gap-2 px-4 py-1.5 rounded-full border-primary/10 bg-primary/5 backdrop-blur-sm">
+            <Badge
+              variant="outline"
+              className="gap-2 px-4 py-1.5 rounded-full border-primary/10 bg-primary/5 backdrop-blur-sm"
+            >
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
@@ -164,7 +161,6 @@ export function TrackingSection() {
               </span>
             </Badge>
           </FadeUp>
-
         </div>
       </div>
 
@@ -179,10 +175,7 @@ export function TrackingSection() {
           </DialogTitle>
           {trackingData && (
             <div className="p-4">
-              <TrackingResultCard
-                data={trackingData}
-                onClose={() => setShowResult(false)}
-              />
+              <TrackingResultCard data={trackingData} onClose={() => setShowResult(false)} />
             </div>
           )}
         </DialogContent>

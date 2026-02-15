@@ -10,5 +10,7 @@ interface Props {
 }
 
 export const CreateInvoiceForm: React.FC<Props> = ({ onSuccess, onCancel, initialData }) => {
-  return <MultiStepCreateInvoice onSuccess={onSuccess} onCancel={onCancel} initialData={initialData} />;
+  return (
+    <MultiStepCreateInvoice onSuccess={onSuccess} onCancel={onCancel} initialData={initialData} />
+  );
 };

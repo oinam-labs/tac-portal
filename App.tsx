@@ -88,10 +88,10 @@ const SentryTest = lazy(() =>
 const ShiftReport = lazy(() => import('./pages/ShiftReport'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Messages = lazy(() =>
-  import('./pages/admin/Messages').then(module => ({ default: module.Messages }))
+  import('./pages/admin/Messages').then((module) => ({ default: module.Messages }))
 );
 const SearchResults = lazy(() =>
-  import('./pages/SearchResults').then(module => ({ default: module.SearchResults }))
+  import('./pages/SearchResults').then((module) => ({ default: module.SearchResults }))
 );
 
 // Login Page Component with Supabase Auth
@@ -102,7 +102,6 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -161,7 +160,10 @@ const Login: React.FC = () => {
       <div className="fixed inset-0 -z-10 bg-gradient-to-br from-background via-muted/50 to-background dark:from-background dark:via-primary/5 dark:to-background transition-colors duration-500">
         {/* Ambient blobs using project vars */}
         <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] rounded-full bg-primary/20 sm:bg-primary/10 blur-[120px] animate-pulse" />
-        <div className="absolute bottom-1/4 -right-20 w-[400px] h-[400px] rounded-full bg-accent/20 sm:bg-accent/10 blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div
+          className="absolute bottom-1/4 -right-20 w-[400px] h-[400px] rounded-full bg-accent/20 sm:bg-accent/10 blur-[100px] animate-pulse"
+          style={{ animationDelay: '2s' }}
+        />
       </div>
 
       {/* Top Controls */}
@@ -217,8 +219,12 @@ const Login: React.FC = () => {
                       <Box className="h-5 w-5" />
                     </div>
                     <div>
-                      <div className="text-sm tracking-widest text-muted-foreground dark:text-white/60">TAC</div>
-                      <div className="text-[22px] tracking-tight font-semibold leading-tight text-foreground dark:text-white">Cargo</div>
+                      <div className="text-sm tracking-widest text-muted-foreground dark:text-white/60">
+                        TAC
+                      </div>
+                      <div className="text-[22px] tracking-tight font-semibold leading-tight text-foreground dark:text-white">
+                        Cargo
+                      </div>
                     </div>
                   </Link>
                   <div className="text-xs text-muted-foreground dark:text-white/50">v4.0</div>
@@ -226,13 +232,20 @@ const Login: React.FC = () => {
 
                 {/* Heading */}
                 <div className="mb-6">
-                  <h1 className="text-[26px] font-semibold tracking-tight text-foreground dark:text-white">Welcome back</h1>
-                  <p className="mt-1.5 text-sm text-muted-foreground dark:text-white/60">Sign in to your logistics dashboard.</p>
+                  <h1 className="text-[26px] font-semibold tracking-tight text-foreground dark:text-white">
+                    Welcome back
+                  </h1>
+                  <p className="mt-1.5 text-sm text-muted-foreground dark:text-white/60">
+                    Sign in to your logistics dashboard.
+                  </p>
                 </div>
 
                 {/* Error */}
                 {error && (
-                  <div data-testid="login-error-message" className="mb-4 p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive dark:text-red-300 text-sm backdrop-blur-sm">
+                  <div
+                    data-testid="login-error-message"
+                    className="mb-4 p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive dark:text-red-300 text-sm backdrop-blur-sm"
+                  >
                     {error}
                   </div>
                 )}
@@ -241,7 +254,12 @@ const Login: React.FC = () => {
                 <form onSubmit={handleLogin} className="space-y-4">
                   {/* Email */}
                   <div className="space-y-2">
-                    <label htmlFor="login-email" className="block text-sm text-foreground/80 dark:text-white/80">Email</label>
+                    <label
+                      htmlFor="login-email"
+                      className="block text-sm text-foreground/80 dark:text-white/80"
+                    >
+                      Email
+                    </label>
                     <div className="group/input relative flex items-center rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/5 px-3 py-2.5 transition-all hover:border-black/20 dark:hover:border-white/20 focus-within:border-primary/40 dark:focus-within:border-white/25 focus-within:bg-black/[0.05] dark:focus-within:bg-white/[0.07]">
                       <Mail className="mr-2 h-4 w-4 text-muted-foreground dark:text-white/50 shrink-0" />
                       <input
@@ -262,7 +280,12 @@ const Login: React.FC = () => {
 
                   {/* Password */}
                   <div className="space-y-2">
-                    <label htmlFor="login-password" className="block text-sm text-foreground/80 dark:text-white/80">Password</label>
+                    <label
+                      htmlFor="login-password"
+                      className="block text-sm text-foreground/80 dark:text-white/80"
+                    >
+                      Password
+                    </label>
                     <div className="group/input relative flex items-center rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/5 px-3 py-2.5 transition-all hover:border-black/20 dark:hover:border-white/20 focus-within:border-primary/40 dark:focus-within:border-white/25 focus-within:bg-black/[0.05] dark:focus-within:bg-white/[0.07]">
                       <Lock className="mr-2 h-4 w-4 text-muted-foreground dark:text-white/50 shrink-0" />
                       <input
@@ -283,7 +306,11 @@ const Login: React.FC = () => {
                         tabIndex={-1}
                         aria-label="Toggle password visibility"
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                       <div className="pointer-events-none absolute inset-0 rounded-xl ring-0 ring-primary/0 transition-all group-focus-within/input:ring-2 group-focus-within/input:ring-primary/25" />
                     </div>
@@ -305,7 +332,11 @@ const Login: React.FC = () => {
                       {isLoading ? 'Signing in...' : 'Sign in'}
                     </button>
                     <p className="text-center text-xs text-muted-foreground dark:text-white/55">
-                      <button type="button" onClick={() => navigate('/')} className="text-primary/90 hover:text-primary underline underline-offset-4 transition-colors">
+                      <button
+                        type="button"
+                        onClick={() => navigate('/')}
+                        className="text-primary/90 hover:text-primary underline underline-offset-4 transition-colors"
+                      >
                         ← Return to Home
                       </button>
                     </p>
@@ -353,7 +384,12 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: UserR
   }
 
   if (!isAuthenticated || !user) {
-    console.log('[ProtectedRoute] Redirecting to login. State:', { isAuthenticated, user, isLoading, from: location.pathname });
+    console.log('[ProtectedRoute] Redirecting to login. State:', {
+      isAuthenticated,
+      user,
+      isLoading,
+      from: location.pathname,
+    });
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

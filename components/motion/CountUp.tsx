@@ -44,7 +44,7 @@ export function CountUp({
         duration,
         delay,
         ease: 'power2.out',
-        // Only snap to integer if no decimals are required, otherwise let it float roughly and format in onUpdate 
+        // Only snap to integer if no decimals are required, otherwise let it float roughly and format in onUpdate
         snap: decimals === 0 ? { textContent: 1 } : undefined,
         onUpdate: function () {
           if (ref.current) {
@@ -53,7 +53,7 @@ export function CountUp({
               prefix +
               value.toLocaleString(undefined, {
                 minimumFractionDigits: decimals,
-                maximumFractionDigits: decimals
+                maximumFractionDigits: decimals,
               }) +
               suffix;
           }
@@ -68,7 +68,7 @@ export function CountUp({
     prefix +
     initialValue.toLocaleString(undefined, {
       minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
+      maximumFractionDigits: decimals,
     }) +
     suffix;
 

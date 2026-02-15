@@ -21,7 +21,12 @@ import { generateLabelFromShipment } from '@/lib/utils/label-utils';
 import { LabelData } from '@/components/domain/LabelGenerator';
 
 // Hooks & Data
-import { useInvoices, useUpdateInvoiceStatus, useHardDeleteInvoice, InvoiceWithRelations } from '@/hooks/useInvoices';
+import {
+  useInvoices,
+  useUpdateInvoiceStatus,
+  useHardDeleteInvoice,
+  InvoiceWithRelations,
+} from '@/hooks/useInvoices';
 import { getInvoicesColumns } from '@/components/finance/invoices.columns';
 import { useAuthStore } from '@/store/authStore';
 
@@ -62,7 +67,9 @@ export const Finance: React.FC = () => {
 
   // Label preview dialog state
   const [labelPreviewOpen, setLabelPreviewOpen] = useState(false);
-  const [labelPreviewData, setLabelPreviewData] = useState<Partial<LabelData> | undefined>(undefined);
+  const [labelPreviewData, setLabelPreviewData] = useState<Partial<LabelData> | undefined>(
+    undefined
+  );
 
   // Helper to get shipment from Supabase (include hub + customer relations for label mapping)
   const getShipment = async (awb: string) => {
@@ -188,17 +195,17 @@ export const Finance: React.FC = () => {
 
       const consignor = shipmentRow
         ? {
-          name: shipmentRow.sender_name,
-          phone: shipmentRow.sender_phone,
-          address: formatAddress(shipmentRow.sender_address),
-        }
+            name: shipmentRow.sender_name,
+            phone: shipmentRow.sender_phone,
+            address: formatAddress(shipmentRow.sender_address),
+          }
         : lineItems.consignor || (inv as any).consignor || {};
       const consignee = shipmentRow
         ? {
-          name: shipmentRow.receiver_name,
-          phone: shipmentRow.receiver_phone,
-          address: formatAddress(shipmentRow.receiver_address),
-        }
+            name: shipmentRow.receiver_name,
+            phone: shipmentRow.receiver_phone,
+            address: formatAddress(shipmentRow.receiver_address),
+          }
         : lineItems.consignee || (inv as any).consignee || {};
 
       logger.debug('[Invoice] Parties', { consignor, consignee });
@@ -451,10 +458,12 @@ Thank you for choosing TAC Cargo.`;
         onCancel: (row) => handleStatusUpdate(row.id, 'CANCELLED'),
         onShareWhatsapp: (row) => handleShareWhatsapp(buildInvoiceFromRow(row)),
         onShareEmail: (row) => handleShareEmail(buildInvoiceFromRow(row)),
-        onDelete: isSuperAdmin ? (row) => {
-          setRowToDelete(buildInvoiceFromRow(row));
-          setDeleteOpen(true);
-        } : undefined,
+        onDelete: isSuperAdmin
+          ? (row) => {
+              setRowToDelete(buildInvoiceFromRow(row));
+              setDeleteOpen(true);
+            }
+          : undefined,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [navigate, isSuperAdmin]
@@ -485,7 +494,9 @@ Thank you for choosing TAC Cargo.`;
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-6 border-border flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
-            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Invoices</div>
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Total Invoices
+            </div>
             <div className="p-2 bg-primary/10 text-primary rounded-none">
               <FileText className="w-4 h-4" />
             </div>
@@ -497,36 +508,51 @@ Thank you for choosing TAC Cargo.`;
 
         <Card className="p-6 border-border flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
-            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Revenue (Paid)</div>
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Revenue (Paid)
+            </div>
             <div className="p-2 bg-status-success/10 text-status-success rounded-none">
               <CreditCard className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-foreground font-mono leading-none truncate" title={formatCurrency(totalRevenue)}>
+          <div
+            className="text-2xl font-bold text-foreground font-mono leading-none truncate"
+            title={formatCurrency(totalRevenue)}
+          >
             {formatCurrency(totalRevenue)}
           </div>
         </Card>
 
         <Card className="p-6 border-border flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
-            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Pending</div>
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Pending
+            </div>
             <div className="p-2 bg-status-warning/10 text-status-warning rounded-none">
               <FileText className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-foreground font-mono leading-none truncate" title={formatCurrency(pendingAmount)}>
+          <div
+            className="text-2xl font-bold text-foreground font-mono leading-none truncate"
+            title={formatCurrency(pendingAmount)}
+          >
             {formatCurrency(pendingAmount)}
           </div>
         </Card>
 
         <Card className="p-6 border-border flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
-            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Overdue</div>
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Overdue
+            </div>
             <div className="p-2 bg-status-error/10 text-status-error rounded-none">
               <FileText className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-foreground font-mono leading-none truncate" title={formatCurrency(overdueAmount)}>
+          <div
+            className="text-2xl font-bold text-foreground font-mono leading-none truncate"
+            title={formatCurrency(overdueAmount)}
+          >
             {formatCurrency(overdueAmount)}
           </div>
         </Card>
@@ -550,13 +576,21 @@ Thank you for choosing TAC Cargo.`;
       {/* Create Invoice Modal */}
       <Modal
         isOpen={isCreateOpen}
-        onClose={() => { setIsCreateOpen(false); setEditingInvoice(null); }}
-        title={editingInvoice ? `Edit Invoice ${editingInvoice.invoice_no}` : "Generate New Invoice"}
+        onClose={() => {
+          setIsCreateOpen(false);
+          setEditingInvoice(null);
+        }}
+        title={
+          editingInvoice ? `Edit Invoice ${editingInvoice.invoice_no}` : 'Generate New Invoice'
+        }
         size="4xl"
       >
         <CreateInvoiceForm
           onSuccess={onInvoiceCreated}
-          onCancel={() => { setIsCreateOpen(false); setEditingInvoice(null); }}
+          onCancel={() => {
+            setIsCreateOpen(false);
+            setEditingInvoice(null);
+          }}
           initialData={editingInvoice || undefined}
         />
       </Modal>
@@ -622,7 +656,10 @@ Thank you for choosing TAC Cargo.`;
       {/* Invoice Detail View Modal */}
       <Modal
         isOpen={!!viewInvoice}
-        onClose={() => { setViewInvoice(null); setViewShipment(undefined); }}
+        onClose={() => {
+          setViewInvoice(null);
+          setViewShipment(undefined);
+        }}
         title="Invoice Details"
         size="4xl"
       >
@@ -630,7 +667,10 @@ Thank you for choosing TAC Cargo.`;
           <InvoiceDetails
             invoice={viewInvoice}
             shipment={viewShipment}
-            onClose={() => { setViewInvoice(null); setViewShipment(undefined); }}
+            onClose={() => {
+              setViewInvoice(null);
+              setViewShipment(undefined);
+            }}
             onDownloadInvoice={handleDownloadInvoice}
             onDownloadLabel={handleDownloadLabel}
             onMarkPaid={(id) => handleStatusUpdate(id, 'PAID')}
@@ -643,12 +683,14 @@ Thank you for choosing TAC Cargo.`;
       <CrudDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title={isSuperAdmin ? "Permanently Delete Invoice?" : "Cancel invoice?"}
-        description={isSuperAdmin
-          ? `This will PERMANENTLY delete invoice "${rowToDelete?.invoiceNumber ?? ''}". This action cannot be undone.`
-          : `This will cancel invoice "${rowToDelete?.invoiceNumber ?? ''}".`}
+        title={isSuperAdmin ? 'Permanently Delete Invoice?' : 'Cancel invoice?'}
+        description={
+          isSuperAdmin
+            ? `This will PERMANENTLY delete invoice "${rowToDelete?.invoiceNumber ?? ''}". This action cannot be undone.`
+            : `This will cancel invoice "${rowToDelete?.invoiceNumber ?? ''}".`
+        }
         onConfirm={handleDelete}
-        confirmLabel={isSuperAdmin ? "Delete Permanently" : "Cancel Invoice"}
+        confirmLabel={isSuperAdmin ? 'Delete Permanently' : 'Cancel Invoice'}
       />
 
       {/* Inline Label Preview Dialog */}

@@ -9,7 +9,6 @@ import { QuickActions } from '../components/dashboard/QuickActions';
 import { RecentActivity } from '../components/dashboard/RecentActivity';
 import { RecentBookings } from '../components/dashboard/RecentBookings';
 
-
 import { ErrorBoundary, InlineError } from '../components/ui/error-boundary';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../lib/queryKeys';
@@ -43,22 +42,26 @@ export const Dashboard: React.FC = () => {
       const [shipmentsResult, invoicesResult] = await Promise.all([
         supabase
           .from('shipments')
-          .select(`
+          .select(
+            `
             *,
             customer:customers(name, phone),
             origin_hub:hubs!origin_hub_id(code, name),
             destination_hub:hubs!destination_hub_id(code, name)
-          `)
+          `
+          )
           .order('created_at', { ascending: false }),
         supabase
           .from('invoices')
-          .select(`
+          .select(
+            `
             *,
             customer:customers(name, phone, email),
             shipment:shipments(awb_number)
-          `)
+          `
+          )
           .is('deleted_at', null)
-          .order('created_at', { ascending: false })
+          .order('created_at', { ascending: false }),
       ]);
 
       if (shipmentsResult.error) throw shipmentsResult.error;
@@ -77,7 +80,7 @@ export const Dashboard: React.FC = () => {
       generateDashboardReport({
         shipments,
         invoices,
-        inventoryCount
+        inventoryCount,
       });
 
       toast.success('Report downloaded successfully');
@@ -98,7 +101,11 @@ export const Dashboard: React.FC = () => {
           <RefreshCw className="w-4 h-4 sm:mr-2" />
           <span className="hidden sm:inline">Refresh</span>
         </Button>
-        <Button data-testid="dashboard-download-button" variant="secondary" onClick={handleDownloadReport}>
+        <Button
+          data-testid="dashboard-download-button"
+          variant="secondary"
+          onClick={handleDownloadReport}
+        >
           <span className="hidden sm:inline">Download Report</span>
           <span className="sm:hidden">Report</span>
         </Button>
@@ -116,7 +123,6 @@ export const Dashboard: React.FC = () => {
         <DashboardCharts />
       </ErrorBoundary>
 
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Shipments */}
         <ErrorBoundary fallback={<InlineError message="Failed to load recent activity" />}>
@@ -128,7 +134,6 @@ export const Dashboard: React.FC = () => {
           <RecentBookings />
         </ErrorBoundary>
       </div>
-
     </div>
   );
 };

@@ -37,7 +37,7 @@ export function StaggerChildren({
     },
   };
 
-  // We export a default child variant for convenience, 
+  // We export a default child variant for convenience,
   // but children can use their own variants if they match the hidden/visible keys
   return (
     <motion.div
@@ -61,6 +61,6 @@ export const staggerItemVariants: Variants = {
     transition: {
       duration: MOTION_TOKENS.duration.normal,
       ease: MOTION_TOKENS.ease.default,
-    }
+    },
   },
 };

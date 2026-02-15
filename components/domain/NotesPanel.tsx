@@ -243,11 +243,11 @@ export const NotesPanel = memo<NotesPanelProps>(
           onKeyDown={
             collapsible
               ? (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setIsCollapsed(!isCollapsed);
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setIsCollapsed(!isCollapsed);
+                  }
                 }
-              }
               : undefined
           }
           role={collapsible ? 'button' : undefined}

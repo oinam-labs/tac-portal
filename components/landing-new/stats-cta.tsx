@@ -30,14 +30,20 @@ export function StatsCTA() {
             />
             <FadeUp delay={0.3}>
               <p className="text-muted-foreground text-xl font-light max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                From Imphal to New Delhi — delivering cargo with <span className="text-foreground font-medium">precision</span>, <span className="text-foreground font-medium">speed</span>, and <span className="text-foreground font-medium">security</span>.
+                From Imphal to New Delhi — delivering cargo with{' '}
+                <span className="text-foreground font-medium">precision</span>,{' '}
+                <span className="text-foreground font-medium">speed</span>, and{' '}
+                <span className="text-foreground font-medium">security</span>.
               </p>
             </FadeUp>
           </div>
 
           <FadeUp delay={0.4} className="mx-auto lg:mx-0 shrink-0">
             <Link to="/login" className="inline-flex">
-              <Button size="lg" className="h-14 rounded-full px-10 text-base font-bold shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 transition-all duration-300 hover:scale-105 bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button
+                size="lg"
+                className="h-14 rounded-full px-10 text-base font-bold shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 transition-all duration-300 hover:scale-105 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
                 Get a Quote
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -50,7 +56,7 @@ export function StatsCTA() {
           <motion.div
             variants={{
               hidden: { opacity: 0, y: 30 },
-              visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+              visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
             }}
             whileHover={{ y: -10, transition: { duration: 0.3 } }}
             className="group relative bg-card/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-10 text-center hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 overflow-hidden"
@@ -63,17 +69,21 @@ export function StatsCTA() {
               <div className="text-5xl sm:text-6xl font-extrabold text-foreground mb-3 tracking-tight font-mono">
                 <CountUp to={50} suffix="k+" duration={2.5} />
               </div>
-              <p className="text-muted-foreground font-medium text-lg uppercase tracking-widest text-[10px]">Shipments Delivered</p>
+              <p className="text-muted-foreground font-medium text-lg uppercase tracking-widest text-[10px]">
+                Shipments Delivered
+              </p>
             </div>
             {/* Corner Accent */}
-            <div className="absolute top-0 right-0 w-16 h-16 border-t font-mono text-[10px] text-primary/40 pt-4 pr-4 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">OBJ_01</div>
+            <div className="absolute top-0 right-0 w-16 h-16 border-t font-mono text-[10px] text-primary/40 pt-4 pr-4 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+              OBJ_01
+            </div>
           </motion.div>
 
           {/* Stat 2 */}
           <motion.div
             variants={{
               hidden: { opacity: 0, y: 30 },
-              visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+              visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
             }}
             whileHover={{ y: -10, transition: { duration: 0.3 } }}
             className="group relative bg-card/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-10 text-center hover:border-secondary/30 hover:shadow-2xl hover:shadow-secondary/5 transition-all duration-300 overflow-hidden"
@@ -86,16 +96,20 @@ export function StatsCTA() {
               <div className="text-5xl sm:text-6xl font-extrabold text-foreground mb-3 tracking-tight font-mono">
                 <CountUp to={99.9} suffix="%" duration={2.5} decimals={1} />
               </div>
-              <p className="text-muted-foreground font-medium text-lg uppercase tracking-widest text-[10px]">Safe Arrival Rate</p>
+              <p className="text-muted-foreground font-medium text-lg uppercase tracking-widest text-[10px]">
+                Safe Arrival Rate
+              </p>
             </div>
-            <div className="absolute top-0 right-0 w-16 h-16 border-t font-mono text-[10px] text-secondary/40 pt-4 pr-4 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">OBJ_02</div>
+            <div className="absolute top-0 right-0 w-16 h-16 border-t font-mono text-[10px] text-secondary/40 pt-4 pr-4 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+              OBJ_02
+            </div>
           </motion.div>
 
           {/* Stat 3 */}
           <motion.div
             variants={{
               hidden: { opacity: 0, y: 30 },
-              visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+              visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
             }}
             whileHover={{ y: -10, transition: { duration: 0.3 } }}
             className="group relative bg-card/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-10 text-center hover:border-accent/30 hover:shadow-2xl hover:shadow-accent/5 transition-all duration-300 overflow-hidden"
@@ -108,9 +122,13 @@ export function StatsCTA() {
               <div className="text-5xl sm:text-6xl font-extrabold text-foreground mb-3 tracking-tight font-mono">
                 <CountUp to={48} suffix="h" duration={2.5} />
               </div>
-              <p className="text-muted-foreground font-medium text-lg uppercase tracking-widest text-[10px]">Imphal ↔ Delhi</p>
+              <p className="text-muted-foreground font-medium text-lg uppercase tracking-widest text-[10px]">
+                Imphal ↔ Delhi
+              </p>
             </div>
-            <div className="absolute top-0 right-0 w-16 h-16 border-t font-mono text-[10px] text-accent/40 pt-4 pr-4 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">OBJ_03</div>
+            <div className="absolute top-0 right-0 w-16 h-16 border-t font-mono text-[10px] text-accent/40 pt-4 pr-4 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+              OBJ_03
+            </div>
           </motion.div>
         </StaggerChildren>
       </div>

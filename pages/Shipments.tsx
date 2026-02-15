@@ -49,22 +49,20 @@ export const Shipments: React.FC = () => {
   // Sync State -> URL (User typing)
   useEffect(() => {
     if (debouncedSearch !== querySearch) {
-      setSearchParams((prev) => {
-        const newParams = new URLSearchParams(prev);
-        if (debouncedSearch) newParams.set('search', debouncedSearch);
-        else newParams.delete('search');
-        return newParams;
-      }, { replace: true });
+      setSearchParams(
+        (prev) => {
+          const newParams = new URLSearchParams(prev);
+          if (debouncedSearch) newParams.set('search', debouncedSearch);
+          else newParams.delete('search');
+          return newParams;
+        },
+        { replace: true }
+      );
     }
   }, [debouncedSearch]);
 
   // Data fetching
-  const {
-    data: shipments,
-    isLoading,
-    error,
-    refetch,
-  } = useShipments({ search: debouncedSearch }); // Pass search term
+  const { data: shipments, isLoading, error, refetch } = useShipments({ search: debouncedSearch }); // Pass search term
 
   // Only Super Admin can delete
   const hardDeleteMutation = useHardDeleteShipment();
@@ -84,10 +82,12 @@ export const Shipments: React.FC = () => {
           // For now, open view modal - edit form could be added later
           setSelectedShipment(row);
         },
-        onDelete: isSuperAdmin ? (row) => {
-          setRowToDelete(row);
-          setDeleteOpen(true);
-        } : undefined,
+        onDelete: isSuperAdmin
+          ? (row) => {
+              setRowToDelete(row);
+              setDeleteOpen(true);
+            }
+          : undefined,
       }),
     [isSuperAdmin]
   );
@@ -114,7 +114,6 @@ export const Shipments: React.FC = () => {
         columns={columns}
         data={shipments ?? []}
         searchKey="awb_number" // Keep for prop requirement, but onSearch overrides behavior
-
         searchPlaceholder="Search by AWB, Invoice, Name, Phone..."
         onSearch={setSearchTerm} // Pass handleSearch
         searchValue={searchTerm} // Sync input value
@@ -136,7 +135,9 @@ export const Shipments: React.FC = () => {
                   : 'Shipments will appear here once created or imported.'
               }
               actionLabel={isFiltered || debouncedSearch ? undefined : 'Create shipment'}
-              onAction={isFiltered || debouncedSearch ? undefined : () => setIsCreateModalOpen(true)}
+              onAction={
+                isFiltered || debouncedSearch ? undefined : () => setIsCreateModalOpen(true)
+              }
             />
           )
         }
@@ -159,7 +160,10 @@ export const Shipments: React.FC = () => {
                       Weight: s.total_weight,
                       Created: new Date(s.created_at).toLocaleDateString(),
                     }));
-                    exportToCSV(dataToExport, `shipments-${new Date().toISOString().split('T')[0]}`);
+                    exportToCSV(
+                      dataToExport,
+                      `shipments-${new Date().toISOString().split('T')[0]}`
+                    );
                   });
                 }
               }}
@@ -167,10 +171,7 @@ export const Shipments: React.FC = () => {
             >
               <Download className="w-4 h-4 mr-2" /> Export
             </Button>
-            <Button
-              onClick={() => setIsCreateModalOpen(true)}
-              data-testid="new-shipment-button"
-            >
+            <Button onClick={() => setIsCreateModalOpen(true)} data-testid="new-shipment-button">
               <Plus className="w-4 h-4 mr-2" /> New Shipment
             </Button>
           </div>
@@ -208,12 +209,14 @@ export const Shipments: React.FC = () => {
       <CrudDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title={isSuperAdmin ? "Permanently Delete Shipment?" : "Archive Shipment?"}
-        description={isSuperAdmin
-          ? `This will PERMANENTLY delete shipment "${rowToDelete?.awb_number ?? ''}" and all related data. This action cannot be undone.`
-          : `This will remove shipment "${rowToDelete?.awb_number ?? ''}" from your view.`}
+        title={isSuperAdmin ? 'Permanently Delete Shipment?' : 'Archive Shipment?'}
+        description={
+          isSuperAdmin
+            ? `This will PERMANENTLY delete shipment "${rowToDelete?.awb_number ?? ''}" and all related data. This action cannot be undone.`
+            : `This will remove shipment "${rowToDelete?.awb_number ?? ''}" from your view.`
+        }
         onConfirm={handleDelete}
-        confirmLabel={isSuperAdmin ? "Delete Permanently" : "Archive"}
+        confirmLabel={isSuperAdmin ? 'Delete Permanently' : 'Archive'}
       />
     </div>
   );

@@ -132,14 +132,14 @@ export const ManifestDetails: React.FC = () => {
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Vehicle/Flight</span>
                 <span className="font-mono font-bold">
-                  {((manifest.vehicle_meta as unknown) as Manifest['vehicleMeta'])?.identifier}
+                  {(manifest.vehicle_meta as unknown as Manifest['vehicleMeta'])?.identifier}
                 </span>
               </div>
               {manifest.type === 'TRUCK' && (
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Driver</span>
                   <span className="font-bold">
-                    {((manifest.vehicle_meta as unknown) as Manifest['vehicleMeta'])?.driver}
+                    {(manifest.vehicle_meta as unknown as Manifest['vehicleMeta'])?.driver}
                   </span>
                 </div>
               )}

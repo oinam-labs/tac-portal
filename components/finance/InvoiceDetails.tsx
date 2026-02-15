@@ -5,12 +5,7 @@ import { Invoice, Shipment } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatCurrency } from '@/lib/utils';
 import { NotesPanel } from '@/components/domain/NotesPanel';
 import {
@@ -110,7 +105,12 @@ export const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
                 <div className="flex items-center gap-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handleCopyAwb}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={handleCopyAwb}
+                      >
                         <Copy className="w-3 h-3" />
                       </Button>
                     </TooltipTrigger>
@@ -118,7 +118,12 @@ export const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handleTrackShipment}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={handleTrackShipment}
+                      >
                         <ExternalLink className="w-3 h-3" />
                       </Button>
                     </TooltipTrigger>
@@ -347,10 +352,7 @@ export const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
               </h3>
               <div className="space-y-2">
                 {onMarkPaid && (
-                  <Button
-                    className="w-full"
-                    onClick={() => onMarkPaid(invoice.id)}
-                  >
+                  <Button className="w-full" onClick={() => onMarkPaid(invoice.id)}>
                     <CheckCircle className="w-4 h-4 mr-2" /> Mark as Paid
                   </Button>
                 )}

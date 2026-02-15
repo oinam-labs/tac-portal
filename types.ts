@@ -379,7 +379,6 @@ export interface NoteFilters {
   limit?: number;
 }
 
-
 export interface Booking {
   id: string;
   user_id: string | null;
@@ -447,6 +446,3 @@ export {
   parseAWB,
   formatAWB,
 } from './types/domain';
-
-
-

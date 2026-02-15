@@ -24,42 +24,45 @@ export const Header: React.FC = () => {
     }
   };
 
-  const processScanResult = React.useCallback((result: string) => {
-    // Ignore global scans if we are on the dedicated scanning page
-    if (location.pathname.startsWith('/scanning')) {
-      console.log('[Header] Ignoring scan on scanning page');
-      return;
-    }
-
-    let cleanResult = result.trim();
-
-    // If it's a URL, try to extract the last segment or query param
-    if (cleanResult.startsWith('http')) {
-      try {
-        const url = new URL(cleanResult);
-        // Check for 'id' param first
-        const idParam = url.searchParams.get('id');
-        if (idParam) {
-          cleanResult = idParam;
-        } else {
-          // Fallback to last path segment
-          const pathSegments = url.pathname.split('/').filter(Boolean);
-          if (pathSegments.length > 0) {
-            cleanResult = pathSegments[pathSegments.length - 1];
-          }
-        }
-      } catch (e) {
-        console.warn('Failed to parse scanned URL:', e);
+  const processScanResult = React.useCallback(
+    (result: string) => {
+      // Ignore global scans if we are on the dedicated scanning page
+      if (location.pathname.startsWith('/scanning')) {
+        console.log('[Header] Ignoring scan on scanning page');
+        return;
       }
-    }
 
-    toast.success(`Scanned: ${cleanResult}`);
+      let cleanResult = result.trim();
 
-    // Navigate to global search with auto-redirect enabled
-    if (cleanResult) {
-      navigate(`/search?q=${encodeURIComponent(cleanResult)}&auto=true`);
-    }
-  }, [navigate, location]);
+      // If it's a URL, try to extract the last segment or query param
+      if (cleanResult.startsWith('http')) {
+        try {
+          const url = new URL(cleanResult);
+          // Check for 'id' param first
+          const idParam = url.searchParams.get('id');
+          if (idParam) {
+            cleanResult = idParam;
+          } else {
+            // Fallback to last path segment
+            const pathSegments = url.pathname.split('/').filter(Boolean);
+            if (pathSegments.length > 0) {
+              cleanResult = pathSegments[pathSegments.length - 1];
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to parse scanned URL:', e);
+        }
+      }
+
+      toast.success(`Scanned: ${cleanResult}`);
+
+      // Navigate to global search with auto-redirect enabled
+      if (cleanResult) {
+        navigate(`/search?q=${encodeURIComponent(cleanResult)}&auto=true`);
+      }
+    },
+    [navigate, location]
+  );
 
   // Subscribe to global scanner events (always-on scanning)
   React.useEffect(() => {

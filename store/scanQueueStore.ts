@@ -208,7 +208,6 @@ const initScanQueueAutoSync = () => {
   });
 };
 
-
 // Helper to map DB hub codes to Enum
 const mapDbHubToEnum = (code: string | null): HubCode => {
   if (!code) return HubCode.IMPHAL; // Default

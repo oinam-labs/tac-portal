@@ -55,10 +55,7 @@ export const INDIAN_STATES = [
   'Delhi', // Priority States
 ];
 
-export const POPULAR_CITIES = [
-  'Imphal',
-  'New Delhi',
-];
+export const POPULAR_CITIES = ['Imphal', 'New Delhi'];
 
 export const CONTENT_TYPES = [
   'Personal Effects',

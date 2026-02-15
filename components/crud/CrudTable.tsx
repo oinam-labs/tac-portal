@@ -34,8 +34,8 @@ export interface CrudTableProps<TData> {
   emptyMessage?: string;
   loadingState?: React.ReactNode;
   emptyState?:
-  | React.ReactNode
-  | ((ctx: { isFiltered: boolean; filter: string }) => React.ReactNode);
+    | React.ReactNode
+    | ((ctx: { isFiltered: boolean; filter: string }) => React.ReactNode);
   /** Toolbar content (e.g., filters, create button) */
   toolbar?: React.ReactNode;
   /** Optional callback for server-side search */
@@ -119,12 +119,13 @@ export function CrudTable<TData>({
       {isLoading && loadingState ? (
         loadingState
       ) : !isLoading && table.getRowModel().rows.length === 0 && emptyState ? (
-        typeof emptyState === 'function'
-          ? emptyState({ isFiltered: globalFilter.trim().length > 0, filter: globalFilter })
-          : emptyState
+        typeof emptyState === 'function' ? (
+          emptyState({ isFiltered: globalFilter.trim().length > 0, filter: globalFilter })
+        ) : (
+          emptyState
+        )
       ) : (
         <>
-
           {/* Table */}
           <div className="rounded-lg border border-border overflow-hidden bg-card text-card-foreground">
             <table className="w-full">
@@ -141,7 +142,7 @@ export function CrudTable<TData>({
                             className={cn(
                               'flex items-center gap-1',
                               header.column.getCanSort() &&
-                              'cursor-pointer select-none hover:text-foreground'
+                                'cursor-pointer select-none hover:text-foreground'
                             )}
                             onClick={header.column.getToggleSortingHandler()}
                           >
@@ -181,9 +182,11 @@ export function CrudTable<TData>({
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
                 Showing{' '}
-                {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{' '}
+                {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}{' '}
+                to{' '}
                 {Math.min(
-                  (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+                  (table.getState().pagination.pageIndex + 1) *
+                    table.getState().pagination.pageSize,
                   table.getFilteredRowModel().rows.length
                 )}{' '}
                 of {table.getFilteredRowModel().rows.length} results

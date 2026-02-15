@@ -75,17 +75,17 @@ export function mapManifestItemWithShipment(item: any): ManifestItemWithShipment
     ...item,
     shipment: item.shipment
       ? {
-        ...item.shipment,
-        // Map to expected interface names (columns use receiver_*/sender_* names)
-        receiver_name: item.shipment.receiver_name,
-        receiver_phone: item.shipment.receiver_phone,
-        receiver_address: item.shipment.receiver_address,
-        sender_name: item.shipment.sender_name,
-        sender_phone: item.shipment.sender_phone,
-        package_count: item.shipment.package_count,
-        total_weight: item.shipment.total_weight,
-        receiver_city: item.shipment.receiver_address?.city,
-      }
+          ...item.shipment,
+          // Map to expected interface names (columns use receiver_*/sender_* names)
+          receiver_name: item.shipment.receiver_name,
+          receiver_phone: item.shipment.receiver_phone,
+          receiver_address: item.shipment.receiver_address,
+          sender_name: item.shipment.sender_name,
+          sender_phone: item.shipment.sender_phone,
+          package_count: item.shipment.package_count,
+          total_weight: item.shipment.total_weight,
+          receiver_city: item.shipment.receiver_address?.city,
+        }
       : undefined,
   };
 }
@@ -787,15 +787,15 @@ export const manifestService = {
     const vehicleMeta =
       params.type === 'AIR'
         ? {
-          flight_no: params.flightNumber,
-          flight_date: params.flightDate,
-          airline_code: params.airlineCode,
-        }
+            flight_no: params.flightNumber,
+            flight_date: params.flightDate,
+            airline_code: params.airlineCode,
+          }
         : {
-          vehicle_no: params.vehicleNumber,
-          driver_name: params.driverName,
-          driver_phone: params.driverPhone,
-        };
+            vehicle_no: params.vehicleNumber,
+            driver_name: params.driverName,
+            driver_phone: params.driverPhone,
+          };
 
     const { data, error } = await (supabase.from('manifests') as any)
       .insert({

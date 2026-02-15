@@ -1,23 +1,20 @@
 'use client';
 
+import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { TrackingDialog } from './tracking-dialog';
 import { ModernGlobe } from './modern-globe';
 import { HeroOverlays } from './hero-overlays';
 import { LightRays } from '@/components/ui/light-rays';
 import { Button } from '@/components/ui/button';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import { BookingDialog } from '@/components/bookings/BookingDialog';
-
-// ... existing imports
 
 export function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const globeRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
-  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -55,9 +52,21 @@ export function HeroSection() {
       ref={containerRef}
       className="relative min-h-[85vh] flex flex-col items-center justify-center overflow-hidden pt-32 pb-12 w-full"
     >
-      {/* Background elements */}
-      <LightRays />
+      {/* Background Elements */}
+      {/* Ambient Center Glow (Subtler) */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/05 dark:bg-primary/20 blur-[80px] pointer-events-none z-0 rotate-45"></div>
+
+      {/* Light Rays - Deep Dive Implementation */}
+      <LightRays
+        className="opacity-100 dark:opacity-80 z-0 mix-blend-screen"
+        count={20}
+        speed={3}
+        color="rgba(255, 255, 255, 0.4)"
+      />
+
+      {/* Technical Overlays */}
       <HeroOverlays />
+
       {/* 1. Globe Integration (Top, Compact) */}
       <div ref={globeRef} className="relative z-10 mb-6 w-full flex justify-center">
         <ModernGlobe className="w-64 h-64 md:w-80 md:h-80" />
@@ -65,13 +74,17 @@ export function HeroSection() {
 
       {/* 2. Hero Content */}
       <div className="relative z-20 text-center max-w-5xl px-6">
-        <div ref={textRef} className="space-y-6 mb-12">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-gray-900 to-gray-600 dark:from-white dark:to-white/60 py-2">
-            Global Logistics <span className="text-primary">Redefined</span>
+        {/* Text Container */}
+        <div ref={textRef}>
+          {/* Main Headline - Tip Top Typography */}
+          <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6 text-foreground drop-shadow-sm font-sans max-w-4xl mx-auto">
+            Connecting Northeast India to the World
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Experience the future of freight forwarding with real-time tracking, instant bookings,
-            and seamless global connectivity.
+
+          {/* Subheadline */}
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-normal leading-relaxed mb-8 font-sans">
+            Advanced logistics solutions ensuring secure custody, real-time tracking, and
+            operational transparency for every shipment.
           </p>
         </div>
 
@@ -81,14 +94,12 @@ export function HeroSection() {
           className="flex flex-col md:flex-row items-center justify-center gap-4 opacity-0"
         >
           {/* Primary CTA */}
-          <Button
-            size="lg"
-            className="px-8 font-medium group"
-            onClick={() => setBookingDialogOpen(true)}
-          >
-            Book Shipment
-            <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </Button>
+          <Link to="/login">
+            <Button size="lg" className="px-8 font-medium group">
+              Book Shipment
+              <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Button>
+          </Link>
 
           {/* Secondary CTA */}
           <TrackingDialog
@@ -100,8 +111,6 @@ export function HeroSection() {
           />
         </div>
       </div>
-
-      <BookingDialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen} />
     </main>
   );
 }

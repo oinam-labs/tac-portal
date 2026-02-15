@@ -74,16 +74,15 @@ export function Navbar() {
         duration: 0.2,
       },
       0
-    )
-      .to(
-        nav,
-        {
-          height: '80px',
-          borderBottomColor: 'var(--border)',
-          boxShadow: 'var(--shadow-sm)',
-        },
-        0
-      );
+    ).to(
+      nav,
+      {
+        height: '80px',
+        borderBottomColor: 'var(--border)',
+        boxShadow: 'var(--shadow-sm)',
+      },
+      0
+    );
   }, []);
 
   const navLinks = [
@@ -102,7 +101,7 @@ export function Navbar() {
       const offsetTop = element.getBoundingClientRect().top + window.scrollY - 80; // Adjust for navbar height
       window.scrollTo({
         top: offsetTop,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
       setIsOpen(false);
     }
@@ -141,7 +140,9 @@ export function Navbar() {
               <span className="text-foreground text-lg font-sans font-bold tracking-tight leading-none group-hover:text-primary transition-colors duration-300">
                 TAC Cargo
               </span>
-              <span className="text-[10px] text-muted-foreground font-mono tracking-widest uppercase">Global Logistics</span>
+              <span className="text-[10px] text-muted-foreground font-mono tracking-widest uppercase">
+                Global Logistics
+              </span>
             </div>
           </Link>
 
@@ -237,7 +238,9 @@ export function Navbar() {
                         <motion.a
                           key={link.name}
                           href={link.href}
-                          onClick={(e: React.MouseEvent<HTMLAnchorElement>) => handleScroll(e, link.href)}
+                          onClick={(e: React.MouseEvent<HTMLAnchorElement>) =>
+                            handleScroll(e, link.href)
+                          }
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.1 + i * 0.05 }}
@@ -249,7 +252,10 @@ export function Navbar() {
                     </div>
                     <div className="p-6 mt-auto space-y-4">
                       <Link to="/login" className="block" onClick={() => setIsOpen(false)}>
-                        <Button variant="outline" className="w-full rounded-full h-12 text-base font-medium">
+                        <Button
+                          variant="outline"
+                          className="w-full rounded-full h-12 text-base font-medium"
+                        >
                           Login
                         </Button>
                       </Link>

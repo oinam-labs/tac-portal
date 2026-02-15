@@ -31,31 +31,31 @@ export const Tracking: React.FC = () => {
   // Map Supabase data to legacy format for existing components
   const result = shipmentData
     ? {
-      shipment: {
-        id: shipmentData.id,
-        awb: shipmentData.awb_number,
-        status: shipmentData.status,
-        mode: shipmentData.mode,
-        originHub: shipmentData.origin_hub?.code || 'ORIGIN',
-        destinationHub: shipmentData.destination_hub?.code || 'DEST',
-        eta: 'TBD',
-        consigneeName: shipmentData.receiver_name,
-        consigneePhone: shipmentData.receiver_phone,
-        weight: shipmentData.total_weight,
-        pieces: shipmentData.package_count,
-      } as unknown as Shipment,
-      events: (eventsData || []).map((e) => ({
-        id: e.id,
-        shipmentId: e.shipment_id,
-        awb: shipmentData?.awb_number || '',
-        timestamp: e.event_time || e.created_at,
-        status: e.event_code,
-        eventCode: e.event_code,
-        location: e.hub?.name || e.location || '',
-        description: e.notes || `Status: ${e.event_code}`,
-        actorId: e.actor_staff_id || '',
-      })) as unknown as TrackingEvent[],
-    }
+        shipment: {
+          id: shipmentData.id,
+          awb: shipmentData.awb_number,
+          status: shipmentData.status,
+          mode: shipmentData.mode,
+          originHub: shipmentData.origin_hub?.code || 'ORIGIN',
+          destinationHub: shipmentData.destination_hub?.code || 'DEST',
+          eta: 'TBD',
+          consigneeName: shipmentData.receiver_name,
+          consigneePhone: shipmentData.receiver_phone,
+          weight: shipmentData.total_weight,
+          pieces: shipmentData.package_count,
+        } as unknown as Shipment,
+        events: (eventsData || []).map((e) => ({
+          id: e.id,
+          shipmentId: e.shipment_id,
+          awb: shipmentData?.awb_number || '',
+          timestamp: e.event_time || e.created_at,
+          status: e.event_code,
+          eventCode: e.event_code,
+          location: e.hub?.name || e.location || '',
+          description: e.notes || `Status: ${e.event_code}`,
+          actorId: e.actor_staff_id || '',
+        })) as unknown as TrackingEvent[],
+      }
     : null;
 
   const handleTrack = () => {

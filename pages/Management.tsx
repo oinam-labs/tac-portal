@@ -20,7 +20,6 @@ import { useAuthStore } from '@/store/authStore';
 import { supabase } from '@/lib/supabase';
 import { queryClient } from '@/lib/query-client';
 
-
 // CRUD Components
 import { CrudTable } from '@/components/crud/CrudTable';
 import { CrudUpsertDialog } from '@/components/crud/CrudUpsertDialog';
@@ -107,11 +106,11 @@ export const Management: React.FC = () => {
   // Form default values for editing
   const formDefaultValues: StaffFormValues = activeRow
     ? {
-      full_name: activeRow.full_name,
-      email: activeRow.email,
-      role: activeRow.role,
-      hub_id: activeRow.hub_id || GLOBAL_HUB_VALUE,
-    }
+        full_name: activeRow.full_name,
+        email: activeRow.email,
+        role: activeRow.role,
+        hub_id: activeRow.hub_id || GLOBAL_HUB_VALUE,
+      }
     : defaultFormValues;
 
   // Handlers
@@ -187,7 +186,6 @@ export const Management: React.FC = () => {
     }
   };
 
-
   return (
     <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
       {/* Header */}
@@ -238,9 +236,7 @@ export const Management: React.FC = () => {
               type="email"
               required
               value={createUserForm.email}
-              onChange={(e) =>
-                setCreateUserForm((prev) => ({ ...prev, email: e.target.value }))
-              }
+              onChange={(e) => setCreateUserForm((prev) => ({ ...prev, email: e.target.value }))}
             />
           </div>
           <div className="space-y-2">
@@ -249,9 +245,7 @@ export const Management: React.FC = () => {
               type="text"
               required
               value={createUserForm.password}
-              onChange={(e) =>
-                setCreateUserForm((prev) => ({ ...prev, password: e.target.value }))
-              }
+              onChange={(e) => setCreateUserForm((prev) => ({ ...prev, password: e.target.value }))}
             />
           </div>
           <div className="space-y-2">
@@ -259,9 +253,7 @@ export const Management: React.FC = () => {
             <Input
               required
               value={createUserForm.fullName}
-              onChange={(e) =>
-                setCreateUserForm((prev) => ({ ...prev, fullName: e.target.value }))
-              }
+              onChange={(e) => setCreateUserForm((prev) => ({ ...prev, fullName: e.target.value }))}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -269,9 +261,7 @@ export const Management: React.FC = () => {
               <Label>Role</Label>
               <Select
                 value={createUserForm.role}
-                onValueChange={(val) =>
-                  setCreateUserForm((prev) => ({ ...prev, role: val }))
-                }
+                onValueChange={(val) => setCreateUserForm((prev) => ({ ...prev, role: val }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Role" />

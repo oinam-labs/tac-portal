@@ -31,7 +31,6 @@ import { StepAddShipments } from './steps/StepAddShipments';
 import { StepReviewFinalize } from './steps/StepReviewFinalize';
 import type { CreateManifestParams, ManifestStatus } from '@/lib/services/manifestService';
 
-
 interface ManifestBuilderWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -182,20 +181,20 @@ export function ManifestBuilderWizard({
         etd:
           setupData.flightDate && setupData.etdHour
             ? combineDateTimeWithPeriod(
-              setupData.flightDate,
-              setupData.etdHour,
-              setupData.etdMinute,
-              setupData.etdPeriod
-            )
+                setupData.flightDate,
+                setupData.etdHour,
+                setupData.etdMinute,
+                setupData.etdPeriod
+              )
             : undefined,
         eta:
           setupData.flightDate && setupData.etaHour
             ? combineDateTimeWithPeriod(
-              setupData.flightDate,
-              setupData.etaHour,
-              setupData.etaMinute,
-              setupData.etaPeriod
-            )
+                setupData.flightDate,
+                setupData.etaHour,
+                setupData.etaMinute,
+                setupData.etaPeriod
+              )
             : undefined,
         // TRUCK
         vehicleNumber: setupData.vehicleNumber,
@@ -203,11 +202,11 @@ export function ManifestBuilderWizard({
         driverPhone: setupData.driverPhone,
         dispatchAt: setupData.dispatchDate
           ? combineDateTimeWithPeriod(
-            setupData.dispatchDate,
-            setupData.dispatchHour,
-            setupData.dispatchMinute,
-            setupData.dispatchPeriod
-          )
+              setupData.dispatchDate,
+              setupData.dispatchHour,
+              setupData.dispatchMinute,
+              setupData.dispatchPeriod
+            )
           : undefined,
         notes: setupData.notes,
       };
@@ -451,8 +450,8 @@ export function ManifestBuilderWizard({
             <AlertDialogHeader>
               <AlertDialogTitle>Close Manifest?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action will close the manifest immediately. Once closed, no more shipments can be
-                added and the manifest will be ready for dispatch. This action cannot be undone.
+                This action will close the manifest immediately. Once closed, no more shipments can
+                be added and the manifest will be ready for dispatch. This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

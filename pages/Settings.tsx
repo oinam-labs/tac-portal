@@ -14,7 +14,7 @@ import {
   MapPin,
   Moon,
   Sun,
-  Monitor
+  Monitor,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,13 +27,13 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from '@/components/ui/table';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import { HUBS, SHIPMENT_MODES, SERVICE_LEVELS, PAYMENT_MODES } from '@/lib/constants';
 
-const PageHeader = ({ title, description }: { title: string, description: string }) => (
+const PageHeader = ({ title, description }: { title: string; description: string }) => (
   <div className="mb-8">
     <h1 className="text-3xl font-bold text-foreground mb-2">{title}</h1>
     <p className="text-muted-foreground">{description}</p>
@@ -50,7 +50,15 @@ interface AuditLog {
   payload?: any;
 }
 
-const SectionHeader = ({ icon: Icon, title, color = "text-primary" }: { icon: any, title: string, color?: string }) => (
+const SectionHeader = ({
+  icon: Icon,
+  title,
+  color = 'text-primary',
+}: {
+  icon: any;
+  title: string;
+  color?: string;
+}) => (
   <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
     <Icon className={`w-5 h-5 ${color}`} />
     <h3 className="font-bold text-foreground tracking-tight">{title}</h3>
@@ -100,9 +108,28 @@ export const Settings = () => {
   const fetchAuditLogs = async () => {
     // Mock simulation or Supabase fetch
     const mockLogs: AuditLog[] = [
-      { id: '1', timestamp: new Date().toISOString(), actorId: user?.email || 'admin@tac.com', action: 'SETTINGS_UPDATE', entityType: 'SYSTEM', payload: { terminal: 'Hub-01' } },
-      { id: '2', timestamp: new Date(Date.now() - 3600000).toISOString(), actorId: 'system', action: 'BACKUP_COMPLETED', entityType: 'DATABASE' },
-      { id: '3', timestamp: new Date(Date.now() - 7200000).toISOString(), actorId: user?.email || 'admin@tac.com', action: 'USER_LOGIN', entityType: 'AUTH' },
+      {
+        id: '1',
+        timestamp: new Date().toISOString(),
+        actorId: user?.email || 'admin@tac.com',
+        action: 'SETTINGS_UPDATE',
+        entityType: 'SYSTEM',
+        payload: { terminal: 'Hub-01' },
+      },
+      {
+        id: '2',
+        timestamp: new Date(Date.now() - 3600000).toISOString(),
+        actorId: 'system',
+        action: 'BACKUP_COMPLETED',
+        entityType: 'DATABASE',
+      },
+      {
+        id: '3',
+        timestamp: new Date(Date.now() - 7200000).toISOString(),
+        actorId: user?.email || 'admin@tac.com',
+        action: 'USER_LOGIN',
+        entityType: 'AUTH',
+      },
     ];
     setLogs(mockLogs);
   };
@@ -116,14 +143,18 @@ export const Settings = () => {
   };
 
   const toggleNotification = (id: keyof typeof notifications) => {
-    setNotifications(prev => ({
+    setNotifications((prev) => ({
       ...prev,
-      [id]: !prev[id]
+      [id]: !prev[id],
     }));
   };
 
   // Custom Select styled for TAC
-  const SelectField = ({ value, onChange, options }: {
+  const SelectField = ({
+    value,
+    onChange,
+    options,
+  }: {
     value: string;
     onChange: (v: string) => void;
     options: { value: string; label: string }[];
@@ -136,7 +167,9 @@ export const Settings = () => {
         className="flex h-9 w-full border border-input bg-background px-3 py-1.5 text-sm text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 appearance-none pr-8"
       >
         {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
         ))}
       </select>
       <ChevronDown className="absolute right-2.5 top-2.5 w-4 h-4 text-muted-foreground pointer-events-none" />
@@ -144,7 +177,15 @@ export const Settings = () => {
   );
 
   // Toggle switch component
-  const ToggleSwitch = ({ checked, onToggle, label }: { checked: boolean; onToggle: () => void; label: string }) => (
+  const ToggleSwitch = ({
+    checked,
+    onToggle,
+    label,
+  }: {
+    checked: boolean;
+    onToggle: () => void;
+    label: string;
+  }) => (
     <button
       role="switch"
       aria-checked={checked}
@@ -152,17 +193,20 @@ export const Settings = () => {
       onClick={onToggle}
     >
       <span className="text-sm text-foreground">{label}</span>
-      <div className={`w-10 h-5 relative transition-colors ${checked ? 'bg-primary' : 'bg-muted-foreground/30'}`}>
-        <div className={`absolute top-0.5 w-4 h-4 shadow-sm transition-all duration-200 ${checked
-          ? 'right-0.5 bg-primary-foreground'
-          : 'left-0.5 bg-background'
-          }`}></div>
+      <div
+        className={`w-10 h-5 relative transition-colors ${checked ? 'bg-primary' : 'bg-muted-foreground/30'}`}
+      >
+        <div
+          className={`absolute top-0.5 w-4 h-4 shadow-sm transition-all duration-200 ${
+            checked ? 'right-0.5 bg-primary-foreground' : 'left-0.5 bg-background'
+          }`}
+        ></div>
       </div>
     </button>
   );
 
   // Filtered audit logs
-  const filteredLogs = logs.filter(log => {
+  const filteredLogs = logs.filter((log) => {
     if (!auditSearch) return true;
     const q = auditSearch.toLowerCase();
     return (
@@ -175,7 +219,10 @@ export const Settings = () => {
 
   return (
     <div className="space-y-4 animate-[fadeIn_0.3s_ease-out]">
-      <PageHeader title="System Configuration" description="Manage organization settings, security, and audit logs." />
+      <PageHeader
+        title="System Configuration"
+        description="Manage organization settings, security, and audit logs."
+      />
 
       <Tabs
         value={activeTab}
@@ -190,7 +237,6 @@ export const Settings = () => {
         {/* ============= GENERAL TAB ============= */}
         <TabsContent value="GENERAL" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
             {/* Organization Profile */}
             <Card className="p-5">
               <SectionHeader icon={Building2} title="Organization Profile" />
@@ -257,7 +303,7 @@ export const Settings = () => {
                   <SelectField
                     value={defaultMode}
                     onChange={setDefaultMode}
-                    options={SHIPMENT_MODES.map(m => ({ value: m.id, label: m.label }))}
+                    options={SHIPMENT_MODES.map((m) => ({ value: m.id, label: m.label }))}
                   />
                 </div>
                 <div>
@@ -265,7 +311,7 @@ export const Settings = () => {
                   <SelectField
                     value={defaultServiceLevel}
                     onChange={setDefaultServiceLevel}
-                    options={SERVICE_LEVELS.map(s => ({ value: s.id, label: s.label }))}
+                    options={SERVICE_LEVELS.map((s) => ({ value: s.id, label: s.label }))}
                   />
                 </div>
                 <div>
@@ -273,7 +319,7 @@ export const Settings = () => {
                   <SelectField
                     value={defaultPaymentMode}
                     onChange={setDefaultPaymentMode}
-                    options={PAYMENT_MODES.map(p => ({ value: p.id, label: p.label }))}
+                    options={PAYMENT_MODES.map((p) => ({ value: p.id, label: p.label }))}
                   />
                 </div>
                 <div>
@@ -309,11 +355,22 @@ export const Settings = () => {
                     {Object.entries(HUBS).map(([key, hub]) => (
                       <TableRow key={key}>
                         <TableCell className="font-medium text-foreground">{hub.name}</TableCell>
-                        <TableCell><Badge variant="outline" className="font-mono">{hub.code}</Badge></TableCell>
-                        <TableCell className="font-mono text-xs text-muted-foreground">{hub.sortCode}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground max-w-xs">{hub.address}</TableCell>
                         <TableCell>
-                          <Badge variant="default" className="bg-status-success/20 text-status-success border-status-success/30">
+                          <Badge variant="outline" className="font-mono">
+                            {hub.code}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground">
+                          {hub.sortCode}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground max-w-xs">
+                          {hub.address}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="default"
+                            className="bg-status-success/20 text-status-success border-status-success/30"
+                          >
                             ACTIVE
                           </Badge>
                         </TableCell>
@@ -323,7 +380,8 @@ export const Settings = () => {
                 </Table>
               </div>
               <p className="text-xs text-muted-foreground mt-3">
-                Hub configuration is managed at the infrastructure level. Contact support to add or modify hubs.
+                Hub configuration is managed at the infrastructure level. Contact support to add or
+                modify hubs.
               </p>
             </Card>
 
@@ -339,30 +397,44 @@ export const Settings = () => {
         {/* ============= SECURITY & NOTIFICATIONS TAB ============= */}
         <TabsContent value="SECURITY" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
             {/* User Profile */}
             <Card className="p-5">
               <SectionHeader icon={User} title="User Profile" color="text-chart-5" />
               <div className="space-y-3">
                 <div className="flex items-center gap-4 p-3 bg-muted/30 border border-border">
                   <div className="w-12 h-12 bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
-                    {user?.fullName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '??'}
+                    {user?.fullName
+                      ?.split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2) || '??'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-foreground truncate">{user?.fullName || 'Unknown'}</div>
-                    <div className="text-xs text-muted-foreground font-mono truncate">{user?.email || '—'}</div>
+                    <div className="font-medium text-foreground truncate">
+                      {user?.fullName || 'Unknown'}
+                    </div>
+                    <div className="text-xs text-muted-foreground font-mono truncate">
+                      {user?.email || '—'}
+                    </div>
                   </div>
-                  <Badge variant="outline" className="shrink-0">{user?.role || '—'}</Badge>
+                  <Badge variant="outline" className="shrink-0">
+                    {user?.role || '—'}
+                  </Badge>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 border border-border">
-                    <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Hub</div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                      Hub
+                    </div>
                     <div className="text-sm font-medium text-foreground font-mono">
                       {user?.hubCode || 'All Hubs'}
                     </div>
                   </div>
                   <div className="p-3 border border-border">
-                    <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Status</div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                      Status
+                    </div>
                     <div className="text-sm font-medium">
                       {user?.isActive ? (
                         <span className="text-status-success">Active</span>
@@ -399,7 +471,9 @@ export const Settings = () => {
                   </div>
                 </div>
                 <div className="border-t border-border pt-4">
-                  <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Session Info</div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                    Session Info
+                  </div>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground flex items-center gap-2">
@@ -429,10 +503,26 @@ export const Settings = () => {
               <SectionHeader icon={Bell} title="Notifications" color="text-chart-5" />
               <div className="space-y-1">
                 {[
-                  { id: 'shipment_delays', label: 'Shipment Delays', desc: 'Get notified when shipments are delayed' },
-                  { id: 'new_orders', label: 'New Orders', desc: 'Alerts for incoming shipment orders' },
-                  { id: 'system_alerts', label: 'System Alerts', desc: 'Critical system notifications' },
-                  { id: 'driver_updates', label: 'Driver Updates', desc: 'Real-time driver status changes' }
+                  {
+                    id: 'shipment_delays',
+                    label: 'Shipment Delays',
+                    desc: 'Get notified when shipments are delayed',
+                  },
+                  {
+                    id: 'new_orders',
+                    label: 'New Orders',
+                    desc: 'Alerts for incoming shipment orders',
+                  },
+                  {
+                    id: 'system_alerts',
+                    label: 'System Alerts',
+                    desc: 'Critical system notifications',
+                  },
+                  {
+                    id: 'driver_updates',
+                    label: 'Driver Updates',
+                    desc: 'Real-time driver status changes',
+                  },
                 ].map((item) => (
                   <ToggleSwitch
                     key={item.id}
@@ -450,8 +540,12 @@ export const Settings = () => {
               <div className="space-y-4">
                 <div className="flex justify-between items-center p-3 border border-border">
                   <div>
-                    <div className="text-sm font-medium text-foreground">Two-Factor Authentication</div>
-                    <div className="text-xs text-muted-foreground">Managed via Identity Provider</div>
+                    <div className="text-sm font-medium text-foreground">
+                      Two-Factor Authentication
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Managed via Identity Provider
+                    </div>
                   </div>
                   <Button variant="outline" size="sm" disabled>
                     Configure
@@ -469,9 +563,13 @@ export const Settings = () => {
                 <div className="flex justify-between items-center p-3 border border-border">
                   <div>
                     <div className="text-sm font-medium text-foreground">Password Policy</div>
-                    <div className="text-xs text-muted-foreground">Minimum 8 characters, leak protection enabled</div>
+                    <div className="text-xs text-muted-foreground">
+                      Minimum 8 characters, leak protection enabled
+                    </div>
                   </div>
-                  <Badge variant="outline" className="text-status-success border-status-success/30">Enforced</Badge>
+                  <Badge variant="outline" className="text-status-success border-status-success/30">
+                    Enforced
+                  </Badge>
                 </div>
               </div>
             </Card>
@@ -522,13 +620,19 @@ export const Settings = () => {
                         <TableCell className="font-mono text-xs text-muted-foreground">
                           {new Date(log.timestamp).toLocaleString()}
                         </TableCell>
-                        <TableCell className="font-medium text-foreground text-xs">{log.actorId}</TableCell>
+                        <TableCell className="font-medium text-foreground text-xs">
+                          {log.actorId}
+                        </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="font-mono text-xs">{log.action}</Badge>
+                          <Badge variant="outline" className="font-mono text-xs">
+                            {log.action}
+                          </Badge>
                         </TableCell>
                         <TableCell className="text-xs">
                           <span className="font-mono">{log.entityType}</span>
-                          <span className="text-muted-foreground ml-1">({log.entityId?.slice(0, 8)}…)</span>
+                          <span className="text-muted-foreground ml-1">
+                            ({log.entityId?.slice(0, 8)}…)
+                          </span>
                         </TableCell>
                         <TableCell className="text-xs font-mono text-muted-foreground max-w-xs truncate">
                           {JSON.stringify(log.payload)}
@@ -544,4 +648,4 @@ export const Settings = () => {
       </Tabs>
     </div>
   );
-}
+};

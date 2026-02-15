@@ -3,7 +3,8 @@ import { LabelData, ServiceLevel, TransportMode } from '@/components/domain/Labe
 import { HUBS } from '@/lib/constants';
 import { HubLocation, Shipment } from '@/types';
 
-const getTextValue = (value?: string | null): string => (typeof value === 'string' ? value.trim() : '');
+const getTextValue = (value?: string | null): string =>
+  typeof value === 'string' ? value.trim() : '';
 
 const resolveHubCode = (value?: string | null): string => {
   if (!value) return '';
@@ -38,8 +39,11 @@ export const generateLabelFromShipment = (
 ): LabelData => {
   const serviceLevel = normalizeServiceLevel(shipment.serviceLevel);
 
-  const modeInput = String(shipment.mode || '').toUpperCase().trim();
-  const transportMode: TransportMode = modeInput === 'AIR' || modeInput === 'AIR CARGO' ? 'AIR' : 'TRUCK';
+  const modeInput = String(shipment.mode || '')
+    .toUpperCase()
+    .trim();
+  const transportMode: TransportMode =
+    modeInput === 'AIR' || modeInput === 'AIR CARGO' ? 'AIR' : 'TRUCK';
 
   const serviceLevelCode: Record<ServiceLevel, string> = {
     STANDARD: 'STD',
@@ -50,7 +54,8 @@ export const generateLabelFromShipment = (
   const originCode = resolveHubCode(shipment.originHub || '') || 'DEL';
   const destinationCode = resolveHubCode(shipment.destinationHub || '') || 'IMF';
   const destinationName = resolveHubName(shipment.destinationHub || '');
-  const recipientCity = getTextValue(shipment.consignee?.city) || destinationName.replace(' Hub', '');
+  const recipientCity =
+    getTextValue(shipment.consignee?.city) || destinationName.replace(' Hub', '');
   const recipientZip = getTextValue(shipment.consignee?.zip);
   const cityLine = [recipientCity, recipientZip].filter(Boolean).join(' ');
 
@@ -65,7 +70,8 @@ export const generateLabelFromShipment = (
     paymentMode: shipment.paymentMode || 'TO PAY',
     recipient: {
       name: shipment.consignee?.name || shipment.customerName || 'RECIPIENT',
-      address: shipment.consignee?.address || HUBS[shipment.destinationHub as HubLocation]?.address || '',
+      address:
+        shipment.consignee?.address || HUBS[shipment.destinationHub as HubLocation]?.address || '',
       city: cityLine,
       state: shipment.consignee?.state,
     },
@@ -79,26 +85,26 @@ export const generateLabelFromShipment = (
     dates: {
       shipDate: shipment.bookingDate
         ? new Date(shipment.bookingDate).toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        })
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          })
         : new Date().toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        }),
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          }),
       invoiceDate: invoiceData?.createdAt
         ? new Date(invoiceData.createdAt).toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        })
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          })
         : new Date().toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        }),
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          }),
     },
     gstNumber: shipment.consignee?.gstin || invoiceData?.gstNumber,
   };
@@ -106,9 +112,16 @@ export const generateLabelFromShipment = (
 
 export const generateLabelFromFormData = (formData: any): LabelData => {
   const serviceLevel = normalizeServiceLevel(formData.serviceLevel);
-  const modeInput = String(formData.transportMode || '').toUpperCase().trim();
-  const transportMode: TransportMode = modeInput === 'AIR' || modeInput === 'AIR CARGO' ? 'AIR' : 'TRUCK';
-  console.log('[DEBUG-LABEL] generating label from form data:', { raw: formData.transportMode, modeInput, transportMode });
+  const modeInput = String(formData.transportMode || '')
+    .toUpperCase()
+    .trim();
+  const transportMode: TransportMode =
+    modeInput === 'AIR' || modeInput === 'AIR CARGO' ? 'AIR' : 'TRUCK';
+  console.log('[DEBUG-LABEL] generating label from form data:', {
+    raw: formData.transportMode,
+    modeInput,
+    transportMode,
+  });
   const serviceLevelCode: Record<ServiceLevel, string> = {
     STANDARD: 'STD',
     EXPRESS: 'EXP',
@@ -144,26 +157,26 @@ export const generateLabelFromFormData = (formData: any): LabelData => {
     dates: {
       shipDate: formData.bookingDate
         ? new Date(formData.bookingDate).toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        })
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          })
         : new Date().toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        }),
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          }),
       invoiceDate: formData.bookingDate
         ? new Date(formData.bookingDate).toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        })
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          })
         : new Date().toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        }),
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          }),
     },
     gstNumber: formData.consigneeGstin || formData.gstNumber,
   };

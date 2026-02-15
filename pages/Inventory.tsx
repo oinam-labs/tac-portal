@@ -3,7 +3,14 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
 import { PageHeader } from '@/components/ui/page-header';
 import {
   Pagination,
@@ -65,15 +72,24 @@ export const Inventory: React.FC = () => {
 
   const bucketColor = (bucket: string) => {
     switch (bucket) {
-      case '0-6h': return 'text-status-success';
-      case '6-12h': return 'text-status-warning';
-      case '12-24h': return 'text-status-warning';
-      case '24h+': return 'text-status-error font-bold';
-      default: return 'text-muted-foreground';
+      case '0-6h':
+        return 'text-status-success';
+      case '6-12h':
+        return 'text-status-warning';
+      case '12-24h':
+        return 'text-status-warning';
+      case '24h+':
+        return 'text-status-error font-bold';
+      default:
+        return 'text-muted-foreground';
     }
   };
 
-  const getInventoryLocation = (s: { origin_hub_id: string; destination_hub_id: string; status: string }) => {
+  const getInventoryLocation = (s: {
+    origin_hub_id: string;
+    destination_hub_id: string;
+    status: string;
+  }) => {
     const getHubLocationFromId = (hubId: string): HubLocation | null => {
       const hubEntry = Object.entries(HUBS).find(([_, hub]) => hub.uuid === hubId);
       return hubEntry ? (hubEntry[0] as HubLocation) : null;
@@ -90,26 +106,38 @@ export const Inventory: React.FC = () => {
 
   return (
     <div className="space-y-4 animate-[fadeIn_0.3s_ease-out]">
-      <PageHeader title="Inventory Management" description="Real-time stock view across hub network.">
+      <PageHeader
+        title="Inventory Management"
+        description="Real-time stock view across hub network."
+      >
         <div className="flex gap-1">
           <Button
             variant={filterHub === 'ALL' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => { setFilterHub('ALL'); setPage(1); }}
+            onClick={() => {
+              setFilterHub('ALL');
+              setPage(1);
+            }}
           >
             All Hubs
           </Button>
           <Button
             variant={filterHub === 'IMPHAL' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => { setFilterHub('IMPHAL'); setPage(1); }}
+            onClick={() => {
+              setFilterHub('IMPHAL');
+              setPage(1);
+            }}
           >
             Imphal
           </Button>
           <Button
             variant={filterHub === 'NEW_DELHI' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => { setFilterHub('NEW_DELHI'); setPage(1); }}
+            onClick={() => {
+              setFilterHub('NEW_DELHI');
+              setPage(1);
+            }}
           >
             New Delhi
           </Button>
@@ -123,8 +151,12 @@ export const Inventory: React.FC = () => {
             <Package className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Items on Page</div>
-            <div className="text-3xl font-bold text-foreground font-mono leading-none">{stats.total}</div>
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+              Items on Page
+            </div>
+            <div className="text-3xl font-bold text-foreground font-mono leading-none">
+              {stats.total}
+            </div>
           </div>
         </div>
         <div className="p-6 flex items-center gap-4">
@@ -132,8 +164,12 @@ export const Inventory: React.FC = () => {
             <Warehouse className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Critical on Page</div>
-            <div className="text-3xl font-bold text-status-error font-mono leading-none">{stats.critical}</div>
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+              Critical on Page
+            </div>
+            <div className="text-3xl font-bold text-status-error font-mono leading-none">
+              {stats.critical}
+            </div>
           </div>
         </div>
       </Card>
@@ -146,7 +182,10 @@ export const Inventory: React.FC = () => {
               placeholder="Search AWB..."
               className="pl-9"
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
             />
           </div>
         </div>
@@ -166,7 +205,9 @@ export const Inventory: React.FC = () => {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6}><TableSkeleton rows={5} columns={6} /></TableCell>
+                  <TableCell colSpan={6}>
+                    <TableSkeleton rows={5} columns={6} />
+                  </TableCell>
                 </TableRow>
               ) : shipments.length === 0 ? (
                 <TableRow>
@@ -199,7 +240,9 @@ export const Inventory: React.FC = () => {
                         <Badge variant="outline">{s.status.replace(/_/g, ' ')}</Badge>
                       </TableCell>
                       <TableCell>
-                        <span className={`font-mono font-bold ${bucketColor(bucket)}`}>{bucket}</span>
+                        <span className={`font-mono font-bold ${bucketColor(bucket)}`}>
+                          {bucket}
+                        </span>
                       </TableCell>
                     </TableRow>
                   );
@@ -215,23 +258,31 @@ export const Inventory: React.FC = () => {
               <PaginationItem>
                 <PaginationPrevious
                   href="#"
-                  onClick={(e) => { e.preventDefault(); if (page > 1) handlePageChange(page - 1); }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (page > 1) handlePageChange(page - 1);
+                  }}
                   aria-disabled={page <= 1}
-                  className={page <= 1 ? "pointer-events-none opacity-50" : ""}
+                  className={page <= 1 ? 'pointer-events-none opacity-50' : ''}
                 />
               </PaginationItem>
 
               <PaginationItem>
-                <PaginationLink href="#" isActive>{page}</PaginationLink>
+                <PaginationLink href="#" isActive>
+                  {page}
+                </PaginationLink>
               </PaginationItem>
 
               <PaginationItem>
                 <PaginationNext
                   href="#"
-                  onClick={(e) => { e.preventDefault(); handlePageChange(page + 1); }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handlePageChange(page + 1);
+                  }}
                   // Disable next if we have fewer items than page size (simple check)
                   aria-disabled={shipments.length < pageSize}
-                  className={shipments.length < pageSize ? "pointer-events-none opacity-50" : ""}
+                  className={shipments.length < pageSize ? 'pointer-events-none opacity-50' : ''}
                 />
               </PaginationItem>
             </PaginationContent>

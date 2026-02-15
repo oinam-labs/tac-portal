@@ -80,10 +80,14 @@ export const QuickActions: React.FC = () => {
               type="button"
             >
               <div className="flex items-center gap-3 w-full mb-1">
-                <div className={`p-2 rounded-lg ${action.color.replace('text-', 'bg-')}/10 ${action.color}`}>
+                <div
+                  className={`p-2 rounded-lg ${action.color.replace('text-', 'bg-')}/10 ${action.color}`}
+                >
                   <action.icon className="w-5 h-5" />
                 </div>
-                <span className="font-bold text-base text-foreground group-hover:text-primary transition-colors">{action.label}</span>
+                <span className="font-bold text-base text-foreground group-hover:text-primary transition-colors">
+                  {action.label}
+                </span>
                 <span className="ml-auto text-[10px] opacity-40 border border-current px-1.5 py-0.5 rounded hidden lg:inline-block font-mono">
                   {action.shortcut}
                 </span>

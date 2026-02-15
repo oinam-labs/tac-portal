@@ -117,152 +117,159 @@ export const Scanning: React.FC = () => {
     []
   );
 
-  const processScan = useCallback(async (input: string, source: ScanSource = ScanSource.MANUAL) => {
-    // Parse scan input — gracefully handle parser errors (Bug E)
-    let scanResult;
-    console.log('[Scanning Page] Processing scan:', { input, source });
-    try {
-      scanResult = parseScanInput(input);
-      console.log('[Scanning Page] Parsed result:', scanResult);
-    } catch (e) {
-      console.warn('[Scanning Page] Parser error (using raw fallthrough):', e);
-      // Parser doesn't recognize format — treat as raw AWB lookup
-      scanResult = { type: 'shipment' as const, awb: input.trim().toUpperCase(), raw: input };
-    }
-
-    // Read current values from refs (Bug F — stable closure)
-    const currentScanMode = scanModeRef.current;
-    const currentActiveManifest = activeManifestRef.current;
-    const currentIsOnline = isOnlineRef.current;
-
-    // Handle Manifest scans
-    if (scanResult.type === 'manifest') {
-      if (!currentActiveManifest) {
-        try {
-          // Use hook to find manifest
-          const manifest = await findManifestRef.current.mutateAsync(
-            scanResult.manifestId || scanResult.manifestNo || input
-          );
-
-          if (!manifest) {
-            addScanResult(input, 'ERROR', 'Manifest not found');
-            return;
-          }
-
-          const m = manifest as ManifestLookupResult;
-          if (currentScanMode === 'LOAD_MANIFEST' && m.status !== 'OPEN') {
-            addScanResult(input, 'ERROR', `Manifest is ${m.status}, cannot load.`);
-            return;
-          }
-
-          if (currentScanMode === 'VERIFY_MANIFEST' && m.status !== 'DEPARTED') {
-            addScanResult(input, 'ERROR', `Manifest is ${m.status}, cannot verify.`);
-            return;
-          }
-
-          setActiveManifest(m);
-          const action = currentScanMode === 'LOAD_MANIFEST' ? 'load packages' : 'verify arrival';
-          addScanResult(
-            m.manifest_no,
-            'SUCCESS',
-            `Manifest active. Ready to ${action}.`,
-            'manifest'
-          );
-        } catch (err) {
-          addScanResult(
-            input,
-            'ERROR',
-            err instanceof Error ? err.message : 'Failed to load manifest'
-          );
-        }
+  const processScan = useCallback(
+    async (input: string, source: ScanSource = ScanSource.MANUAL) => {
+      // Parse scan input — gracefully handle parser errors (Bug E)
+      let scanResult;
+      console.log('[Scanning Page] Processing scan:', { input, source });
+      try {
+        scanResult = parseScanInput(input);
+        console.log('[Scanning Page] Parsed result:', scanResult);
+      } catch (e) {
+        console.warn('[Scanning Page] Parser error (using raw fallthrough):', e);
+        // Parser doesn't recognize format — treat as raw AWB lookup
+        scanResult = { type: 'shipment' as const, awb: input.trim().toUpperCase(), raw: input };
       }
-      return;
-    }
 
-    // Handle Shipment scans
-    const awb = scanResult.awb;
-    if (!awb) {
-      addScanResult(input, 'ERROR', 'No AWB found in scan');
-      return;
-    }
+      // Read current values from refs (Bug F — stable closure)
+      const currentScanMode = scanModeRef.current;
+      const currentActiveManifest = activeManifestRef.current;
+      const currentIsOnline = isOnlineRef.current;
 
-    // If offline, queue the scan
-    if (!currentIsOnline) {
-      addScanRef.current({
-        awb,
-        mode: currentScanMode,
-        manifestId: currentActiveManifest?.id,
-        source,
-      });
-      addScanResult(awb, 'SUCCESS', 'Queued for sync (offline)');
-      return;
-    }
+      // Handle Manifest scans
+      if (scanResult.type === 'manifest') {
+        if (!currentActiveManifest) {
+          try {
+            // Use hook to find manifest
+            const manifest = await findManifestRef.current.mutateAsync(
+              scanResult.manifestId || scanResult.manifestNo || input
+            );
 
-    try {
-      // Use hook to fetch shipment
-      const shipment = await findShipmentRef.current.mutateAsync(awb);
+            if (!manifest) {
+              addScanResult(input, 'ERROR', 'Manifest not found');
+              return;
+            }
 
-      if (!shipment) {
-        addScanResult(awb, 'ERROR', 'Shipment not found in system.');
+            const m = manifest as ManifestLookupResult;
+            if (currentScanMode === 'LOAD_MANIFEST' && m.status !== 'OPEN') {
+              addScanResult(input, 'ERROR', `Manifest is ${m.status}, cannot load.`);
+              return;
+            }
+
+            if (currentScanMode === 'VERIFY_MANIFEST' && m.status !== 'DEPARTED') {
+              addScanResult(input, 'ERROR', `Manifest is ${m.status}, cannot verify.`);
+              return;
+            }
+
+            setActiveManifest(m);
+            const action = currentScanMode === 'LOAD_MANIFEST' ? 'load packages' : 'verify arrival';
+            addScanResult(
+              m.manifest_no,
+              'SUCCESS',
+              `Manifest active. Ready to ${action}.`,
+              'manifest'
+            );
+          } catch (err) {
+            addScanResult(
+              input,
+              'ERROR',
+              err instanceof Error ? err.message : 'Failed to load manifest'
+            );
+          }
+        }
         return;
       }
 
-      if (currentScanMode === 'RECEIVE') {
-        const newStatus = shipment.status === 'CREATED' ? 'RECEIVED_AT_ORIGIN' : 'RECEIVED_AT_DEST';
-        await updateStatusRef.current.mutateAsync({ id: shipment.id, status: newStatus });
-        addScanResult(awb, 'SUCCESS', `Status updated to ${newStatus}`);
-      } else if (currentScanMode === 'LOAD_MANIFEST') {
-        if (!currentActiveManifest) throw new Error('No Active Manifest.');
-        const response = await manifestService.addShipmentByScan(currentActiveManifest.id, awb, {
-          staffId: staffUserRef.current?.id ?? undefined,
-          scanSource: source,
-        });
-
-        if (!response.success) {
-          addScanResult(awb, 'ERROR', response.message || 'Failed to add to manifest');
-          return;
-        }
-
-        if (response.duplicate) {
-          addScanResult(awb, 'SUCCESS', response.message || 'Already in manifest', 'duplicate');
-          return;
-        }
-
-        // Update shipment status
-        await updateStatusRef.current.mutateAsync({ id: shipment.id, status: 'IN_TRANSIT' });
-        addScanResult(awb, 'SUCCESS', `Loaded to ${currentActiveManifest.manifest_no}`);
-      } else if (currentScanMode === 'VERIFY_MANIFEST') {
-        if (!currentActiveManifest) throw new Error('No Active Manifest.');
-
-        // Check if shipment is in manifest using hook
-        const isInManifest = await checkManifestItemRef.current.mutateAsync({
-          manifest_id: currentActiveManifest.id,
-          shipment_id: shipment.id,
-        });
-
-        if (isInManifest) {
-          await updateStatusRef.current.mutateAsync({ id: shipment.id, status: 'RECEIVED_AT_DEST' });
-          addScanResult(awb, 'SUCCESS', 'Verified & Received');
-        } else {
-          // Create exception using hook
-          await createExceptionRef.current.mutateAsync({
-            shipment_id: shipment.id,
-            awb_number: awb,
-            type: 'MISROUTE',
-            severity: 'HIGH',
-            description: `Scanned with Manifest ${currentActiveManifest.manifest_no} but not listed.`,
-          });
-          addScanResult(awb, 'ERROR', 'EXCEPTION: Shipment not in Manifest!');
-        }
-      } else if (currentScanMode === 'DELIVER') {
-        await updateStatusRef.current.mutateAsync({ id: shipment.id, status: 'DELIVERED' });
-        addScanResult(awb, 'SUCCESS', 'Marked as Delivered');
+      // Handle Shipment scans
+      const awb = scanResult.awb;
+      if (!awb) {
+        addScanResult(input, 'ERROR', 'No AWB found in scan');
+        return;
       }
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      addScanResult(awb, 'ERROR', errorMessage);
-    }
-  }, [addScanResult]);
+
+      // If offline, queue the scan
+      if (!currentIsOnline) {
+        addScanRef.current({
+          awb,
+          mode: currentScanMode,
+          manifestId: currentActiveManifest?.id,
+          source,
+        });
+        addScanResult(awb, 'SUCCESS', 'Queued for sync (offline)');
+        return;
+      }
+
+      try {
+        // Use hook to fetch shipment
+        const shipment = await findShipmentRef.current.mutateAsync(awb);
+
+        if (!shipment) {
+          addScanResult(awb, 'ERROR', 'Shipment not found in system.');
+          return;
+        }
+
+        if (currentScanMode === 'RECEIVE') {
+          const newStatus =
+            shipment.status === 'CREATED' ? 'RECEIVED_AT_ORIGIN' : 'RECEIVED_AT_DEST';
+          await updateStatusRef.current.mutateAsync({ id: shipment.id, status: newStatus });
+          addScanResult(awb, 'SUCCESS', `Status updated to ${newStatus}`);
+        } else if (currentScanMode === 'LOAD_MANIFEST') {
+          if (!currentActiveManifest) throw new Error('No Active Manifest.');
+          const response = await manifestService.addShipmentByScan(currentActiveManifest.id, awb, {
+            staffId: staffUserRef.current?.id ?? undefined,
+            scanSource: source,
+          });
+
+          if (!response.success) {
+            addScanResult(awb, 'ERROR', response.message || 'Failed to add to manifest');
+            return;
+          }
+
+          if (response.duplicate) {
+            addScanResult(awb, 'SUCCESS', response.message || 'Already in manifest', 'duplicate');
+            return;
+          }
+
+          // Update shipment status
+          await updateStatusRef.current.mutateAsync({ id: shipment.id, status: 'IN_TRANSIT' });
+          addScanResult(awb, 'SUCCESS', `Loaded to ${currentActiveManifest.manifest_no}`);
+        } else if (currentScanMode === 'VERIFY_MANIFEST') {
+          if (!currentActiveManifest) throw new Error('No Active Manifest.');
+
+          // Check if shipment is in manifest using hook
+          const isInManifest = await checkManifestItemRef.current.mutateAsync({
+            manifest_id: currentActiveManifest.id,
+            shipment_id: shipment.id,
+          });
+
+          if (isInManifest) {
+            await updateStatusRef.current.mutateAsync({
+              id: shipment.id,
+              status: 'RECEIVED_AT_DEST',
+            });
+            addScanResult(awb, 'SUCCESS', 'Verified & Received');
+          } else {
+            // Create exception using hook
+            await createExceptionRef.current.mutateAsync({
+              shipment_id: shipment.id,
+              awb_number: awb,
+              type: 'MISROUTE',
+              severity: 'HIGH',
+              description: `Scanned with Manifest ${currentActiveManifest.manifest_no} but not listed.`,
+            });
+            addScanResult(awb, 'ERROR', 'EXCEPTION: Shipment not in Manifest!');
+          }
+        } else if (currentScanMode === 'DELIVER') {
+          await updateStatusRef.current.mutateAsync({ id: shipment.id, status: 'DELIVERED' });
+          addScanResult(awb, 'SUCCESS', 'Marked as Delivered');
+        }
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        addScanResult(awb, 'ERROR', errorMessage);
+      }
+    },
+    [addScanResult]
+  );
 
   // Subscribe to global scanner events (Bug B — clear currentCode to prevent double-processing)
   useEffect(() => {
@@ -344,7 +351,9 @@ export const Scanning: React.FC = () => {
           className={`border p-3 flex items-center justify-between ${scanMode === 'LOAD_MANIFEST' ? 'bg-status-info/10 border-status-info/30' : 'bg-status-warning/10 border-status-warning/30'}`}
         >
           <div className="flex items-center gap-3">
-            <Truck className={scanMode === 'LOAD_MANIFEST' ? 'text-status-info' : 'text-status-warning'} />
+            <Truck
+              className={scanMode === 'LOAD_MANIFEST' ? 'text-status-info' : 'text-status-warning'}
+            />
             <div>
               <div className="text-sm font-bold text-white">
                 {scanMode === 'LOAD_MANIFEST' ? 'Loading' : 'Verifying Arrival'}:{' '}
@@ -418,7 +427,7 @@ export const Scanning: React.FC = () => {
               <Input
                 placeholder={
                   (scanMode === 'LOAD_MANIFEST' || scanMode === 'VERIFY_MANIFEST') &&
-                    !activeManifest
+                  !activeManifest
                     ? 'Scan Manifest Ref...'
                     : 'Scan AWB...'
                 }
@@ -456,7 +465,7 @@ export const Scanning: React.FC = () => {
                         <AlertTriangle className="w-4 h-4 text-status-error" />
                       ) : (
                         <Box
-                           className={`w-4 h-4 ${item.status === 'SUCCESS' ? 'text-status-success' : 'text-status-error'}`}
+                          className={`w-4 h-4 ${item.status === 'SUCCESS' ? 'text-status-success' : 'text-status-error'}`}
                         />
                       )}
                       <div>
