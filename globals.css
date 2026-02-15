@@ -409,7 +409,8 @@
   }
 
   .glass-card {
-    @apply bg-card/40 border shadow-xl;
+    @apply bg-card/40 border;
+    box-shadow: var(--shadow-xl);
     backdrop-filter: blur(12px);
     border-color: oklch(100% 0 0 / 10%);
   }
