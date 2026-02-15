@@ -399,11 +399,22 @@
 
   /* Glassmorphism Presets */
   .glass-panel {
-    @apply bg-background/60 backdrop-blur-[24px] border border-[oklch(100%_0_0)]/10 dark:border-[oklch(100%_0_0)]/5;
+    @apply bg-background/60 border;
+    backdrop-filter: blur(24px);
+    border-color: oklch(100% 0 0 / 10%);
+  }
+
+  .dark .glass-panel {
+    border-color: oklch(100% 0 0 / 5%);
   }
 
   .glass-card {
-    @apply bg-card/40 backdrop-blur-md border border-[oklch(100%_0_0)]/10 dark:border-[oklch(100%_0_0)]/5 shadow-xl;
+    @apply bg-card/40 backdrop-blur-md border shadow-xl;
+    border-color: oklch(100% 0 0 / 10%);
+  }
+
+  .dark .glass-card {
+    border-color: oklch(100% 0 0 / 5%);
   }
 
   /* NEXUS Spotlight Effect */
@@ -495,6 +506,7 @@
 
 /* Reduced Motion - Respect user preferences */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
