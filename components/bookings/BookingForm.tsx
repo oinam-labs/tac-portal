@@ -127,6 +127,30 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onSuccess, onCancel })
       if (error) throw error;
 
       toast.success('Booking request sent successfully!');
+
+      // Create a system message for the admin
+      try {
+        const messageText = `New Booking Request from ${data.consignor.name}\n` +
+          `Route: ${data.consignor.city} -> ${data.consignee.city}\n` +
+          `Items: ${data.volumeMatrix.reduce((acc, curr) => acc + Number(curr.count), 0)}\n` +
+          `Total Weight: ${data.volumeMatrix.reduce((acc, curr) => acc + (Number(curr.weight) * Number(curr.count)), 0)} kg\n` +
+          `WhatsApp: ${data.whatsappNumber}`;
+
+        await supabase.from('contact_messages').insert({
+          name: data.consignor.name,
+          phone: data.whatsappNumber,
+          // Use user email if available, otherwise explicit string or null
+          email: user?.email || null,
+          message: messageText,
+          status: 'unread',
+          archived: false,
+          replied: false
+        });
+      } catch (msgError) {
+        console.error('Failed to create system message for booking:', msgError);
+        // Don't block the success flow if this fails
+      }
+
       reset();
       setSelectedFiles([]);
       onSuccess?.();
