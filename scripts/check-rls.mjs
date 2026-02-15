@@ -1,11 +1,20 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { writeFileSync } from 'fs';
+import { config } from 'dotenv';
+
+// Load environment variables from .env.local
+config({ path: '.env.local' });
 
 // Management API doesn't let us query pg_policies easily, but we can try via SQL query endpoint
 // Using the same approach as migration script
-const PROJECT_REF = 'xkkhxhgkyavxcfgeojww';
-const ACCESS_TOKEN = 'sbp_29e3b13663969f7bb8d3068cf95643b0f76dfe48';
+const PROJECT_REF = process.env.SUPABASE_PROJECT_REF;
+const ACCESS_TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
+
+if (!PROJECT_REF || !ACCESS_TOKEN) {
+    console.error('❌ Missing SUPABASE_PROJECT_REF or SUPABASE_ACCESS_TOKEN in .env.local');
+    process.exit(1);
+}
 
 async function executeSQL(sql) {
     console.log(`Executing SQL: ${sql}`);
