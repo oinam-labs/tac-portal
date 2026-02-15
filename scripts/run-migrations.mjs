@@ -47,7 +47,8 @@ async function executeSQL(sql, description) {
             'Prefer': 'return=minimal'
         },
         // codeql[js/file-data-in-outbound-network-request] - Intentional: Sending SQL migration content to Supabase to be executed
-        body: JSON.stringify({ query: sql })
+        // lgtm[js/file-data-in-outbound-network-request]
+        body: JSON.stringify({ query: sql }) // nosemgrep: file-data-in-outbound-network-request
     });
 
     // If that doesn't work, use pg_query via postgrest
@@ -62,7 +63,8 @@ async function executeSQL(sql, description) {
                     'Content-Type': 'application/json'
                 },
                 // codeql[js/file-data-in-outbound-network-request] - Intentional: Sending SQL migration content to Supabase to be executed
-                body: JSON.stringify({ query: sql })
+                // lgtm[js/file-data-in-outbound-network-request]
+                body: JSON.stringify({ query: sql }) // nosemgrep: file-data-in-outbound-network-request
             }
         );
 

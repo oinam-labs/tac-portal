@@ -111,7 +111,7 @@ export function Messages() {
             }
             toast.success('Message deleted');
         }
-    }
+    };
 
     const openMessage = (msg: Message) => {
         setSelectedMessage(msg);
