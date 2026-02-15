@@ -1,5 +1,5 @@
-@import url('tailwindcss');
-@import url('tw-animate-css');
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @source "./**/*.{js,ts,jsx,tsx,html}";
 
@@ -165,9 +165,10 @@
   --status-live: 0.75 0.15 145;
   --status-active: 0.76 0.18 85;
   --feature-air: 0.65 0.15 230;
-  --feature-ground: 0.7 0.17 155;
-  --feature-delivery: 0.7 0.18 35;
+  --feature-ground: 0.70 0.17 155;
+  --feature-delivery: 0.70 0.18 35;
 }
+
 
 .landing-theme {
   /* Inherits primary, secondary, accent from :root/.dark for unified palette */
@@ -182,8 +183,8 @@
   --status-live: 0.75 0.15 145;
   --status-active: 0.76 0.18 85;
   --feature-air: 0.65 0.15 230;
-  --feature-ground: 0.7 0.17 155;
-  --feature-delivery: 0.7 0.18 35;
+  --feature-ground: 0.70 0.17 155;
+  --feature-delivery: 0.70 0.18 35;
   --grid-line: var(--border-subtle);
 }
 
@@ -235,15 +236,11 @@
   --sidebar-ring: oklch(71.62% 0.1597 290.3962deg);
   --shadow-2xs: 0px 4px 10px 0px hsl(240deg 30% 25% / 6%);
   --shadow-xs: 0px 4px 10px 0px hsl(240deg 30% 25% / 6%);
-  --shadow-sm:
-    0px 4px 10px 0px hsl(240deg 30% 25% / 12%), 0px 1px 2px -1px hsl(240deg 30% 25% / 12%);
+  --shadow-sm: 0px 4px 10px 0px hsl(240deg 30% 25% / 12%), 0px 1px 2px -1px hsl(240deg 30% 25% / 12%);
   --shadow: 0px 4px 10px 0px hsl(240deg 30% 25% / 12%), 0px 1px 2px -1px hsl(240deg 30% 25% / 12%);
-  --shadow-md:
-    0px 4px 10px 0px hsl(240deg 30% 25% / 12%), 0px 2px 4px -1px hsl(240deg 30% 25% / 12%);
-  --shadow-lg:
-    0px 4px 10px 0px hsl(240deg 30% 25% / 12%), 0px 4px 6px -1px hsl(240deg 30% 25% / 12%);
-  --shadow-xl:
-    0px 4px 10px 0px hsl(240deg 30% 25% / 12%), 0px 8px 10px -1px hsl(240deg 30% 25% / 12%);
+  --shadow-md: 0px 4px 10px 0px hsl(240deg 30% 25% / 12%), 0px 2px 4px -1px hsl(240deg 30% 25% / 12%);
+  --shadow-lg: 0px 4px 10px 0px hsl(240deg 30% 25% / 12%), 0px 4px 6px -1px hsl(240deg 30% 25% / 12%);
+  --shadow-xl: 0px 4px 10px 0px hsl(240deg 30% 25% / 12%), 0px 8px 10px -1px hsl(240deg 30% 25% / 12%);
   --shadow-2xl: 0px 4px 10px 0px hsl(240deg 30% 25% / 30%);
   --bg-app: var(--background);
   --bg-surface: var(--card);
@@ -288,8 +285,8 @@
   --status-live: 0.75 0.15 145;
   --status-active: 0.76 0.18 85;
   --feature-air: 0.65 0.15 230;
-  --feature-ground: 0.7 0.17 155;
-  --feature-delivery: 0.7 0.18 35;
+  --feature-ground: 0.70 0.17 155;
+  --feature-delivery: 0.70 0.18 35;
   --grid-line: var(--border-subtle);
 }
 
@@ -372,7 +369,7 @@
   }
 
   .bg-grain::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     width: 100%;
@@ -399,24 +396,11 @@
 
   /* Glassmorphism Presets */
   .glass-panel {
-    @apply bg-background/60 border;
-    backdrop-filter: blur(24px);
-    border-color: oklch(100% 0 0 / 10%);
-  }
-
-  .dark .glass-panel {
-    border-color: oklch(100% 0 0 / 5%);
+    @apply bg-background/60 backdrop-blur-xl border border-white/10 dark:border-white/5;
   }
 
   .glass-card {
-    @apply bg-card/40 border;
-    box-shadow: var(--shadow-xl);
-    backdrop-filter: blur(12px);
-    border-color: oklch(100% 0 0 / 10%);
-  }
-
-  .dark .glass-card {
-    border-color: oklch(100% 0 0 / 5%);
+    @apply bg-card/40 backdrop-blur-md border border-white/10 dark:border-white/5 shadow-xl;
   }
 
   /* NEXUS Spotlight Effect */
@@ -426,12 +410,10 @@
   }
 
   .spotlight-card::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y),
-        oklch(var(--primary) / 15%),
-        transparent 40%);
+    background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), oklch(var(--primary) / 15%), transparent 40%);
     opacity: 0;
     transition: opacity 0.5s;
     pointer-events: none;
@@ -443,25 +425,19 @@
   }
 
   .spotlight-card::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y),
-        oklch(var(--primary) / 40%),
-        transparent 40%);
+    background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), oklch(var(--primary) / 40%), transparent 40%);
     opacity: 0;
     z-index: 3;
     transition: opacity 0.5s;
-
     /* Border mask trick */
-    /* stylelint-disable declaration-property-value-no-unknown */
-    mask-image:
-      linear-gradient(oklch(0% 0 0deg), oklch(0% 0 0deg)) content-box,
-      linear-gradient(oklch(0% 0 0deg), oklch(0% 0 0deg));
+    mask-image: linear-gradient(black, black) content-box, linear-gradient(black, black);
+    -webkit-mask-image: linear-gradient(black, black) content-box, linear-gradient(black, black);
     mask-composite: exclude;
-    mask-composite: xor;
-    /* stylelint-enable declaration-property-value-no-unknown */
+    -webkit-mask-composite: xor;
     padding: 1px;
     border-radius: inherit;
   }
@@ -475,6 +451,8 @@
   background: var(--gradient-cta);
   box-shadow: 0 20px 40px -10px oklch(var(--primary) / 40%);
 }
+
+
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
@@ -749,7 +727,7 @@
   }
 
   /* Dyson Sphere Animations & Utilities */
-  @keyframes rotate-sphere {
+  @keyframes rotateSphere {
     0% {
       transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);
     }
@@ -768,7 +746,7 @@
   }
 
   .animate-rotate-sphere {
-    animation: rotate-sphere 30s linear infinite;
+    animation: rotateSphere 30s linear infinite;
   }
 }
 
