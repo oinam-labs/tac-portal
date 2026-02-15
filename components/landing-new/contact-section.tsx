@@ -144,7 +144,6 @@ export function ContactSection() {
                     <span>{error}</span>
                   </div>
                 )}
-
                 <FadeUp delay={0.5} className="pt-2">
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button

@@ -182,7 +182,7 @@ export const ExceptionDetails: React.FC<ExceptionDetailsProps> = ({
               <h3 className="text-xs font-bold text-muted-foreground uppercase mb-3">
                 Quick Actions
               </h3>
-              <Button className="w-full" variant="primary" onClick={() => onResolve(exception.id)}>
+              <Button className="w-full" variant="default" onClick={() => onResolve(exception.id)}>
                 <CheckCircle className="w-4 h-4 mr-2" />
                 Resolve Exception
               </Button>

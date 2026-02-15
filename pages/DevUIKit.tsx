@@ -63,7 +63,7 @@ export const DevUIKit: React.FC = () => {
           {sections.map((section) => (
             <Button
               key={section.id}
-              variant={activeSection === section.id ? 'primary' : 'ghost'}
+              variant={activeSection === section.id ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setActiveSection(section.id)}
             >
@@ -105,10 +105,10 @@ const ButtonsSection: React.FC = () => (
     <Card>
       <SectionTitle>Button Variants</SectionTitle>
       <ComponentGrid>
-        <Button variant="primary">Primary</Button>
+        <Button variant="default">Primary</Button>
         <Button variant="secondary">Secondary</Button>
         <Button variant="ghost">Ghost</Button>
-        <Button variant="danger">Danger</Button>
+        <Button variant="destructive">Danger</Button>
       </ComponentGrid>
     </Card>
 
@@ -139,7 +139,7 @@ const ButtonsSection: React.FC = () => (
         <Button variant="secondary">
           <Truck className="w-4 h-4" /> Manifests
         </Button>
-        <Button variant="danger">
+        <Button variant="destructive">
           <AlertTriangle className="w-4 h-4" /> Exception
         </Button>
       </ComponentGrid>
@@ -266,10 +266,10 @@ const FeedbackSection: React.FC = () => (
         Click buttons to test audio beeps and haptic vibration (on supported devices).
       </p>
       <ComponentGrid>
-        <Button onClick={playSuccessFeedback} variant="primary">
+        <Button onClick={playSuccessFeedback} variant="default">
           <Check className="w-4 h-4" /> Success
         </Button>
-        <Button onClick={playErrorFeedback} variant="danger">
+        <Button onClick={playErrorFeedback} variant="destructive">
           <X className="w-4 h-4" /> Error
         </Button>
         <Button onClick={playWarningFeedback} variant="secondary">
@@ -284,7 +284,7 @@ const FeedbackSection: React.FC = () => (
     <Card>
       <SectionTitle>Manifest Feedback</SectionTitle>
       <ComponentGrid>
-        <Button onClick={playManifestActivatedFeedback} variant="primary">
+        <Button onClick={playManifestActivatedFeedback} variant="default">
           Manifest Activated (ascending)
         </Button>
         <Button onClick={playManifestClosedFeedback} variant="secondary">

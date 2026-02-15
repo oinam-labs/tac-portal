@@ -68,13 +68,8 @@ export function StepAddShipments({
     playSound: true,
   });
 
-  // Auto-focus logic
-  React.useEffect(() => {
-    if (scanMode === 'scanner') {
-      return scanner.enableKeyboardWedge();
-    }
-    return undefined;
-  }, [scanMode, scanner]);
+
+
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -241,7 +236,7 @@ export function StepAddShipments({
                     {scanner.lastResult.awb_number && (
                       <p className="font-mono text-xs opacity-90">
                         {scanner.lastResult.awb_number}
-                        {scanner.lastResult.receiver_name && ` • ${scanner.lastResult.receiver_name}`}
+                        {scanner.lastResult.receiver_name && (' • ' + scanner.lastResult.receiver_name)}
                       </p>
                     )}
                   </div>

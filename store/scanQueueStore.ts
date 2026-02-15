@@ -208,6 +208,23 @@ const initScanQueueAutoSync = () => {
   });
 };
 
+
+// Helper to map DB hub codes to Enum
+const mapDbHubToEnum = (code: string | null): HubCode => {
+  if (!code) return HubCode.IMPHAL; // Default
+  const normalized = code.toUpperCase();
+  if (normalized === 'DEL' || normalized === 'NEW_DELHI') return HubCode.NEW_DELHI;
+  if (normalized === 'IMF' || normalized === 'IMPHAL') return HubCode.IMPHAL;
+  return HubCode.IMPHAL;
+};
+
+// Helper to map Enum to DB hub codes
+const mapEnumToDbHub = (code: HubCode): string => {
+  if (code === HubCode.NEW_DELHI) return 'DEL';
+  if (code === HubCode.IMPHAL) return 'IMF';
+  return 'IMF';
+};
+
 /**
  * Convenience hook for Scanning page - simplified interface
  */
@@ -221,12 +238,12 @@ export const useScanQueue = () => {
   }, []);
 
   return {
-    addScan: (scan: { awb: string; mode: string; manifestId?: string }) => {
-      const hubCode = user?.hubCode === 'DEL' ? HubCode.NEW_DELHI : HubCode.IMPHAL;
+    addScan: (scan: { awb: string; mode: string; manifestId?: string; source?: ScanSource }) => {
+      const hubCode = mapDbHubToEnum(user?.hubCode || null);
       store.addScan({
         type: 'shipment',
         code: scan.awb,
-        source: ScanSource.CAMERA,
+        source: scan.source || ScanSource.CAMERA,
         hubCode,
         staffId: (user?.id as UUID) ?? (null as unknown as UUID),
       });
@@ -254,11 +271,11 @@ const resolveScanContext = async (scan: ScanEvent) => {
     throw new Error('Shipment not found for scan');
   }
 
-  const hubCode = scan.hubCode === HubCode.IMPHAL ? 'IMF' : 'DEL';
+  const dbHubCode = mapEnumToDbHub(scan.hubCode);
   const { data: hub, error: hubError } = await (supabase.from('hubs') as any)
     .select('id')
     .eq('org_id', orgId)
-    .eq('code', hubCode)
+    .eq('code', dbHubCode)
     .maybeSingle();
 
   if (hubError || !hub?.id) {

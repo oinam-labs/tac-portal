@@ -8,6 +8,7 @@ import { HUBS, SHIPMENT_MODES, SERVICE_LEVELS } from '../../lib/constants';
 import { Package, Truck, Plane, Zap, Clock } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useCreateShipment } from '@/hooks/useShipments';
+import { toast } from 'sonner';
 
 const schema = z
   .object({
@@ -57,8 +58,8 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      originHub: 'IMPHAL',
-      destinationHub: 'NEW_DELHI',
+      originHub: undefined,
+      destinationHub: undefined,
       mode: 'AIR',
       serviceLevel: 'STANDARD',
       packageCount: 1,
@@ -74,6 +75,12 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
   const selectedService = watch('serviceLevel');
 
   const onSubmit = async (data: FormData) => {
+    console.log('Submitting CreateShipmentForm', data);
+    if (customers.length === 0) {
+      toast.error('Unable to load customers. Please check your connection.');
+      return;
+    }
+
     // Volumetric Calculation (Standard L*W*H / 5000 for Air)
     const divisor = data.mode === 'AIR' ? 5000 : 4000;
     const volWeight = (data.dimL * data.dimW * data.dimH) / divisor;
@@ -95,9 +102,16 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
         special_instructions: data.specialInstructions || `Dims: ${data.dimL}x${data.dimW}x${data.dimH}`,
       });
 
-      onSuccess();
+      toast.success('Shipment created successfully');
+      // Delay onSuccess to allow toast to render and prevent race conditions on unmount
+      setTimeout(() => {
+        onSuccess();
+      }, 500);
     } catch (e) {
       console.error(e);
+      toast.error('Failed to create shipment', {
+        description: e instanceof Error ? e.message : 'Please check your internet connection.',
+      });
     }
   };
 
@@ -111,6 +125,7 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
             {...register('originHub')}
             className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
           >
+            <option value="">Select Hub</option>
             {Object.values(HUBS).map((hub) => (
               <option key={hub.id} value={hub.id}>
                 {hub.name} ({hub.code})
@@ -126,6 +141,7 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
             {...register('destinationHub')}
             className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
           >
+            <option value="">Select Hub</option>
             {Object.values(HUBS).map((hub) => (
               <option key={hub.id} value={hub.id}>
                 {hub.name} ({hub.code})

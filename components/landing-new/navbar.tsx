@@ -92,10 +92,10 @@ export function Navbar() {
   ];
 
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, href: string) => {
+    e.preventDefault();
     const targetId = href.replace('#', '');
     const element = document.getElementById(targetId);
     if (element) {
-      e.preventDefault();
       const offsetTop = element.getBoundingClientRect().top + window.scrollY - 80; // Adjust for navbar height
       window.scrollTo({
         top: offsetTop,
@@ -131,7 +131,7 @@ export function Navbar() {
             className="flex items-center gap-3 group relative z-50"
             onClick={(e) => handleScroll(e, '#home')}
           >
-            <div className="relative flex h-10 w-10 items-center justify-center bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
               <Box className="h-5 w-5 text-primary fill-primary/20 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" />
             </div>
             <div className="flex flex-col">
@@ -143,7 +143,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-1 border border-border/50 bg-background/50 p-1 backdrop-blur-md shadow-sm">
+          <div className="hidden md:flex items-center gap-1 rounded-full border border-border/50 bg-background/50 p-1 backdrop-blur-md shadow-sm">
             {navLinks.map((link, index) => {
               const isActive = activeSection === link.href;
               return (
@@ -161,7 +161,7 @@ export function Navbar() {
                   {/* Active indicator (persistent) */}
                   {isActive && hoveredIndex === null && (
                     <motion.span
-                      className="absolute inset-0 bg-primary/10 border border-primary/20 shadow-sm"
+                      className="absolute inset-0 rounded-full bg-primary/10 border border-primary/20 shadow-sm"
                       layoutId="activeBackground"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -172,7 +172,7 @@ export function Navbar() {
                   <AnimatePresence>
                     {hoveredIndex === index && (
                       <motion.span
-                        className="absolute inset-0 bg-muted shadow-sm"
+                        className="absolute inset-0 rounded-full bg-muted shadow-sm"
                         layoutId="hoverBackground"
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -192,12 +192,12 @@ export function Navbar() {
             <AnimatedThemeToggler onThemeChange={setTheme} />
             <div className="w-px h-6 bg-border/60 mx-1" />
             <Link to="/login">
-              <Button variant="ghost" className="font-medium hover:bg-muted/50">
+              <Button variant="ghost" className="rounded-full font-medium hover:bg-muted/50">
                 Login
               </Button>
             </Link>
             <Link to="/login">
-              <Button className="relative overflow-hidden px-6 font-semibold shadow-glow-primary transition-all duration-300 hover:scale-105 active:scale-95 group">
+              <Button className="relative overflow-hidden rounded-full px-6 font-semibold shadow-glow-primary transition-all duration-300 hover:scale-105 active:scale-95 group">
                 <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                 <span className="relative z-10">Book Shipment</span>
               </Button>
@@ -210,7 +210,7 @@ export function Navbar() {
             {mounted && (
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="hover:bg-muted/50">
+                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted/50">
                     <Menu className="h-6 w-6" />
                   </Button>
                 </SheetTrigger>
@@ -222,7 +222,7 @@ export function Navbar() {
                     <div className="h-20 flex items-center justify-between px-6 border-b border-border/50">
                       <span className="font-sans font-bold text-lg">Menu</span>
                       <SheetClose asChild>
-                        <Button variant="ghost" size="icon" className="-mr-2">
+                        <Button variant="ghost" size="icon" className="rounded-full -mr-2">
                           <X className="h-5 w-5" />
                         </Button>
                       </SheetClose>
@@ -244,12 +244,12 @@ export function Navbar() {
                     </div>
                     <div className="p-6 mt-auto space-y-4">
                       <Link to="/login" className="block" onClick={() => setIsOpen(false)}>
-                        <Button variant="outline" className="w-full h-12 text-base font-medium">
+                        <Button variant="outline" className="w-full rounded-full h-12 text-base font-medium">
                           Login
                         </Button>
                       </Link>
                       <Link to="/login" className="block" onClick={() => setIsOpen(false)}>
-                        <Button className="w-full h-12 text-base font-medium shadow-lg shadow-primary/20">
+                        <Button className="w-full rounded-full h-12 text-base font-medium shadow-lg shadow-primary/20">
                           Book Shipment
                         </Button>
                       </Link>

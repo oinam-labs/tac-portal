@@ -477,6 +477,7 @@ export function useCanAccessModule(module: string): boolean {
 
   const moduleAccess: Record<UserRole, string[]> = {
     ADMIN: ['*'],
+    SUPER_ADMIN: ['*'],
     MANAGER: ['*'],
     OPS: ['shipments', 'manifests', 'tracking', 'customers', 'exceptions'],
     OPS_STAFF: ['shipments', 'manifests', 'tracking', 'customers', 'exceptions'],

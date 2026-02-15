@@ -1,0 +1,99 @@
+
+> tac-cargo@1.0.0 lint
+> eslint . --ext .js,.ts,.tsx
+
+
+C:\tac-portal\_backup\audit-hub-codes.js
+  173:1  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  174:1  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  175:1  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  198:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  202:1  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  205:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  208:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  210:9  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  211:9  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  213:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\tac-portal\_backup\invoice-regression.mjs
+    3:21  error  'process' is not defined  no-undef
+    3:49  error  'process' is not defined  no-undef
+    4:24  error  'process' is not defined  no-undef
+    5:38  error  'process' is not defined  no-undef
+    8:5   error  'console' is not defined  no-undef
+    9:5   error  'process' is not defined  no-undef
+  106:5   error  'console' is not defined  no-undef
+  107:5   error  'console' is not defined  no-undef
+  108:5   error  'console' is not defined  no-undef
+  112:5   error  'console' is not defined  no-undef
+  113:5   error  'process' is not defined  no-undef
+
+C:\tac-portal\_backup\no-mock-data-guard.mjs
+    4:19  error  'process' is not defined  no-undef
+  116:5   error  'console' is not defined  no-undef
+  120:7   error  'console' is not defined  no-undef
+  122:7   error  'console' is not defined  no-undef
+  126:5   error  'console' is not defined  no-undef
+  127:5   error  'process' is not defined  no-undef
+  131:3   error  'console' is not defined  no-undef
+
+C:\tac-portal\components\finance\MultiStepCreateInvoice.tsx
+   719:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  1063:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  1065:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  1071:9  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\tac-portal\components\finance\invoices.columns.tsx
+  80:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  84:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\tac-portal\components\landing-new\contact-section.tsx
+  50:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\tac-portal\components\shipments\CreateShipmentForm.tsx
+  78:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\tac-portal\hooks\useInvoices.ts
+  179:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\tac-portal\hooks\useShipments.ts
+  162:7  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  165:9  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  167:9  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  169:9  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  172:7  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  181:7  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  194:7  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  206:7  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\tac-portal\lib\tracking-service.ts
+  50:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  62:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  72:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  75:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  89:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\tac-portal\lib\utils\label-utils.ts
+  111:3  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\tac-portal\pages\PublicTracking.tsx
+  45:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  54:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  60:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  68:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\tac-portal\pages\ShipmentDetailsPage.tsx
+  18:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  18:71  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:86  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  22:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\tac-portal\pages\admin\Messages.tsx
+  55:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\tac-portal\scripts\check-super-admin.ts
+  29:9  warning  Unexpected console statement. Only these console methods are allowed: log, warn, error  no-console
+
+Γ£û 62 problems (18 errors, 44 warnings)
+

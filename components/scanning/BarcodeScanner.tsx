@@ -1,54 +1,82 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library';
+import { BrowserMultiFormatReader } from '@zxing/library';
 import { cn } from '@/lib/utils';
-import { CameraOff, RefreshCw, Volume2, VolumeX } from 'lucide-react';
+import { CameraOff, RefreshCw, Volume2, VolumeX, Flashlight, FlashlightOff, ZoomIn, ZoomOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Slider } from '../ui/slider';
 
 interface BarcodeScannerProps {
   onScan: (result: string) => void;
   onError?: (error: Error) => void;
   active?: boolean;
   className?: string;
+  enableTorch?: boolean;
 }
 
-export function BarcodeScanner({ onScan, onError, active = true, className }: BarcodeScannerProps) {
+export function BarcodeScanner({
+  onScan,
+  onError,
+  active = true,
+  className,
+  enableTorch: initialTorch = false
+}: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
+  const controlsRef = useRef<any>(null);
+
+  // Stable refs for callbacks to prevent stale closures in decode loop
+  const onScanRef = useRef(onScan);
+  onScanRef.current = onScan;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+
   const [hasCamera, setHasCamera] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [lastScanned, setLastScanned] = useState<string | null>(null);
+  const [torchEnabled, setTorchEnabled] = useState(initialTorch);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [capabilities, setCapabilities] = useState<MediaTrackCapabilities | null>(null);
+  const lastScannedRef = useRef<string | null>(null);
+  const lastScannedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [selectedCamera, setSelectedCamera] = useState<string>('');
 
-  // Success beep sound
+  const soundEnabledRef = useRef(soundEnabled);
+  soundEnabledRef.current = soundEnabled;
+
+  // Success beep sound (uses ref to stay stable)
   const playBeep = useCallback(() => {
-    if (!soundEnabled) return;
-    const audioContext = new (
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-    )();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
+    if (!soundEnabledRef.current) return;
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
 
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+      const audioContext = new AudioContextClass();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
 
-    oscillator.frequency.value = 1200;
-    oscillator.type = 'sine';
-    gainNode.gain.value = 0.3;
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
 
-    oscillator.start();
-    setTimeout(() => {
-      oscillator.stop();
-      audioContext.close();
-    }, 100);
-  }, [soundEnabled]);
+      oscillator.frequency.value = 1200;
+      oscillator.type = 'sine';
+      gainNode.gain.value = 0.1;
+
+      oscillator.start();
+      setTimeout(() => {
+        oscillator.stop();
+        audioContext.close();
+      }, 100);
+    } catch (e) {
+      console.error("Audio playback failed", e);
+    }
+  }, []);
 
   // Initialize scanner
   useEffect(() => {
     if (!active) return;
 
+    console.log('[BarcodeScanner] Initializing camera...', { active });
     const reader = new BrowserMultiFormatReader();
     readerRef.current = reader;
 
@@ -56,11 +84,12 @@ export function BarcodeScanner({ onScan, onError, active = true, className }: Ba
     reader
       .listVideoInputDevices()
       .then((devices) => {
+        console.log('[BarcodeScanner] Cameras found:', devices);
         setCameras(devices);
         if (devices.length > 0) {
           // Prefer back camera on mobile
           const backCamera = devices.find(
-            (d) => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('rear')
+            (d) => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('rear') || d.label.toLowerCase().includes('environment')
           );
           setSelectedCamera(backCamera?.deviceId || devices[0].deviceId);
         } else {
@@ -70,56 +99,126 @@ export function BarcodeScanner({ onScan, onError, active = true, className }: Ba
       .catch((err) => {
         console.error('Camera access error:', err);
         setHasCamera(false);
-        onError?.(err);
+        onErrorRef.current?.(err);
       });
 
     return () => {
-      reader.reset();
+      stopScanning();
     };
-  }, [active, onError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
+
+  const stopScanning = () => {
+    if (controlsRef.current) {
+      controlsRef.current.stop();
+      controlsRef.current = null;
+    }
+    if (readerRef.current) {
+      readerRef.current.reset();
+    }
+    setIsScanning(false);
+  };
 
   // Start scanning when camera is selected
   useEffect(() => {
     if (!selectedCamera || !videoRef.current || !readerRef.current || !active) return;
 
     const reader = readerRef.current;
+
+    // Stop previous scan if any
+    if (controlsRef.current) {
+      controlsRef.current.stop();
+    }
+
     setIsScanning(true);
 
-    reader
-      .decodeFromVideoDevice(selectedCamera, videoRef.current, (result, error) => {
+    const constraints: MediaStreamConstraints = {
+      video: {
+        deviceId: selectedCamera,
+        facingMode: 'environment', // Prefer back camera
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        // @ts-ignore - advanced constraints for zoom/torch
+        advanced: [{ zoom: zoomLevel }, { torch: torchEnabled }]
+      }
+    };
+
+    reader.decodeFromConstraints(
+      constraints,
+      videoRef.current,
+      (result, _error) => {
         if (result) {
           const text = result.getText();
-          // Debounce same barcode scans
-          if (text !== lastScanned) {
-            setLastScanned(text);
+          console.log('[BarcodeScanner] Decoded text:', text);
+          // Debounce: skip if same barcode scanned within 2s
+          if (text !== lastScannedRef.current) {
+            console.log('[BarcodeScanner] Valid new scan (not debounced):', text);
+            lastScannedRef.current = text;
             playBeep();
-            onScan(text);
-
-            // Reset last scanned after 2 seconds to allow re-scan
-            setTimeout(() => setLastScanned(null), 2000);
+            onScanRef.current(text);
+            // Reset debounce after 2s
+            if (lastScannedTimerRef.current) clearTimeout(lastScannedTimerRef.current);
+            lastScannedTimerRef.current = setTimeout(() => { lastScannedRef.current = null; }, 2000);
           }
         }
-        if (error && !(error instanceof NotFoundException)) {
-          console.error('Scan error:', error);
-        }
-      })
-      .catch((err) => {
-        console.error('Failed to start scanner:', err);
-        setHasCamera(false);
-        setIsScanning(false);
-        onError?.(err);
-      });
+      }
+    ).then((controls: any) => {
+      controlsRef.current = controls;
+
+      // Get capabilities for zoom/torch
+      const track = videoRef.current?.srcObject instanceof MediaStream
+        ? videoRef.current.srcObject.getVideoTracks()[0]
+        : null;
+
+      if (track) {
+        setCapabilities(track.getCapabilities());
+      }
+    }).catch(err => {
+      console.error("Decode error", err);
+      setIsScanning(false);
+      onErrorRef.current?.(err);
+    });
 
     return () => {
-      reader.reset();
-      setIsScanning(false);
+      // Cleanup handled by main effect
     };
-  }, [selectedCamera, active, onScan, onError, playBeep, lastScanned]);
+    // Only re-init when camera selection or active state changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCamera, active]);
+
+  // Apply track constraints when zoom/torch changes without restarting stream
+  useEffect(() => {
+    const track = videoRef.current?.srcObject instanceof MediaStream
+      ? videoRef.current.srcObject.getVideoTracks()[0]
+      : null;
+
+    if (track && isScanning) {
+      try {
+        track.applyConstraints({
+          advanced: [{
+            // @ts-ignore
+            torch: torchEnabled,
+            zoom: zoomLevel
+          }]
+        }).catch(e => console.warn("Failed to apply constraints", e));
+      } catch (e) {
+        console.warn("Constraints error", e);
+      }
+    }
+  }, [torchEnabled, zoomLevel, isScanning]);
 
   const switchCamera = () => {
     const currentIndex = cameras.findIndex((c) => c.deviceId === selectedCamera);
     const nextIndex = (currentIndex + 1) % cameras.length;
     setSelectedCamera(cameras[nextIndex].deviceId);
+  };
+
+  const handleZoomChange = (value: number[]) => {
+    setZoomLevel(value[0]);
+  };
+
+  const toggleTorch = () => {
+    setTorchEnabled(!torchEnabled);
   };
 
   if (!hasCamera) {
@@ -140,12 +239,21 @@ export function BarcodeScanner({ onScan, onError, active = true, className }: Ba
     );
   }
 
+  // @ts-ignore - check for specific capabilities
+  const supportsTorch = capabilities?.torch || false;
+  // @ts-ignore
+  const supportsZoom = capabilities?.zoom || false;
+  // @ts-ignore
+  const minZoom = capabilities?.zoom?.min || 1;
+  // @ts-ignore
+  const maxZoom = capabilities?.zoom?.max || 3;
+
+
   return (
-    <div className={cn('relative overflow-hidden rounded-lg', className)}>
-      {/* Video feed */}
+    <div className={cn('relative overflow-hidden rounded-lg bg-black', className)}>
       <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
 
-      {/* Scanner overlay */}
+      {/* Overlay */}
       <div className="absolute inset-0 pointer-events-none">
         {/* Corner brackets */}
         <div className="absolute inset-8 border-2 border-primary/30 rounded-lg">
@@ -174,46 +282,60 @@ export function BarcodeScanner({ onScan, onError, active = true, className }: Ba
         </div>
 
         {/* Last scan indicator */}
-        {lastScanned && (
+        {lastScannedRef.current && (
           <div className="absolute bottom-4 left-4 right-4 bg-status-success/90 text-white px-4 py-2 rounded-lg text-center font-mono text-sm animate-pulse">
-            ✓ {lastScanned}
+            ✓ {lastScannedRef.current}
           </div>
         )}
       </div>
 
       {/* Controls */}
-      <div className="absolute top-4 right-4 flex gap-2 pointer-events-auto">
-        {cameras.length > 1 && (
+      <div className="absolute bottom-6 inset-x-0 flex flex-col items-center gap-4 pointer-events-auto px-4">
+
+        {/* Zoom Slider */}
+        {supportsZoom && (
+          <div className="w-full max-w-xs flex items-center gap-2 bg-black/40 backdrop-blur rounded-full px-3 py-1">
+            <ZoomOut className="w-4 h-4 text-white" />
+            <Slider
+              value={[zoomLevel]}
+              min={minZoom}
+              max={maxZoom}
+              step={0.1}
+              onValueChange={handleZoomChange}
+              className="flex-1"
+            />
+            <ZoomIn className="w-4 h-4 text-white" />
+          </div>
+        )}
+
+        <div className="flex items-center gap-3">
+          {cameras.length > 1 && (
+            <Button size="icon" variant="secondary" className="rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md" onClick={switchCamera}>
+              <RefreshCw className="w-5 h-5" />
+            </Button>
+          )}
+
+          {supportsTorch && (
+            <Button
+              size="icon"
+              variant={torchEnabled ? "default" : "secondary"}
+              className={`rounded-full backdrop-blur-md ${torchEnabled ? 'bg-yellow-500 text-black hover:bg-yellow-400' : 'bg-white/10 text-white hover:bg-white/20'}`}
+              onClick={toggleTorch}
+            >
+              {torchEnabled ? <Flashlight className="w-5 h-5" /> : <FlashlightOff className="w-5 h-5" />}
+            </Button>
+          )}
+
           <Button
             size="icon"
             variant="secondary"
-            onClick={switchCamera}
-            className="bg-black/50 hover:bg-black/70"
+            className="rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md"
+            onClick={() => setSoundEnabled(!soundEnabled)}
           >
-            <RefreshCw className="w-4 h-4" />
+            {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
           </Button>
-        )}
-        <Button
-          size="icon"
-          variant="secondary"
-          onClick={() => setSoundEnabled(!soundEnabled)}
-          className="bg-black/50 hover:bg-black/70"
-        >
-          {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-        </Button>
+        </div>
       </div>
-
-      <style>{`
-        @keyframes scan {
-          0% { top: 15%; opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { top: 85%; opacity: 0; }
-        }
-        .animate-scan {
-          animation: scan 2s linear infinite;
-        }
-      `}</style>
     </div>
   );
 }

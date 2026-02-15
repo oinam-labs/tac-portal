@@ -42,7 +42,8 @@ export type UserRole =
   | 'SUPPORT'
   | 'WAREHOUSE_STAFF'
   | 'OPS_STAFF'
-  | 'FINANCE_STAFF';
+  | 'FINANCE_STAFF'
+  | 'SUPER_ADMIN';
 
 export enum NavItem {
   DASHBOARD = 'Dashboard',

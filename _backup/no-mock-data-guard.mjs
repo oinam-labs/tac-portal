@@ -112,22 +112,22 @@ async function main() {
   }
 
   if (violations.length > 0) {
-    // eslint-disable-next-line no-console
+     
     console.error('\n❌ No-mock-data guard failed. Violations:\n');
 
     for (const v of violations) {
-      // eslint-disable-next-line no-console
+       
       console.error(`- [${v.rule}] ${v.file}:${v.line} — ${v.description}`);
-      // eslint-disable-next-line no-console
+       
       console.error(`  ${v.snippet}`);
     }
 
-    // eslint-disable-next-line no-console
+     
     console.error('\nFix the violations above. If you believe this is a false positive, adjust the guard scope/patterns.');
     process.exit(1);
   }
 
-  // eslint-disable-next-line no-console
+   
   console.log(`✅ No-mock-data guard passed (${targets.length} files checked).`);
 }
 
