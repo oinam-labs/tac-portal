@@ -18,6 +18,7 @@ import { useIdleTimeout } from './hooks/useIdleTimeout';
 import { UserRole, HubLocation } from './types';
 import { Button, Card } from './components/ui/CyberComponents';
 import { CommandPalette } from './components/domain/CommandPalette';
+import { GlobalNotificationListener } from './components/domain/GlobalNotificationListener';
 import { queryClient } from './lib/query-client';
 import { ArrowLeft, Eye, EyeOff, Mail, Lock, Shield, Clock, LogIn, Box } from 'lucide-react';
 import { PageSkeleton } from './components/ui/skeleton';
@@ -456,6 +457,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
       </div>
       {/* Global Command Palette - ⌘K / Ctrl+K */}
       <CommandPalette />
+      <GlobalNotificationListener />
     </div>
   );
 };
