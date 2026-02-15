@@ -382,7 +382,7 @@ export interface NoteFilters {
 
 export interface Booking {
   id: string;
-  user_id: string;
+  user_id: string | null;
   consignor_details: {
     name: string;
     phone: string;

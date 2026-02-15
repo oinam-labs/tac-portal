@@ -1,0 +1,37 @@
+
+Running 2 tests using 1 worker
+
+ΓÜá∩╕Å E2E_TEST_EMAIL or E2E_TEST_PASSWORD not configured
+   Creating empty auth state for unauthenticated tests (local dev only)...
+  Γ£ô  1 [setup] ΓÇ║ tests\e2e\auth.setup.ts:27:1 ΓÇ║ authenticate (415ms)
+Navigating to login...
+Logging in as admin@taccargo.com...
+Waiting for dashboard...
+  Γ£ÿ  2 [chromium] ΓÇ║ tests\e2e\book-shipment-redirect.spec.ts:7:5 ΓÇ║ Book Shipment Redirect Debug ΓÇ║ should open booking dialog and NOT redirect to login (19.5s)
+
+
+  1) [chromium] ΓÇ║ tests\e2e\book-shipment-redirect.spec.ts:7:5 ΓÇ║ Book Shipment Redirect Debug ΓÇ║ should open booking dialog and NOT redirect to login 
+
+    TimeoutError: page.waitForURL: Timeout 15000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "**/dashboard" until "load"
+    ============================================================
+
+      20 |         // 2. Wait for Dashboard
+      21 |         console.log('Waiting for dashboard...');
+    > 22 |         await page.waitForURL('**/dashboard', { timeout: 15000 });
+         |                    ^
+      23 |         await expect(page.locator('text=Dashboard')).toBeVisible();
+      24 |
+      25 |         // 3. Locate "Book Shipment" button
+        at C:\tac-portal\tests\e2e\book-shipment-redirect.spec.ts:22:20
+
+    attachment #1: screenshot (image/png) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    test-results\book-shipment-redirect-Boo-9b4ea-g-and-NOT-redirect-to-login-chromium\test-failed-1.png
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    Error Context: test-results\book-shipment-redirect-Boo-9b4ea-g-and-NOT-redirect-to-login-chromium\error-context.md
+
+  1 failed
+    [chromium] ΓÇ║ tests\e2e\book-shipment-redirect.spec.ts:7:5 ΓÇ║ Book Shipment Redirect Debug ΓÇ║ should open booking dialog and NOT redirect to login 
+  1 passed (28.3s)

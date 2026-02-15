@@ -14,8 +14,11 @@ ON CONFLICT (id) DO NOTHING;
 DROP POLICY IF EXISTS "Public can upload shipment docs" ON storage.objects;
 CREATE POLICY "Public can upload shipment docs" ON storage.objects
     FOR INSERT
-    TO public
-    WITH CHECK (bucket_id = 'shipment-docs');
+    TO anon
+    WITH CHECK (
+        bucket_id = 'shipment-docs'
+        AND (storage.foldername(name))[1] = 'public-bookings'
+    );
 
 -- Policy: Public/Anon can SELECT their own files? Or just rely on public URL?
 -- If bucket is public, they can GET by URL.

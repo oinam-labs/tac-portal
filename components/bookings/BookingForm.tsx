@@ -17,6 +17,9 @@ interface BookingFormProps {
     onCancel?: () => void;
 }
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILES = 5;
+
 export const BookingForm: React.FC<BookingFormProps> = ({ onSuccess, onCancel }) => {
     const [uploading, setUploading] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -44,7 +47,26 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onSuccess, onCancel })
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            setSelectedFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+            const newFiles = Array.from(e.target.files);
+
+            if (selectedFiles.length + newFiles.length > MAX_FILES) {
+                toast.error(`You can only upload up to ${MAX_FILES} images.`);
+                return;
+            }
+
+            const validFiles = newFiles.filter(file => {
+                if (file.size > MAX_FILE_SIZE) {
+                    toast.error(`File ${file.name} is too large (max 5MB).`);
+                    return false;
+                }
+                if (!file.type.startsWith('image/')) {
+                    toast.error(`File ${file.name} is not an image.`);
+                    return false;
+                }
+                return true;
+            });
+
+            setSelectedFiles(prev => [...prev, ...validFiles]);
         }
     };
 
@@ -61,12 +83,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onSuccess, onCancel })
             if (selectedFiles.length > 0) {
                 for (const file of selectedFiles) {
                     const fileExt = file.name.split('.').pop();
-                    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+                    const fileName = `public-bookings/${Math.random().toString(36).substring(2)}.${fileExt}`;
                     const filePath = `${fileName}`;
 
-                    // Public bucket or authorized? 'shipment-docs' might require auth.
-                    // For public booking, we might need a public accessible bucket for upload OR authenticated via anon key.
-                    // Assuming 'shipment-docs' allows anon insert given the new requirement.
                     const { error: uploadError } = await supabase.storage
                         .from('shipment-docs')
                         .upload(filePath, file);

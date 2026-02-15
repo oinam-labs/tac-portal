@@ -42,7 +42,7 @@ BEGIN
         CREATE POLICY "Public can create bookings"
             ON public.bookings FOR INSERT
             TO anon
-            WITH CHECK (true); -- Allow ANY insert from anon, validation happens at app/schema level. 
+            WITH CHECK (status = 'PENDING' AND user_id IS NULL); 
             -- Ideally we'd restrict status to PENDING here, but default handles it.
     END IF;
     

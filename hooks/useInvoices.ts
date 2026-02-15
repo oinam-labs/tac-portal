@@ -125,33 +125,40 @@ export function useCreateInvoice() {
       const { data, error } = await supabase
         .from('invoices')
         .insert({
-          invoice_no: `INV-${Date.now()}`, // Temporary generation matching schema requirement
-          org_id: orgId,
-          customer_id: invoice.customer_id,
-          shipment_id: invoice.shipment_id ?? null,
-          subtotal: invoice.subtotal,
-          tax_amount: invoice.tax_amount ?? 0, // DB column is tax_amount (number)
-          total: invoice.total, // DB column name
-          issue_date: invoice.issue_date ?? new Date().toISOString().split('T')[0],
-          due_date: invoice.due_date ?? null,
-          notes: invoice.notes ?? null,
-          line_items: invoice.line_items ?? null,
-          discount: invoice.discount ?? 0,
-          status: 'ISSUED',
-        })
-        .select()
-        .single();
+          // Generate invoice number
+          const { data: invoiceNo, error: invError } = await supabase.rpc('generate_invoice_number', { p_org_id: orgId });
+          if(invError) throw invError;
 
-      if (error) throw error;
-      return data as unknown as InvoiceWithRelations;
-    },
-    onSuccess: (data: InvoiceWithRelations) => {
-      queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
-      toast.success(`Invoice ${data.invoice_no} created successfully`);
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to create invoice: ${error.message}`);
-    },
+          const { data, error } = await supabase
+            .from('invoices')
+            .insert({
+              invoice_no: invoiceNo,
+              org_id: orgId,
+              customer_id: invoice.customer_id,
+              shipment_id: invoice.shipment_id ?? null,
+              subtotal: invoice.subtotal,
+              tax_amount: invoice.tax_amount ?? 0, // DB column is tax_amount (number)
+              total: invoice.total, // DB column name
+              issue_date: invoice.issue_date ?? new Date().toISOString().split('T')[0],
+              due_date: invoice.due_date ?? null,
+              notes: invoice.notes ?? null,
+              line_items: invoice.line_items ?? null,
+              discount: invoice.discount ?? 0,
+              status: 'ISSUED',
+            })
+            .select()
+            .single();
+
+          if(error) throw error;
+          return data as unknown as InvoiceWithRelations;
+        },
+          onSuccess: (data: InvoiceWithRelations) => {
+            queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
+            toast.success(`Invoice ${data.invoice_no} created successfully`);
+          },
+          onError: (error: Error) => {
+            toast.error(`Failed to create invoice: ${error.message}`);
+          },
   });
 }
 
