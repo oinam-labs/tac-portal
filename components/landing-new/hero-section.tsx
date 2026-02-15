@@ -63,7 +63,18 @@ export function HeroSection() {
 
       {/* 2. Hero Content */}
       <div className="relative z-20 text-center max-w-5xl px-6">
-        {/* ... existing text ... */}
+        <div ref={textRef} className="space-y-6 mb-12">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
+            Global Logistics{' '}
+            <span className="text-primary">
+              Redefined
+            </span>
+          </h1>
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+            Experience the future of freight forwarding with real-time tracking,
+            instant bookings, and seamless global connectivity.
+          </p>
+        </div>
 
         {/* CTAs */}
         <div ref={ctaRef} className="flex flex-col md:flex-row items-center justify-center gap-4 opacity-0">
