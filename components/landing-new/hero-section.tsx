@@ -64,7 +64,7 @@ export function HeroSection() {
       {/* 2. Hero Content */}
       <div className="relative z-20 text-center max-w-5xl px-6">
         <div ref={textRef} className="space-y-6 mb-12">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-gray-900 to-gray-600 dark:from-white dark:to-white/60">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-gray-900 to-gray-600 dark:from-white dark:to-white/60 py-2">
             Global Logistics{' '}
             <span className="text-primary">
               Redefined
