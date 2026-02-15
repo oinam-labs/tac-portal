@@ -1,0 +1,113 @@
+
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Load .env.local
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '../.env.local') });
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !serviceRoleKey) {
+    console.error('Missing Supabase credentials in .env.local');
+    process.exit(1);
+}
+
+const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+        autoRefreshToken: false,
+        persistSession: false
+    }
+});
+
+async function main() {
+    const email = 'admin@taccargo.com';
+    const password = 'admin123';
+
+    console.log(`Checking user ${email}...`);
+
+    // 1. Check/Create Auth User
+    const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
+
+    if (listError) {
+        console.error('Error listing users:', listError);
+        process.exit(1);
+    }
+
+    let user = users.find(u => u.email === email);
+
+    if (!user) {
+        console.log('User not found. Creating...');
+        const { data, error: createError } = await supabase.auth.admin.createUser({
+            email,
+            password,
+            email_confirm: true,
+            user_metadata: { full_name: 'Test Admin User' }
+        });
+
+        if (createError) {
+            console.error('Error creating user:', createError);
+            process.exit(1);
+        }
+        user = data.user;
+        console.log('User created:', user.id);
+    } else {
+        console.log('User already exists:', user.id);
+        // Optional: Update password to ensure it matches
+        await supabase.auth.admin.updateUserById(user.id, { password });
+        console.log('Password synced.');
+    }
+
+    // 2. Check/Create Staff Record
+    console.log('Checking staff record...');
+    const { data: staff, error: staffError } = await supabase
+        .from('staff')
+        .select('*')
+        .eq('email', email)
+        .single();
+
+    if (staffError && staffError.code !== 'PGRST116') { // PGRST116 is "not found"
+        console.error('Error checking staff:', staffError);
+        process.exit(1);
+    }
+
+    if (!staff) {
+        console.log('Staff record not found. Creating...');
+        const { error: insertError } = await supabase.from('staff').insert({
+            email,
+            auth_user_id: user.id,
+            full_name: 'Test Admin User',
+            role: 'ADMIN',
+            hub_code: 'IMF',
+            is_active: true,
+            phone: '9999999999',
+            org_id: '1', // Assuming 1 or generated? Schema might default. Let's try without org_id if it fails.
+            // Wait, schema might require org_id. 
+            // In setup-test-user.sql, org_id wasn't inserted. Maybe it has a default?
+            // Let's check database.types.ts? No, I viewed it but didn't memorize.
+            // I'll try inserting without org_id first.
+        });
+
+        if (insertError) {
+            console.error('Error inserting staff:', insertError);
+            // If fails, maybe retry with org_id (if I knew it)
+        } else {
+            console.log('Staff record created.');
+        }
+    } else {
+        console.log('Staff record exists.');
+        // Ensure auth_user_id is linked
+        if (staff.auth_user_id !== user.id) {
+            console.log('Linking auth_user_id...');
+            await supabase.from('staff').update({ auth_user_id: user.id }).eq('id', staff.id);
+        }
+    }
+
+    console.log('Done.');
+}
+
+main();

@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { RefreshCw } from 'lucide-react';
 import { QuickActions } from '../components/dashboard/QuickActions';
+
 import { RecentActivity } from '../components/dashboard/RecentActivity';
+import { RecentBookings } from '../components/dashboard/RecentBookings';
+
 
 import { ErrorBoundary, InlineError } from '../components/ui/error-boundary';
 import { useQueryClient } from '@tanstack/react-query';
@@ -113,12 +116,19 @@ export const Dashboard: React.FC = () => {
         <DashboardCharts />
       </ErrorBoundary>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Shipments */}
         <ErrorBoundary fallback={<InlineError message="Failed to load recent activity" />}>
           <RecentActivity />
         </ErrorBoundary>
+
+        {/* Recent Bookings */}
+        <ErrorBoundary fallback={<InlineError message="Failed to load recent bookings" />}>
+          <RecentBookings />
+        </ErrorBoundary>
       </div>
+
     </div>
   );
 };

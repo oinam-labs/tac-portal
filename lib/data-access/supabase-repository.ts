@@ -62,10 +62,10 @@ const mapShipment = (row: ShipmentRow): Shipment => {
     customerName: row.customer?.name || 'Unknown',
     originHub: (row.origin_hub?.code || 'IMPHAL') as HubLocation,
     destinationHub: (row.destination_hub?.code || 'NEW_DELHI') as HubLocation,
-    mode: (row.service_type || 'AIR') as Shipment['mode'],
-    serviceLevel: (row.service_type === 'EXPRESS' ? 'EXPRESS' : 'STANDARD') as Shipment['serviceLevel'], // Simplified mapping
+    mode: (row.mode || 'AIR') as Shipment['mode'],
+    serviceLevel: (row.service_level === 'EXPRESS' ? 'EXPRESS' : 'STANDARD') as Shipment['serviceLevel'], // Simplified mapping
     status: row.status as Shipment['status'],
-    totalPackageCount: row.total_packages || 1,
+    totalPackageCount: row.package_count || 1,
     totalWeight: {
       dead: row.total_weight || 0,
       volumetric: 0, // Not stored in main table currently
@@ -81,11 +81,11 @@ const mapShipment = (row: ShipmentRow): Shipment => {
     // 'shipments' table has 'manifest_id'. 'invoices' has 'shipment_id'.
     // So Shipment -> Invoice is 1:Many or 1:1 via Invoice table.
     // We'll leave invoiceId undefined for now as it requires reverse lookup
-    contentsDescription: row.contents || 'General Cargo',
-    paymentMode: (row.payment_mode || 'PAID') as any,
+    contentsDescription: row.special_instructions || 'General Cargo',
+    paymentMode: 'PAID' as any,
     consignor: {
-      name: row.sender_name,
-      phone: row.sender_phone,
+      name: row.sender_name || '',
+      phone: row.sender_phone || '',
       address: typeof senderAddress === 'string' ? senderAddress : senderAddress?.line1 || '',
       gstin: senderAddress?.gstin,
       city: senderAddress?.city,
@@ -237,9 +237,10 @@ class SupabaseShipmentRepository implements ShipmentRepository {
       destination_hub_id: destinationHubId,
       org_id: staff.org_id,
       status: 'CREATED',
-      service_type: data.serviceLevel,
-      payment_mode: data.paymentMode,
-      total_packages: data.totalPackageCount,
+      mode: data.mode,
+      service_level: data.serviceLevel,
+      // payment_mode: data.paymentMode, // Not in DB
+      package_count: data.totalPackageCount,
       total_weight: data.totalWeight.dead,
       declared_value: data.declaredValue,
       receiver_name: data.consignee?.name || 'Unknown',
@@ -260,7 +261,7 @@ class SupabaseShipmentRepository implements ShipmentRepository {
         zip: data.consignor?.zip,
         gstin: data.consignor?.gstin
       },
-      contents: data.contentsDescription
+      special_instructions: data.contentsDescription // Mapping contents to special_instructions
     };
 
     const { data: newShipment, error } = await supabase

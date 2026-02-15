@@ -697,8 +697,8 @@ export const manifestService = {
         shipment_id: shipment.id,
         awb_number: shipment.awb_number,
         receiver_name: shipment.receiver_name,
-        sender_name: shipment.sender_name,
-        total_packages: shipment.total_packages,
+        sender_name: shipment.sender_name || undefined,
+        total_packages: shipment.package_count,
         total_weight: shipment.total_weight,
         manifest_item_id: newItem.id,
       };

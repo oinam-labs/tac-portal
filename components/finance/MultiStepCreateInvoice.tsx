@@ -608,7 +608,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
     setIsGeneratingAwb(true);
     try {
       // Create a plain object without arguments to satisfy the "no args" overload
-      const { data: awb, error } = await supabase.rpc('generate_awb_number', {});
+      const { data: awb, error } = await supabase.rpc('generate_awb_number');
 
       if (error) throw error;
       if (awb) {

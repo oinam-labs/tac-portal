@@ -125,6 +125,7 @@ export function useCreateInvoice() {
       const { data, error } = await supabase
         .from('invoices')
         .insert({
+          invoice_no: `INV-${Date.now()}`, // Temporary generation matching schema requirement
           org_id: orgId,
           customer_id: invoice.customer_id,
           shipment_id: invoice.shipment_id ?? null,

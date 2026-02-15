@@ -202,6 +202,7 @@ export const useAuthStore = create<AuthState>()(
             } = supabase.auth.onAuthStateChange(async (event, newSession) => {
               try {
                 if (event === 'SIGNED_OUT' || !newSession) {
+                  console.warn('[AuthStore] onAuthStateChange: SIGNED_OUT or no session', { event });
                   orgService.clearCurrentOrg();
                   set({ session: null, user: null, isAuthenticated: false });
                   return;
@@ -340,6 +341,7 @@ export const useAuthStore = create<AuthState>()(
           });
 
           await supabase.auth.signOut();
+          console.warn('[AuthStore] Signed out by user action');
           orgService.clearCurrentOrg();
           set({
             session: null,

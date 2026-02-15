@@ -12,6 +12,8 @@ import { useGSAP, gsap } from '@/lib/gsap';
 import { MOTION_TOKENS } from '@/lib/animation-tokens';
 import { useStore } from '@/store';
 
+import { BookingDialog } from '@/components/bookings/BookingDialog';
+
 export function Navbar() {
   const { setTheme } = useStore();
   const [mounted, setMounted] = React.useState(false);
@@ -20,6 +22,7 @@ export function Navbar() {
   const [activeSection, setActiveSection] = React.useState<string>('');
   const navRef = React.useRef<HTMLElement>(null);
   const blurBgRef = React.useRef<HTMLDivElement>(null);
+  const [bookingDialogOpen, setBookingDialogOpen] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
@@ -196,12 +199,14 @@ export function Navbar() {
                 Login
               </Button>
             </Link>
-            <Link to="/login">
-              <Button className="relative overflow-hidden rounded-full px-6 font-semibold shadow-glow-primary transition-all duration-300 hover:scale-105 active:scale-95 group">
-                <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                <span className="relative z-10">Book Shipment</span>
-              </Button>
-            </Link>
+
+            <Button
+              onClick={() => setBookingDialogOpen(true)}
+              className="relative overflow-hidden rounded-full px-6 font-semibold shadow-glow-primary transition-all duration-300 hover:scale-105 active:scale-95 group"
+            >
+              <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              <span className="relative z-10">Book Shipment</span>
+            </Button>
           </div>
 
           {/* Mobile Menu */}
@@ -248,11 +253,16 @@ export function Navbar() {
                           Login
                         </Button>
                       </Link>
-                      <Link to="/login" className="block" onClick={() => setIsOpen(false)}>
-                        <Button className="w-full rounded-full h-12 text-base font-medium shadow-lg shadow-primary/20">
-                          Book Shipment
-                        </Button>
-                      </Link>
+
+                      <Button
+                        onClick={() => {
+                          setIsOpen(false);
+                          setBookingDialogOpen(true);
+                        }}
+                        className="w-full rounded-full h-12 text-base font-medium shadow-lg shadow-primary/20"
+                      >
+                        Book Shipment
+                      </Button>
                     </div>
                   </div>
                 </SheetContent>
@@ -261,6 +271,8 @@ export function Navbar() {
           </div>
         </div>
       </motion.nav>
+
+      <BookingDialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen} />
     </>
   );
 }

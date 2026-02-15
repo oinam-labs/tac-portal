@@ -39,9 +39,9 @@ export type ManifestStatus =
 export interface AvailableShipment {
   id: string;
   awb_number: string;
-  total_packages: number;
+  package_count: number;
   total_weight: number;
-  service_type: string;
+  service_level: string;
   created_at: string | null;
 }
 

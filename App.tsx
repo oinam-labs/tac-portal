@@ -353,6 +353,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: UserR
   }
 
   if (!isAuthenticated || !user) {
+    console.log('[ProtectedRoute] Redirecting to login. State:', { isAuthenticated, user, isLoading, from: location.pathname });
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -388,7 +389,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: UserR
         <div>
           <h1 className="text-4xl font-bold text-red-500 mb-2">403 Forbidden</h1>
           <p className="text-muted-foreground mb-4">
-            Your clearance level ({user.role}) is insufficient for this sector.
+            Your clearance level ({user?.role || 'GUEST'}) is insufficient for this sector.
           </p>
           <Link to="/dashboard" className="text-primary hover:underline">
             Return to Dashboard

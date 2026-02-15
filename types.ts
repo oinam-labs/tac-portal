@@ -379,6 +379,44 @@ export interface NoteFilters {
   limit?: number;
 }
 
+
+export interface Booking {
+  id: string;
+  user_id: string;
+  consignor_details: {
+    name: string;
+    phone: string;
+    email?: string;
+    address: string;
+    city: string;
+    state: string;
+    zip: string;
+    gstin?: string;
+  };
+  consignee_details: {
+    name: string;
+    phone: string;
+    email?: string;
+    address: string;
+    city: string;
+    state: string;
+    zip: string;
+    gstin?: string;
+  };
+  volume_matrix: Array<{
+    length: number;
+    width: number;
+    height: number;
+    weight: number;
+    count: number;
+  }>;
+  images: string[];
+  whatsapp_number?: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  created_at: string;
+  updated_at: string;
+}
+
 // ============================================================================
 // RE-EXPORT DOMAIN TYPES
 // Consolidated from types/domain.ts for single import path
@@ -409,5 +447,6 @@ export {
   parseAWB,
   formatAWB,
 } from './types/domain';
+
 
 

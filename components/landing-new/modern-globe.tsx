@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import gsap from 'gsap';
+import { gsap } from '@/lib/gsap';
 
 interface Point {
     x: number;

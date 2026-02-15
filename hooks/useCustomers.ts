@@ -121,7 +121,7 @@ export function useCreateCustomer() {
       };
 
       // Type assertion needed due to Supabase client type inference limitations
-      const { data, error } = await (supabase.from('customers') as ReturnType<typeof supabase.from>)
+      const { data, error } = await supabase.from('customers')
         .insert(insertData)
         .select()
         .single();
@@ -162,9 +162,7 @@ export function useUpdateCustomer() {
       }
 
       // Type assertion needed due to Supabase client type inference limitations
-      const { data: result, error } = await (
-        supabase.from('customers') as ReturnType<typeof supabase.from>
-      )
+      const { data: result, error } = await supabase.from('customers')
         .update(updateData)
         .eq('id', id)
         .select()
@@ -193,7 +191,7 @@ export function useDeleteCustomer() {
   return useMutation({
     mutationFn: async (id: string) => {
       // Type assertion needed due to Supabase client type inference limitations
-      const { error } = await (supabase.from('customers') as ReturnType<typeof supabase.from>)
+      const { error } = await supabase.from('customers')
         .update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
         .eq('id', id);
 

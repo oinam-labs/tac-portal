@@ -2,59 +2,66 @@
 
 import { cn } from '@/lib/utils';
 import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
+import { gsap } from '@/lib/gsap';
 
 export function DysonSphere({ className }: { className?: string }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const coreRef = useRef<HTMLDivElement>(null);
     const ringsGroupRef = useRef<HTMLDivElement>(null);
+    const satelliteGroupRef = useRef<HTMLDivElement>(null);
+    const kineticRingsRef = useRef<HTMLDivElement[]>([]);
 
     useEffect(() => {
         if (!containerRef.current) return;
 
         const ctx = gsap.context(() => {
             // 1. Core Breathing (Sine wave for organic feel)
-            gsap.to(coreRef.current, {
-                scale: 1.1,
-                opacity: 0.6,
-                duration: 3,
-                repeat: -1,
-                yoyo: true,
-                ease: 'sine.inOut',
-            });
+            if (coreRef.current) {
+                gsap.to(coreRef.current, {
+                    scale: 1.1,
+                    opacity: 0.6,
+                    duration: 3,
+                    repeat: -1,
+                    yoyo: true,
+                    ease: 'sine.inOut',
+                });
+            }
 
             // 2. Main Group Rotation (The "World" spinning)
-            gsap.to(ringsGroupRef.current, {
-                rotationY: 360,
-                duration: 120, // Very slow, steady rotation
-                repeat: -1,
-                ease: 'none',
-            });
+            if (ringsGroupRef.current) {
+                gsap.to(ringsGroupRef.current, {
+                    rotationY: 360,
+                    duration: 120, // Very slow, steady rotation
+                    repeat: -1,
+                    ease: 'none',
+                });
+            }
 
             // 3. Chaotic Ring Movement (Independent axes)
-            // Select all elements with class 'kinetic-ring'
-            const rings = gsap.utils.toArray<HTMLElement>('.kinetic-ring');
-            rings.forEach((ring, i) => {
-                // Give each ring a unique random rotation sequence
-                gsap.to(ring, {
-                    rotationX: `+=${360}`,
-                    rotationY: `+=${i % 2 === 0 ? 360 : -360}`,
-                    rotationZ: `+=${180}`,
-                    duration: 20 + i * 5, // Varying durations
-                    repeat: -1,
-                    ease: 'linear', // Continuous flow
-                    transformOrigin: "50% 50%"
-                });
+            kineticRingsRef.current.forEach((ring, i) => {
+                if (ring) {
+                    gsap.to(ring, {
+                        rotationX: `+=${360}`,
+                        rotationY: `+=${i % 2 === 0 ? 360 : -360}`,
+                        rotationZ: `+=${180}`,
+                        duration: 20 + i * 5, // Varying durations
+                        repeat: -1,
+                        ease: 'linear', // Continuous flow
+                        transformOrigin: "50% 50%"
+                    });
+                }
             });
 
             // 4. Satellite Orbit (Elliptical Motion)
-            gsap.to('.satellite-group', {
-                rotationZ: -360,
-                rotationX: 360,
-                duration: 40,
-                repeat: -1,
-                ease: 'none',
-            });
+            if (satelliteGroupRef.current) {
+                gsap.to(satelliteGroupRef.current, {
+                    rotationZ: -360,
+                    rotationX: 360,
+                    duration: 40,
+                    repeat: -1,
+                    ease: 'none',
+                });
+            }
 
         }, containerRef);
 
@@ -117,6 +124,9 @@ export function DysonSphere({ className }: { className?: string }) {
                 {[...Array(3)].map((_, i) => (
                     <div
                         key={`kinetic-${i}`}
+                        ref={el => {
+                            if (el) kineticRingsRef.current[i] = el;
+                        }}
                         className="kinetic-ring absolute inset-0 rounded-full border-[1px] border-foreground/15 border-dashed"
                         style={{
                             width: `${90 + i * 5}%`,
@@ -128,7 +138,7 @@ export function DysonSphere({ className }: { className?: string }) {
                 ))}
 
                 {/* --- SATELLITES --- */}
-                <div className="satellite-group absolute inset-0 transform-style-3d">
+                <div ref={satelliteGroupRef} className="satellite-group absolute inset-0 transform-style-3d">
                     <div className="absolute top-1/2 left-0 w-1.5 h-1.5 bg-primary/80 rounded-full shadow-[0_0_15px_currentColor]" />
                     <div className="absolute bottom-0 right-1/4 w-1 h-1 bg-foreground/60 rounded-full" />
                 </div>
