@@ -62,6 +62,8 @@ export function useShipments(options?: {
   page?: number;
   pageSize?: number;
   orgId?: string;
+  /** Filter shipments whose origin OR destination hub matches this hub ID */
+  hubId?: string;
 }) {
   const authOrgId = useAuthStore((s) => s.user?.orgId);
   const orgId = options?.orgId !== undefined ? options.orgId : authOrgId;
@@ -114,6 +116,10 @@ export function useShipments(options?: {
 
         if (options?.status) {
           query = query.eq('status', options.status);
+        }
+
+        if (options?.hubId) {
+          query = query.or(`origin_hub_id.eq.${options.hubId},destination_hub_id.eq.${options.hubId}`);
         }
 
         if (options?.limit) {

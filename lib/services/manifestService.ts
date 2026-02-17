@@ -371,108 +371,178 @@ export const manifestService = {
       .eq('id', manifestId);
   },
 
-  async close(manifestId: string): Promise<Manifest> {
+  async close(manifestId: string, staffId?: string): Promise<Manifest> {
     const orgId = orgService.getCurrentOrgId();
 
-    const { data, error } = await (supabase.from('manifests') as any)
-      .update({
-        status: 'CLOSED',
-        closed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', manifestId)
-      .eq('org_id', orgId)
-      .select()
-      .single();
+    // Use atomic RPC for data consistency
+    const { error } = await (supabase.rpc as any)('close_manifest_atomic', {
+      p_manifest_id: manifestId,
+      p_staff_id: staffId || null,
+      p_org_id: orgId,
+      p_notes: null,
+    });
 
-    if (error) throw mapSupabaseError(error);
-    return data as Manifest;
-  },
+    if (error) {
+      // Fallback to direct update if RPC not available
+      if (error.code === '42883' || error.message?.includes('does not exist')) {
+        const { data: fallbackData, error: fallbackError } = await (supabase.from('manifests') as any)
+          .update({
+            status: 'CLOSED',
+            closed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', manifestId)
+          .eq('org_id', orgId)
+          .select()
+          .single();
 
-  async depart(manifestId: string): Promise<Manifest> {
-    const orgId = orgService.getCurrentOrgId();
-
-    const { data, error } = await (supabase.from('manifests') as any)
-      .update({
-        status: 'DEPARTED',
-        departed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', manifestId)
-      .eq('org_id', orgId)
-      .select()
-      .single();
-
-    if (error) throw mapSupabaseError(error);
-
-    const manifestData = data as Manifest & { from_hub_id: string; manifest_no: string };
-
-    // Update all shipments to IN_TRANSIT
-    const items = await this.getItems(manifestId);
-    for (const item of items) {
-      await (supabase.from('shipments') as any)
-        .update({
-          status: 'IN_TRANSIT',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', item.shipment_id);
-
-      // Create tracking event
-      await (supabase.from('tracking_events') as any).insert({
-        org_id: orgId,
-        shipment_id: item.shipment_id,
-        awb_number: item.shipment?.awb_number ?? '',
-        event_code: 'DEPARTED',
-        hub_id: manifestData.from_hub_id,
-        source: 'SYSTEM',
-        meta: { manifest_no: manifestData.manifest_no },
-      });
+        if (fallbackError) throw mapSupabaseError(fallbackError);
+        return fallbackData as Manifest;
+      }
+      throw mapSupabaseError(error);
     }
 
-    return manifestData;
-  },
-
-  async arrive(manifestId: string): Promise<Manifest> {
-    const orgId = orgService.getCurrentOrgId();
-
-    const { data, error } = await (supabase.from('manifests') as any)
-      .update({
-        status: 'ARRIVED',
-        arrived_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
+    // Fetch the updated manifest
+    const { data: manifest, error: fetchError } = await supabase
+      .from('manifests')
+      .select('*')
       .eq('id', manifestId)
-      .eq('org_id', orgId)
-      .select()
       .single();
 
-    if (error) throw mapSupabaseError(error);
+    if (fetchError) throw mapSupabaseError(fetchError);
+    return manifest as Manifest;
+  },
 
-    const manifestData = data as Manifest & { to_hub_id: string; manifest_no: string };
+  async depart(manifestId: string, staffId?: string): Promise<Manifest> {
+    const orgId = orgService.getCurrentOrgId();
 
-    // Update all shipments to RECEIVED_AT_DEST
-    const items = await this.getItems(manifestId);
-    for (const item of items) {
-      await (supabase.from('shipments') as any)
-        .update({
-          status: 'RECEIVED_AT_DEST',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', item.shipment_id);
+    // Use atomic RPC for data consistency
+    const { error: rpcError } = await (supabase.rpc as any)('depart_manifest_atomic', {
+      p_manifest_id: manifestId,
+      p_staff_id: staffId || null,
+      p_org_id: orgId,
+    });
 
-      // Create tracking event
-      await (supabase.from('tracking_events') as any).insert({
-        org_id: orgId,
-        shipment_id: item.shipment_id,
-        awb_number: item.shipment?.awb_number ?? '',
-        event_code: 'ARRIVED',
-        hub_id: manifestData.to_hub_id,
-        source: 'SYSTEM',
-        meta: { manifest_no: manifestData.manifest_no },
-      });
+    if (rpcError) {
+      // Fallback to sequential updates if RPC not available
+      if (rpcError.code === '42883' || rpcError.message?.includes('does not exist')) {
+        const { data, error } = await (supabase.from('manifests') as any)
+          .update({
+            status: 'DEPARTED',
+            departed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', manifestId)
+          .eq('org_id', orgId)
+          .select()
+          .single();
+
+        if (error) throw mapSupabaseError(error);
+
+        const manifestData = data as Manifest & { from_hub_id: string; manifest_no: string };
+
+        // Update all shipments to IN_TRANSIT
+        const items = await this.getItems(manifestId);
+        for (const item of items) {
+          await (supabase.from('shipments') as any)
+            .update({
+              status: 'IN_TRANSIT',
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', item.shipment_id);
+
+          // Create tracking event
+          await (supabase.from('tracking_events') as any).insert({
+            org_id: orgId,
+            shipment_id: item.shipment_id,
+            awb_number: item.shipment?.awb_number ?? '',
+            event_code: 'DEPARTED',
+            hub_id: manifestData.from_hub_id,
+            source: 'SYSTEM',
+            meta: { manifest_no: manifestData.manifest_no },
+          });
+        }
+
+        return manifestData;
+      }
+      throw mapSupabaseError(rpcError);
     }
 
-    return manifestData;
+    // Fetch the updated manifest
+    const { data: manifest, error: fetchError } = await supabase
+      .from('manifests')
+      .select('*')
+      .eq('id', manifestId)
+      .single();
+
+    if (fetchError) throw mapSupabaseError(fetchError);
+    return manifest as Manifest;
+  },
+
+  async arrive(manifestId: string, staffId?: string): Promise<Manifest> {
+    const orgId = orgService.getCurrentOrgId();
+
+    // Use atomic RPC for data consistency
+    const { error: rpcError } = await (supabase.rpc as any)('arrive_manifest_atomic', {
+      p_manifest_id: manifestId,
+      p_staff_id: staffId || null,
+      p_org_id: orgId,
+    });
+
+    if (rpcError) {
+      // Fallback to sequential updates if RPC not available
+      if (rpcError.code === '42883' || rpcError.message?.includes('does not exist')) {
+        const { data, error } = await (supabase.from('manifests') as any)
+          .update({
+            status: 'ARRIVED',
+            arrived_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', manifestId)
+          .eq('org_id', orgId)
+          .select()
+          .single();
+
+        if (error) throw mapSupabaseError(error);
+
+        const manifestData = data as Manifest & { to_hub_id: string; manifest_no: string };
+
+        // Update all shipments to RECEIVED_AT_DEST
+        const items = await this.getItems(manifestId);
+        for (const item of items) {
+          await (supabase.from('shipments') as any)
+            .update({
+              status: 'RECEIVED_AT_DEST',
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', item.shipment_id);
+
+          // Create tracking event
+          await (supabase.from('tracking_events') as any).insert({
+            org_id: orgId,
+            shipment_id: item.shipment_id,
+            awb_number: item.shipment?.awb_number ?? '',
+            event_code: 'ARRIVED',
+            hub_id: manifestData.to_hub_id,
+            source: 'SYSTEM',
+            meta: { manifest_no: manifestData.manifest_no },
+          });
+        }
+
+        return manifestData;
+      }
+      throw mapSupabaseError(rpcError);
+    }
+
+    // Fetch the updated manifest
+    const { data: manifest, error: fetchError } = await supabase
+      .from('manifests')
+      .select('*')
+      .eq('id', manifestId)
+      .single();
+
+    if (fetchError) throw mapSupabaseError(fetchError);
+    return manifest as Manifest;
   },
 
   async delete(id: string): Promise<void> {
@@ -544,7 +614,7 @@ export const manifestService = {
 
   /**
    * Fallback scan implementation (app-level) for when RPC not available
-   * Still provides idempotency via unique constraint
+   * Uses INSERT ON CONFLICT for race condition safety
    */
   async addShipmentByScanFallback(
     manifestId: string,
@@ -600,44 +670,6 @@ export const manifestService = {
         };
       }
 
-      // Check if already in this manifest (idempotency)
-      const { data: existing } = await supabase
-        .from('manifest_items')
-        .select('id')
-        .eq('manifest_id', manifestId)
-        .eq('shipment_id', shipment.id)
-        .maybeSingle();
-
-      if (existing) {
-        return {
-          success: true,
-          duplicate: true,
-          message: 'Shipment already in manifest',
-          shipment_id: shipment.id,
-          awb_number: shipment.awb_number,
-          manifest_item_id: existing.id,
-        };
-      }
-
-      // Check if in another open manifest
-      const { data: otherManifest } = await supabase
-        .from('manifest_items')
-        .select('manifest_id, manifests!inner(status)')
-        .eq('shipment_id', shipment.id)
-        .in('manifests.status', ['OPEN', 'DRAFT', 'BUILDING'])
-        .neq('manifest_id', manifestId)
-        .maybeSingle();
-
-      if (otherManifest) {
-        return {
-          success: false,
-          error: 'ALREADY_IN_MANIFEST',
-          message: 'Shipment is already in another open manifest',
-          shipment_id: shipment.id,
-          awb_number: shipment.awb_number,
-        };
-      }
-
       // Validate destination
       if (validateDestination && shipment.destination_hub_id !== manifest.to_hub_id) {
         const shipDestCode = (shipment as any).destination_hub?.code || 'UNKNOWN';
@@ -664,7 +696,8 @@ export const manifestService = {
         };
       }
 
-      // Insert manifest item
+      // Use UPSERT pattern for race condition safety
+      // On conflict (duplicate), return success with duplicate flag
       const { data: newItem, error: insertError } = await (supabase.from('manifest_items') as any)
         .insert({
           org_id: orgId,
@@ -673,21 +706,33 @@ export const manifestService = {
           scanned_by_staff_id: staffId || null,
           scanned_at: new Date().toISOString(),
         })
+        .onConflict('manifest_id,shipment_id')  // Unique constraint
         .select()
-        .single();
+        .maybeSingle();
 
       if (insertError) {
-        // Unique constraint violation = duplicate (race condition)
+        // Unique constraint violation = duplicate (race condition handled by DB)
         if (insertError.code === '23505') {
           return {
             success: true,
             duplicate: true,
-            message: 'Shipment already in manifest (concurrent)',
+            message: 'Shipment already in manifest',
             shipment_id: shipment.id,
             awb_number: shipment.awb_number,
           };
         }
         throw mapSupabaseError(insertError);
+      }
+
+      // If no data returned, it was a conflict (upsert returned nothing)
+      if (!newItem) {
+        return {
+          success: true,
+          duplicate: true,
+          message: 'Shipment already in manifest',
+          shipment_id: shipment.id,
+          awb_number: shipment.awb_number,
+        };
       }
 
       return {

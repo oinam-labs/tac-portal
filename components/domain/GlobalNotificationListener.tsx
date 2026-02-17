@@ -69,13 +69,11 @@ export const GlobalNotificationListener = () => {
             )
             .subscribe((status) => {
                 if (status === 'SUBSCRIBED') {
-                    console.log('[Realtime] Subscribed to global notifications');
+                    console.debug('[Realtime] Subscribed to global notifications');
                 } else if (status === 'CHANNEL_ERROR') {
-                    console.error('[Realtime] Failed to subscribe to global notifications');
-                } else if (status === 'TIMED_OUT') {
-                    console.error('[Realtime] Subscription timed out');
+                    console.warn('[Realtime] Failed to subscribe to global notifications');
                 } else {
-                    console.log(`[Realtime] Status: ${status}`);
+                    console.debug(`[Realtime] Status: ${status}`);
                 }
             });
 

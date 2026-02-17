@@ -6,7 +6,7 @@
 
 import React from 'react';
 import * as Sentry from '@sentry/react';
-import { Button } from '../ui/CyberComponents';
+import { Button } from '../ui/button';
 import { AlertTriangle, Bug, MessageSquare, Activity } from 'lucide-react';
 import { captureException, captureMessage, startSpan } from '@/lib/sentry';
 
@@ -111,7 +111,7 @@ export const SentryTestButton: React.FC = () => {
     <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 p-4 bg-card border border-primary/30 rounded-lg shadow-xl max-w-xs">
       <div className="flex items-center gap-2 mb-2">
         <AlertTriangle className="w-5 h-5 text-status-warning" />
-        <span className="text-sm font-bold text-white">Sentry Test Controls</span>
+        <span className="text-sm font-bold text-foreground">Sentry Test Controls</span>
       </div>
 
       <p className="text-xs text-muted-foreground mb-2">

@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
 import { useManifestBuilder } from '@/hooks/useManifestBuilder';
 import { useStaff } from '@/hooks/useStaff';
+import { useScanContext } from '@/context/ScanContext';
 import type { CreateManifestParams, ManifestStatus } from '@/lib/services/manifestService';
 import type { HubOption, ManifestBuilderPhase, ManifestRules } from './manifest-builder.types';
 import { ManifestSettingsForm } from './ManifestSettingsForm';
@@ -53,6 +54,7 @@ export function ManifestBuilder({
   initialManifestId,
 }: ManifestBuilderProps) {
   const navigate = useNavigate();
+  const { setActiveContext } = useScanContext();
   const [phase, setPhase] = React.useState<ManifestBuilderPhase>(
     initialManifestId ? 'build' : 'settings'
   );
@@ -77,6 +79,16 @@ export function ManifestBuilder({
       setPhase('build');
     },
   });
+
+  // Register as active scan context when dialog is open (prevents global navigation)
+  React.useEffect(() => {
+    if (open) {
+      setActiveContext('MANIFEST_BUILDER');
+    } else {
+      setActiveContext('GLOBAL');
+    }
+    return () => setActiveContext('GLOBAL');
+  }, [open, setActiveContext]);
 
   React.useEffect(() => {
     if (!open) {

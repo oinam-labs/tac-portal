@@ -36,10 +36,10 @@ function calculateGST(subtotal: number, gstRate: number): number {
 
 /**
  * Validate AWB number format
- * Format: TAC followed by 8 digits
+ * Format: TAC followed by 8-11 digits
  */
 function validateAWB(awb: string): boolean {
-  return /^TAC\d{8}$/.test(awb);
+  return /^TAC\d{8,11}$/i.test(awb);
 }
 
 /**
@@ -128,12 +128,12 @@ describe('validateAWB', () => {
     expect(validateAWB('TAC99999999')).toBe(true);
   });
 
-  it('rejects lowercase prefix', () => {
-    expect(validateAWB('tac12345678')).toBe(false);
+  it('accepts lowercase prefix (case-insensitive)', () => {
+    expect(validateAWB('tac12345678')).toBe(true);
   });
 
-  it('rejects mixed case prefix', () => {
-    expect(validateAWB('Tac12345678')).toBe(false);
+  it('accepts mixed case prefix (case-insensitive)', () => {
+    expect(validateAWB('Tac12345678')).toBe(true);
   });
 
   it('rejects wrong prefix', () => {
@@ -144,8 +144,14 @@ describe('validateAWB', () => {
     expect(validateAWB('TAC1234567')).toBe(false);
   });
 
-  it('rejects too many digits', () => {
-    expect(validateAWB('TAC123456789')).toBe(false);
+  it('accepts 9-11 digit AWBs', () => {
+    expect(validateAWB('TAC123456789')).toBe(true); // 9 digits
+    expect(validateAWB('TAC1234567890')).toBe(true); // 10 digits
+    expect(validateAWB('TAC12345678901')).toBe(true); // 11 digits
+  });
+
+  it('rejects too many digits (> 11)', () => {
+    expect(validateAWB('TAC123456789012')).toBe(false); // 12 digits
   });
 
   it('rejects letters in digit portion', () => {

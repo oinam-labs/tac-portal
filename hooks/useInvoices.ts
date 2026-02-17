@@ -99,6 +99,45 @@ export function useInvoice(id: string | null) {
   });
 }
 
+/**
+ * Query invoice by shipment AWB number.
+ * Used when navigating from scanned shipment to invoice page.
+ */
+export function useInvoiceByAWB(awb: string | null) {
+  return useQuery({
+    queryKey: ['invoice', 'awb', awb],
+    queryFn: async () => {
+      // First get the shipment ID from AWB
+      const { data: shipment, error: shipmentError } = await supabase
+        .from('shipments')
+        .select('id')
+        .eq('awb_number', awb!)
+        .maybeSingle();
+
+      if (shipmentError) throw shipmentError;
+      if (!shipment) return null;
+
+      // Then get the invoice for that shipment
+      const { data, error } = await supabase
+        .from('invoices')
+        .select(
+          `
+          *,
+          customer:customers(name, phone, email),
+          shipment:shipments(awb_number)
+        `
+        )
+        .eq('shipment_id', shipment.id)
+        .is('deleted_at', null)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data as unknown as InvoiceWithRelations | null;
+    },
+    enabled: !!awb,
+  });
+}
+
 interface CreateInvoiceInput {
   customer_id: string;
   shipment_id?: string;

@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import bwipjs from 'bwip-js';
+import React, { useMemo } from 'react';
+import { UniversalBarcode } from '@/components/barcodes';
 import './shipping-label.css';
 
 // Interface for the view model expected by this component
@@ -27,54 +27,6 @@ export interface ShippingLabelData {
   brand: string;
 }
 
-function Code128Svg({ value }: { value: string }) {
-  const svgRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!svgRef.current) return;
-
-    try {
-      // Clear previous content safely
-      while (svgRef.current.firstChild) {
-        svgRef.current.removeChild(svgRef.current.firstChild);
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const svgString = (bwipjs as any).toSVG({
-        bcid: 'code128',
-        text: value,
-        scale: 2, // controls density
-        height: 10, // mm-ish feel; tweak if needed
-        includetext: false,
-        textxalign: 'center',
-        backgroundcolor: 'FFFFFF',
-      });
-
-      // Security: Parse SVG safely using DOMParser instead of innerHTML
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(svgString, 'image/svg+xml');
-      const svgElement = doc.documentElement;
-
-      // Verify it's actually an SVG element before inserting
-      if (svgElement && svgElement.tagName.toLowerCase() === 'svg') {
-        svgRef.current.appendChild(document.importNode(svgElement, true));
-      }
-    } catch (e) {
-      console.error(e);
-      if (svgRef.current) {
-        // Use textContent for error message to prevent XSS
-        const errorDiv = document.createElement('div');
-        errorDiv.style.fontSize = '12px';
-        errorDiv.style.color = '#b00';
-        errorDiv.textContent = 'Barcode error';
-        svgRef.current.appendChild(errorDiv);
-      }
-    }
-  }, [value]);
-
-  return <div className="barcodeSvg" ref={svgRef} aria-label="Code128 barcode" />;
-}
-
 export const ShippingLabel: React.FC<{ shipment: ShippingLabelData }> = ({ shipment }) => {
   const shipToBlock = useMemo(() => shipment.shipToLines || [], [shipment.shipToLines]);
 
@@ -86,7 +38,13 @@ export const ShippingLabel: React.FC<{ shipment: ShippingLabelData }> = ({ shipm
           <div className="cell">
             <div className="kicker">{shipment.serviceName}</div>
 
-            <Code128Svg value={shipment.tracking} />
+            <UniversalBarcode 
+              value={shipment.tracking}
+              mode="print"
+              displayValue={false}
+              width={2}
+              height={50}
+            />
 
             <div className="mid mono">{shipment.tracking}</div>
           </div>

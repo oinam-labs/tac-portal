@@ -2,7 +2,9 @@
 
 import React from 'react';
 import { Exception } from '@/types';
-import { Button, Card, Badge } from '@/components/ui/CyberComponents';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { NotesPanel } from '@/components/domain/NotesPanel';
 import { StatusBadge } from '@/components/domain/StatusBadge';
 import { X, AlertTriangle, Package, Calendar, User, CheckCircle, Clock } from 'lucide-react';

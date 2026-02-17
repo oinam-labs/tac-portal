@@ -2,9 +2,9 @@
 
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { TrackingDialog } from './tracking-dialog';
-import { ModernGlobe } from './modern-globe';
-import { HeroOverlays } from './hero-overlays';
+import { TrackingDialog } from './components/landing-new/tracking-dialog';
+import { ModernGlobe } from './components/landing-new/modern-globe';
+import { HeroOverlays } from './components/landing-new/hero-overlays';
 import { LightRays } from '@/components/ui/light-rays';
 import { Button } from '@/components/ui/button';
 import { useEffect, useRef } from 'react';

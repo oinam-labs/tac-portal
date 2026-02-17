@@ -1,22 +1,18 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Menu, Search, ScanBarcode } from 'lucide-react';
 import { useStore } from '@/store';
 import { Input } from '@/components/ui/input';
 import { AnimatedThemeToggler } from '../ui/animated-theme-toggler';
 import { NotificationBell } from '../domain/NotificationBell';
 import { useScanner } from '@/context/useScanner';
-import { toast } from 'sonner';
 
 export const Header: React.FC = () => {
   const { toggleSidebar, setMobileSidebarOpen, mobileSidebarOpen, setTheme } = useStore();
-  const { scan, subscribe } = useScanner();
+  const { scan } = useScanner();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const handleMenuClick = () => {
-    // On mobile (< lg breakpoint), toggle mobile sidebar overlay
-    // On desktop, collapse/expand sidebar
     if (window.innerWidth < 1024) {
       setMobileSidebarOpen(!mobileSidebarOpen);
     } else {
@@ -24,61 +20,27 @@ export const Header: React.FC = () => {
     }
   };
 
-  const processScanResult = React.useCallback(
-    (result: string) => {
-      // Ignore global scans if we are on the dedicated scanning page
-      if (location.pathname.startsWith('/scanning')) {
-        console.log('[Header] Ignoring scan on scanning page');
+  const handleManualScan = async () => {
+    try {
+      const result = await scan();
+      const cleanResult = result.trim().toUpperCase();
+      if (!cleanResult) return;
+
+      // Route to invoice page for shipment barcodes (TAC...)
+      if (cleanResult.startsWith('TAC')) {
+        navigate(`/finance?awb=${encodeURIComponent(cleanResult)}`);
         return;
       }
 
-      let cleanResult = result.trim();
-
-      // If it's a URL, try to extract the last segment or query param
-      if (cleanResult.startsWith('http')) {
-        try {
-          const url = new URL(cleanResult);
-          // Check for 'id' param first
-          const idParam = url.searchParams.get('id');
-          if (idParam) {
-            cleanResult = idParam;
-          } else {
-            // Fallback to last path segment
-            const pathSegments = url.pathname.split('/').filter(Boolean);
-            if (pathSegments.length > 0) {
-              cleanResult = pathSegments[pathSegments.length - 1];
-            }
-          }
-        } catch (e) {
-          console.warn('Failed to parse scanned URL:', e);
-        }
+      // Route to manifests page for manifest barcodes (MAN...)
+      if (cleanResult.startsWith('MAN')) {
+        navigate(`/manifests?search=${encodeURIComponent(cleanResult)}`);
+        return;
       }
 
-      toast.success(`Scanned: ${cleanResult}`);
-
-      // Navigate to global search with auto-redirect enabled
-      if (cleanResult) {
-        navigate(`/search?q=${encodeURIComponent(cleanResult)}&auto=true`);
-      }
-    },
-    [navigate, location]
-  );
-
-  // Subscribe to global scanner events (always-on scanning)
-  React.useEffect(() => {
-    const unsubscribe = subscribe((data, source) => {
-      console.log('[Header] Global scan received:', data, source);
-      processScanResult(data);
-    });
-    return unsubscribe;
-  }, [subscribe, processScanResult]);
-
-  const handleGlobalScan = async () => {
-    try {
-      const result = await scan();
-      processScanResult(result);
+      // Unknown format → general search
+      navigate(`/search?q=${encodeURIComponent(cleanResult)}`);
     } catch (e) {
-      // User cancelled
       console.debug('Scan cancelled');
     }
   };
@@ -96,6 +58,7 @@ export const Header: React.FC = () => {
         <div className="hidden md:flex items-center relative w-64">
           <Search className="w-4 h-4 absolute left-3 text-muted-foreground" />
           <Input
+            aria-label="Search shipments, invoices"
             placeholder="Search shipments, invoices..."
             className="pl-9 py-1.5 text-sm bg-background border-input focus:ring-2 focus:ring-ring focus:border-input transition-all"
             onKeyDown={(e) => {
@@ -112,7 +75,7 @@ export const Header: React.FC = () => {
 
       <div className="flex items-center gap-2 md:gap-4">
         <button
-          onClick={handleGlobalScan}
+          onClick={handleManualScan}
           className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
           aria-label="Scan QR/Barcode"
           title="Scan QR/Barcode"

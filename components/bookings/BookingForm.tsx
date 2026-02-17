@@ -171,11 +171,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onSuccess, onCancel })
         <CardContent>
           <div className="space-y-1">
             <Label>
-              WhatsApp Number <span className="text-red-500">*</span>
+              WhatsApp Number <span className="text-destructive">*</span>
             </Label>
             <Input {...register('whatsappNumber')} placeholder="e.g. +91 9876543210" />
             {errors.whatsappNumber && (
-              <p className="text-xs text-red-500">{errors.whatsappNumber.message}</p>
+              <p className="text-xs text-destructive">{errors.whatsappNumber.message}</p>
             )}
             <p className="text-xs text-muted-foreground">
               We will contact you on this number for shipment updates.
@@ -195,21 +195,21 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onSuccess, onCancel })
               <Label>Name</Label>
               <Input {...register('consignor.name')} placeholder="Sender Name" />
               {errors.consignor?.name && (
-                <p className="text-xs text-red-500">{errors.consignor.name.message}</p>
+                <p className="text-xs text-destructive">{errors.consignor.name.message}</p>
               )}
             </div>
             <div className="space-y-1">
               <Label>Phone</Label>
               <Input {...register('consignor.phone')} placeholder="Sender Phone" />
               {errors.consignor?.phone && (
-                <p className="text-xs text-red-500">{errors.consignor.phone.message}</p>
+                <p className="text-xs text-destructive">{errors.consignor.phone.message}</p>
               )}
             </div>
             <div className="space-y-1">
               <Label>Address</Label>
               <Input {...register('consignor.address')} placeholder="Address Line 1" />
               {errors.consignor?.address && (
-                <p className="text-xs text-red-500">{errors.consignor.address.message}</p>
+                <p className="text-xs text-destructive">{errors.consignor.address.message}</p>
               )}
             </div>
             <div className="grid grid-cols-3 gap-3">
@@ -239,21 +239,21 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onSuccess, onCancel })
               <Label>Name</Label>
               <Input {...register('consignee.name')} placeholder="Receiver Name" />
               {errors.consignee?.name && (
-                <p className="text-xs text-red-500">{errors.consignee.name.message}</p>
+                <p className="text-xs text-destructive">{errors.consignee.name.message}</p>
               )}
             </div>
             <div className="space-y-1">
               <Label>Phone</Label>
               <Input {...register('consignee.phone')} placeholder="Receiver Phone" />
               {errors.consignee?.phone && (
-                <p className="text-xs text-red-500">{errors.consignee.phone.message}</p>
+                <p className="text-xs text-destructive">{errors.consignee.phone.message}</p>
               )}
             </div>
             <div className="space-y-1">
               <Label>Address</Label>
               <Input {...register('consignee.address')} placeholder="Address Line 1" />
               {errors.consignee?.address && (
-                <p className="text-xs text-red-500">{errors.consignee.address.message}</p>
+                <p className="text-xs text-destructive">{errors.consignee.address.message}</p>
               )}
             </div>
             <div className="grid grid-cols-3 gap-3">
@@ -319,12 +319,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onSuccess, onCancel })
                 onClick={() => remove(index)}
                 disabled={fields.length === 1}
               >
-                <Trash2 className="w-4 h-4 text-red-500" />
+                <Trash2 className="w-4 h-4 text-destructive" />
               </Button>
             </div>
           ))}
           {errors.volumeMatrix && (
-            <p className="text-xs text-red-500">{errors.volumeMatrix.message}</p>
+            <p className="text-xs text-destructive">{errors.volumeMatrix.message}</p>
           )}
         </CardContent>
       </Card>

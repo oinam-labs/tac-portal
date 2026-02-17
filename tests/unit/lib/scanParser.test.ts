@@ -32,9 +32,18 @@ describe('scanParser', () => {
         expect(() => parseScanInput('ABC12345678')).toThrow();
       });
 
-      it('should reject AWB with wrong digit count', () => {
+      it('should reject AWB with too few digits (< 8)', () => {
         expect(() => parseScanInput('TAC1234567')).toThrow(); // 7 digits
-        expect(() => parseScanInput('TAC123456789')).toThrow(); // 9 digits
+      });
+
+      it('should reject AWB with too many digits (> 11)', () => {
+        expect(() => parseScanInput('TAC123456789012')).toThrow(); // 12 digits
+      });
+
+      it('should accept AWB with 9-11 digits', () => {
+        expect(parseScanInput('TAC123456789').type).toBe('shipment'); // 9 digits
+        expect(parseScanInput('TAC1234567890').type).toBe('shipment'); // 10 digits
+        expect(parseScanInput('TAC12345678901').type).toBe('shipment'); // 11 digits
       });
     });
 
@@ -182,9 +191,18 @@ describe('scanParser', () => {
       expect(isValidAWB('ABC12345678')).toBe(false);
     });
 
-    it('should return false for wrong length', () => {
-      expect(isValidAWB('TAC1234567')).toBe(false);
-      expect(isValidAWB('TAC123456789')).toBe(false);
+    it('should return false for too few digits (< 8)', () => {
+      expect(isValidAWB('TAC1234567')).toBe(false); // 7 digits
+    });
+
+    it('should return false for too many digits (> 11)', () => {
+      expect(isValidAWB('TAC123456789012')).toBe(false); // 12 digits
+    });
+
+    it('should return true for 9-11 digit AWBs', () => {
+      expect(isValidAWB('TAC123456789')).toBe(true); // 9 digits
+      expect(isValidAWB('TAC1234567890')).toBe(true); // 10 digits
+      expect(isValidAWB('TAC12345678901')).toBe(true); // 11 digits
     });
 
     it('should return false for non-numeric suffix', () => {

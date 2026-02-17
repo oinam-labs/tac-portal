@@ -6,7 +6,7 @@ import { z } from 'zod';
  */
 
 // AWB pattern validation
-export const AWB_PATTERN = /^TAC\d{8}$/;
+export const AWB_PATTERN = /^TAC\d{8,11}$/i;
 
 // Shipment status enum
 export const ShipmentStatus = z.enum([
@@ -48,7 +48,7 @@ export const createShipmentSchema = z
   .object({
     awb_number: z
       .string()
-      .regex(AWB_PATTERN, 'AWB must match format TAC + 8 digits (e.g., TAC12345678)'),
+      .regex(AWB_PATTERN, 'AWB must match format TAC + 8-11 digits (e.g., TAC12345678)'),
 
     // Sender details
     sender_name: z.string().min(2, 'Sender name required'),

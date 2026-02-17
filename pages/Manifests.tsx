@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- Data mapping between Supabase and UI types */
 import React, { useState, useMemo, useCallback } from 'react';
-import { Card, Button } from '../components/ui/CyberComponents';
+import { Card } from '../components/ui/card';
+import { Button } from '../components/ui/button';
 import { DataTable } from '../components/ui/data-table';
 import { StatusBadge } from '../components/domain/StatusBadge';
 import { KPICard } from '../components/domain/KPICard';

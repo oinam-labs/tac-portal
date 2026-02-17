@@ -1,6 +1,8 @@
 import React, { useRef } from 'react';
 import { useManifest, useManifestItems, useUpdateManifestStatus } from '../../hooks/useManifests';
-import { Button, Card, Table, Th, Td } from '../ui/CyberComponents';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
+import { Table, TableHead as Th, TableCell as Td } from '../ui/table';
 import { ArrowLeft, Printer, Truck, Plane, Package } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Manifest } from '../../types';

@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Save, Lock, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useScanContext } from '@/context/ScanContext';
 
 import {
   Dialog,
@@ -80,6 +81,7 @@ export function ManifestBuilderWizard({
   initialManifestId,
 }: ManifestBuilderWizardProps) {
   const navigate = useNavigate();
+  const { setActiveContext } = useScanContext();
   const isMountedRef = React.useRef(true);
   const [currentStep, setCurrentStep] = React.useState(1);
   const [showCloseConfirm, setShowCloseConfirm] = React.useState(false);
@@ -95,6 +97,22 @@ export function ManifestBuilderWizard({
       isMountedRef.current = false;
     };
   }, []);
+
+  // Register as active scan context when modal is open
+  React.useEffect(() => {
+    if (open) {
+      console.log('[ManifestBuilder] Registering as active scan context');
+      setActiveContext('MANIFEST_BUILDER');
+    } else {
+      console.log('[ManifestBuilder] Releasing scan context');
+      setActiveContext('GLOBAL');
+    }
+
+    return () => {
+      // Cleanup: Always restore global context on unmount
+      setActiveContext('GLOBAL');
+    };
+  }, [open, setActiveContext]);
 
   // Utility to close any open Select/Popover portals by blurring active element
   const closeNestedPortals = React.useCallback(() => {

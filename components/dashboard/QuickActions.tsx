@@ -1,13 +1,39 @@
 import React, { useState } from 'react';
-
 import { Button } from '@/components/ui/button';
-import { Plus, Scan, Printer, FileText } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
+import { Plus, Scan, Printer, FileText, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BookingDialog } from '@/components/bookings/BookingDialog';
+import { UniversalBarcode } from '@/components/barcodes';
+import { useScanner } from '@/context/useScanner';
+import { ScanSource } from '@/types';
 
 export const QuickActions: React.FC = () => {
   const navigate = useNavigate();
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [quickScanInput, setQuickScanInput] = useState('');
+  const [recentScans, setRecentScans] = useState<string[]>([]);
+  const { subscribe } = useScanner();
+
+  // Subscribe to scanner events for DISPLAY ONLY (recent scans list)
+  // Navigation is handled exclusively by GlobalScanListener
+  React.useEffect(() => {
+    const unsubscribe = subscribe((data, source) => {
+      if (source === ScanSource.BARCODE_SCANNER) {
+        setRecentScans((prev) => [data, ...prev.slice(0, 2)]);
+      }
+    });
+    return unsubscribe;
+  }, [subscribe]);
+
+  const handleQuickScan = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (quickScanInput.trim()) {
+      navigate(`/shipments?search=${quickScanInput.trim()}`);
+      setQuickScanInput('');
+    }
+  };
 
   const actions = [
     {
@@ -98,6 +124,59 @@ export const QuickActions: React.FC = () => {
             </Button>
           ))}
         </div>
+      </div>
+
+      {/* Quick Scan Section */}
+      <div className="mt-6">
+        <Card className="p-4">
+          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <Scan className="w-4 h-4" />
+            Quick Scan
+          </h3>
+          
+          <form onSubmit={handleQuickScan} className="flex gap-2 mb-4">
+            <Input
+              value={quickScanInput}
+              onChange={(e) => setQuickScanInput(e.target.value)}
+              placeholder="Scan or type AWB..."
+              className="flex-1"
+              autoComplete="off"
+            />
+            <Button type="submit" size="sm" disabled={!quickScanInput.trim()}>
+              <Search className="w-4 h-4 mr-1" />
+              Search
+            </Button>
+          </form>
+
+          {/* Recent Scans */}
+          {recentScans.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">Recent Scans:</p>
+              <div className="grid gap-2">
+                {recentScans.map((awb, index) => (
+                  <div
+                    key={`${awb}-${index}`}
+                    className="flex items-center justify-between p-2 rounded border hover:bg-accent cursor-pointer transition-colors"
+                    onClick={() => navigate(`/shipments?search=${awb}`)}
+                  >
+                    <div className="flex items-center gap-2 flex-1">
+                      <span className="text-xs font-mono font-semibold">{awb}</span>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <UniversalBarcode 
+                        value={awb}
+                        mode="compact"
+                        width={3}
+                        height={40}
+                        className="opacity-70"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </Card>
       </div>
 
       <BookingDialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen} />

@@ -16,7 +16,16 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function checkAndFixSuperAdmin() {
-    const email = 'tapancargo@gmail.com';
+    const email = process.env.SUPER_ADMIN_EMAIL;
+    const fullName = process.env.SUPER_ADMIN_FULL_NAME || 'Super Admin';
+    const orgId = process.env.SUPER_ADMIN_ORG_ID || '00000000-0000-0000-0000-000000000001';
+    const password = process.env.SUPER_ADMIN_PASSWORD;
+
+    if (!email) {
+        console.error('❌ Missing SUPER_ADMIN_EMAIL environment variable');
+        process.exit(1);
+    }
+
     console.log(`Checking for ${email}...`);
 
     // 1. Check Auth User
@@ -32,11 +41,15 @@ async function checkAndFixSuperAdmin() {
     if (!user) {
         console.error('User not found in auth.users!');
         console.log('Creating user...');
+        if (!password) {
+            console.error('❌ Missing SUPER_ADMIN_PASSWORD environment variable (required to create a new user)');
+            process.exit(1);
+        }
         const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
             email: email,
-            password: 'Test@1498',
+            password,
             email_confirm: true,
-            user_metadata: { full_name: 'Super Admin' }
+            user_metadata: { full_name: fullName }
         });
 
         if (createError) {
@@ -75,9 +88,9 @@ async function checkAndFixSuperAdmin() {
             .insert({
                 auth_user_id: user.id,
                 email: email,
-                full_name: 'Super Admin',
+                full_name: fullName,
                 role: 'SUPER_ADMIN',
-                org_id: '00000000-0000-0000-0000-000000000001', // Default Org ID
+                org_id: orgId,
                 is_active: true
             })
             .select()

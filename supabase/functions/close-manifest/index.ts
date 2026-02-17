@@ -1,12 +1,13 @@
 // @ts-nocheck - Deno Edge Function
 /**
  * Close Manifest Edge Function
- * Atomic operation to close a manifest and update all related shipments
+ * Uses atomic RPC to close a manifest and update related shipments/events in one transaction.
  *
  * Security:
  * - Validates JWT from Authorization header
  * - Verifies staff profile exists for the user
- * - Ensures staff belongs to the same organization as the manifest
+ * - Enforces role-based access for manifest close
+ * - Ensures staff belongs to the same organization as the manifest via RPC checks
  */
 
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
@@ -15,7 +16,6 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 interface CloseManifestRequest {
   manifest_id: string;
   notes?: string;
-  // staff_id removed from request body - derived from auth token
 }
 
 interface CloseManifestResponse {
@@ -33,34 +33,37 @@ interface CloseManifestResponse {
   error?: string;
 }
 
-interface ManifestShipment {
-  id: string;
-  awb_number: string;
-  package_count: number | null;
-  total_weight: number | null;
-  status: string;
-}
+type CloseManifestRpcRow = {
+  manifest_id: string;
+  manifest_no: string;
+  total_shipments: number;
+  total_packages: number;
+  total_weight: number;
+  shipments_updated: number;
+  tracking_events_created: number;
+};
 
-interface ManifestItem {
-  shipment_id: string;
-  shipment: ManifestShipment | null;
+const ALLOWED_CLOSE_ROLES = new Set(['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'OPS', 'OPS_STAFF']);
+
+function mapRpcErrorToStatus(message: string): number {
+  if (message.includes('Manifest not found')) return 404;
+  if (message.includes('Unauthorized: Org mismatch')) return 403;
+  if (message.includes('Cannot close manifest')) return 400;
+  return 500;
 }
 
 Deno.serve(async (req: Request): Promise<Response> => {
-  // CORS headers
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
   };
 
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // 1. Authorization Check
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -72,12 +75,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    // Create Supabase client with service role for admin tasks
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Validate Token
     const token = authHeader.replace('Bearer ', '');
     const {
       data: { user },
@@ -91,10 +92,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    // Get Staff Profile & Verify Access
     const { data: staff, error: staffError } = await supabase
       .from('staff')
-      .select('id, org_id')
+      .select('id, org_id, role')
       .eq('auth_user_id', user.id)
       .single();
 
@@ -105,9 +105,19 @@ Deno.serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    const start_staff_id = staff.id;
+    if (!ALLOWED_CLOSE_ROLES.has(staff.role)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Forbidden: role '${staff.role}' cannot close manifests`,
+        }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
 
-    // Parse request body
     const { manifest_id, notes }: CloseManifestRequest = await req.json();
 
     if (!manifest_id) {
@@ -117,152 +127,51 @@ Deno.serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    // 2. Fetch manifest and validate
-    const { data: manifest, error: manifestError } = await supabase
-      .from('manifests')
-      .select('*')
-      .eq('id', manifest_id)
-      .single();
+    const { data: rpcResult, error: rpcError } = await supabase.rpc('close_manifest_atomic', {
+      p_manifest_id: manifest_id,
+      p_staff_id: staff.id,
+      p_org_id: staff.org_id,
+      p_notes: notes ?? null,
+    });
 
-    if (manifestError || !manifest) {
-      return new Response(JSON.stringify({ success: false, error: 'Manifest not found' }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Security: Ensure staff belongs to the same org
-    if (manifest.org_id !== staff.org_id) {
-      return new Response(JSON.stringify({ success: false, error: 'Unauthorized: Org mismatch' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    if (manifest.status !== 'OPEN') {
+    if (rpcError) {
+      const message = rpcError.message || 'Failed to close manifest';
       return new Response(
         JSON.stringify({
           success: false,
-          error: `Cannot close manifest with status '${manifest.status}'. Only OPEN manifests can be closed.`,
+          error: message,
         }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        {
+          status: mapRpcErrorToStatus(message),
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
       );
     }
 
-    // 3. Get all shipments linked to this manifest
-    const { data: manifestItems, error: itemsError } = await supabase
-      .from('manifest_items')
-      .select(
-        `
-        shipment_id,
-        shipment:shipments(id, awb_number, package_count, total_weight, status)
-      `
-      )
-      .eq('manifest_id', manifest_id);
+    const row = (Array.isArray(rpcResult) ? rpcResult[0] : rpcResult) as CloseManifestRpcRow | null;
 
-    if (itemsError) {
-      throw new Error(`Failed to fetch manifest items: ${itemsError.message}`);
+    if (!row) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'No result returned from close manifest RPC' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
-    const shipments: ManifestShipment[] = (manifestItems || [])
-      .map((item: ManifestItem) => item.shipment)
-      .filter((s): s is ManifestShipment => s !== null);
-
-    // 4. Calculate totals
-    const totalShipments = shipments.length;
-    const totalPackages = shipments.reduce(
-      (sum: number, s: ManifestShipment) => sum + (s.package_count || 0),
-      0
-    );
-    const totalWeight = shipments.reduce(
-      (sum: number, s: ManifestShipment) => sum + (s.total_weight || 0),
-      0
-    );
-
-    // 5. Update manifest status to CLOSED
-    const { error: updateManifestError } = await supabase
-      .from('manifests')
-      .update({
-        status: 'CLOSED',
-        total_shipments: totalShipments,
-        total_packages: totalPackages,
-        total_weight: totalWeight,
-        closed_at: new Date().toISOString(),
-        closed_by_staff_id: start_staff_id, // Use validated staff id
-        notes: notes || manifest.notes,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', manifest_id);
-
-    if (updateManifestError) {
-      throw new Error(`Failed to update manifest: ${updateManifestError.message}`);
-    }
-
-    // 6. Update all shipments to IN_TRANSIT
-    let shipmentsUpdated = 0;
-    const shipmentIds = shipments.map((s: ManifestShipment) => s.id);
-
-    if (shipmentIds.length > 0) {
-      const { error: updateShipmentsError, count } = await supabase
-        .from('shipments')
-        .update({
-          status: 'IN_TRANSIT',
-          manifest_id: manifest_id,
-          updated_at: new Date().toISOString(),
-        })
-        .in('id', shipmentIds);
-
-      if (updateShipmentsError) {
-        throw new Error(`Failed to update shipments: ${updateShipmentsError.message}`);
-      }
-      shipmentsUpdated = count || shipmentIds.length;
-    }
-
-    // 7. Create tracking events for each shipment
-    let trackingEventsCreated = 0;
-    const trackingEvents = shipments.map((s: ManifestShipment) => ({
-      org_id: manifest.org_id,
-      shipment_id: s.id,
-      awb_number: s.awb_number,
-      event_code: 'IN_TRANSIT',
-      event_time: new Date().toISOString(),
-      hub_id: manifest.from_hub_id,
-      actor_staff_id: start_staff_id, // Use validated staff id
-      source: 'SYSTEM',
-      meta: {
-        manifest_id: manifest_id,
-        manifest_no: manifest.manifest_no,
-        action: 'MANIFEST_CLOSED',
-      },
-      description: `Manifest ${manifest.manifest_no} closed`,
-    }));
-
-    if (trackingEvents.length > 0) {
-      const { error: trackingError, count } = await supabase
-        .from('tracking_events')
-        .insert(trackingEvents);
-
-      if (trackingError) {
-        console.error('Failed to create tracking events:', trackingError);
-        // Don't fail the entire operation for tracking events
-      } else {
-        trackingEventsCreated = count || trackingEvents.length;
-      }
-    }
-
-    // 8. Return success response
     const response: CloseManifestResponse = {
       success: true,
       manifest: {
-        id: manifest.id,
-        manifest_no: manifest.manifest_no,
+        id: row.manifest_id,
+        manifest_no: row.manifest_no,
         status: 'CLOSED',
-        total_shipments: totalShipments,
-        total_packages: totalPackages,
-        total_weight: totalWeight,
+        total_shipments: row.total_shipments,
+        total_packages: row.total_packages,
+        total_weight: row.total_weight,
       },
-      shipments_updated: shipmentsUpdated,
-      tracking_events_created: trackingEventsCreated,
+      shipments_updated: row.shipments_updated,
+      tracking_events_created: row.tracking_events_created,
     };
 
     return new Response(JSON.stringify(response), {

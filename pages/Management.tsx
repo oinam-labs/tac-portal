@@ -242,7 +242,7 @@ export const Management: React.FC = () => {
           <div className="space-y-2">
             <Label>Password</Label>
             <Input
-              type="text"
+              type="password"
               required
               value={createUserForm.password}
               onChange={(e) => setCreateUserForm((prev) => ({ ...prev, password: e.target.value }))}

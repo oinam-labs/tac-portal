@@ -25,9 +25,9 @@ try {
 }
 
 setup('authenticate', async ({ page }) => {
-  // Use port 4173 (preview) in CI, port 3000 (dev) locally
+  // Use port 4173 (preview) in CI, port 5173 (dev) locally
   const BASE_URL =
-    process.env.BASE_URL || (process.env.CI ? 'http://localhost:4173' : 'http://localhost:3000');
+    process.env.BASE_URL || (process.env.CI ? 'http://localhost:4173' : 'http://localhost:5173');
 
   // Get credentials from environment variables only (no hardcoded fallbacks)
   const testEmail = process.env.E2E_TEST_EMAIL;

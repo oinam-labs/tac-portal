@@ -32,18 +32,14 @@ export const Inventory: React.FC = () => {
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
-  // Determine orgId for filtering
-  const selectedOrgId = filterHub === 'ALL' ? undefined : HUBS[filterHub]?.uuid;
+  // Determine hub UUID for filtering (origin OR destination hub)
+  const selectedHubId = filterHub === 'ALL' ? undefined : HUBS[filterHub]?.uuid;
 
   const { data: shipments = [], isLoading } = useShipments({
     page,
     pageSize,
     search: search || undefined,
-    orgId: selectedOrgId,
-    // We might need to filter by status to only show inventory items (not delivered/in-transit if strictly inventory)
-    // But original code filtered by "getInventoryLocation !== null", which implies complex status logic.
-    // For now, we fetch all and let the status column show.
-    // Ideally, we'd have a server-side filter for "inventory_only".
+    hubId: selectedHubId,
   });
 
   // Calculate stats (Note: Total stats would need a separate query if we want accurate global counts with pagination)
@@ -190,7 +186,7 @@ export const Inventory: React.FC = () => {
           </div>
         </div>
 
-        <div className="border border-border rounded-md mx-4 mb-4">
+        <div className="border border-border rounded-md mx-4 mb-4 overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>

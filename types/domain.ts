@@ -16,7 +16,7 @@ export type ManifestNumber = Brand<string, 'ManifestNumber'>;
 export type InvoiceNumber = Brand<string, 'InvoiceNumber'>;
 
 // Type guards
-export const isAWB = (value: string): value is AWB => /^TAC\d{8}$/.test(value);
+export const isAWB = (value: string): value is AWB => /^TAC\d{8,11}$/i.test(value);
 export const isUUID = (value: string): value is UUID =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 

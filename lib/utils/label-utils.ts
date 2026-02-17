@@ -85,26 +85,26 @@ export const generateLabelFromShipment = (
     dates: {
       shipDate: shipment.bookingDate
         ? new Date(shipment.bookingDate).toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          })
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        })
         : new Date().toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          }),
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        }),
       invoiceDate: invoiceData?.createdAt
         ? new Date(invoiceData.createdAt).toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          })
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        })
         : new Date().toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          }),
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        }),
     },
     gstNumber: shipment.consignee?.gstin || invoiceData?.gstNumber,
   };
@@ -117,11 +117,6 @@ export const generateLabelFromFormData = (formData: any): LabelData => {
     .trim();
   const transportMode: TransportMode =
     modeInput === 'AIR' || modeInput === 'AIR CARGO' ? 'AIR' : 'TRUCK';
-  console.log('[DEBUG-LABEL] generating label from form data:', {
-    raw: formData.transportMode,
-    modeInput,
-    transportMode,
-  });
   const serviceLevelCode: Record<ServiceLevel, string> = {
     STANDARD: 'STD',
     EXPRESS: 'EXP',
@@ -131,6 +126,18 @@ export const generateLabelFromFormData = (formData: any): LabelData => {
   const recipientCity = getTextValue(formData.consigneeCity);
   const recipientZip = getTextValue(formData.consigneeZip);
   const cityLine = [recipientCity, recipientZip].filter(Boolean).join(' ');
+
+  // Resolve hub codes from consignor/consignee city instead of hardcoding
+  const resolveCodeFromCity = (city: string, fallback: string): string => {
+    if (!city) return fallback;
+    const c = city.toLowerCase();
+    if (c.includes('imphal') || c.includes('manipur')) return HUBS.IMPHAL.code;
+    if (c.includes('delhi') || c.includes('new delhi')) return HUBS.NEW_DELHI.code;
+    return fallback;
+  };
+
+  const originCode = resolveCodeFromCity(getTextValue(formData.consignorCity), 'DEL');
+  const destCode = resolveCodeFromCity(recipientCity, 'IMF');
 
   return {
     awb: formData.awb || 'TAC00000000',
@@ -148,35 +155,35 @@ export const generateLabelFromFormData = (formData: any): LabelData => {
       state: formData.consigneeState,
     },
     routing: {
-      origin: 'DEL',
-      destination: 'IMF',
-      deliveryStation: 'IMF',
-      originSort: 'DEL',
-      destSort: 'IMF',
+      origin: originCode,
+      destination: destCode,
+      deliveryStation: destCode,
+      originSort: originCode,
+      destSort: destCode,
     },
     dates: {
       shipDate: formData.bookingDate
         ? new Date(formData.bookingDate).toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          })
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        })
         : new Date().toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          }),
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        }),
       invoiceDate: formData.bookingDate
         ? new Date(formData.bookingDate).toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          })
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        })
         : new Date().toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          }),
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        }),
     },
     gstNumber: formData.consigneeGstin || formData.gstNumber,
   };

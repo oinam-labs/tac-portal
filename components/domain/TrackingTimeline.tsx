@@ -82,7 +82,7 @@ export function TrackingTimeline({ events, className }: TrackingTimelineProps) {
                   isFirst && color.replace('bg-', 'ring-')
                 )}
               >
-                <Icon className="w-5 h-5 text-white" />
+                <Icon className="w-5 h-5 text-primary-foreground" />
               </div>
               {!isLast && (
                 <div className="w-0.5 flex-1 bg-gradient-to-b from-border to-muted min-h-[40px]" />

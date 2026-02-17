@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- Data mapping between Supabase and UI types */
-import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FileText, CreditCard, Plus, Check, Printer, Mail, MessageCircle } from 'lucide-react';
 
 // UI Components
@@ -25,6 +25,7 @@ import {
   useInvoices,
   useUpdateInvoiceStatus,
   useHardDeleteInvoice,
+  useInvoiceByAWB,
   InvoiceWithRelations,
 } from '@/hooks/useInvoices';
 import { getInvoicesColumns } from '@/components/finance/invoices.columns';
@@ -42,12 +43,17 @@ import { logger } from '@/lib/logger';
 
 export const Finance: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuthStore();
   const isSuperAdmin = user?.role === 'SUPER_ADMIN';
 
   // Use Supabase hooks for invoices
   const { data: invoicesData = [], refetch: refetchInvoices } = useInvoices();
   const updateStatusMutation = useUpdateInvoiceStatus();
+
+  // Support ?awb= URL parameter for direct navigation from scanned shipments
+  const awbParam = searchParams.get('awb');
+  const { data: invoiceByAWB, isLoading: isLoadingByAWB } = useInvoiceByAWB(awbParam);
   const hardDeleteMutation = useHardDeleteInvoice();
 
   // Modal state
@@ -154,8 +160,8 @@ export const Finance: React.FC = () => {
       customerName: row.customer?.name || row.receiver_name || 'Unknown',
       originHub,
       destinationHub,
-      mode: resolveMode(row.service_type),
-      serviceLevel: resolveServiceLevel(row.service_type),
+      mode: resolveMode(row.mode),
+      serviceLevel: resolveServiceLevel(row.service_level),
       totalPackageCount: row.total_packages ?? 1,
       totalWeight: {
         dead: weight,
@@ -195,17 +201,17 @@ export const Finance: React.FC = () => {
 
       const consignor = shipmentRow
         ? {
-            name: shipmentRow.sender_name,
-            phone: shipmentRow.sender_phone,
-            address: formatAddress(shipmentRow.sender_address),
-          }
+          name: shipmentRow.sender_name,
+          phone: shipmentRow.sender_phone,
+          address: formatAddress(shipmentRow.sender_address),
+        }
         : lineItems.consignor || (inv as any).consignor || {};
       const consignee = shipmentRow
         ? {
-            name: shipmentRow.receiver_name,
-            phone: shipmentRow.receiver_phone,
-            address: formatAddress(shipmentRow.receiver_address),
-          }
+          name: shipmentRow.receiver_name,
+          phone: shipmentRow.receiver_phone,
+          address: formatAddress(shipmentRow.receiver_address),
+        }
         : lineItems.consignee || (inv as any).consignee || {};
 
       logger.debug('[Invoice] Parties', { consignor, consignee });
@@ -441,6 +447,21 @@ Thank you for choosing TAC Cargo.`;
     }
   };
 
+  // Auto-open invoice when navigating with ?awb= parameter (from scanned shipment)
+  useEffect(() => {
+    if (awbParam && invoiceByAWB && !isLoadingByAWB) {
+      // Found invoice for this AWB - open it
+      handleViewInvoice(invoiceByAWB);
+      // Clear the URL parameter to avoid re-triggering
+      setSearchParams({});
+    } else if (awbParam && !isLoadingByAWB && !invoiceByAWB) {
+      // No invoice found for this AWB
+      toast.error(`No invoice found for shipment ${awbParam}`);
+      setSearchParams({});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [awbParam, invoiceByAWB, isLoadingByAWB]);
+
   const handleEditInvoice = (row: InvoiceWithRelations) => {
     setEditingInvoice(row);
     setIsCreateOpen(true);
@@ -460,9 +481,9 @@ Thank you for choosing TAC Cargo.`;
         onShareEmail: (row) => handleShareEmail(buildInvoiceFromRow(row)),
         onDelete: isSuperAdmin
           ? (row) => {
-              setRowToDelete(buildInvoiceFromRow(row));
-              setDeleteOpen(true);
-            }
+            setRowToDelete(buildInvoiceFromRow(row));
+            setDeleteOpen(true);
+          }
           : undefined,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -628,7 +649,7 @@ Thank you for choosing TAC Cargo.`;
               </Button>
             </div>
 
-            <div className="border-t border-white/10 pt-4">
+            <div className="border-t border-border pt-4">
               <p className="text-xs text-muted-foreground mb-3 uppercase font-bold tracking-wider">
                 Share with Customer
               </p>

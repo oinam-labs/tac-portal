@@ -30,7 +30,6 @@ jobs:
 
       - name: Run npm audit
         run: npm audit --audit-level=high
-        continue-on-error: true
 
       - name: Check for hardcoded secrets
         run: |
@@ -39,7 +38,6 @@ jobs:
             echo "⚠️ Warning: Potential hardcoded secrets found"
             exit 1
           fi
-        continue-on-error: true
 
       - name: TypeScript strict mode check
         run: npm run typecheck
@@ -79,7 +77,6 @@ jobs:
             exit 1
           fi
           echo "✅ Console.log usage within limits (target: <50)"
-        continue-on-error: true
 
       - name: Check any type usage
         run: |
@@ -93,11 +90,9 @@ jobs:
             exit 1
           fi
           echo "✅ Any type usage within acceptable limits (target: <50)"
-        continue-on-error: true
 
       - name: Format check
         run: npm run format:check
-        continue-on-error: true
 
   # Unit Tests
   unit-tests:

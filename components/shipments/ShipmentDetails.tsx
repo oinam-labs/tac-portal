@@ -2,7 +2,9 @@ import React from 'react';
 import { Shipment } from '../../types';
 import { useTrackingEvents } from '../../hooks/useTrackingEvents';
 import { useAuthStore } from '../../store/authStore';
-import { Button, Card, Badge } from '../ui/CyberComponents';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
+import { Badge } from '../ui/badge';
 import { STATUS_COLORS } from '../../lib/design-tokens';
 import {
   Printer,
@@ -22,6 +24,7 @@ import {
 import { HUBS } from '../../lib/constants';
 import { toast } from 'sonner';
 import { NotesPanel } from '../domain/NotesPanel';
+import { UniversalBarcodePreset } from '../barcodes';
 
 interface Props {
   shipment: Shipment;
@@ -119,6 +122,23 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
           </Button>
         </div>
       </div>
+
+      {/* Barcode Section - Scannable for quick identification */}
+      <Card className="overflow-hidden border-border/60 shadow-sm">
+        <div className="p-6 flex flex-col items-center">
+          <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+            Barcode Scan
+          </div>
+          <UniversalBarcodePreset
+            value={shipment.awb}
+            preset="screenLarge"
+            className="mb-2"
+          />
+          <p className="text-xs text-muted-foreground text-center">
+            Scan this barcode to quickly identify and track this shipment
+          </p>
+        </div>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Route & Tracking */}

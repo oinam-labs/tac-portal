@@ -43,7 +43,7 @@ export interface ScanHistoryEntry extends ScanResponse {
   scanSource: ScanSource;
 }
 
-const SCAN_DEBOUNCE_MS = 100;
+const SCAN_DEBOUNCE_MS = 50;
 
 export function useManifestScan(options: ScanOptions) {
   const {

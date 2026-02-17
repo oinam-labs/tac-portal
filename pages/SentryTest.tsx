@@ -6,7 +6,8 @@
 
 import React from 'react';
 import * as Sentry from '@sentry/react';
-import { Button, Card } from '../components/ui/CyberComponents';
+import { Button } from '../components/ui/button';
+import { Card } from '../components/ui/card';
 import { AlertTriangle, Bug, MessageSquare, Activity, ArrowLeft, Shield } from 'lucide-react';
 import { captureException, captureMessage, startSpan } from '../lib/sentry';
 import { useNavigate } from 'react-router-dom';

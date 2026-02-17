@@ -10,6 +10,7 @@ import {
   FlashlightOff,
   ZoomIn,
   ZoomOut,
+  Upload,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '../ui/slider';
@@ -240,6 +241,36 @@ export function BarcodeScanner({
     setTorchEnabled(!torchEnabled);
   };
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      // Need a separate reader instance or ensure current is clean
+      // We'll use the existing readerRef if available, or create new
+      const reader = readerRef.current || new BrowserMultiFormatReader();
+      const url = URL.createObjectURL(file);
+
+      console.log('[BarcodeScanner] Decoding image file...');
+      const result = await reader.decodeFromImageUrl(url);
+      URL.revokeObjectURL(url);
+
+      if (result) {
+        const text = result.getText();
+        console.log('[BarcodeScanner] Decoded from image:', text);
+        playBeep();
+        onScanRef.current(text);
+      }
+    } catch (err) {
+      console.error('[BarcodeScanner] Failed to decode image:', err);
+      onErrorRef.current?.(err as Error);
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   if (!hasCamera) {
     return (
       <div
@@ -268,7 +299,7 @@ export function BarcodeScanner({
   const maxZoom = capabilities?.zoom?.max || 3;
 
   return (
-    <div className={cn('relative overflow-hidden rounded-lg bg-black', className)}>
+    <div className={cn('relative overflow-hidden rounded-lg bg-background dark:bg-black', className)}>
       <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
 
       {/* Overlay */}
@@ -294,14 +325,14 @@ export function BarcodeScanner({
               isScanning ? 'bg-status-success animate-pulse' : 'bg-status-warning'
             )}
           />
-          <span className="text-xs font-medium text-white bg-black/50 px-2 py-1 rounded">
+          <span className="text-xs font-medium text-foreground bg-background/60 backdrop-blur-sm px-2 py-1 rounded">
             {isScanning ? 'Scanning...' : 'Initializing...'}
           </span>
         </div>
 
         {/* Last scan indicator */}
         {lastScannedRef.current && (
-          <div className="absolute bottom-4 left-4 right-4 bg-status-success/90 text-white px-4 py-2 rounded-lg text-center font-mono text-sm animate-pulse">
+          <div className="absolute bottom-4 left-4 right-4 bg-status-success/90 text-primary-foreground px-4 py-2 rounded-lg text-center font-mono text-sm animate-pulse">
             ✓ {lastScannedRef.current}
           </div>
         )}
@@ -311,8 +342,8 @@ export function BarcodeScanner({
       <div className="absolute bottom-6 inset-x-0 flex flex-col items-center gap-4 pointer-events-auto px-4">
         {/* Zoom Slider */}
         {supportsZoom && (
-          <div className="w-full max-w-xs flex items-center gap-2 bg-black/40 backdrop-blur rounded-full px-3 py-1">
-            <ZoomOut className="w-4 h-4 text-white" />
+          <div className="w-full max-w-xs flex items-center gap-2 bg-background/40 backdrop-blur rounded-full px-3 py-1">
+            <ZoomOut className="w-4 h-4 text-foreground" />
             <Slider
               value={[zoomLevel]}
               min={minZoom}
@@ -321,16 +352,34 @@ export function BarcodeScanner({
               onValueChange={handleZoomChange}
               className="flex-1"
             />
-            <ZoomIn className="w-4 h-4 text-white" />
+            <ZoomIn className="w-4 h-4 text-foreground" />
           </div>
         )}
 
         <div className="flex items-center gap-3">
+          {/* File Upload for Image Scan */}
+          <Button
+            size="icon"
+            variant="secondary"
+            className="rounded-full bg-muted/30 hover:bg-muted/50 text-foreground backdrop-blur-md"
+            onClick={() => fileInputRef.current?.click()}
+            title="Scan Image"
+          >
+            <Upload className="w-5 h-5" />
+          </Button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*"
+            onChange={handleFileUpload}
+          />
+
           {cameras.length > 1 && (
             <Button
               size="icon"
               variant="secondary"
-              className="rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md"
+              className="rounded-full bg-muted/30 hover:bg-muted/50 text-foreground backdrop-blur-md"
               onClick={switchCamera}
             >
               <RefreshCw className="w-5 h-5" />
@@ -341,7 +390,7 @@ export function BarcodeScanner({
             <Button
               size="icon"
               variant={torchEnabled ? 'default' : 'secondary'}
-              className={`rounded-full backdrop-blur-md ${torchEnabled ? 'bg-yellow-500 text-black hover:bg-yellow-400' : 'bg-white/10 text-white hover:bg-white/20'}`}
+              className={`rounded-full backdrop-blur-md ${torchEnabled ? 'bg-status-warning text-primary-foreground hover:bg-status-warning/80' : 'bg-muted/30 text-foreground hover:bg-muted/50'}`}
               onClick={toggleTorch}
             >
               {torchEnabled ? (
@@ -355,7 +404,7 @@ export function BarcodeScanner({
           <Button
             size="icon"
             variant="secondary"
-            className="rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md"
+            className="rounded-full bg-muted/30 hover:bg-muted/50 text-foreground backdrop-blur-md"
             onClick={() => setSoundEnabled(!soundEnabled)}
           >
             {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}

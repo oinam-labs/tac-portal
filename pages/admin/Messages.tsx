@@ -217,7 +217,7 @@ export function Messages() {
                     <TableCell>
                       {msg.phone && (
                         <div className="flex items-center gap-1 text-sm">
-                          <MessageCircle className="h-3 w-3 text-green-600" />
+                          <MessageCircle className="h-3 w-3 text-status-success" />
                           {msg.phone}
                         </div>
                       )}
@@ -234,7 +234,7 @@ export function Messages() {
                         {msg.replied && (
                           <Badge
                             variant="outline"
-                            className="bg-green-50 text-green-700 border-green-200"
+                            className="bg-status-success/10 text-status-success border-status-success/30"
                           >
                             Replied
                           </Badge>
@@ -319,7 +319,7 @@ export function Messages() {
                   <p className="text-base font-medium">{selectedMessage.name}</p>
                   {selectedMessage.phone && (
                     <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MessageCircle className="h-4 w-4 text-green-600" />
+                      <MessageCircle className="h-4 w-4 text-status-success" />
                       {selectedMessage.phone}
                     </p>
                   )}
@@ -336,7 +336,7 @@ export function Messages() {
                     {selectedMessage.replied && (
                       <Badge
                         variant="outline"
-                        className="bg-green-50 text-green-700 border-green-200"
+                        className="bg-status-success/10 text-status-success border-status-success/30"
                       >
                         Replied
                       </Badge>
@@ -357,7 +357,7 @@ export function Messages() {
               <div className="pt-4 border-t">
                 {selectedMessage.phone ? (
                   <Button
-                    className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
+                    className="w-full sm:w-auto bg-status-success hover:bg-status-success/80 text-primary-foreground"
                     onClick={handleWhatsAppClick}
                   >
                     <MessageCircle className="mr-2 h-4 w-4" />
@@ -365,7 +365,7 @@ export function Messages() {
                     <ExternalLink className="ml-2 h-3 w-3 opacity-70" />
                   </Button>
                 ) : (
-                  <div className="p-4 bg-yellow-50 text-yellow-800 rounded-md text-sm border border-yellow-200">
+                  <div className="p-4 bg-status-warning/10 text-status-warning rounded-md text-sm border border-status-warning/30">
                     This contact does not have a WhatsApp number associated with it.
                   </div>
                 )}

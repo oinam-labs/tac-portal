@@ -81,6 +81,19 @@ const resolveHubId = (city: string): string => {
   return HUBS.NEW_DELHI.uuid;
 };
 
+const isGstinFieldValid = (val?: string | null) => {
+  if (!val) return true;
+  const normalized = val.trim().toUpperCase();
+  if (!normalized) return true; // treat whitespace-only as empty / not provided
+
+  // Allow partial GSTINs without blocking the form; only enforce pattern on full length
+  if (normalized.length < 15) return true;
+  if (normalized.length === 15) return GSTIN_PATTERN.test(normalized);
+
+  // Longer than 15 characters is always invalid
+  return false;
+};
+
 // --- SCHEMA (Same as original) ---
 const schema = z.object({
   awb: z.string().optional(), // Relaxed for NEW_BOOKING auto-gen
@@ -99,7 +112,7 @@ const schema = z.object({
   consignorGstin: z
     .string()
     .optional()
-    .refine((val) => !val || GSTIN_PATTERN.test(val), GSTIN_ERROR_MESSAGE),
+    .refine(isGstinFieldValid, GSTIN_ERROR_MESSAGE),
 
   // Consignee
   consigneeName: z.string().min(2, 'Name Required'),
@@ -111,7 +124,7 @@ const schema = z.object({
   consigneeGstin: z
     .string()
     .optional()
-    .refine((val) => !val || GSTIN_PATTERN.test(val), GSTIN_ERROR_MESSAGE),
+    .refine(isGstinFieldValid, GSTIN_ERROR_MESSAGE),
 
   // Item Details
   contents: z.string().min(2, 'Contents required'),
@@ -697,11 +710,11 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
     const record = address as Record<string, unknown>;
     const line1 = getAddressValue(
       record.line1 ??
-        record.line_1 ??
-        record.street ??
-        record.address ??
-        record.addr1 ??
-        record.address1
+      record.line_1 ??
+      record.street ??
+      record.address ??
+      record.addr1 ??
+      record.address1
     );
     const line2 = getAddressValue(
       record.line2 ?? record.line_2 ?? record.street2 ?? record.address2 ?? record.addr2
@@ -995,6 +1008,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
               city: data.consignorCity,
               state: data.consignorState,
               zip: data.consignorZip,
+              gstin: data.consignorGstin,
             },
             consignee: {
               name: data.consigneeName,
@@ -1003,6 +1017,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
               city: data.consigneeCity,
               state: data.consigneeState,
               zip: data.consigneeZip,
+              gstin: data.consigneeGstin,
             },
           },
         });
@@ -1559,8 +1574,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
               <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border/50">
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted-foreground">
-                    Mode: {formValues.transportMode || 'None'} | Debug:{' '}
-                    {JSON.stringify(watch('transportMode'))}
+                    Mode: {formValues.transportMode === 'AIR' ? 'Air Cargo' : 'Surface / Truck'}
                   </span>
                   <Button
                     type="button"

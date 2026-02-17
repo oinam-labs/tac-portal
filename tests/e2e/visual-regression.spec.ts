@@ -23,6 +23,9 @@ test.skip(!!process.env.CI, 'Visual regression skipped in CI: snapshots are OS-s
 
 test.describe('Visual Regression Tests', () => {
   test.describe('Login Page', () => {
+    // Always use logged-out state for login visuals to avoid auth redirect races.
+    test.use({ storageState: { cookies: [], origins: [] } });
+
     test('login page matches snapshot', async ({ page }) => {
       await page.goto('/login');
       await page.waitForLoadState('networkidle');
@@ -92,7 +95,7 @@ test.describe('Visual Regression Tests', () => {
       await page.goto('/dashboard');
       await page.waitForLoadState('networkidle');
 
-      const header = page.locator('[data-testid="dashboard-heading"]').first();
+      const header = page.locator('[data-testid="dashboard-page"] h1').first();
       await expect(header).toBeVisible();
 
       await expect(header).toHaveScreenshot('dashboard-header.png', {
@@ -100,8 +103,7 @@ test.describe('Visual Regression Tests', () => {
       });
     });
 
-    test.skip('quick actions matches snapshot', async ({ page }) => {
-      // Skip: data-testid="quick-actions" not present in current dashboard
+    test('quick actions matches snapshot', async ({ page }) => {
       await page.goto('/dashboard');
       await page.waitForLoadState('networkidle');
 
@@ -122,9 +124,11 @@ test.describe('Visual Regression Tests', () => {
       await page.goto('/manifests');
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(1000);
+      await expect(
+        page.locator('[data-testid="create-manifest-button"], [data-testid="create-manifest-button-empty"]').first()
+      ).toBeVisible();
 
       await expect(page).toHaveScreenshot('manifests-page.png', {
-        fullPage: true,
         ...screenshotOptions,
         mask: [
           // Mask table data that changes
@@ -155,6 +159,8 @@ test.describe('Visual Regression Tests', () => {
   });
 
   test.describe('Responsive Design', () => {
+    test.use({ storageState: { cookies: [], origins: [] } });
+
     test('login page mobile view', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
       await page.goto('/login');
@@ -181,6 +187,8 @@ test.describe('Visual Regression Tests', () => {
   });
 
   test.describe('Dark Mode', () => {
+    test.use({ storageState: { cookies: [], origins: [] } });
+
     test('login page dark mode', async ({ page }) => {
       await page.emulateMedia({ colorScheme: 'dark' });
       await page.goto('/login');

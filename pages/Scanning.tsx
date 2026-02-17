@@ -23,7 +23,10 @@ import {
   playManifestActivatedFeedback,
 } from '@/lib/feedback';
 import { useScanner } from '@/context/useScanner';
+import { useScanContext } from '@/context/ScanContext';
 import { ScanSource } from '@/types';
+import { ScannerDebug } from '@/components/scanning/ScannerDebug';
+import { UniversalBarcode } from '@/components/barcodes';
 
 type ScanMode = 'RECEIVE' | 'DELIVER' | 'LOAD_MANIFEST' | 'VERIFY_MANIFEST';
 
@@ -47,6 +50,17 @@ export const Scanning: React.FC = () => {
 
   // Global Scanner Context
   const { subscribe } = useScanner();
+  const { setActiveContext } = useScanContext();
+
+  // Register as active scan context (prevents global navigation)
+  useEffect(() => {
+    console.debug('[Scanning Page] Registering as active scan context');
+    setActiveContext('SCANNING_PAGE');
+    return () => {
+      console.debug('[Scanning Page] Releasing scan context');
+      setActiveContext('GLOBAL');
+    };
+  }, [setActiveContext]);
 
   // Offline queue
   const { addScan, pendingScans, isOnline, syncPending } = useScanQueue();
@@ -121,10 +135,10 @@ export const Scanning: React.FC = () => {
     async (input: string, source: ScanSource = ScanSource.MANUAL) => {
       // Parse scan input — gracefully handle parser errors (Bug E)
       let scanResult;
-      console.log('[Scanning Page] Processing scan:', { input, source });
+      console.debug('[Scanning Page] Processing scan:', { input, source });
       try {
         scanResult = parseScanInput(input);
-        console.log('[Scanning Page] Parsed result:', scanResult);
+        console.debug('[Scanning Page] Parsed result:', scanResult);
       } catch (e) {
         console.warn('[Scanning Page] Parser error (using raw fallthrough):', e);
         // Parser doesn't recognize format — treat as raw AWB lookup
@@ -321,7 +335,7 @@ export const Scanning: React.FC = () => {
               setScanMode('LOAD_MANIFEST');
               setActiveManifest(null);
             }}
-            className={`px-3 py-1.5 text-xs font-bold transition-colors ${scanMode === 'LOAD_MANIFEST' ? 'bg-status-info text-white' : 'text-muted-foreground hover:text-foreground'}`}
+            className={`px-3 py-1.5 text-xs font-bold transition-colors ${scanMode === 'LOAD_MANIFEST' ? 'bg-status-info text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
             LOAD
           </button>
@@ -355,7 +369,7 @@ export const Scanning: React.FC = () => {
               className={scanMode === 'LOAD_MANIFEST' ? 'text-status-info' : 'text-status-warning'}
             />
             <div>
-              <div className="text-sm font-bold text-white">
+              <div className="text-sm font-bold text-foreground">
                 {scanMode === 'LOAD_MANIFEST' ? 'Loading' : 'Verifying Arrival'}:{' '}
                 {activeManifest.manifest_no}
               </div>
@@ -374,18 +388,18 @@ export const Scanning: React.FC = () => {
 
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
         {/* Camera / Scanner View */}
-        <Card className="relative overflow-hidden flex flex-col border-primary/50 bg-black">
+        <Card className="relative overflow-hidden flex flex-col border-primary/50 bg-background dark:bg-black">
           {/* Toggle Camera/Manual */}
           <div className="absolute top-4 left-4 z-20 flex gap-2">
             <button
               onClick={() => setUseCameraScanner(true)}
-              className={`p-2 rounded-lg transition-all ${useCameraScanner ? 'bg-primary text-primary-foreground' : 'bg-black/50 text-white hover:bg-black/70'}`}
+              className={`p-2 rounded-lg transition-all ${useCameraScanner ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
             >
               <Camera className="w-4 h-4" />
             </button>
             <button
               onClick={() => setUseCameraScanner(false)}
-              className={`p-2 rounded-lg transition-all ${!useCameraScanner ? 'bg-primary text-primary-foreground' : 'bg-black/50 text-white hover:bg-black/70'}`}
+              className={`p-2 rounded-lg transition-all ${!useCameraScanner ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
             >
               <Keyboard className="w-4 h-4" />
             </button>
@@ -411,7 +425,7 @@ export const Scanning: React.FC = () => {
             <div className="flex-1 flex flex-col items-center justify-center p-8">
               <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-20"></div>
               <ScanLine className="w-16 h-16 text-primary mx-auto animate-pulse z-10" />
-              <div className="bg-black/80 px-4 py-2 text-primary font-mono mt-4 z-10">
+              <div className="bg-background/80 px-4 py-2 text-primary font-mono mt-4 z-10 border border-border rounded">
                 {(scanMode === 'LOAD_MANIFEST' || scanMode === 'VERIFY_MANIFEST') && !activeManifest
                   ? 'ENTER MANIFEST CODE'
                   : 'ENTER AWB MANUALLY'}
@@ -427,7 +441,7 @@ export const Scanning: React.FC = () => {
               <Input
                 placeholder={
                   (scanMode === 'LOAD_MANIFEST' || scanMode === 'VERIFY_MANIFEST') &&
-                  !activeManifest
+                    !activeManifest
                     ? 'Scan Manifest Ref...'
                     : 'Scan AWB...'
                 }
@@ -451,8 +465,29 @@ export const Scanning: React.FC = () => {
             <h3 className="text-lg font-bold text-foreground mb-4">Scan Log</h3>
             <div className="flex-1 overflow-y-auto space-y-2 pr-2">
               {scannedItems.length === 0 ? (
-                <div className="text-center text-muted-foreground py-10">
-                  No items scanned this session
+                <div className="space-y-6">
+                  <div className="text-center text-muted-foreground py-6">
+                    No items scanned this session
+                  </div>
+
+                  {/* Test Barcode Section */}
+                  <div className="border-t pt-6">
+                    <h4 className="text-sm font-semibold mb-3">🧪 Test Scanner</h4>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Scan the barcode below to test your scanner
+                    </p>
+                    <div className="flex justify-center">
+                      <UniversalBarcode
+                        value="TAC123456789"
+                        mode="screen"
+                        width={6}
+                        height={100}
+                      />
+                    </div>
+                    <p className="text-xs text-center text-muted-foreground mt-2">
+                      AWB: TAC123456789
+                    </p>
+                  </div>
                 </div>
               ) : (
                 scannedItems.map((item, idx) => (
@@ -494,6 +529,8 @@ export const Scanning: React.FC = () => {
                     100% { top: 90%; opacity: 0; }
                 }
             `}</style>
+
+      <ScannerDebug />
     </div>
   );
 };

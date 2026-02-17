@@ -19,8 +19,14 @@ export const SearchResults: React.FC = () => {
   React.useEffect(() => {
     if (isAuto && !isLoading && results?.length === 1) {
       const result = results[0];
-      navigate(result.link, { replace: true });
-      toast.success(`Found ${result.entity_type}: ${result.title}`);
+      // Route shipments to the invoice/finance page (not shipment detail)
+      if (result.entity_type === 'shipment' && result.title) {
+        navigate(`/finance?awb=${encodeURIComponent(result.title)}`, { replace: true });
+        toast.success(`Opening invoice for: ${result.title}`);
+      } else {
+        navigate(result.link, { replace: true });
+        toast.success(`Found ${result.entity_type}: ${result.title}`);
+      }
     }
   }, [isAuto, isLoading, results, navigate]);
 
@@ -78,97 +84,97 @@ export const SearchResults: React.FC = () => {
                   {result.entity_type === 'shipment' && (
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="font-medium text-white">{result.title}</div>
-                        <div className="text-sm text-zinc-400">{result.subtitle}</div>
+                        <div className="font-medium text-foreground">{result.title}</div>
+                        <div className="text-sm text-muted-foreground">{result.subtitle}</div>
                         <div className="flex gap-2 mt-2">
                           <Badge
                             variant="outline"
-                            className="text-xs border-zinc-700 text-zinc-400"
+                            className="text-xs"
                           >
                             {result.metadata.status}
                           </Badge>
                           <Badge
                             variant="outline"
-                            className="text-xs border-zinc-700 text-zinc-400"
+                            className="text-xs"
                           >
                             {result.metadata.origin} → {result.metadata.destination}
                           </Badge>
                         </div>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-zinc-500" />
+                      <ArrowRight className="w-5 h-5 text-muted-foreground" />
                     </div>
                   )}
 
                   {result.entity_type === 'customer' && (
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="font-medium text-white">{result.title}</div>
-                        <div className="text-sm text-zinc-400">{result.subtitle}</div>
-                        <div className="mt-1 text-xs text-zinc-500 font-mono">
+                        <div className="font-medium text-foreground">{result.title}</div>
+                        <div className="text-sm text-muted-foreground">{result.subtitle}</div>
+                        <div className="mt-1 text-xs text-muted-foreground font-mono">
                           {result.metadata.code}
                         </div>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-zinc-500" />
+                      <ArrowRight className="w-5 h-5 text-muted-foreground" />
                     </div>
                   )}
 
                   {result.entity_type === 'invoice' && (
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="font-medium text-white flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-zinc-400" />
+                        <div className="font-medium text-foreground flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-muted-foreground" />
                           {result.title}
                         </div>
-                        <div className="text-sm text-zinc-400">{result.subtitle}</div>
+                        <div className="text-sm text-muted-foreground">{result.subtitle}</div>
                         <div className="mt-1">
                           <Badge
                             variant="outline"
                             className={cn(
-                              'text-xs border-zinc-700',
+                              'text-xs',
                               result.metadata.status === 'paid'
-                                ? 'text-green-400 bg-green-400/10'
-                                : 'text-amber-400 bg-amber-400/10'
+                                ? 'text-status-success bg-status-success/10 border-status-success/30'
+                                : 'text-status-warning bg-status-warning/10 border-status-warning/30'
                             )}
                           >
                             {result.metadata.status}
                           </Badge>
                         </div>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-zinc-500" />
+                      <ArrowRight className="w-5 h-5 text-muted-foreground" />
                     </div>
                   )}
 
                   {result.entity_type === 'manifest' && (
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="font-medium text-white flex items-center gap-2">
-                          <Truck className="w-4 h-4 text-zinc-400" />
+                        <div className="font-medium text-foreground flex items-center gap-2">
+                          <Truck className="w-4 h-4 text-muted-foreground" />
                           {result.title}
                         </div>
-                        <div className="text-sm text-zinc-400">{result.subtitle}</div>
+                        <div className="text-sm text-muted-foreground">{result.subtitle}</div>
                         <div className="flex gap-2 mt-2">
                           <Badge
                             variant="outline"
-                            className="text-xs border-zinc-700 text-zinc-400"
+                            className="text-xs"
                           >
                             {result.metadata.status}
                           </Badge>
-                          <div className="text-xs text-zinc-500 flex items-center gap-1">
+                          <div className="text-xs text-muted-foreground flex items-center gap-1">
                             {result.metadata.vehicle}
                           </div>
                         </div>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-zinc-500" />
+                      <ArrowRight className="w-5 h-5 text-muted-foreground" />
                     </div>
                   )}
 
                   {(result.entity_type === 'staff' || result.entity_type === 'hub') && (
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="font-medium text-white">{result.title}</div>
-                        <div className="text-sm text-zinc-400">{result.subtitle}</div>
+                        <div className="font-medium text-foreground">{result.title}</div>
+                        <div className="text-sm text-muted-foreground">{result.subtitle}</div>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-zinc-500" />
+                      <ArrowRight className="w-5 h-5 text-muted-foreground" />
                     </div>
                   )}
                 </CardContent>
