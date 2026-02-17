@@ -426,7 +426,9 @@ export default DevUIKit;
 // ============================================================================
 
 const ScannerDebugSection: React.FC = () => {
-  const [logs, setLogs] = useState<{ key: string; time: number; diff: number; isScanner: boolean }[]>([]);
+  const [logs, setLogs] = useState<
+    { key: string; time: number; diff: number; isScanner: boolean }[]
+  >([]);
   const lastTimeRef = React.useRef(0);
 
   React.useEffect(() => {
@@ -437,7 +439,7 @@ const ScannerDebugSection: React.FC = () => {
       // Heuristic matching the provider
       const isScanner = diff < 100 && diff > 0;
 
-      setLogs(prev => {
+      setLogs((prev) => {
         const newLogs = [{ key: e.key, time: now, diff, isScanner }, ...prev];
         return newLogs.slice(0, 50); // Keep last 50
       });
@@ -453,7 +455,8 @@ const ScannerDebugSection: React.FC = () => {
       <Card>
         <SectionTitle>Scanner Input Debugger</SectionTitle>
         <p className="text-muted-foreground mb-4">
-          Focus anywhere on this page and scan/type. This logger intercepts events globally (capture phase).
+          Focus anywhere on this page and scan/type. This logger intercepts events globally (capture
+          phase).
           <br />
           <span className="text-xs font-mono bg-muted px-1 rounded">Threshold: &lt; 100ms</span>
         </p>
@@ -472,17 +475,34 @@ const ScannerDebugSection: React.FC = () => {
               </div>
             )}
             {logs.map((log, i) => (
-              <div key={log.time + i} className="px-4 py-2 grid grid-cols-12 text-sm border-t border-border/50 font-mono">
-                <div className="col-span-2 text-foreground font-bold">{log.key === ' ' ? 'Space' : log.key}</div>
-                <div className="col-span-3 text-muted-foreground">{new Date(log.time).toLocaleTimeString().split(' ')[0]}.{Math.floor(log.time % 1000)}</div>
-                <div className={`col-span-3 ${log.diff < 100 ? 'text-green-500 font-bold' : 'text-yellow-500'}`}>
+              <div
+                key={log.time + i}
+                className="px-4 py-2 grid grid-cols-12 text-sm border-t border-border/50 font-mono"
+              >
+                <div className="col-span-2 text-foreground font-bold">
+                  {log.key === ' ' ? 'Space' : log.key}
+                </div>
+                <div className="col-span-3 text-muted-foreground">
+                  {new Date(log.time).toLocaleTimeString().split(' ')[0]}.
+                  {Math.floor(log.time % 1000)}
+                </div>
+                <div
+                  className={`col-span-3 ${log.diff < 100 ? 'text-green-500 font-bold' : 'text-yellow-500'}`}
+                >
                   {log.diff}ms
                 </div>
                 <div className="col-span-4">
                   {log.isScanner ? (
-                    <Badge variant="default" className="bg-green-500/20 text-green-500 hover:bg-green-500/30 border-0">YES</Badge>
+                    <Badge
+                      variant="default"
+                      className="bg-green-500/20 text-green-500 hover:bg-green-500/30 border-0"
+                    >
+                      YES
+                    </Badge>
                   ) : (
-                    <Badge variant="outline" className="text-muted-foreground text-xs">NO</Badge>
+                    <Badge variant="outline" className="text-muted-foreground text-xs">
+                      NO
+                    </Badge>
                   )}
                 </div>
               </div>
@@ -491,7 +511,9 @@ const ScannerDebugSection: React.FC = () => {
         </div>
 
         <div className="mt-4 flex justify-end">
-          <Button variant="outline" onClick={() => setLogs([])}>Clear Log</Button>
+          <Button variant="outline" onClick={() => setLogs([])}>
+            Clear Log
+          </Button>
         </div>
       </Card>
     </div>

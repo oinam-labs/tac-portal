@@ -109,10 +109,7 @@ const schema = z.object({
   consignorCity: z.string().min(2, 'City Required'),
   consignorState: z.string().min(2, 'State Required'),
   consignorZip: z.string().min(6, 'Zip Required'),
-  consignorGstin: z
-    .string()
-    .optional()
-    .refine(isGstinFieldValid, GSTIN_ERROR_MESSAGE),
+  consignorGstin: z.string().optional().refine(isGstinFieldValid, GSTIN_ERROR_MESSAGE),
 
   // Consignee
   consigneeName: z.string().min(2, 'Name Required'),
@@ -121,10 +118,7 @@ const schema = z.object({
   consigneeCity: z.string().min(2, 'City Required'),
   consigneeState: z.string().min(2, 'State Required'),
   consigneeZip: z.string().min(6, 'Zip Required'),
-  consigneeGstin: z
-    .string()
-    .optional()
-    .refine(isGstinFieldValid, GSTIN_ERROR_MESSAGE),
+  consigneeGstin: z.string().optional().refine(isGstinFieldValid, GSTIN_ERROR_MESSAGE),
 
   // Item Details
   contents: z.string().min(2, 'Contents required'),
@@ -710,11 +704,11 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
     const record = address as Record<string, unknown>;
     const line1 = getAddressValue(
       record.line1 ??
-      record.line_1 ??
-      record.street ??
-      record.address ??
-      record.addr1 ??
-      record.address1
+        record.line_1 ??
+        record.street ??
+        record.address ??
+        record.addr1 ??
+        record.address1
     );
     const line2 = getAddressValue(
       record.line2 ?? record.line_2 ?? record.street2 ?? record.address2 ?? record.addr2
@@ -785,7 +779,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
   };
 
   const onSubmit = async (data: FormData) => {
-    console.log('onSubmit called with data:', data);
+    console.debug('onSubmit called with data:', data);
     try {
       const financials = {
         ratePerKg: safeNum(data.ratePerKg),
@@ -1142,15 +1136,15 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
 
   const nextStep = async () => {
     const fieldsToValidate = steps[currentStep].fields;
-    console.log('Validating fields:', fieldsToValidate);
+    console.debug('Validating fields:', fieldsToValidate);
     const valid = await trigger(fieldsToValidate as any);
-    console.log('Validation result:', valid, form.formState.errors);
+    console.debug('Validation result:', valid, form.formState.errors);
     if (valid) {
       if (currentStep < steps.length - 1) {
         setDirection(1);
         setCurrentStep((prev) => prev + 1);
       } else {
-        console.log('Submitting form...');
+        console.debug('Submitting form...');
         form.handleSubmit(onSubmit, (errors) => {
           console.error('Form validation failed:', errors);
           toast.error('Please check for errors in the form');

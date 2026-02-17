@@ -133,7 +133,7 @@ export const QuickActions: React.FC = () => {
             <Scan className="w-4 h-4" />
             Quick Scan
           </h3>
-          
+
           <form onSubmit={handleQuickScan} className="flex gap-2 mb-4">
             <Input
               value={quickScanInput}
@@ -163,7 +163,7 @@ export const QuickActions: React.FC = () => {
                       <span className="text-xs font-mono font-semibold">{awb}</span>
                     </div>
                     <div className="flex-shrink-0">
-                      <UniversalBarcode 
+                      <UniversalBarcode
                         value={awb}
                         mode="compact"
                         width={3}

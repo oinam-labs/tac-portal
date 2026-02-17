@@ -134,7 +134,9 @@ test.describe('Enterprise Stress Tests', () => {
       await page.waitForLoadState('networkidle');
 
       // Look for create invoice button
-      const createButton = page.getByRole('button', { name: /new invoice|create invoice|new/i }).first();
+      const createButton = page
+        .getByRole('button', { name: /new invoice|create invoice|new/i })
+        .first();
 
       if (await createButton.isVisible({ timeout: 5000 })) {
         await createButton.scrollIntoViewIfNeeded();
@@ -144,7 +146,9 @@ test.describe('Enterprise Stress Tests', () => {
         const dialog = page.getByRole('dialog').last();
         if (await dialog.isVisible({ timeout: 3000 })) {
           // Try to submit empty form
-          const submitButton = dialog.getByRole('button', { name: /save|submit|create|generate/i }).first();
+          const submitButton = dialog
+            .getByRole('button', { name: /save|submit|create|generate/i })
+            .first();
           if (await submitButton.isVisible({ timeout: 3000 })) {
             await submitButton.click({ force: true });
           }

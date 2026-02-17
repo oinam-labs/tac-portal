@@ -77,24 +77,26 @@ async function main() {
 
     if (!staff) {
         console.log('Staff record not found. Creating...');
-        const { error: insertError } = await supabase.from('staff').insert({
+
+        // Look up the org and hub by known codes so we use real UUIDs
+        const { data: org } = await supabase.from('orgs').select('id').limit(1).single();
+        const { data: hub } = await supabase.from('hubs').select('id').eq('code', 'IMF').single();
+
+        const staffPayload = {
             email,
             auth_user_id: user.id,
             full_name: 'Test Admin User',
             role: 'ADMIN',
-            hub_code: 'IMF',
             is_active: true,
             phone: '9999999999',
-            org_id: '1', // Assuming 1 or generated? Schema might default. Let's try without org_id if it fails.
-            // Wait, schema might require org_id. 
-            // In setup-test-user.sql, org_id wasn't inserted. Maybe it has a default?
-            // Let's check database.types.ts? No, I viewed it but didn't memorize.
-            // I'll try inserting without org_id first.
-        });
+        };
+        if (org?.id) staffPayload.org_id = org.id;
+        if (hub?.id) staffPayload.hub_id = hub.id;
+
+        const { error: insertError } = await supabase.from('staff').insert(staffPayload);
 
         if (insertError) {
             console.error('Error inserting staff:', insertError);
-            // If fails, maybe retry with org_id (if I knew it)
         } else {
             console.log('Staff record created.');
         }

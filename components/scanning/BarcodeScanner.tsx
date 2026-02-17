@@ -86,7 +86,7 @@ export function BarcodeScanner({
   useEffect(() => {
     if (!active) return;
 
-    console.log('[BarcodeScanner] Initializing camera...', { active });
+    console.debug('[BarcodeScanner] Initializing camera...', { active });
     const reader = new BrowserMultiFormatReader();
     readerRef.current = reader;
 
@@ -94,7 +94,7 @@ export function BarcodeScanner({
     reader
       .listVideoInputDevices()
       .then((devices) => {
-        console.log('[BarcodeScanner] Cameras found:', devices);
+        console.debug('[BarcodeScanner] Cameras found:', devices);
         setCameras(devices);
         if (devices.length > 0) {
           // Prefer back camera on mobile
@@ -160,10 +160,10 @@ export function BarcodeScanner({
       .decodeFromConstraints(constraints, videoRef.current, (result, _error) => {
         if (result) {
           const text = result.getText();
-          console.log('[BarcodeScanner] Decoded text:', text);
+          console.debug('[BarcodeScanner] Decoded text:', text);
           // Debounce: skip if same barcode scanned within 2s
           if (text !== lastScannedRef.current) {
-            console.log('[BarcodeScanner] Valid new scan (not debounced):', text);
+            console.debug('[BarcodeScanner] Valid new scan (not debounced):', text);
             lastScannedRef.current = text;
             playBeep();
             onScanRef.current(text);
@@ -253,13 +253,13 @@ export function BarcodeScanner({
       const reader = readerRef.current || new BrowserMultiFormatReader();
       const url = URL.createObjectURL(file);
 
-      console.log('[BarcodeScanner] Decoding image file...');
+      console.debug('[BarcodeScanner] Decoding image file...');
       const result = await reader.decodeFromImageUrl(url);
       URL.revokeObjectURL(url);
 
       if (result) {
         const text = result.getText();
-        console.log('[BarcodeScanner] Decoded from image:', text);
+        console.debug('[BarcodeScanner] Decoded from image:', text);
         playBeep();
         onScanRef.current(text);
       }
@@ -299,7 +299,9 @@ export function BarcodeScanner({
   const maxZoom = capabilities?.zoom?.max || 3;
 
   return (
-    <div className={cn('relative overflow-hidden rounded-lg bg-background dark:bg-black', className)}>
+    <div
+      className={cn('relative overflow-hidden rounded-lg bg-background dark:bg-black', className)}
+    >
       <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
 
       {/* Overlay */}

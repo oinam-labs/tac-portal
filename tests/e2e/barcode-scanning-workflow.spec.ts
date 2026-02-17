@@ -269,15 +269,25 @@ test.describe('Barcode Scanning – Performance', () => {
           function sendNext() {
             if (i < chars.length) {
               const key = chars[i];
-              window.dispatchEvent(new KeyboardEvent('keydown', {
-                key, code: `Key${key.toUpperCase()}`, bubbles: true, cancelable: true,
-              }));
+              window.dispatchEvent(
+                new KeyboardEvent('keydown', {
+                  key,
+                  code: `Key${key.toUpperCase()}`,
+                  bubbles: true,
+                  cancelable: true,
+                })
+              );
               i++;
               setTimeout(sendNext, 200); // 200ms = human speed
             } else {
-              window.dispatchEvent(new KeyboardEvent('keydown', {
-                key: 'Enter', code: 'Enter', bubbles: true, cancelable: true,
-              }));
+              window.dispatchEvent(
+                new KeyboardEvent('keydown', {
+                  key: 'Enter',
+                  code: 'Enter',
+                  bubbles: true,
+                  cancelable: true,
+                })
+              );
               resolve();
             }
           }

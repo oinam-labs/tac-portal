@@ -69,7 +69,15 @@ const statusColors: Record<string, string> = {
   RECONCILED: 'bg-status-delivered/10 text-status-delivered border-status-delivered/30',
 };
 
-function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string | number | null | undefined }) {
+function InfoRow({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string | number | null | undefined;
+}) {
   if (!value && value !== 0) return null;
   return (
     <div className="flex items-center gap-3 text-sm">
@@ -80,7 +88,13 @@ function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label:
   );
 }
 
-function InvoicePreview({ data, shipment }: { data: InvoiceWithRelations; shipment?: ShipmentWithRelations | null }) {
+function InvoicePreview({
+  data,
+  shipment,
+}: {
+  data: InvoiceWithRelations;
+  shipment?: ShipmentWithRelations | null;
+}) {
   const statusClass = statusColors[data.status] || 'bg-muted text-muted-foreground';
 
   return (
@@ -124,15 +138,27 @@ function InvoicePreview({ data, shipment }: { data: InvoiceWithRelations; shipme
             </span>
             {shipment.mode && (
               <Badge variant="secondary" className="ml-auto text-xs">
-                {shipment.mode === 'AIR' ? <Plane className="w-3 h-3 mr-1" /> : <Truck className="w-3 h-3 mr-1" />}
+                {shipment.mode === 'AIR' ? (
+                  <Plane className="w-3 h-3 mr-1" />
+                ) : (
+                  <Truck className="w-3 h-3 mr-1" />
+                )}
                 {shipment.mode}
               </Badge>
             )}
           </div>
         )}
 
-        <InfoRow icon={Calendar} label="Issue Date" value={data.issue_date ? new Date(data.issue_date).toLocaleDateString() : undefined} />
-        <InfoRow icon={Calendar} label="Due Date" value={data.due_date ? new Date(data.due_date).toLocaleDateString() : undefined} />
+        <InfoRow
+          icon={Calendar}
+          label="Issue Date"
+          value={data.issue_date ? new Date(data.issue_date).toLocaleDateString() : undefined}
+        />
+        <InfoRow
+          icon={Calendar}
+          label="Due Date"
+          value={data.due_date ? new Date(data.due_date).toLocaleDateString() : undefined}
+        />
       </div>
     </div>
   );
@@ -155,29 +181,38 @@ function ManifestPreview({ data }: { data: ManifestWithRelations }) {
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-sm">
           <MapPin className="w-4 h-4 text-muted-foreground" />
-          <span className="font-medium">
-            {data.from_hub?.name || data.from_hub?.code || '—'}
-          </span>
+          <span className="font-medium">{data.from_hub?.name || data.from_hub?.code || '—'}</span>
           <span className="text-muted-foreground">→</span>
-          <span className="font-medium">
-            {data.to_hub?.name || data.to_hub?.code || '—'}
-          </span>
+          <span className="font-medium">{data.to_hub?.name || data.to_hub?.code || '—'}</span>
           <Badge variant="secondary" className="ml-auto text-xs">
-            {data.type === 'AIR' ? <Plane className="w-3 h-3 mr-1" /> : <Truck className="w-3 h-3 mr-1" />}
+            {data.type === 'AIR' ? (
+              <Plane className="w-3 h-3 mr-1" />
+            ) : (
+              <Truck className="w-3 h-3 mr-1" />
+            )}
             {data.type}
           </Badge>
         </div>
 
         <InfoRow icon={Package} label="Shipments" value={data.total_shipments} />
         <InfoRow icon={Hash} label="Packages" value={data.total_packages} />
-        <InfoRow icon={Weight} label="Weight" value={data.total_weight ? `${data.total_weight} kg` : undefined} />
+        <InfoRow
+          icon={Weight}
+          label="Weight"
+          value={data.total_weight ? `${data.total_weight} kg` : undefined}
+        />
         <InfoRow icon={User} label="Created by" value={data.creator?.full_name} />
       </div>
     </div>
   );
 }
 
-export function ScanPreviewDialog({ open, onOpenChange, scannedData, scanType }: ScanPreviewDialogProps) {
+export function ScanPreviewDialog({
+  open,
+  onOpenChange,
+  scannedData,
+  scanType,
+}: ScanPreviewDialogProps) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -209,13 +244,15 @@ export function ScanPreviewDialog({ open, onOpenChange, scannedData, scanType }:
           // Single-pass: get shipment + invoice data together (no intermediate renders)
           const { data: shipmentRow, error: shipmentErr } = await supabase
             .from('shipments')
-            .select(`
+            .select(
+              `
               id, awb_number, mode, status, package_count, total_weight,
               sender_name, receiver_name, receiver_phone,
               customer:customers(name, phone, email),
               origin_hub:hubs!shipments_origin_hub_id_fkey(code, name),
               destination_hub:hubs!shipments_destination_hub_id_fkey(code, name)
-            `)
+            `
+            )
             .eq('awb_number', scannedData)
             .maybeSingle();
 
@@ -230,11 +267,13 @@ export function ScanPreviewDialog({ open, onOpenChange, scannedData, scanType }:
           // Fetch invoice using the shipment ID we just got
           const { data: invoiceRow, error: invoiceErr } = await supabase
             .from('invoices')
-            .select(`
+            .select(
+              `
               *,
               customer:customers(name, phone, email),
               shipment:shipments(awb_number)
-            `)
+            `
+            )
             .eq('shipment_id', shipmentRow.id)
             .is('deleted_at', null)
             .maybeSingle();
@@ -252,12 +291,14 @@ export function ScanPreviewDialog({ open, onOpenChange, scannedData, scanType }:
         } else if (scanType === 'manifest') {
           const { data, error: err } = await supabase
             .from('manifests')
-            .select(`
+            .select(
+              `
               *,
               from_hub:hubs!manifests_from_hub_id_fkey(code, name),
               to_hub:hubs!manifests_to_hub_id_fkey(code, name),
               creator:staff!manifests_created_by_staff_id_fkey(full_name)
-            `)
+            `
+            )
             .eq('manifest_no', scannedData)
             .maybeSingle();
 
@@ -279,7 +320,9 @@ export function ScanPreviewDialog({ open, onOpenChange, scannedData, scanType }:
     };
 
     fetchData();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [open, scannedData, scanType]);
 
   const handleNavigate = () => {
@@ -300,9 +343,11 @@ export function ScanPreviewDialog({ open, onOpenChange, scannedData, scanType }:
   };
 
   const dialogTitle =
-    scanType === 'shipment' ? 'Invoice Preview' :
-      scanType === 'manifest' ? 'Manifest Scanned' :
-        'Barcode Scanned';
+    scanType === 'shipment'
+      ? 'Invoice Preview'
+      : scanType === 'manifest'
+        ? 'Manifest Scanned'
+        : 'Barcode Scanned';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -338,7 +383,11 @@ export function ScanPreviewDialog({ open, onOpenChange, scannedData, scanType }:
                 <div>
                   <p className="font-mono text-sm font-bold tracking-wide">{scannedData}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {scanType === 'shipment' ? 'Looking up invoice...' : scanType === 'manifest' ? 'Looking up manifest...' : 'Processing...'}
+                    {scanType === 'shipment'
+                      ? 'Looking up invoice...'
+                      : scanType === 'manifest'
+                        ? 'Looking up manifest...'
+                        : 'Processing...'}
                   </p>
                 </div>
                 <Loader2 className="w-4 h-4 animate-spin text-muted-foreground ml-auto" />
@@ -357,20 +406,18 @@ export function ScanPreviewDialog({ open, onOpenChange, scannedData, scanType }:
               <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
               <div>
                 <p className="font-medium text-sm">{error}</p>
-                <p className="text-xs mt-1 opacity-70">The scanned value may not exist in the system.</p>
+                <p className="text-xs mt-1 opacity-70">
+                  The scanned value may not exist in the system.
+                </p>
               </div>
             </div>
           )}
 
           {/* Invoice Preview (for shipments) */}
-          {!loading && !error && invoice && (
-            <InvoicePreview data={invoice} shipment={shipment} />
-          )}
+          {!loading && !error && invoice && <InvoicePreview data={invoice} shipment={shipment} />}
 
           {/* Manifest Preview */}
-          {!loading && !error && manifest && (
-            <ManifestPreview data={manifest} />
-          )}
+          {!loading && !error && manifest && <ManifestPreview data={manifest} />}
 
           {/* Unknown format */}
           {!loading && scanType === 'unknown' && scannedData && (

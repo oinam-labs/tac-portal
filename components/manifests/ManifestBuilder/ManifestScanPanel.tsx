@@ -173,8 +173,8 @@ export function ManifestScanPanel({
             className={cn(
               'rounded-lg p-3 text-sm',
               scanner.lastResult.success &&
-              !scanner.lastResult.duplicate &&
-              'bg-status-success/10 text-status-success',
+                !scanner.lastResult.duplicate &&
+                'bg-status-success/10 text-status-success',
               scanner.lastResult.duplicate && 'bg-status-warning/10 text-status-warning',
               !scanner.lastResult.success && 'bg-status-error/10 text-status-error'
             )}

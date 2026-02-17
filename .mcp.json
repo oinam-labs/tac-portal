@@ -1,10 +1,7 @@
 {
   "mcpServers": {
     "github-mcp-server": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-github"
-      ],
+      "args": ["-y", "@modelcontextprotocol/server-github"],
       "command": "npx",
       "disabled": false,
       "env": {

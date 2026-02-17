@@ -389,11 +389,7 @@ export const LabelGenerator: React.FC<LabelGeneratorProps> = ({ data, onPrint })
           <section className="sl-barcode-row">
             <div className="sl-barcode-cell">
               <div className="sl-barcode flex items-center justify-start overflow-hidden">
-                <UniversalBarcode 
-                  value={data.awb}
-                  mode="print"
-                  className="max-w-full"
-                />
+                <UniversalBarcode value={data.awb} mode="print" className="max-w-full" />
               </div>
               <div className="sl-awb">{data.awb}</div>
             </div>

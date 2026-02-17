@@ -22,7 +22,11 @@ export function ScannerDebug() {
   const [visible, setVisible] = useState(false);
   const [keystrokes, setKeystrokes] = useState<KeystrokeData[]>([]);
   const [buffer, setBuffer] = useState('');
-  const [lastScan, setLastScan] = useState<{ code: string; success: boolean; timestamp: number } | null>(null);
+  const [lastScan, setLastScan] = useState<{
+    code: string;
+    success: boolean;
+    timestamp: number;
+  } | null>(null);
   const [scannerDetected, setScannerDetected] = useState(false);
   const [avgTiming, setAvgTiming] = useState<number | null>(null);
   const clearTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -72,12 +76,15 @@ export function ScannerDebug() {
     } else if (event.type === 'submit' || event.type === 'reset') {
       // On submit/reset, clear after a delay so user can see final state
       if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
-      clearTimerRef.current = setTimeout(() => {
-        setBuffer('');
-        setKeystrokes([]);
-        setScannerDetected(false);
-        setAvgTiming(null);
-      }, event.type === 'submit' ? 2000 : 500);
+      clearTimerRef.current = setTimeout(
+        () => {
+          setBuffer('');
+          setKeystrokes([]);
+          setScannerDetected(false);
+          setAvgTiming(null);
+        },
+        event.type === 'submit' ? 2000 : 500
+      );
     }
   }, []);
 
@@ -133,10 +140,11 @@ export function ScannerDebug() {
               keystrokes.map((k, i) => (
                 <span
                   key={i}
-                  className={`px-1 rounded ${k.delay > 0 && k.delay < 150
+                  className={`px-1 rounded ${
+                    k.delay > 0 && k.delay < 150
                       ? 'bg-green-500/20 text-green-700 dark:text-green-300'
                       : 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-300'
-                    }`}
+                  }`}
                   title={`${k.delay}ms`}
                 >
                   {k.key}

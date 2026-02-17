@@ -41,7 +41,7 @@ export function getShipmentsColumns(
       id: 'barcode',
       header: 'Barcode',
       cell: ({ row }) => (
-        <div 
+        <div
           className="cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => params.onView(row.original)}
           title="Click to view shipment details"

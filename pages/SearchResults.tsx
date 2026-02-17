@@ -87,16 +87,10 @@ export const SearchResults: React.FC = () => {
                         <div className="font-medium text-foreground">{result.title}</div>
                         <div className="text-sm text-muted-foreground">{result.subtitle}</div>
                         <div className="flex gap-2 mt-2">
-                          <Badge
-                            variant="outline"
-                            className="text-xs"
-                          >
+                          <Badge variant="outline" className="text-xs">
                             {result.metadata.status}
                           </Badge>
-                          <Badge
-                            variant="outline"
-                            className="text-xs"
-                          >
+                          <Badge variant="outline" className="text-xs">
                             {result.metadata.origin} → {result.metadata.destination}
                           </Badge>
                         </div>
@@ -153,10 +147,7 @@ export const SearchResults: React.FC = () => {
                         </div>
                         <div className="text-sm text-muted-foreground">{result.subtitle}</div>
                         <div className="flex gap-2 mt-2">
-                          <Badge
-                            variant="outline"
-                            className="text-xs"
-                          >
+                          <Badge variant="outline" className="text-xs">
                             {result.metadata.status}
                           </Badge>
                           <div className="text-xs text-muted-foreground flex items-center gap-1">

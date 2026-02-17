@@ -205,7 +205,9 @@ export function PublicTracking() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-xs text-muted-foreground mb-1">Packages</p>
-                  <p className="text-lg font-semibold text-foreground">{data.shipment.package_count}</p>
+                  <p className="text-lg font-semibold text-foreground">
+                    {data.shipment.package_count}
+                  </p>
                 </div>
                 <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-xs text-muted-foreground mb-1">Weight</p>
@@ -222,7 +224,9 @@ export function PublicTracking() {
                 </div>
                 <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-xs text-muted-foreground mb-1">Service</p>
-                  <p className="text-lg font-semibold text-foreground">{data.shipment.service_level}</p>
+                  <p className="text-lg font-semibold text-foreground">
+                    {data.shipment.service_level}
+                  </p>
                 </div>
               </div>
             </Card>
@@ -269,8 +273,8 @@ export function PublicTracking() {
             <Card className="p-6 bg-card/80 border-border">
               <h3 className="text-lg font-semibold text-foreground mb-4">Need More Details?</h3>
               <p className="text-muted-foreground mb-4">
-                For complete shipment details including delivery contact information,
-                please contact our support team with your AWB number.
+                For complete shipment details including delivery contact information, please contact
+                our support team with your AWB number.
               </p>
               <div className="flex items-center gap-2 text-status-info">
                 <Package className="w-4 h-4" />

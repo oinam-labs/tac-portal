@@ -130,10 +130,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onSuccess, onCancel })
 
       // Create a system message for the admin
       try {
-        const messageText = `New Booking Request from ${data.consignor.name}\n` +
+        const messageText =
+          `New Booking Request from ${data.consignor.name}\n` +
           `Route: ${data.consignor.city} -> ${data.consignee.city}\n` +
           `Items: ${data.volumeMatrix.reduce((acc, curr) => acc + Number(curr.count), 0)}\n` +
-          `Total Weight: ${data.volumeMatrix.reduce((acc, curr) => acc + (Number(curr.weight) * Number(curr.count)), 0)} kg\n` +
+          `Total Weight: ${data.volumeMatrix.reduce((acc, curr) => acc + Number(curr.weight) * Number(curr.count), 0)} kg\n` +
           `WhatsApp: ${data.whatsappNumber}`;
 
         await supabase.from('contact_messages').insert({
@@ -144,7 +145,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onSuccess, onCancel })
           message: messageText,
           status: 'unread',
           archived: false,
-          replied: false
+          replied: false,
         });
       } catch (msgError) {
         console.error('Failed to create system message for booking:', msgError);

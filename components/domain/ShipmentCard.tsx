@@ -106,7 +106,9 @@ export function ShipmentCard({ shipment, onClick, className, compact = false }: 
             />
           </div>
           <div>
-            <h3 className="font-mono font-bold text-foreground text-lg tracking-wide">{shipment.awb}</h3>
+            <h3 className="font-mono font-bold text-foreground text-lg tracking-wide">
+              {shipment.awb}
+            </h3>
             <p className="text-sm text-muted-foreground">{shipment.customerName}</p>
           </div>
         </div>

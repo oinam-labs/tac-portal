@@ -129,11 +129,7 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
           <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
             Barcode Scan
           </div>
-          <UniversalBarcodePreset
-            value={shipment.awb}
-            preset="screenLarge"
-            className="mb-2"
-          />
+          <UniversalBarcodePreset value={shipment.awb} preset="screenLarge" className="mb-2" />
           <p className="text-xs text-muted-foreground text-center">
             Scan this barcode to quickly identify and track this shipment
           </p>

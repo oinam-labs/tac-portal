@@ -17,8 +17,6 @@ export interface TrackingData {
   }>;
 }
 
-
-
 /**
  * Public tracking API - fetches shipment info by AWB number from Supabase.
  * This is used by the landing page tracking feature.

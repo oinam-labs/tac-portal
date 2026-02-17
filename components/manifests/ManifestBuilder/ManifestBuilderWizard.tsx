@@ -101,10 +101,10 @@ export function ManifestBuilderWizard({
   // Register as active scan context when modal is open
   React.useEffect(() => {
     if (open) {
-      console.log('[ManifestBuilder] Registering as active scan context');
+      console.debug('[ManifestBuilder] Registering as active scan context');
       setActiveContext('MANIFEST_BUILDER');
     } else {
-      console.log('[ManifestBuilder] Releasing scan context');
+      console.debug('[ManifestBuilder] Releasing scan context');
       setActiveContext('GLOBAL');
     }
 

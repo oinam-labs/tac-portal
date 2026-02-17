@@ -34,8 +34,8 @@ export interface CrudTableProps<TData> {
   emptyMessage?: string;
   loadingState?: React.ReactNode;
   emptyState?:
-  | React.ReactNode
-  | ((ctx: { isFiltered: boolean; filter: string }) => React.ReactNode);
+    | React.ReactNode
+    | ((ctx: { isFiltered: boolean; filter: string }) => React.ReactNode);
   /** Toolbar content (e.g., filters, create button) */
   toolbar?: React.ReactNode;
   /** Optional callback for server-side search */
@@ -142,7 +142,7 @@ export function CrudTable<TData>({
                             className={cn(
                               'flex items-center gap-1',
                               header.column.getCanSort() &&
-                              'cursor-pointer select-none hover:text-foreground'
+                                'cursor-pointer select-none hover:text-foreground'
                             )}
                             onClick={header.column.getToggleSortingHandler()}
                           >
@@ -186,7 +186,7 @@ export function CrudTable<TData>({
                 to{' '}
                 {Math.min(
                   (table.getState().pagination.pageIndex + 1) *
-                  table.getState().pagination.pageSize,
+                    table.getState().pagination.pageSize,
                   table.getFilteredRowModel().rows.length
                 )}{' '}
                 of {table.getFilteredRowModel().rows.length} results

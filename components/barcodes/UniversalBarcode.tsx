@@ -1,12 +1,12 @@
 /**
  * UniversalBarcode Component
- * 
+ *
  * A unified barcode component that automatically adjusts for different contexts:
  * - Screen display (scannable from LCD screens)
  * - Print output (optimized for paper)
  * - PDF generation (embedded in documents)
  * - Compact display (tables, cards)
- * 
+ *
  * Usage:
  *   <UniversalBarcode value="TAC123456789" mode="screen" />
  *   <UniversalBarcode value={awb} mode="print" />
@@ -25,7 +25,7 @@ export const UniversalBarcode: React.FC<BarcodeProps> = ({
   format = 'CODE128',
   className = '',
   onError,
-  
+
   // Manual overrides
   width,
   height,
@@ -62,7 +62,6 @@ export const UniversalBarcode: React.FC<BarcodeProps> = ({
 
       // Generate barcode
       JsBarcode(svgRef.current, value, config);
-      
     } catch (error) {
       console.error('[UniversalBarcode] Generation failed:', error, { value, mode, format });
       if (onError) {
@@ -78,7 +77,7 @@ export const UniversalBarcode: React.FC<BarcodeProps> = ({
   const modeConfig = MODE_CONFIGS[mode];
 
   return (
-    <div 
+    <div
       className={`barcode-container barcode-mode-${mode} ${className}`}
       style={{
         display: 'inline-block',
@@ -92,7 +91,7 @@ export const UniversalBarcode: React.FC<BarcodeProps> = ({
       data-barcode-value={value}
       data-barcode-mode={mode}
     >
-      <svg 
+      <svg
         ref={svgRef}
         style={{
           display: 'block',
@@ -107,7 +106,7 @@ export const UniversalBarcode: React.FC<BarcodeProps> = ({
 
 /**
  * UniversalBarcode with preset
- * 
+ *
  * Usage:
  *   <UniversalBarcodePreset value={awb} preset="screenScan" />
  *   <UniversalBarcodePreset value={awb} preset="shippingLabel" />

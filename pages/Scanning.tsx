@@ -441,7 +441,7 @@ export const Scanning: React.FC = () => {
               <Input
                 placeholder={
                   (scanMode === 'LOAD_MANIFEST' || scanMode === 'VERIFY_MANIFEST') &&
-                    !activeManifest
+                  !activeManifest
                     ? 'Scan Manifest Ref...'
                     : 'Scan AWB...'
                 }
@@ -477,12 +477,7 @@ export const Scanning: React.FC = () => {
                       Scan the barcode below to test your scanner
                     </p>
                     <div className="flex justify-center">
-                      <UniversalBarcode
-                        value="TAC123456789"
-                        mode="screen"
-                        width={6}
-                        height={100}
-                      />
+                      <UniversalBarcode value="TAC123456789" mode="screen" width={6} height={100} />
                     </div>
                     <p className="text-xs text-center text-muted-foreground mt-2">
                       AWB: TAC123456789

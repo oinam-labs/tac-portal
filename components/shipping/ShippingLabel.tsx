@@ -38,7 +38,7 @@ export const ShippingLabel: React.FC<{ shipment: ShippingLabelData }> = ({ shipm
           <div className="cell">
             <div className="kicker">{shipment.serviceName}</div>
 
-            <UniversalBarcode 
+            <UniversalBarcode
               value={shipment.tracking}
               mode="print"
               displayValue={false}

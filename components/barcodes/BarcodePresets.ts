@@ -1,6 +1,6 @@
 /**
  * Barcode Presets Library
- * 
+ *
  * Pre-configured barcode settings for common use cases
  */
 
@@ -137,19 +137,19 @@ export function getPresetsByFormat(format: BarcodeFormat): BarcodePreset[] {
 export const QuickPresets = {
   /** Default for screen scanning */
   screen: BarcodePresets.screenScan,
-  
+
   /** Default for printing */
   print: BarcodePresets.shippingLabel,
-  
+
   /** Default for PDF */
   pdf: BarcodePresets.pdfExport,
-  
+
   /** Default for tables */
   table: BarcodePresets.tableDisplay,
-  
+
   /** Large screen barcode */
   large: BarcodePresets.screenLarge,
-  
+
   /** Mini barcode */
   mini: BarcodePresets.miniDisplay,
 };

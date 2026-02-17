@@ -385,7 +385,9 @@ export const manifestService = {
     if (error) {
       // Fallback to direct update if RPC not available
       if (error.code === '42883' || error.message?.includes('does not exist')) {
-        const { data: fallbackData, error: fallbackError } = await (supabase.from('manifests') as any)
+        const { data: fallbackData, error: fallbackError } = await (
+          supabase.from('manifests') as any
+        )
           .update({
             status: 'CLOSED',
             closed_at: new Date().toISOString(),
@@ -706,7 +708,7 @@ export const manifestService = {
           scanned_by_staff_id: staffId || null,
           scanned_at: new Date().toISOString(),
         })
-        .onConflict('manifest_id,shipment_id')  // Unique constraint
+        .onConflict('manifest_id,shipment_id') // Unique constraint
         .select()
         .maybeSingle();
 

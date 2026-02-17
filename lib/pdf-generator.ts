@@ -47,7 +47,7 @@ const ICON_PATHS = {
 async function renderTransportIconPng(
   mode: 'AIR' | 'TRUCK',
   pixelSize: number,
-  fillColor: string,
+  fillColor: string
 ): Promise<string> {
   const icon = mode === 'AIR' ? ICON_PATHS.AIR : ICON_PATHS.TRUCK;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${icon.viewBox}" width="${pixelSize}" height="${pixelSize}" fill="${fillColor}"><path d="${icon.d}"/></svg>`;
@@ -60,7 +60,10 @@ async function renderTransportIconPng(
       canvas.width = pixelSize;
       canvas.height = pixelSize;
       const ctx = canvas.getContext('2d');
-      if (!ctx) { reject(new Error('Canvas context unavailable')); return; }
+      if (!ctx) {
+        reject(new Error('Canvas context unavailable'));
+        return;
+      }
       ctx.drawImage(img, 0, 0, pixelSize, pixelSize);
       resolve(canvas.toDataURL('image/png'));
     };
@@ -500,26 +503,26 @@ export async function generateLabelPDF(data: LabelData): Promise<string> {
   const fontMono = await pdfDoc.embedFont(StandardFonts.CourierBold);
 
   // Pre-render SVG transport icons as PNG (same SVG paths as LabelGenerator.tsx)
-  const iconMode = data.transportMode === 'AIR' ? 'AIR' as const : 'TRUCK' as const;
+  const iconMode = data.transportMode === 'AIR' ? ('AIR' as const) : ('TRUCK' as const);
   const [metaIconDataUrl, headerIconDataUrl] = await Promise.all([
     renderTransportIconPng(iconMode, 64, '#18181b').catch(() => ''),
     renderTransportIconPng(iconMode, 42, '#ffffff').catch(() => ''),
   ]);
 
   // --- Design tokens (exact match to LabelGenerator.tsx CSS) ---
-  const DARK = rgb(0.094, 0.094, 0.106);   // #18181b
+  const DARK = rgb(0.094, 0.094, 0.106); // #18181b
   const WHITE = rgb(1, 1, 1);
-  const MUTED = rgb(0.443, 0.443, 0.478);  // #71717a  (.sl-kicker, .sl-meta-unit, .sl-hub-name)
-  const ADDR = rgb(0.247, 0.247, 0.275);   // #3f3f46  (.sl-address)
-  const ARROW = rgb(0.631, 0.631, 0.667);  // #a1a1aa  (.sl-route-arrow)
-  const LIGHT = rgb(0.98, 0.98, 0.98);     // #fafafa  (.sl-footer)
-  const B = 1.1;                            // border: 1.5px * 0.75 = 1.125
+  const MUTED = rgb(0.443, 0.443, 0.478); // #71717a  (.sl-kicker, .sl-meta-unit, .sl-hub-name)
+  const ADDR = rgb(0.247, 0.247, 0.275); // #3f3f46  (.sl-address)
+  const ARROW = rgb(0.631, 0.631, 0.667); // #a1a1aa  (.sl-route-arrow)
+  const LIGHT = rgb(0.98, 0.98, 0.98); // #fafafa  (.sl-footer)
+  const B = 1.1; // border: 1.5px * 0.75 = 1.125
 
   // --- Layout constants ---
   // Width: 4 inches = 288pt. Scale: 288/384 = 0.75
   const W = 288;
-  const META_W = 83;         // HTML grid-template-columns: 1fr 110px → 110*0.75 = 82.5
-  const BW = W - META_W;    // barcode cell width = 205
+  const META_W = 83; // HTML grid-template-columns: 1fr 110px → 110*0.75 = 82.5
+  const BW = W - META_W; // barcode cell width = 205
 
   // Section heights (measured from CSS rendered heights × 0.75)
   // .sl-header:       padding 6px*2 + line 14px*1.3 = ~30px  → 23pt
@@ -554,14 +557,22 @@ export async function generateLabelPDF(data: LabelData): Promise<string> {
 
   // "TAC CARGO" (.sl-brand: 14px→10.5pt, weight 800, letter-spacing 2px→1.5pt)
   page.drawText('TAC CARGO', {
-    x: 9, y: y + 7, size: 10.5, font: fontBold, color: WHITE,
+    x: 9,
+    y: y + 7,
+    size: 10.5,
+    font: fontBold,
+    color: WHITE,
   });
 
   // Service tag (.sl-service-tag: 10px→7.5pt, weight 700, uppercase)
   const svcName = (data.serviceName || 'STANDARD').toUpperCase();
   const svcNameW = fontBold.widthOfTextAtSize(svcName, 7.5);
   page.drawText(svcName, {
-    x: W - svcNameW - 9, y: y + 7, size: 7.5, font: fontBold, color: WHITE,
+    x: W - svcNameW - 9,
+    y: y + 7,
+    size: 7.5,
+    font: fontBold,
+    color: WHITE,
   });
 
   // Mini transport icon (.sl-service-tag svg: 14px→10.5pt)
@@ -572,10 +583,14 @@ export async function generateLabelPDF(data: LabelData): Promise<string> {
     try {
       const miniImg = await pdfDoc.embedPng(headerIconDataUrl);
       page.drawImage(miniImg, {
-        x: miniX, y: miniCy - miniIconSize / 2,
-        width: miniIconSize, height: miniIconSize,
+        x: miniX,
+        y: miniCy - miniIconSize / 2,
+        width: miniIconSize,
+        height: miniIconSize,
       });
-    } catch { /* icon rendering failed, skip */ }
+    } catch {
+      /* icon rendering failed, skip */
+    }
   }
 
   // ===== 2. BARCODE + META ROW (.sl-barcode-row) =====
@@ -593,7 +608,10 @@ export async function generateLabelPDF(data: LabelData): Promise<string> {
     try {
       const barcodeImg = await pdfDoc.embedPng(barcodeDataUrl);
       page.drawImage(barcodeImg, {
-        x: 9, y: y + 22, width: BW - 18, height: 30,
+        x: 9,
+        y: y + 22,
+        width: BW - 18,
+        height: 30,
       });
     } catch (err) {
       console.error('[LabelPDF] Barcode embed failed:', err);
@@ -602,7 +620,10 @@ export async function generateLabelPDF(data: LabelData): Promise<string> {
 
   // AWB (.sl-awb: 15px→11.25pt, Courier New monospace, weight 900)
   page.drawText(data.awb, {
-    x: 9, y: y + 5, size: 11, font: fontMono,
+    x: 9,
+    y: y + 5,
+    size: 11,
+    font: fontMono,
   });
 
   // --- Meta cell (.sl-meta-cell) ---
@@ -611,7 +632,12 @@ export async function generateLabelPDF(data: LabelData): Promise<string> {
   const metaGridTop = y + metaGridH;
 
   // Horizontal separator between icon and grid (.sl-meta-icon border-bottom)
-  page.drawLine({ start: { x: BW, y: metaGridTop }, end: { x: W, y: metaGridTop }, thickness: B, color: DARK });
+  page.drawLine({
+    start: { x: BW, y: metaGridTop },
+    end: { x: W, y: metaGridTop },
+    thickness: B,
+    color: DARK,
+  });
 
   // Transport icon (.sl-meta-icon svg: 28px→21pt, centered in icon area)
   const iconSize = 21;
@@ -621,17 +647,26 @@ export async function generateLabelPDF(data: LabelData): Promise<string> {
     try {
       const metaImg = await pdfDoc.embedPng(metaIconDataUrl);
       page.drawImage(metaImg, {
-        x: iconCx - iconSize / 2, y: iconCy - iconSize / 2,
-        width: iconSize, height: iconSize,
+        x: iconCx - iconSize / 2,
+        y: iconCy - iconSize / 2,
+        width: iconSize,
+        height: iconSize,
       });
-    } catch { /* icon rendering failed, skip */ }
+    } catch {
+      /* icon rendering failed, skip */
+    }
   }
 
   // Weight + Service Code grid (.sl-meta-grid: 2 columns)
   const metaMidX = BW + META_W / 2;
   const halfMeta = META_W / 2;
   // Vertical separator between weight and svc code
-  page.drawLine({ start: { x: metaMidX, y: metaGridTop }, end: { x: metaMidX, y }, thickness: B, color: DARK });
+  page.drawLine({
+    start: { x: metaMidX, y: metaGridTop },
+    end: { x: metaMidX, y },
+    thickness: B,
+    color: DARK,
+  });
   // First-child border-right (.sl-meta-item:first-child)
 
   // Weight (.sl-meta-val: 14px→10.5pt, .sl-meta-unit: 9px→6.75pt)
@@ -639,13 +674,18 @@ export async function generateLabelPDF(data: LabelData): Promise<string> {
   const wValW = fontBold.widthOfTextAtSize(wVal, 10.5);
   page.drawText(wVal, {
     x: BW + (halfMeta - wValW) / 2,
-    y: y + metaGridH * 0.52, size: 10.5, font: fontBold,
+    y: y + metaGridH * 0.52,
+    size: 10.5,
+    font: fontBold,
   });
   const wUnit = data.weightUnit.toUpperCase();
   const wUnitW = fontBold.widthOfTextAtSize(wUnit, 6.5);
   page.drawText(wUnit, {
     x: BW + (halfMeta - wUnitW) / 2,
-    y: y + 2, size: 6.5, font: fontBold, color: MUTED,
+    y: y + 2,
+    size: 6.5,
+    font: fontBold,
+    color: MUTED,
   });
 
   // Service code
@@ -653,13 +693,18 @@ export async function generateLabelPDF(data: LabelData): Promise<string> {
   const sCodeW = fontBold.widthOfTextAtSize(sCode, 10.5);
   page.drawText(sCode, {
     x: metaMidX + (halfMeta - sCodeW) / 2,
-    y: y + metaGridH * 0.52, size: 10.5, font: fontBold,
+    y: y + metaGridH * 0.52,
+    size: 10.5,
+    font: fontBold,
   });
   const sLabel = 'SVC';
   const sLabelW = fontBold.widthOfTextAtSize(sLabel, 6.5);
   page.drawText(sLabel, {
     x: metaMidX + (halfMeta - sLabelW) / 2,
-    y: y + 2, size: 6.5, font: fontBold, color: MUTED,
+    y: y + 2,
+    size: 6.5,
+    font: fontBold,
+    color: MUTED,
   });
 
   // ===== 3. PAYMENT BAR (.sl-paybar) =====
@@ -670,7 +715,11 @@ export async function generateLabelPDF(data: LabelData): Promise<string> {
   const payText = (data.paymentMode || 'TO_PAY').toUpperCase();
   const payTW = fontBold.widthOfTextAtSize(payText, 8);
   page.drawText(payText, {
-    x: (W - payTW) / 2, y: y + 4, size: 8, font: fontBold, color: WHITE,
+    x: (W - payTW) / 2,
+    y: y + 4,
+    size: 8,
+    font: fontBold,
+    color: WHITE,
   });
 
   // ===== 4. SHIP TO (.sl-shipto) =====
@@ -680,27 +729,42 @@ export async function generateLabelPDF(data: LabelData): Promise<string> {
 
   // Kicker (.sl-kicker: 9px→6.75pt, weight 800, uppercase, #71717a)
   page.drawText('SHIP TO', {
-    x: 9, y: stTop - 10, size: 6.75, font: fontBold, color: MUTED,
+    x: 9,
+    y: stTop - 10,
+    size: 6.75,
+    font: fontBold,
+    color: MUTED,
   });
 
   // Recipient name (.sl-recipient-name: 18px→13.5pt, weight 900, uppercase)
   const name = (data.recipient.name || 'RECIPIENT').toUpperCase();
   page.drawText(name.substring(0, 26), {
-    x: 9, y: stTop - 25, size: 13.5, font: fontBold,
+    x: 9,
+    y: stTop - 25,
+    size: 13.5,
+    font: fontBold,
   });
 
   // Address (.sl-address: 11px→8.25pt, weight 500, #3f3f46, line-height 1.4)
   let addrY = stTop - 38;
   if (data.recipient.address) {
     page.drawText(data.recipient.address.substring(0, 55), {
-      x: 9, y: addrY, size: 8, font, color: ADDR,
+      x: 9,
+      y: addrY,
+      size: 8,
+      font,
+      color: ADDR,
     });
     addrY -= 11;
   }
   const cityState = [data.recipient.city, data.recipient.state].filter(Boolean).join(', ');
   if (cityState) {
     page.drawText(cityState.substring(0, 55), {
-      x: 9, y: addrY, size: 8, font, color: ADDR,
+      x: 9,
+      y: addrY,
+      size: 8,
+      font,
+      color: ADDR,
     });
   }
 
@@ -715,31 +779,60 @@ export async function generateLabelPDF(data: LabelData): Promise<string> {
   const oCode = data.routing.origin || 'DEL';
   const oCodeW = fontBold.widthOfTextAtSize(oCode, 21);
   page.drawText(oCode, {
-    x: (rColW - oCodeW) / 2, y: rtTop - 30, size: 21, font: fontBold,
+    x: (rColW - oCodeW) / 2,
+    y: rtTop - 30,
+    size: 21,
+    font: fontBold,
   });
   const oLbl = 'ORIGIN';
   const oLblW = font.widthOfTextAtSize(oLbl, 6.75);
   page.drawText(oLbl, {
-    x: (rColW - oLblW) / 2, y: rtTop - 40, size: 6.75, font, color: MUTED,
+    x: (rColW - oLblW) / 2,
+    y: rtTop - 40,
+    size: 6.75,
+    font,
+    color: MUTED,
   });
 
   // Arrow (.sl-route-arrow: 20px→15pt, weight 300, #a1a1aa)
   const arrowCx = W / 2;
   const arrowY = rtTop - 28;
-  page.drawLine({ start: { x: arrowCx - 10, y: arrowY }, end: { x: arrowCx + 10, y: arrowY }, thickness: 1, color: ARROW });
-  page.drawLine({ start: { x: arrowCx + 6, y: arrowY + 3 }, end: { x: arrowCx + 10, y: arrowY }, thickness: 1, color: ARROW });
-  page.drawLine({ start: { x: arrowCx + 6, y: arrowY - 3 }, end: { x: arrowCx + 10, y: arrowY }, thickness: 1, color: ARROW });
+  page.drawLine({
+    start: { x: arrowCx - 10, y: arrowY },
+    end: { x: arrowCx + 10, y: arrowY },
+    thickness: 1,
+    color: ARROW,
+  });
+  page.drawLine({
+    start: { x: arrowCx + 6, y: arrowY + 3 },
+    end: { x: arrowCx + 10, y: arrowY },
+    thickness: 1,
+    color: ARROW,
+  });
+  page.drawLine({
+    start: { x: arrowCx + 6, y: arrowY - 3 },
+    end: { x: arrowCx + 10, y: arrowY },
+    thickness: 1,
+    color: ARROW,
+  });
 
   // Destination
   const dCode = data.routing.destination || 'IMF';
   const dCodeW = fontBold.widthOfTextAtSize(dCode, 21);
   page.drawText(dCode, {
-    x: rColW * 2 + (rColW - dCodeW) / 2, y: rtTop - 30, size: 21, font: fontBold,
+    x: rColW * 2 + (rColW - dCodeW) / 2,
+    y: rtTop - 30,
+    size: 21,
+    font: fontBold,
   });
   const dLbl = 'DESTINATION';
   const dLblW = font.widthOfTextAtSize(dLbl, 6.75);
   page.drawText(dLbl, {
-    x: rColW * 2 + (rColW - dLblW) / 2, y: rtTop - 40, size: 6.75, font, color: MUTED,
+    x: rColW * 2 + (rColW - dLblW) / 2,
+    y: rtTop - 40,
+    size: 6.75,
+    font,
+    color: MUTED,
   });
 
   // ===== 6. DETAILS (.sl-details, 3-col grid) =====
@@ -749,21 +842,46 @@ export async function generateLabelPDF(data: LabelData): Promise<string> {
 
   const dColW = W / 3;
   page.drawLine({ start: { x: dColW, y: dtTop }, end: { x: dColW, y }, thickness: B, color: DARK });
-  page.drawLine({ start: { x: dColW * 2, y: dtTop }, end: { x: dColW * 2, y }, thickness: B, color: DARK });
+  page.drawLine({
+    start: { x: dColW * 2, y: dtTop },
+    end: { x: dColW * 2, y },
+    thickness: B,
+    color: DARK,
+  });
 
   // Ship Date (.sl-kicker 9px→6.75pt, .sl-detail-val 12px→9pt)
   page.drawText('SHIP DATE', { x: 8, y: dtTop - 10, size: 6.75, font: fontBold, color: MUTED });
   page.drawText(data.dates.shipDate || '-', { x: 8, y: dtTop - 22, size: 9, font: fontBold });
 
   // GST No. (monospace 11px→8pt)
-  page.drawText('GST NO.', { x: dColW + 8, y: dtTop - 10, size: 6.75, font: fontBold, color: MUTED });
+  page.drawText('GST NO.', {
+    x: dColW + 8,
+    y: dtTop - 10,
+    size: 6.75,
+    font: fontBold,
+    color: MUTED,
+  });
   page.drawText((data.gstNumber || 'N/A').substring(0, 16), {
-    x: dColW + 8, y: dtTop - 22, size: 8, font: fontMono,
+    x: dColW + 8,
+    y: dtTop - 22,
+    size: 8,
+    font: fontMono,
   });
 
   // Invoice Date
-  page.drawText('INVOICE DATE', { x: dColW * 2 + 8, y: dtTop - 10, size: 6.75, font: fontBold, color: MUTED });
-  page.drawText(data.dates.invoiceDate || '-', { x: dColW * 2 + 8, y: dtTop - 22, size: 9, font: fontBold });
+  page.drawText('INVOICE DATE', {
+    x: dColW * 2 + 8,
+    y: dtTop - 10,
+    size: 6.75,
+    font: fontBold,
+    color: MUTED,
+  });
+  page.drawText(data.dates.invoiceDate || '-', {
+    x: dColW * 2 + 8,
+    y: dtTop - 22,
+    size: 9,
+    font: fontBold,
+  });
 
   // ===== 7. SORT / DELIVERY ROW (.sl-bottom-row, 3-col) =====
   const srTop = y;
@@ -771,7 +889,12 @@ export async function generateLabelPDF(data: LabelData): Promise<string> {
   page.drawLine({ start: { x: 0, y }, end: { x: W, y }, thickness: B, color: DARK });
 
   page.drawLine({ start: { x: dColW, y: srTop }, end: { x: dColW, y }, thickness: B, color: DARK });
-  page.drawLine({ start: { x: dColW * 2, y: srTop }, end: { x: dColW * 2, y }, thickness: B, color: DARK });
+  page.drawLine({
+    start: { x: dColW * 2, y: srTop },
+    end: { x: dColW * 2, y },
+    thickness: B,
+    color: DARK,
+  });
 
   // Delivery Station (.sl-kicker + .sl-sort-code: 20px→15pt, centered)
   const delCode = data.routing.deliveryStation || 'IMF';
@@ -781,15 +904,37 @@ export async function generateLabelPDF(data: LabelData): Promise<string> {
 
   // Origin Sort
   const orgCode = data.routing.originSort || 'DEL';
-  page.drawText('ORIGIN SORT', { x: dColW + 8, y: srTop - 10, size: 6.75, font: fontBold, color: MUTED });
+  page.drawText('ORIGIN SORT', {
+    x: dColW + 8,
+    y: srTop - 10,
+    size: 6.75,
+    font: fontBold,
+    color: MUTED,
+  });
   const orgW = fontBold.widthOfTextAtSize(orgCode, 15);
-  page.drawText(orgCode, { x: dColW + (dColW - orgW) / 2, y: srTop - 27, size: 15, font: fontBold });
+  page.drawText(orgCode, {
+    x: dColW + (dColW - orgW) / 2,
+    y: srTop - 27,
+    size: 15,
+    font: fontBold,
+  });
 
   // Dest Sort
   const dstCode = data.routing.destSort || 'IMF';
-  page.drawText('DEST SORT', { x: dColW * 2 + 8, y: srTop - 10, size: 6.75, font: fontBold, color: MUTED });
+  page.drawText('DEST SORT', {
+    x: dColW * 2 + 8,
+    y: srTop - 10,
+    size: 6.75,
+    font: fontBold,
+    color: MUTED,
+  });
   const dstW = fontBold.widthOfTextAtSize(dstCode, 15);
-  page.drawText(dstCode, { x: dColW * 2 + (dColW - dstW) / 2, y: srTop - 27, size: 15, font: fontBold });
+  page.drawText(dstCode, {
+    x: dColW * 2 + (dColW - dstW) / 2,
+    y: srTop - 27,
+    size: 15,
+    font: fontBold,
+  });
 
   // ===== 8. FOOTER (.sl-footer: padding 6px*2 + badge 22px) =====
   // y should now be hFooter (26pt)
@@ -798,13 +943,23 @@ export async function generateLabelPDF(data: LabelData): Promise<string> {
   // T badge (.sl-footer-badge: 22px→16.5pt circle, border 2px→1.5pt)
   const badgeCx = W / 2 - 32;
   const badgeCy = hFooter / 2;
-  page.drawCircle({ x: badgeCx, y: badgeCy, size: 8, borderWidth: 1.5, borderColor: DARK, color: LIGHT });
+  page.drawCircle({
+    x: badgeCx,
+    y: badgeCy,
+    size: 8,
+    borderWidth: 1.5,
+    borderColor: DARK,
+    color: LIGHT,
+  });
   const tCharW = fontBold.widthOfTextAtSize('T', 8);
   page.drawText('T', { x: badgeCx - tCharW / 2, y: badgeCy - 3, size: 8, font: fontBold });
 
   // "TAC Shipping" (.sl-footer-text: 12px→9pt, weight 800)
   page.drawText('TAC Shipping', {
-    x: badgeCx + 12, y: badgeCy - 3.5, size: 9, font: fontBold,
+    x: badgeCx + 12,
+    y: badgeCy - 3.5,
+    size: 9,
+    font: fontBold,
   });
 
   // Save

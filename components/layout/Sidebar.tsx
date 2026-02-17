@@ -181,10 +181,11 @@ export const Sidebar: React.FC = () => {
                       aria-label={item.label}
                       className={({ isActive }) => `
                       flex items-center px-3 py-2.5 lg:py-1.5 text-sm transition-colors duration-100 group
-                      ${isActive
+                      ${
+                        isActive
                           ? 'bg-primary text-primary-foreground font-medium'
                           : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-normal'
-                        }
+                      }
                     `}
                     >
                       {({ isActive }) => (

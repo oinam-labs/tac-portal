@@ -5,7 +5,12 @@ import { Input } from '@/components/ui/input';
 import { X, ScanBarcode, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { ScanSource } from '@/types';
-import { ScanningContext, type ScanCallback, type DebugCallback, type ScanDebugEvent } from './ScanningContext';
+import {
+  ScanningContext,
+  type ScanCallback,
+  type DebugCallback,
+  type ScanDebugEvent,
+} from './ScanningContext';
 
 interface ScanningProviderProps {
   children: ReactNode;
@@ -88,7 +93,11 @@ export function ScanningProvider({ children }: ScanningProviderProps) {
 
   const emitDebug = useCallback((event: ScanDebugEvent) => {
     debugListenersRef.current.forEach((cb) => {
-      try { cb(event); } catch { /* ignore debug errors */ }
+      try {
+        cb(event);
+      } catch {
+        /* ignore debug errors */
+      }
     });
   }, []);
 
@@ -132,7 +141,7 @@ export function ScanningProvider({ children }: ScanningProviderProps) {
     const p75 = sorted[p75Index];
 
     // Also check percentage of fast keystrokes
-    const fastCount = timings.filter(t => t < SCANNER_SPEED_THRESHOLD_MS).length;
+    const fastCount = timings.filter((t) => t < SCANNER_SPEED_THRESHOLD_MS).length;
     const fastRatio = fastCount / timings.length;
 
     // Scanner if p75 is fast OR 70%+ of keystrokes are scanner-speed
@@ -142,62 +151,66 @@ export function ScanningProvider({ children }: ScanningProviderProps) {
   /**
    * Submit the accumulated buffer as a scan
    */
-  const submitBuffer = useCallback((clearInput: HTMLElement | null = null) => {
-    const buffer = bufferRef.current;
-    const timings = keyTimingsRef.current || [];
+  const submitBuffer = useCallback(
+    (clearInput: HTMLElement | null = null) => {
+      const buffer = bufferRef.current;
+      const timings = keyTimingsRef.current || [];
 
-    // Clear auto-submit timer
-    if (autoSubmitTimerRef.current) {
-      clearTimeout(autoSubmitTimerRef.current);
-      autoSubmitTimerRef.current = null;
-    }
+      // Clear auto-submit timer
+      if (autoSubmitTimerRef.current) {
+        clearTimeout(autoSubmitTimerRef.current);
+        autoSubmitTimerRef.current = null;
+      }
 
-    // In DEBUG_MODE, accept any buffer with minimum length regardless of timing
-    const scannerDetected = DEBUG_MODE
-      ? (buffer && buffer.length >= MIN_SCAN_LENGTH)
-      : (buffer && buffer.length >= MIN_SCAN_LENGTH && isScannerSpeed(timings));
+      // In DEBUG_MODE, accept any buffer with minimum length regardless of timing
+      const scannerDetected = DEBUG_MODE
+        ? buffer && buffer.length >= MIN_SCAN_LENGTH
+        : buffer && buffer.length >= MIN_SCAN_LENGTH && isScannerSpeed(timings);
 
-    if (scannerDetected) {
-      console.debug('[ScanningProvider] Scanner detected - submitting:', buffer);
+      if (scannerDetected) {
+        console.debug('[ScanningProvider] Scanner detected - submitting:', buffer);
 
-      // If the scan landed in an input field, clear leaked characters.
-      // Use native value setter to properly trigger React controlled input updates.
-      if (clearInput && clearInput.tagName === 'INPUT' && clearInput !== inputRef.current) {
-        const nativeSetter = Object.getOwnPropertyDescriptor(
-          window.HTMLInputElement.prototype, 'value'
-        )?.set;
-        if (nativeSetter) {
-          nativeSetter.call(clearInput, '');
-        } else {
-          (clearInput as HTMLInputElement).value = '';
+        // If the scan landed in an input field, clear leaked characters.
+        // Use native value setter to properly trigger React controlled input updates.
+        if (clearInput && clearInput.tagName === 'INPUT' && clearInput !== inputRef.current) {
+          const nativeSetter = Object.getOwnPropertyDescriptor(
+            window.HTMLInputElement.prototype,
+            'value'
+          )?.set;
+          if (nativeSetter) {
+            nativeSetter.call(clearInput, '');
+          } else {
+            (clearInput as HTMLInputElement).value = '';
+          }
+          clearInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
-        clearInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+        // Pass raw buffer directly to listeners
+        const cleanCode = buffer.trim();
+        notifyListeners(cleanCode, ScanSource.BARCODE_SCANNER);
+
+        // If the scan dialog is open, also resolve the promise
+        if (isScanningRef.current && resolveScanRef.current) {
+          resolveScanRef.current(cleanCode);
+          cleanupInternal();
+        }
       }
 
-      // Pass raw buffer directly to listeners
-      const cleanCode = buffer.trim();
-      notifyListeners(cleanCode, ScanSource.BARCODE_SCANNER);
+      // Emit debug event for submission
+      emitDebug({
+        type: scannerDetected ? 'submit' : 'reset',
+        buffer,
+        timings: [...timings],
+        scannerDetected: !!scannerDetected,
+        timestamp: Date.now(),
+      });
 
-      // If the scan dialog is open, also resolve the promise
-      if (isScanningRef.current && resolveScanRef.current) {
-        resolveScanRef.current(cleanCode);
-        cleanupInternal();
-      }
-    }
-
-    // Emit debug event for submission
-    emitDebug({
-      type: scannerDetected ? 'submit' : 'reset',
-      buffer,
-      timings: [...timings],
-      scannerDetected: !!scannerDetected,
-      timestamp: Date.now(),
-    });
-
-    // Always reset buffer
-    bufferRef.current = '';
-    keyTimingsRef.current = [];
-  }, [notifyListeners, isScannerSpeed, emitDebug]); // cleanupInternal uses refs/setState which are stable
+      // Always reset buffer
+      bufferRef.current = '';
+      keyTimingsRef.current = [];
+    },
+    [notifyListeners, isScannerSpeed, emitDebug]
+  ); // cleanupInternal uses refs/setState which are stable
 
   const cleanupInternal = useCallback(() => {
     isScanningRef.current = false;
@@ -211,7 +224,6 @@ export function ScanningProvider({ children }: ScanningProviderProps) {
     console.debug('[ScanningProvider] Keydown listener attached');
 
     const handleKeyDown = (e: KeyboardEvent) => {
-
       const target = e.target as HTMLElement;
       const isScannerInput = target === inputRef.current;
 
@@ -243,8 +255,8 @@ export function ScanningProvider({ children }: ScanningProviderProps) {
         const timings = keyTimingsRef.current;
 
         const scannerDetected = DEBUG_MODE
-          ? (buffer && buffer.length >= MIN_SCAN_LENGTH)
-          : (buffer && buffer.length >= MIN_SCAN_LENGTH && isScannerSpeed(timings));
+          ? buffer && buffer.length >= MIN_SCAN_LENGTH
+          : buffer && buffer.length >= MIN_SCAN_LENGTH && isScannerSpeed(timings);
 
         if (scannerDetected) {
           // Prevent the Enter/Tab from doing its default action (form submit, tab navigation)
@@ -298,7 +310,8 @@ export function ScanningProvider({ children }: ScanningProviderProps) {
 
         // In DEBUG_MODE, always set auto-submit timer
         // In normal mode, only set if scanner speed detected
-        const shouldAutoSubmit = DEBUG_MODE || (timings && timings.length >= 1 && isScannerSpeed(timings));
+        const shouldAutoSubmit =
+          DEBUG_MODE || (timings && timings.length >= 1 && isScannerSpeed(timings));
 
         if (shouldAutoSubmit) {
           autoSubmitTimerRef.current = setTimeout(() => {
@@ -313,7 +326,8 @@ export function ScanningProvider({ children }: ScanningProviderProps) {
           buffer: bufferRef.current,
           timings: [...keyTimingsRef.current],
           delay: bufferRef.current.length > 1 ? timeSinceLastKey : 0,
-          scannerDetected: keyTimingsRef.current.length >= 1 && isScannerSpeed(keyTimingsRef.current),
+          scannerDetected:
+            keyTimingsRef.current.length >= 1 && isScannerSpeed(keyTimingsRef.current),
           timestamp: currentTime,
         });
       }

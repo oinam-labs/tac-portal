@@ -201,17 +201,17 @@ export const Finance: React.FC = () => {
 
       const consignor = shipmentRow
         ? {
-          name: shipmentRow.sender_name,
-          phone: shipmentRow.sender_phone,
-          address: formatAddress(shipmentRow.sender_address),
-        }
+            name: shipmentRow.sender_name,
+            phone: shipmentRow.sender_phone,
+            address: formatAddress(shipmentRow.sender_address),
+          }
         : lineItems.consignor || (inv as any).consignor || {};
       const consignee = shipmentRow
         ? {
-          name: shipmentRow.receiver_name,
-          phone: shipmentRow.receiver_phone,
-          address: formatAddress(shipmentRow.receiver_address),
-        }
+            name: shipmentRow.receiver_name,
+            phone: shipmentRow.receiver_phone,
+            address: formatAddress(shipmentRow.receiver_address),
+          }
         : lineItems.consignee || (inv as any).consignee || {};
 
       logger.debug('[Invoice] Parties', { consignor, consignee });
@@ -481,9 +481,9 @@ Thank you for choosing TAC Cargo.`;
         onShareEmail: (row) => handleShareEmail(buildInvoiceFromRow(row)),
         onDelete: isSuperAdmin
           ? (row) => {
-            setRowToDelete(buildInvoiceFromRow(row));
-            setDeleteOpen(true);
-          }
+              setRowToDelete(buildInvoiceFromRow(row));
+              setDeleteOpen(true);
+            }
           : undefined,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -1,6 +1,6 @@
 /**
  * Barcode Types and Interfaces
- * 
+ *
  * Centralized type definitions for the universal barcode system
  */
 
@@ -24,7 +24,7 @@ export interface BarcodeProps {
   format?: BarcodeFormat;
   className?: string;
   onError?: (error: Error) => void;
-  
+
   // Manual overrides (optional)
   width?: number;
   height?: number;

@@ -125,7 +125,11 @@ test.describe('Visual Regression Tests', () => {
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(1000);
       await expect(
-        page.locator('[data-testid="create-manifest-button"], [data-testid="create-manifest-button-empty"]').first()
+        page
+          .locator(
+            '[data-testid="create-manifest-button"], [data-testid="create-manifest-button-empty"]'
+          )
+          .first()
       ).toBeVisible();
 
       await expect(page).toHaveScreenshot('manifests-page.png', {

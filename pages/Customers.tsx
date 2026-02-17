@@ -81,8 +81,12 @@ const normalizeCustomerAddressForForm = (customer: Customer | null) => {
   const line1 = (raw.line1 ?? raw.line_1 ?? raw.street ?? raw.address ?? '') as string;
   const city = (raw.city ?? '') as string;
   const state = (raw.state ?? '') as string;
-  const zip =
-    (raw.zip ?? raw.postal_code ?? raw.postalCode ?? raw.pincode ?? raw.pin ?? '') as string;
+  const zip = (raw.zip ??
+    raw.postal_code ??
+    raw.postalCode ??
+    raw.pincode ??
+    raw.pin ??
+    '') as string;
 
   return {
     line1: line1.trim(),
@@ -126,22 +130,22 @@ export const Customers: React.FC = () => {
   // Form default values for editing
   const formDefaultValues: CustomerFormValues = activeRow
     ? (() => {
-      const normalized = normalizeCustomerAddressForForm(activeRow);
-      return {
-        type: activeRow.type as 'INDIVIDUAL' | 'BUSINESS' | 'CORPORATE',
-        name: activeRow.name,
-        companyName: activeRow.companyName ?? '',
-        email: activeRow.email ?? '',
-        phone: activeRow.phone,
-        address: normalized.line1 || '',
-        city: normalized.city || '',
-        state: normalized.state || '',
-        zip: normalized.zip || '',
-        tier: (activeRow.tier as 'STANDARD' | 'PRIORITY' | 'ENTERPRISE') ?? 'STANDARD',
-        gstin: activeRow.gstin ?? '',
-        credit_limit: activeRow.credit_limit ?? 0,
-      };
-    })()
+        const normalized = normalizeCustomerAddressForForm(activeRow);
+        return {
+          type: activeRow.type as 'INDIVIDUAL' | 'BUSINESS' | 'CORPORATE',
+          name: activeRow.name,
+          companyName: activeRow.companyName ?? '',
+          email: activeRow.email ?? '',
+          phone: activeRow.phone,
+          address: normalized.line1 || '',
+          city: normalized.city || '',
+          state: normalized.state || '',
+          zip: normalized.zip || '',
+          tier: (activeRow.tier as 'STANDARD' | 'PRIORITY' | 'ENTERPRISE') ?? 'STANDARD',
+          gstin: activeRow.gstin ?? '',
+          credit_limit: activeRow.credit_limit ?? 0,
+        };
+      })()
     : defaultFormValues;
 
   // Handlers

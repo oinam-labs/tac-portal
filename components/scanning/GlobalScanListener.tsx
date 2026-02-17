@@ -1,10 +1,10 @@
 /**
  * GlobalScanListener - The SINGLE authoritative scan router
- * 
+ *
  * This is the ONLY component that handles scan-to-navigation routing.
  * All other components (Header, QuickActions, etc.) may subscribe for
  * display-only purposes but MUST NOT navigate on scan events.
- * 
+ *
  * Routing Rules:
  * 1. Context is NOT GLOBAL → Skip (local handler owns scanning)
  * 2. AWB format (TAC...) → Preview dialog with shipment details
@@ -20,78 +20,80 @@ import { ScanSource } from '../../types';
 import { ScanPreviewDialog, type ScanPreviewType } from './ScanPreviewDialog';
 
 export const GlobalScanListener: React.FC = () => {
-    const { subscribe } = useScanner();
-    const { canNavigate, activeContext } = useScanContext();
-    const location = useLocation();
+  const { subscribe } = useScanner();
+  const { canNavigate, activeContext } = useScanContext();
+  const location = useLocation();
 
-    // Preview dialog state
-    const [previewOpen, setPreviewOpen] = useState(false);
-    const [previewData, setPreviewData] = useState<string | null>(null);
-    const [previewType, setPreviewType] = useState<ScanPreviewType>('unknown');
+  // Preview dialog state
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewData, setPreviewData] = useState<string | null>(null);
+  const [previewType, setPreviewType] = useState<ScanPreviewType>('unknown');
 
-    // Use refs to avoid stale closures in the subscription callback
-    const canNavigateRef = useRef(canNavigate);
-    const activeContextRef = useRef(activeContext);
-    const pathnameRef = useRef(location.pathname);
+  // Use refs to avoid stale closures in the subscription callback
+  const canNavigateRef = useRef(canNavigate);
+  const activeContextRef = useRef(activeContext);
+  const pathnameRef = useRef(location.pathname);
 
-    useEffect(() => {
-        canNavigateRef.current = canNavigate;
-        activeContextRef.current = activeContext;
-        pathnameRef.current = location.pathname;
-    }, [canNavigate, activeContext, location.pathname]);
+  useEffect(() => {
+    canNavigateRef.current = canNavigate;
+    activeContextRef.current = activeContext;
+    pathnameRef.current = location.pathname;
+  }, [canNavigate, activeContext, location.pathname]);
 
-    const handleScan = useCallback((data: string, source: ScanSource) => {
-        const cleanData = data.trim().toUpperCase();
-        const currentContext = activeContextRef.current;
-        const currentCanNavigate = canNavigateRef.current();
+  const handleScan = useCallback((data: string, source: ScanSource) => {
+    const cleanData = data.trim().toUpperCase();
+    const currentContext = activeContextRef.current;
+    const currentCanNavigate = canNavigateRef.current();
 
-        console.debug('[GlobalScanListener] Scan received:', {
-            data: cleanData,
-            source,
-            activeContext: currentContext,
-            canNavigate: currentCanNavigate,
-            pathname: pathnameRef.current
-        });
+    console.debug('[GlobalScanListener] Scan received:', {
+      data: cleanData,
+      source,
+      activeContext: currentContext,
+      canNavigate: currentCanNavigate,
+      pathname: pathnameRef.current,
+    });
 
-        // Rule 1: If a local handler owns scanning, skip entirely
-        if (!currentCanNavigate) {
-            console.debug(`[GlobalScanListener] Skipping - local context active: ${currentContext}`);
-            return;
-        }
+    // Rule 1: If a local handler owns scanning, skip entirely
+    if (!currentCanNavigate) {
+      console.debug(`[GlobalScanListener] Skipping - local context active: ${currentContext}`);
+      return;
+    }
 
-        // Rule 2: AWB format → preview shipment
-        if (cleanData.startsWith('TAC')) {
-            setPreviewType('shipment');
-            setPreviewData(cleanData);
-            setPreviewOpen(true);
-            return;
-        }
+    // Rule 2: AWB format → preview shipment
+    if (cleanData.startsWith('TAC')) {
+      setPreviewType('shipment');
+      setPreviewData(cleanData);
+      setPreviewOpen(true);
+      return;
+    }
 
-        // Rule 3: Manifest format → preview manifest (MAN- legacy + MNF- current)
-        if (cleanData.startsWith('MAN') || cleanData.startsWith('MNF')) {
-            setPreviewType('manifest');
-            setPreviewData(cleanData);
-            setPreviewOpen(true);
-            return;
-        }
+    // Rule 3: Manifest format → preview manifest (MAN- legacy + MNF- current)
+    if (cleanData.startsWith('MAN') || cleanData.startsWith('MNF')) {
+      setPreviewType('manifest');
+      setPreviewData(cleanData);
+      setPreviewOpen(true);
+      return;
+    }
 
-        // Rule 4: Unknown format → preview with copy option
-        setPreviewType('unknown');
-        setPreviewData(cleanData);
-        setPreviewOpen(true);
-    }, []);
+    // Rule 4: Unknown format → preview with copy option
+    setPreviewType('unknown');
+    setPreviewData(cleanData);
+    setPreviewOpen(true);
+  }, []);
 
-    useEffect(() => {
-        const unsubscribe = subscribe(handleScan);
-        return () => { unsubscribe(); };
-    }, [subscribe, handleScan]);
+  useEffect(() => {
+    const unsubscribe = subscribe(handleScan);
+    return () => {
+      unsubscribe();
+    };
+  }, [subscribe, handleScan]);
 
-    return (
-        <ScanPreviewDialog
-            open={previewOpen}
-            onOpenChange={setPreviewOpen}
-            scannedData={previewData}
-            scanType={previewType}
-        />
-    );
+  return (
+    <ScanPreviewDialog
+      open={previewOpen}
+      onOpenChange={setPreviewOpen}
+      scannedData={previewData}
+      scanType={previewType}
+    />
+  );
 };

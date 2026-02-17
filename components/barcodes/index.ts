@@ -1,19 +1,19 @@
 /**
  * Universal Barcode System
- * 
+ *
  * A comprehensive barcode solution for TAC Cargo logistics dashboard.
  * Supports screen scanning, printing, PDF export, and compact displays.
- * 
+ *
  * Quick Start:
  * ```typescript
  * import { UniversalBarcode, ScreenBarcode, PrintBarcode } from '@/components/barcodes';
- * 
+ *
  * // Screen scanning (default)
  * <ScreenBarcode value="TAC123456789" />
- * 
+ *
  * // Print labels
  * <PrintBarcode value={awb} />
- * 
+ *
  * // Custom mode
  * <UniversalBarcode value={awb} mode="screen" width={8} height={120} />
  * ```

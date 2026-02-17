@@ -388,7 +388,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: UserR
   }
 
   if (!isAuthenticated || !user) {
-    console.log('[ProtectedRoute] Redirecting to login. State:', {
+    console.debug('[ProtectedRoute] Redirecting to login. State:', {
       isAuthenticated,
       user,
       isLoading,
@@ -454,7 +454,10 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
       {/* On mobile (< lg), no left padding since sidebar is hidden. On desktop, apply padding based on sidebar state */}
       <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
         <Header />
-        <main id="main-content" className="p-4 md:p-5 lg:p-6 max-w-full lg:max-w-screen-2xl mx-auto">
+        <main
+          id="main-content"
+          className="p-4 md:p-5 lg:p-6 max-w-full lg:max-w-screen-2xl mx-auto"
+        >
           {children}
         </main>
       </div>
@@ -526,7 +529,9 @@ const App: React.FC = () => {
                 fallback={({ error, resetError }) => (
                   <div className="min-h-screen flex items-center justify-center bg-background p-4">
                     <Card className="max-w-lg p-8 text-center">
-                      <h1 className="text-2xl font-bold text-destructive mb-4">Something went wrong</h1>
+                      <h1 className="text-2xl font-bold text-destructive mb-4">
+                        Something went wrong
+                      </h1>
                       <p className="text-muted-foreground mb-6">
                         {error instanceof Error ? error.message : 'An unexpected error occurred'}
                       </p>
@@ -633,7 +638,9 @@ const App: React.FC = () => {
                           <Route
                             path="/scanning"
                             element={
-                              <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}>
+                              <ProtectedRoute
+                                allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}
+                              >
                                 <DashboardLayout>
                                   <Scanning />
                                 </DashboardLayout>
@@ -643,7 +650,9 @@ const App: React.FC = () => {
                           <Route
                             path="/inventory"
                             element={
-                              <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}>
+                              <ProtectedRoute
+                                allowedRoles={['ADMIN', 'MANAGER', 'WAREHOUSE_STAFF']}
+                              >
                                 <DashboardLayout>
                                   <Inventory />
                                 </DashboardLayout>

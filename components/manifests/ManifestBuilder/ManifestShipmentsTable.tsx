@@ -73,7 +73,7 @@ export function ManifestShipmentsTable({
           const awb = row.original.shipment?.awb_number;
           if (!awb) return <span className="text-muted-foreground text-xs">—</span>;
           return (
-            <div 
+            <div
               className="cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => onViewShipment?.(row.original.shipment_id)}
               title="Click to view shipment details"

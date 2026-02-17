@@ -86,10 +86,7 @@ export function calculateBarcodeDimensions(
 /**
  * Generate barcode filename
  */
-export function generateBarcodeFilename(
-  awb: string,
-  format: 'png' | 'svg' = 'png'
-): string {
+export function generateBarcodeFilename(awb: string, format: 'png' | 'svg' = 'png'): string {
   const timestamp = new Date().toISOString().split('T')[0];
   return `barcode-${awb}-${timestamp}.${format}`;
 }
@@ -97,7 +94,9 @@ export function generateBarcodeFilename(
 /**
  * Check if barcode should be clickable (for navigation)
  */
-export function shouldBarcodeNavigate(context: 'dashboard' | 'scanning' | 'manifests' | 'shipments'): boolean {
+export function shouldBarcodeNavigate(
+  context: 'dashboard' | 'scanning' | 'manifests' | 'shipments'
+): boolean {
   // Don't navigate from scanning page (local handling)
   if (context === 'scanning') {
     return false;
