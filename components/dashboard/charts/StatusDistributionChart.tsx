@@ -43,7 +43,7 @@ const chartConfig = {
 export const StatusDistributionChart: React.FC<{ isLoading?: boolean }> = ({
   isLoading: externalLoading,
 }) => {
-  const { data: shipments = [], isLoading: shipmentsLoading } = useShipments();
+  const { data: shipments = [], isLoading: shipmentsLoading } = useShipments({ limit: 1000 });
   const isLoading = externalLoading || shipmentsLoading;
 
   const statusChartData = useMemo(() => {

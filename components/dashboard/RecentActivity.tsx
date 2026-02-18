@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -8,13 +9,8 @@ import { useShipments } from '../../hooks/useShipments';
 import { TableSkeleton } from '../ui/skeleton';
 
 export const RecentActivity: React.FC = () => {
-  // Use Supabase hook instead of mock-db
-  const { data: shipments = [], isLoading } = useShipments();
-
-  // Get 5 most recent shipments
-  const recentShipments = [...shipments]
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 5);
+  const navigate = useNavigate();
+  const { data: recentShipments = [], isLoading } = useShipments({ limit: 5 });
 
   if (isLoading && recentShipments.length === 0) {
     return (
@@ -34,7 +30,7 @@ export const RecentActivity: React.FC = () => {
           <h3 className="text-lg font-bold text-foreground">Recent Activity</h3>
           <p className="text-sm text-muted-foreground">Live shipment updates</p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => (window.location.hash = '#/shipments')}>
+        <Button variant="outline" size="sm" onClick={() => navigate('/shipments')}>
           View All
         </Button>
       </div>
@@ -57,7 +53,11 @@ export const RecentActivity: React.FC = () => {
               </TableRow>
             ) : (
               recentShipments.map((shipment) => (
-                <TableRow key={shipment.id} className="group hover:bg-muted/50 transition-colors">
+                <TableRow
+                  key={shipment.id}
+                  className="group hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() => navigate(`/shipments?search=${shipment.awb_number}`)}
+                >
                   <TableCell>
                     <div className="font-medium text-foreground">{shipment.awb_number}</div>
                     <div className="text-xs text-muted-foreground font-mono">

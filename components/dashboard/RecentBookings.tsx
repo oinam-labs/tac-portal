@@ -1,15 +1,16 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { useBookings } from '@/hooks/useBookings';
 import { TableSkeleton } from '../ui/skeleton';
 import { format } from 'date-fns';
 
 export const RecentBookings: React.FC = () => {
-  const { data: bookings = [], isLoading } = useBookings();
-
-  const recentBookings = [...bookings].slice(0, 5);
+  const navigate = useNavigate();
+  const { data: bookings = [], isLoading } = useBookings({ limit: 5 });
 
   if (isLoading) {
     return (
@@ -31,6 +32,9 @@ export const RecentBookings: React.FC = () => {
           <h3 className="text-lg font-bold text-foreground">Recent Bookings</h3>
           <p className="text-sm text-muted-foreground">Latest shipment requests</p>
         </div>
+        <Button variant="outline" size="sm" onClick={() => navigate('/bookings')}>
+          View All
+        </Button>
       </div>
       <div className="overflow-hidden border-t border-border">
         <Table>
@@ -43,14 +47,14 @@ export const RecentBookings: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {recentBookings.length === 0 ? (
+            {bookings.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                   No bookings found.
                 </TableCell>
               </TableRow>
             ) : (
-              recentBookings.map((booking) => (
+              bookings.map((booking) => (
                 <TableRow key={booking.id} className="group hover:bg-muted/50 transition-colors">
                   <TableCell>
                     <div className="font-medium text-foreground">
@@ -71,13 +75,12 @@ export const RecentBookings: React.FC = () => {
                   <TableCell>
                     <Badge
                       variant="outline"
-                      className={`font-medium ${
-                        booking.status === 'APPROVED'
-                          ? 'bg-status-success/10 text-status-success border-status-success/20'
-                          : booking.status === 'REJECTED'
-                            ? 'bg-destructive/10 text-destructive border-destructive/20'
-                            : 'bg-status-warning/10 text-status-warning border-status-warning/20'
-                      }`}
+                      className={`font-medium ${booking.status === 'APPROVED'
+                        ? 'bg-status-success/10 text-status-success border-status-success/20'
+                        : booking.status === 'REJECTED'
+                          ? 'bg-destructive/10 text-destructive border-destructive/20'
+                          : 'bg-status-warning/10 text-status-warning border-status-warning/20'
+                        }`}
                     >
                       {booking.status}
                     </Badge>

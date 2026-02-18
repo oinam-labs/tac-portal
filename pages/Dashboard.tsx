@@ -12,21 +12,20 @@ import { RecentBookings } from '../components/dashboard/RecentBookings';
 import { ErrorBoundary, InlineError } from '../components/ui/error-boundary';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../lib/queryKeys';
-import { useRealtimeShipments, useRealtimeExceptions } from '../hooks/useRealtime';
+import { useRealtimeDashboard } from '../hooks/useRealtime';
 
 export const Dashboard: React.FC = () => {
   const queryClient = useQueryClient();
 
   // Enable realtime subscriptions for live dashboard updates
-  useRealtimeShipments();
-  useRealtimeExceptions();
+  useRealtimeDashboard();
 
-  // Global refresh handler
+  // Global refresh handler — invalidate all data powering dashboard components
   const refreshData = () => {
-    // Invalidate all dashboard queries
-    queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
-    // Also invalidate shipments as they power the recent activity
     queryClient.invalidateQueries({ queryKey: queryKeys.shipments.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.manifests.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.exceptions.all });
+    queryClient.invalidateQueries({ queryKey: ['bookings'] });
   };
 
   // Data for Report Generation

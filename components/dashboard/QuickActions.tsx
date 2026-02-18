@@ -4,14 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Plus, Scan, Printer, FileText, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { BookingDialog } from '@/components/bookings/BookingDialog';
 import { UniversalBarcode } from '@/components/barcodes';
 import { useScanner } from '@/context/useScanner';
 import { ScanSource } from '@/types';
 
 export const QuickActions: React.FC = () => {
   const navigate = useNavigate();
-  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [quickScanInput, setQuickScanInput] = useState('');
   const [recentScans, setRecentScans] = useState<string[]>([]);
   const { subscribe } = useScanner();
@@ -179,7 +177,6 @@ export const QuickActions: React.FC = () => {
         </Card>
       </div>
 
-      <BookingDialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen} />
     </>
   );
 };

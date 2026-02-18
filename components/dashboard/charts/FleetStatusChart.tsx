@@ -30,7 +30,7 @@ const chartConfig = {
 export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({
   isLoading: externalLoading,
 }) => {
-  const { data: manifests = [], isLoading: manifestsLoading } = useManifests();
+  const { data: manifests = [], isLoading: manifestsLoading } = useManifests({ limit: 200 });
   const isLoading = externalLoading || manifestsLoading;
   const [activeKey, setActiveKey] = useState<'active' | 'idle'>('active');
 

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion } from '@/lib/motion';
-import { Box, Activity, CheckCircle, AlertTriangle, LucideIcon } from 'lucide-react';
+import { Box, Activity, CheckCircle, AlertTriangle, Percent, LucideIcon } from 'lucide-react';
 import { Card } from '../ui/card';
 import { KPIGridSkeleton } from '../ui/skeleton';
 import { usePrevious } from '@/lib/hooks/usePrevious.ts';
@@ -18,7 +18,6 @@ interface KPIData {
 interface KPICardProps {
   kpi: KPIData;
   index: number;
-  isLoading?: boolean;
 }
 
 /**
@@ -95,7 +94,7 @@ interface KPIGridProps {
  */
 export const KPIGrid: React.FC<KPIGridProps> = ({ isLoading: externalLoading = false }) => {
   // Use Supabase hooks instead of mock-db
-  const { data: shipments = [], isLoading: shipmentsLoading } = useShipments();
+  const { data: shipments = [], isLoading: shipmentsLoading } = useShipments({ limit: 1000 });
   const { data: exceptions = [], isLoading: exceptionsLoading } = useExceptions();
 
   const isLoading = externalLoading || shipmentsLoading || exceptionsLoading;
@@ -137,6 +136,13 @@ export const KPIGrid: React.FC<KPIGridProps> = ({ isLoading: externalLoading = f
         icon: AlertTriangle,
         color: exceptionCount > 0 ? 'destructive' : 'warning',
       },
+      {
+        label: 'Delivery Rate',
+        value: total > 0 ? Math.round((delivered / total) * 100) : 0,
+        displayValue: total > 0 ? `${Math.round((delivered / total) * 100)}%` : '—',
+        icon: Percent,
+        color: 'success',
+      },
     ];
   }, [shipments, exceptions]);
 
@@ -147,7 +153,7 @@ export const KPIGrid: React.FC<KPIGridProps> = ({ isLoading: externalLoading = f
   return (
     <div
       data-testid="kpi-grid"
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px bg-border mb-6"
+      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
     >
       {kpis.map((kpi, index) => (
         <KPICard key={kpi.label} kpi={kpi} index={index} />

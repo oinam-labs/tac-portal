@@ -2,14 +2,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Booking } from '@/types';
 
-export const useBookings = () => {
+export const useBookings = (options?: { limit?: number }) => {
   return useQuery({
-    queryKey: ['bookings'],
+    queryKey: ['bookings', options?.limit ?? null],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('*')
-        .order('created_at', { ascending: false });
+      let query = supabase.from('bookings').select('*').order('created_at', { ascending: false });
+
+      if (options?.limit) {
+        query = query.limit(options.limit);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       return data as Booking[];

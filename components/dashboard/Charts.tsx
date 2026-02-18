@@ -3,26 +3,22 @@ import { ShipmentTrendChart } from './charts/ShipmentTrendChart';
 import { StatusDistributionChart } from './charts/StatusDistributionChart';
 import { FleetStatusChart } from './charts/FleetStatusChart';
 
-interface DashboardChartsProps {
-  isLoading?: boolean;
-}
-
-export const DashboardCharts: React.FC<DashboardChartsProps> = ({ isLoading }) => {
+export const DashboardCharts: React.FC = () => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* Trend Chart (2 columns) */}
       <div className="lg:col-span-2">
-        <ShipmentTrendChart isLoading={isLoading} />
+        <ShipmentTrendChart />
       </div>
 
       {/* Status Distribution (1 column) */}
       <div className="lg:col-span-1">
-        <StatusDistributionChart isLoading={isLoading} />
+        <StatusDistributionChart />
       </div>
 
       {/* Fleet Status (Full width) */}
       <div className="lg:col-span-3">
-        <FleetStatusChart isLoading={isLoading} />
+        <FleetStatusChart />
       </div>
     </div>
   );

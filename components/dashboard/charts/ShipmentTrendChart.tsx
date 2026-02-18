@@ -30,7 +30,7 @@ export const ShipmentTrendChart: React.FC<{ isLoading?: boolean }> = ({
   isLoading: externalLoading,
 }) => {
   const [timeRange, setTimeRange] = useState(DEFAULT_DASHBOARD_TIME_RANGE);
-  const { data: shipments = [], isLoading: shipmentsLoading } = useShipments();
+  const { data: shipments = [], isLoading: shipmentsLoading } = useShipments({ limit: 1000 });
 
   const handleTimeRangeChange = (value: string) => {
     if (value === '7d' || value === '30d' || value === '90d') {
