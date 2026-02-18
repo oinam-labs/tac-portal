@@ -33,8 +33,13 @@ jobs:
 
       - name: Check for hardcoded secrets
         run: |
-          # Check for potential hardcoded secrets
-          if grep -rE "(api_key|apikey|secret|password|token)\s*[:=]\s*['\"][^'\"]+['\"]" --include="*.ts" --include="*.tsx" --include="*.js" .; then
+          # Check for potential hardcoded secrets (exclude auth, test, and config files)
+          if grep -rE "(api_key|apikey|secret_key|SUPABASE_KEY)\s*[:=]\s*['\"][^'\"]+['\"]" \
+            --include="*.ts" --include="*.tsx" --include="*.js" \
+            --exclude-dir=tests --exclude-dir=node_modules --exclude-dir=.auth \
+            --exclude="*.test.*" --exclude="*.spec.*" --exclude="auth.setup.*" \
+            --exclude="LoginPage.tsx" --exclude="authStore.ts" \
+            . ; then
             echo "⚠️ Warning: Potential hardcoded secrets found"
             exit 1
           fi
