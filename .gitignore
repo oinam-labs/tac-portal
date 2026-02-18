@@ -36,6 +36,7 @@ coverage/
 sentry_report.json
 test_output.txt
 manifest_analysis.md
+.tmp_preview_pid.txt
 
 stats.html
 typecheck_output.txt

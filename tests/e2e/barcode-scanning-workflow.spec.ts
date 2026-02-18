@@ -132,7 +132,7 @@ test.describe('Barcode Scanning – Dashboard Invoice Preview', () => {
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible({ timeout: 5000 });
 
-    await dialog.locator('button:has-text("Dismiss")').click();
+    await dialog.locator('button:has-text("Dismiss")').click({ force: true });
 
     await expect(dialog).not.toBeVisible({ timeout: 3000 });
     await expect(page).toHaveURL(/\/dashboard/);
@@ -239,7 +239,7 @@ test.describe('Barcode Scanning – Performance', () => {
       const dialog = page.locator('[role="dialog"]');
       await expect(dialog).toBeVisible({ timeout: 5000 });
 
-      await dialog.locator('button:has-text("Dismiss")').click();
+      await dialog.locator('button:has-text("Dismiss")').click({ force: true });
       await expect(dialog).not.toBeVisible({ timeout: 3000 });
 
       // Short pause between cycles

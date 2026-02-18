@@ -351,7 +351,7 @@ export function ScanPreviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md animate-in fade-in-0 zoom-in-95 duration-200">
+      <DialogContent className="flex max-h-[80vh] flex-col sm:max-w-md animate-in fade-in-0 zoom-in-95 duration-200">
         <DialogHeader className="space-y-3">
           <DialogTitle className="flex items-center gap-2.5 text-lg">
             {scanType === 'shipment' ? (
@@ -374,7 +374,7 @@ export function ScanPreviewDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-2">
+        <div className="relative z-0 flex-1 min-h-0 py-2 overflow-y-auto pr-1">
           {/* Loading — show scanned code immediately while fetching */}
           {loading && (
             <div className="space-y-4">
@@ -434,21 +434,33 @@ export function ScanPreviewDialog({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2 pt-2">
-          <Button variant="outline" size="sm" onClick={handleCopy} className="gap-1.5">
+        <div className="relative z-10 flex flex-col gap-2 pt-2 sm:flex-row sm:items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCopy}
+            className="gap-1.5 w-full sm:w-auto"
+          >
             <Copy className="w-3.5 h-3.5" />
             Copy
           </Button>
-          <div className="flex-1" />
-          {scanType !== 'unknown' && (
-            <Button size="sm" onClick={handleNavigate} className="gap-1.5">
-              <ExternalLink className="w-3.5 h-3.5" />
-              View Full Details
+          <div className="hidden sm:block flex-1" />
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:ml-auto">
+            {scanType !== 'unknown' && (
+              <Button size="sm" onClick={handleNavigate} className="gap-1.5 w-full sm:w-auto">
+                <ExternalLink className="w-3.5 h-3.5" />
+                View Full Details
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+              className="w-full sm:w-auto"
+            >
+              Dismiss
             </Button>
-          )}
-          <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
-            Dismiss
-          </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

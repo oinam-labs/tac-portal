@@ -44,6 +44,7 @@ export const GlobalScanListener: React.FC = () => {
     const cleanData = data.trim().toUpperCase();
     const currentContext = activeContextRef.current;
     const currentCanNavigate = canNavigateRef.current();
+    const currentPath = pathnameRef.current;
 
     console.debug('[GlobalScanListener] Scan received:', {
       data: cleanData,
@@ -53,13 +54,19 @@ export const GlobalScanListener: React.FC = () => {
       pathname: pathnameRef.current,
     });
 
-    // Rule 1: If a local handler owns scanning, skip entirely
+    // Rule 1: Dedicated scanning page always handles scans locally
+    if (currentPath?.startsWith('/scanning')) {
+      console.debug('[GlobalScanListener] Skipping - /scanning handles locally');
+      return;
+    }
+
+    // Rule 2: If a local handler owns scanning, skip entirely
     if (!currentCanNavigate) {
       console.debug(`[GlobalScanListener] Skipping - local context active: ${currentContext}`);
       return;
     }
 
-    // Rule 2: AWB format → preview shipment
+    // Rule 3: AWB format → preview shipment
     if (cleanData.startsWith('TAC')) {
       setPreviewType('shipment');
       setPreviewData(cleanData);
@@ -67,7 +74,7 @@ export const GlobalScanListener: React.FC = () => {
       return;
     }
 
-    // Rule 3: Manifest format → preview manifest (MAN- legacy + MNF- current)
+    // Rule 4: Manifest format → preview manifest (MAN- legacy + MNF- current)
     if (cleanData.startsWith('MAN') || cleanData.startsWith('MNF')) {
       setPreviewType('manifest');
       setPreviewData(cleanData);
@@ -75,7 +82,7 @@ export const GlobalScanListener: React.FC = () => {
       return;
     }
 
-    // Rule 4: Unknown format → preview with copy option
+    // Rule 5: Unknown format → preview with copy option
     setPreviewType('unknown');
     setPreviewData(cleanData);
     setPreviewOpen(true);

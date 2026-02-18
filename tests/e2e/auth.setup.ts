@@ -59,22 +59,49 @@ setup('authenticate', async ({ page }) => {
   try {
     // Go to login page
     await page.goto(`${BASE_URL}/login`, { timeout: 30000 });
+    await page.waitForLoadState('domcontentloaded');
 
-    // Verifying page loaded
-    await expect(page.getByTestId('login-email-input')).toBeVisible({ timeout: 10000 });
+    const emailInput = page.getByTestId('login-email-input');
+    const passwordInput = page.getByTestId('login-password-input');
+    const submitButton = page.getByTestId('login-submit-button');
 
-    // Fill login form
-    await page.getByTestId('login-email-input').fill(testEmail);
-    await page.getByTestId('login-password-input').fill(testPassword);
+    const emailVisible = await emailInput.isVisible({ timeout: 5000 }).catch(() => false);
 
-    // Submit
-    await page.getByTestId('login-submit-button').click();
+    if (!emailVisible) {
+      // If already authenticated, store state and exit early
+      if (page.url().includes('/dashboard')) {
+        await page.context().storageState({ path: authFile });
+        console.log('✅ Authentication already present; stored state.');
+        return;
+      }
+
+      // Fallback to generic selectors (supports alternate login layout)
+      const fallbackEmail = page.locator('input[type="email"]').first();
+      const fallbackPassword = page.locator('input[type="password"]').first();
+      const fallbackSubmit = page.getByRole('button', {
+        name: /sign in|log in|authenticate/i,
+      });
+
+      await expect(fallbackEmail).toBeVisible({ timeout: 10000 });
+      await fallbackEmail.fill(testEmail);
+      await fallbackPassword.fill(testPassword);
+      await fallbackSubmit.first().click();
+    } else {
+      // Fill login form
+      await emailInput.fill(testEmail);
+      await passwordInput.fill(testPassword);
+
+      // Submit
+      await submitButton.click();
+    }
 
     // Wait for redirect to dashboard
     await page.waitForURL('**/dashboard', { timeout: 15000 });
 
     // Verify we're logged in
-    await expect(page.locator('text=Dashboard')).toBeVisible({ timeout: 10000 });
+    await expect(
+      page.getByRole('heading', { name: /mission control|dashboard/i })
+    ).toBeVisible({ timeout: 10000 });
 
     // Save authentication state
     await page.context().storageState({ path: authFile });

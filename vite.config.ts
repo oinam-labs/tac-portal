@@ -6,12 +6,14 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig(() => {
+  const devPort = Number(process.env.PORT) || 5173;
   return {
+    appType: 'spa',
     server: {
-      port: 0,
+      port: devPort,
       strictPort: true, // Fail if port is taken
       host: '0.0.0.0',
-      allowedHosts: ['.ngrok-free.app', '.ngrok.io', '.loca.lt'],
+      allowedHosts: ['localhost', '127.0.0.1', '.ngrok-free.app', '.ngrok.io', '.loca.lt'],
     },
     plugins: [
       react(),
