@@ -29,6 +29,9 @@ playwright-report/
 test-results/
 playwright/.cache/
 
+# Local archive
+clean-up/
+
 # Test Coverage
 coverage/
 

@@ -30,6 +30,7 @@ export default tseslint.config(
             'supabase/functions/**', // Edge functions use Deno runtime
             'scripts/**/*.mjs', // Node.js scripts
             '**/_backup/**', // Backup files
+            'clean-up/**', // Archived/legacy files and reports
         ],
     },
 
@@ -71,6 +72,21 @@ export default tseslint.config(
 
             // Console rules
             'no-console': ['warn', { allow: ['warn', 'error'] }],
+
+            // Design token / color rules (Qodo alignment)
+            'no-restricted-syntax': [
+                'warn',
+                {
+                    selector: "Literal[value=/#[0-9a-fA-F]{3,8}/]",
+                    message:
+                        'Avoid hardcoded hex color literals in code. Use design tokens or CSS variables instead.',
+                },
+                {
+                    selector: "Literal[value=/(?:rgb|rgba|hsl|hsla)\\(/i]",
+                    message:
+                        'Avoid rgb()/rgba()/hsl()/hsla() color functions in TS/TSX. Use design tokens or CSS variables instead.',
+                },
+            ],
 
             // Disable base rules that TypeScript handles
             'no-unused-vars': 'off',
