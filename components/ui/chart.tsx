@@ -32,6 +32,7 @@ const ChartContainer = React.forwardRef<
 >(({ id, className, children, config, ...props }, ref) => {
   const uniqueId = React.useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, '')}`;
+  const ResponsiveContainer = require('recharts').ResponsiveContainer;
 
   return (
     <ChartContext.Provider value={{ config }}>
@@ -80,7 +81,9 @@ const ChartContainer = React.forwardRef<
         }
         {...props}
       >
-        {children}
+        <ResponsiveContainer width="100%" height="100%">
+          {children}
+        </ResponsiveContainer>
       </div>
     </ChartContext.Provider>
   );
