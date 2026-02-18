@@ -1,31 +1,38 @@
-import React, { useMemo } from 'react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  Legend,
-} from 'recharts';
+import React, { useMemo, useState } from 'react';
+import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-  CardFooter,
 } from '../../ui/card';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '../../ui/chart';
 import { ChartSkeleton } from '../../ui/skeleton';
 import { useManifests } from '../../../hooks/useManifests';
-import { CHART_COLORS } from '../../../lib/design-tokens';
+
+const chartConfig = {
+  active: {
+    label: 'Active',
+    color: 'var(--chart-1)',
+  },
+  idle: {
+    label: 'Idle',
+    color: 'var(--chart-2)',
+  },
+} satisfies ChartConfig;
 
 export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({
   isLoading: externalLoading,
 }) => {
   const { data: manifests = [], isLoading: manifestsLoading } = useManifests();
   const isLoading = externalLoading || manifestsLoading;
+  const [activeKey, setActiveKey] = useState<'active' | 'idle'>('active');
 
   const fleetChartData = useMemo(() => {
     const routeMap = new Map<string, { active: number; idle: number }>();
@@ -44,25 +51,32 @@ export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({
     });
 
     return Array.from(routeMap.entries())
-      .map(([route, counts]) => ({
-        route,
-        ...counts,
-      }))
+      .map(([route, counts]) => ({ route, ...counts }))
       .sort((a, b) => b.active + b.idle - (a.active + a.idle))
       .slice(0, 5);
   }, [manifests]);
+
+  const totals = useMemo(
+    () => ({
+      active: fleetChartData.reduce((acc, d) => acc + d.active, 0),
+      idle: fleetChartData.reduce((acc, d) => acc + d.idle, 0),
+    }),
+    [fleetChartData]
+  );
 
   if (isLoading) return <ChartSkeleton height={200} />;
 
   if (fleetChartData.length === 0) {
     return (
-      <Card className="h-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <span className="w-1 h-6 bg-status-success rounded-full"></span>
-            Current Fleet Status
-          </CardTitle>
-          <CardDescription>Active vs idle fleet by route</CardDescription>
+      <Card className="py-0 h-full">
+        <CardHeader className="flex flex-col items-stretch border-b !p-0 sm:flex-row">
+          <div className="flex flex-1 flex-col justify-center gap-1 px-6 pt-4 pb-3 sm:!py-0">
+            <CardTitle className="flex items-center gap-2">
+              <span className="w-1 h-6 bg-status-success rounded-full"></span>
+              Current Fleet Status
+            </CardTitle>
+            <CardDescription>Active vs idle fleet by route</CardDescription>
+          </div>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
@@ -76,58 +90,65 @@ export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({
     );
   }
 
-  // Tooltip styles
-  const tooltipStyle = {
-    backgroundColor: 'var(--popover)',
-    borderColor: 'var(--border)',
-    color: 'var(--popover-foreground)',
-    borderRadius: '8px',
-  };
-
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <span className="w-1 h-6 bg-status-success rounded-full"></span>
-          Current Fleet Status
-        </CardTitle>
-        <CardDescription>Active vs idle fleet by route</CardDescription>
+    <Card className="py-0 h-full">
+      <CardHeader className="flex flex-col items-stretch border-b !p-0 sm:flex-row">
+        <div className="flex flex-1 flex-col justify-center gap-1 px-6 pt-4 pb-3 sm:!py-0">
+          <CardTitle className="flex items-center gap-2">
+            <span className="w-1 h-6 bg-status-success rounded-full"></span>
+            Current Fleet Status
+          </CardTitle>
+          <CardDescription>Active vs idle fleet by route</CardDescription>
+        </div>
+        <div className="flex">
+          {(['active', 'idle'] as const).map((key) => (
+            <button
+              key={key}
+              data-active={activeKey === key}
+              className="data-[active=true]:bg-muted/50 relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6"
+              onClick={() => setActiveKey(key)}
+            >
+              <span className="text-muted-foreground text-xs">
+                {chartConfig[key].label}
+              </span>
+              <span className="text-lg leading-none font-bold sm:text-3xl">
+                {totals[key].toLocaleString()}
+              </span>
+            </button>
+          ))}
+        </div>
       </CardHeader>
-      <CardContent>
-        <div className="h-[200px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={fleetChartData}>
-              <CartesianGrid vertical={false} strokeDasharray="3 3" stroke={CHART_COLORS.grid} />
-              <XAxis
-                dataKey="route"
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-                tick={{ fill: CHART_COLORS.axis, fontSize: 12 }}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: CHART_COLORS.axis, fontSize: 12 }}
-              />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Legend />
-              <Bar
-                dataKey="active"
-                name="Active"
-                fill={CHART_COLORS.primary}
-                radius={[4, 4, 0, 0]}
-              />
-              <Bar dataKey="idle" name="Idle" fill={CHART_COLORS.secondary} radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+      <CardContent className="px-2 sm:p-6">
+        <ChartContainer config={chartConfig} className="aspect-auto h-[200px] w-full">
+          <BarChart
+            accessibilityLayer
+            data={fleetChartData}
+            margin={{ left: 12, right: 12 }}
+          >
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="route"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+            />
+            <ChartTooltip
+              content={
+                <ChartTooltipContent
+                  className="w-[150px]"
+                  nameKey="route"
+                  labelFormatter={(value) => value}
+                />
+              }
+            />
+            <Bar
+              dataKey={activeKey}
+              fill={`var(--color-${activeKey})`}
+              radius={[4, 4, 0, 0]}
+            />
+          </BarChart>
+        </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="leading-none text-muted-foreground">
-          Showing top {fleetChartData.length} routes by manifest count
-        </div>
-      </CardFooter>
     </Card>
   );
 };
