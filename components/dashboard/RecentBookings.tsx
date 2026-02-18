@@ -75,12 +75,13 @@ export const RecentBookings: React.FC = () => {
                   <TableCell>
                     <Badge
                       variant="outline"
-                      className={`font-medium ${booking.status === 'APPROVED'
-                        ? 'bg-status-success/10 text-status-success border-status-success/20'
-                        : booking.status === 'REJECTED'
-                          ? 'bg-destructive/10 text-destructive border-destructive/20'
-                          : 'bg-status-warning/10 text-status-warning border-status-warning/20'
-                        }`}
+                      className={`font-medium ${
+                        booking.status === 'APPROVED'
+                          ? 'bg-status-success/10 text-status-success border-status-success/20'
+                          : booking.status === 'REJECTED'
+                            ? 'bg-destructive/10 text-destructive border-destructive/20'
+                            : 'bg-status-warning/10 text-status-warning border-status-warning/20'
+                      }`}
                     >
                       {booking.status}
                     </Badge>

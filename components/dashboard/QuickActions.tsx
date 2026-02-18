@@ -176,7 +176,6 @@ export const QuickActions: React.FC = () => {
           )}
         </Card>
       </div>
-
     </>
   );
 };

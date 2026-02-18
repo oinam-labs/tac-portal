@@ -1,12 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from '../../ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../ui/card';
 import {
   ChartContainer,
   ChartTooltip,
@@ -108,9 +102,7 @@ export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({
               className="data-[active=true]:bg-muted/50 relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6"
               onClick={() => setActiveKey(key)}
             >
-              <span className="text-muted-foreground text-xs">
-                {chartConfig[key].label}
-              </span>
+              <span className="text-muted-foreground text-xs">{chartConfig[key].label}</span>
               <span className="text-lg leading-none font-bold sm:text-3xl">
                 {totals[key].toLocaleString()}
               </span>
@@ -120,18 +112,9 @@ export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({
       </CardHeader>
       <CardContent className="px-2 sm:p-6">
         <ChartContainer config={chartConfig} className="aspect-auto h-[200px] w-full">
-          <BarChart
-            accessibilityLayer
-            data={fleetChartData}
-            margin={{ left: 12, right: 12 }}
-          >
+          <BarChart accessibilityLayer data={fleetChartData} margin={{ left: 12, right: 12 }}>
             <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="route"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-            />
+            <XAxis dataKey="route" tickLine={false} axisLine={false} tickMargin={8} />
             <ChartTooltip
               content={
                 <ChartTooltipContent
@@ -141,11 +124,7 @@ export const FleetStatusChart: React.FC<{ isLoading?: boolean }> = ({
                 />
               }
             />
-            <Bar
-              dataKey={activeKey}
-              fill={`var(--color-${activeKey})`}
-              radius={[4, 4, 0, 0]}
-            />
+            <Bar dataKey={activeKey} fill={`var(--color-${activeKey})`} radius={[4, 4, 0, 0]} />
           </BarChart>
         </ChartContainer>
       </CardContent>

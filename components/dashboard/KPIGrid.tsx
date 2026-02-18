@@ -151,10 +151,7 @@ export const KPIGrid: React.FC<KPIGridProps> = ({ isLoading: externalLoading = f
   }
 
   return (
-    <div
-      data-testid="kpi-grid"
-      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
-    >
+    <div data-testid="kpi-grid" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
       {kpis.map((kpi, index) => (
         <KPICard key={kpi.label} kpi={kpi} index={index} />
       ))}

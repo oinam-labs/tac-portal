@@ -100,10 +100,7 @@ export const StatusDistributionChart: React.FC<{ isLoading?: boolean }> = ({
         <CardDescription>Current shipment status breakdown</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
-        <ChartContainer
-          config={chartConfig}
-          className="mx-auto aspect-square max-h-[250px]"
-        >
+        <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[250px]">
           <RadialBarChart data={statusChartData} innerRadius={30} outerRadius={110}>
             <ChartTooltip
               cursor={false}
