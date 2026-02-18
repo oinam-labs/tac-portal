@@ -99,9 +99,9 @@ setup('authenticate', async ({ page }) => {
     await page.waitForURL('**/dashboard', { timeout: 15000 });
 
     // Verify we're logged in
-    await expect(
-      page.getByRole('heading', { name: /mission control|dashboard/i })
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /mission control|dashboard/i })).toBeVisible({
+      timeout: 10000,
+    });
 
     // Save authentication state
     await page.context().storageState({ path: authFile });
