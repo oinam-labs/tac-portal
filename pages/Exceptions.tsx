@@ -295,7 +295,12 @@ export const Exceptions: React.FC = () => {
             </label>
             <Input {...registerRaise('description')} placeholder="Details of the issue..." />
           </div>
-          <Button type="submit" variant="destructive" className="w-full mt-4" disabled={createMutation.isPending}>
+          <Button
+            type="submit"
+            variant="destructive"
+            className="w-full mt-4"
+            disabled={createMutation.isPending}
+          >
             {createMutation.isPending ? 'Reporting...' : 'Report Exception'}
           </Button>
         </form>

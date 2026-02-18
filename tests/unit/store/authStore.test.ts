@@ -48,7 +48,7 @@ describe('authStore', () => {
   });
 
   it('sets loading state during sign in', async () => {
-    vi.mocked(supabase.auth.signInWithPassword).mockImplementation(() => new Promise(() => { }));
+    vi.mocked(supabase.auth.signInWithPassword).mockImplementation(() => new Promise(() => {}));
     useAuthStore.getState().signIn('test@example.com', 'password');
     expect(useAuthStore.getState().isLoading).toBe(true);
     // await the promise to avoid open handles, though we mocked it to hang, so maybe ignore

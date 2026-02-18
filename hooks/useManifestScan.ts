@@ -11,10 +11,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import {
-  manifestService,
-  type ScanResponse,
-} from '@/lib/services/manifestService';
+import { manifestService, type ScanResponse } from '@/lib/services/manifestService';
 import { ScanSource } from '@/types';
 import { parseScanInput } from '@/lib/scanParser';
 import { useScanner } from '@/context/useScanner';
@@ -46,8 +43,7 @@ export interface ScanHistoryEntry extends ScanResponse {
   scanSource: ScanSource;
 }
 
-const SCAN_DEBOUNCE_MS = 100;
-
+const SCAN_DEBOUNCE_MS = 50;
 
 export function useManifestScan(options: ScanOptions) {
   const {
@@ -74,11 +70,8 @@ export function useManifestScan(options: ScanOptions) {
     scanHistory: [],
   });
 
-
-
   // Refs for debouncing and keyboard buffer
   const lastScanTimeRef = useRef<number>(0);
-
 
   // Audio feedback
   const playBeep = useCallback(
@@ -241,7 +234,10 @@ export function useManifestScan(options: ScanOptions) {
   );
 
   // Manual scan (from input field)
-  const scanManual = useCallback((token: string) => processScan(token, ScanSource.MANUAL), [processScan]);
+  const scanManual = useCallback(
+    (token: string) => processScan(token, ScanSource.MANUAL),
+    [processScan]
+  );
 
   // Listen to global scanner events
   useEffect(() => {
@@ -263,9 +259,10 @@ export function useManifestScan(options: ScanOptions) {
   );
 
   // Camera scan
-  const scanCamera = useCallback((token: string) => processScan(token, ScanSource.CAMERA), [processScan]);
-
-
+  const scanCamera = useCallback(
+    (token: string) => processScan(token, ScanSource.CAMERA),
+    [processScan]
+  );
 
   // Reset stats
   const resetStats = useCallback(() => {
@@ -279,8 +276,6 @@ export function useManifestScan(options: ScanOptions) {
       scanHistory: [],
     });
   }, []);
-
-
 
   return {
     // State

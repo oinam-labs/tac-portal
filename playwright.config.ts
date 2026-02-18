@@ -4,11 +4,15 @@
  */
 
 import { defineConfig, devices } from '@playwright/test';
+import { config as loadEnv } from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Load local env vars (including E2E credentials) for Playwright runs
+loadEnv({ path: path.join(__dirname, '.env.local') });
 
 const authFile = path.join(__dirname, '.auth/user.json');
 

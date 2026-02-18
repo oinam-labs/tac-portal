@@ -62,6 +62,8 @@ export function useShipments(options?: {
   page?: number;
   pageSize?: number;
   orgId?: string;
+  /** Filter shipments whose origin OR destination hub matches this hub ID */
+  hubId?: string;
 }) {
   const authOrgId = useAuthStore((s) => s.user?.orgId);
   const orgId = options?.orgId !== undefined ? options.orgId : authOrgId;
@@ -114,6 +116,12 @@ export function useShipments(options?: {
 
         if (options?.status) {
           query = query.eq('status', options.status);
+        }
+
+        if (options?.hubId) {
+          query = query.or(
+            `origin_hub_id.eq.${options.hubId},destination_hub_id.eq.${options.hubId}`
+          );
         }
 
         if (options?.limit) {
@@ -203,17 +211,17 @@ export function useCreateShipment() {
 
   return useMutation({
     mutationFn: async (shipment: CreateShipmentInput) => {
-      console.log('Starting createShipment mutation...', shipment);
+      console.debug('Starting createShipment mutation...', shipment);
       let orgId = staffUser?.orgId;
       if (!orgId) {
-        console.log('No orgId in auth store, fetching default...');
+        console.debug('No orgId in auth store, fetching default...');
         orgId = await getOrCreateDefaultOrg();
-        console.log('Resolved orgId:', orgId);
+        console.debug('Resolved orgId:', orgId);
       } else {
-        console.log('Using auth store orgId:', orgId);
+        console.debug('Using auth store orgId:', orgId);
       }
 
-      console.log('Calling generate_awb_number RPC...');
+      console.debug('Calling generate_awb_number RPC...');
       const { data: awbResult, error: awbError } = await supabase.rpc('generate_awb_number', {
         p_org_id: orgId,
       });
@@ -222,7 +230,7 @@ export function useCreateShipment() {
         console.error('AWB Generation Error:', awbError);
         throw awbError;
       }
-      console.log('AWB Result:', awbResult);
+      console.debug('AWB Result:', awbResult);
 
       if (typeof awbResult !== 'string' || !awbResult) {
         throw new Error('AWB service unavailable');
@@ -235,7 +243,7 @@ export function useCreateShipment() {
         status: 'CREATED' as const,
       };
 
-      console.log('Inserting shipment payload:', insertPayload);
+      console.debug('Inserting shipment payload:', insertPayload);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase.from('shipments') as any)
@@ -247,7 +255,7 @@ export function useCreateShipment() {
         console.error('Shipment Insert Error:', error);
         throw error;
       }
-      console.log('Shipment created successfully:', data);
+      console.debug('Shipment created successfully:', data);
       return data as unknown as ShipmentWithRelations;
     },
     onSuccess: (data: ShipmentWithRelations) => {
@@ -374,10 +382,7 @@ export function useHardDeleteShipment() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('shipments')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('shipments').delete().eq('id', id);
 
       if (error) throw error;
     },

@@ -45,8 +45,9 @@ export function parseScanInput(input: string): ScanResult {
     throw new ValidationError('Empty scan input');
   }
 
-  // 1. Try raw AWB format (TAC followed by 8 digits)
-  if (/^TAC\d{8}$/i.test(trimmed)) {
+  // 1. Try raw AWB format (TAC followed by 8-11 digits)
+  // Updated to support various AWB formats: TAC12345678, TAC123456789, etc.
+  if (/^TAC\d{8,11}$/i.test(trimmed)) {
     return {
       type: 'shipment',
       awb: trimmed.toUpperCase(),
@@ -95,7 +96,7 @@ export function parseScanInput(input: string): ScanResult {
 
       // Handle shipment scan (default)
       if (payload.awb) {
-        if (!/^TAC\d{8}$/i.test(payload.awb)) {
+        if (!/^TAC\d{8,11}$/i.test(payload.awb)) {
           throw new ValidationError('Invalid AWB format in payload');
         }
         return {
@@ -141,7 +142,7 @@ export function parseScanInput(input: string): ScanResult {
  * Validate AWB format
  */
 export function isValidAWB(awb: string): boolean {
-  return /^TAC\d{8}$/i.test(awb);
+  return /^TAC\d{8,11}$/i.test(awb);
 }
 
 /**

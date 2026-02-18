@@ -10,7 +10,15 @@ import {
   EventRepository,
   AuditRepository,
 } from './index';
-import { Shipment, Manifest, User, ShipmentStatus, HubLocation, Invoice, InvoiceStatus } from '../../types';
+import {
+  Shipment,
+  Manifest,
+  User,
+  ShipmentStatus,
+  HubLocation,
+  Invoice,
+  InvoiceStatus,
+} from '../../types';
 import type { Database } from '../database.types';
 
 // Helper types for Supabase rows
@@ -39,11 +47,7 @@ type StaffRow = Database['public']['Tables']['staff']['Row'] & {
 
 const getHubId = async (code: string): Promise<string> => {
   if (!code) throw new Error('Hub code is required');
-  const { data, error } = await supabase
-    .from('hubs')
-    .select('id')
-    .eq('code', code)
-    .single();
+  const { data, error } = await supabase.from('hubs').select('id').eq('code', code).single();
 
   if (error || !data) throw new Error(`Hub not found for code: ${code}`);
   return data.id;
@@ -62,10 +66,12 @@ const mapShipment = (row: ShipmentRow): Shipment => {
     customerName: row.customer?.name || 'Unknown',
     originHub: (row.origin_hub?.code || 'IMPHAL') as HubLocation,
     destinationHub: (row.destination_hub?.code || 'NEW_DELHI') as HubLocation,
-    mode: (row.service_type || 'AIR') as Shipment['mode'],
-    serviceLevel: (row.service_type === 'EXPRESS' ? 'EXPRESS' : 'STANDARD') as Shipment['serviceLevel'], // Simplified mapping
+    mode: (row.mode || 'AIR') as Shipment['mode'],
+    serviceLevel: (row.service_level === 'EXPRESS'
+      ? 'EXPRESS'
+      : 'STANDARD') as Shipment['serviceLevel'], // Simplified mapping
     status: row.status as Shipment['status'],
-    totalPackageCount: row.total_packages || 1,
+    totalPackageCount: row.package_count || 1,
     totalWeight: {
       dead: row.total_weight || 0,
       volumetric: 0, // Not stored in main table currently
@@ -81,16 +87,16 @@ const mapShipment = (row: ShipmentRow): Shipment => {
     // 'shipments' table has 'manifest_id'. 'invoices' has 'shipment_id'.
     // So Shipment -> Invoice is 1:Many or 1:1 via Invoice table.
     // We'll leave invoiceId undefined for now as it requires reverse lookup
-    contentsDescription: row.contents || 'General Cargo',
-    paymentMode: (row.payment_mode || 'PAID') as any,
+    contentsDescription: row.special_instructions || 'General Cargo',
+    paymentMode: 'PAID' as any,
     consignor: {
-      name: row.sender_name,
-      phone: row.sender_phone,
+      name: row.sender_name || '',
+      phone: row.sender_phone || '',
       address: typeof senderAddress === 'string' ? senderAddress : senderAddress?.line1 || '',
       gstin: senderAddress?.gstin,
       city: senderAddress?.city,
       state: senderAddress?.state,
-      zip: senderAddress?.zip
+      zip: senderAddress?.zip,
     },
     consignee: {
       name: row.receiver_name,
@@ -99,13 +105,11 @@ const mapShipment = (row: ShipmentRow): Shipment => {
       gstin: receiverAddress?.gstin,
       city: receiverAddress?.city,
       state: receiverAddress?.state,
-      zip: receiverAddress?.zip
+      zip: receiverAddress?.zip,
     },
-    declaredValue: row.declared_value || 0
+    declaredValue: row.declared_value || 0,
   };
 };
-
-
 
 const mapUser = (row: StaffRow): User => ({
   id: row.id,
@@ -131,19 +135,18 @@ const mapManifest = (row: ManifestRow): Manifest => ({
     driverName: row.driver_name || undefined,
     driverPhone: row.driver_phone || undefined,
     carrier: (row.vehicle_meta as any)?.carrier,
-    flightNumber: (row.vehicle_meta as any)?.flightNumber
+    flightNumber: (row.vehicle_meta as any)?.flightNumber,
   },
-  shipmentIds: row.manifest_items?.map(i => i.shipment_id) || [],
+  shipmentIds: row.manifest_items?.map((i) => i.shipment_id) || [],
   shipmentCount: row.total_shipments || 0,
   totalWeight: row.total_weight || 0,
   createdBy: row.created_by_staff_id || 'System', // ideally join staff name
   createdAt: row.created_at || new Date().toISOString(),
   departedAt: row.departed_at || undefined,
-  arrivedAt: row.arrived_at || undefined
+  arrivedAt: row.arrived_at || undefined,
 });
 
 const mapInvoice = (row: InvoiceRow): Invoice => {
-
   return {
     id: row.id,
     invoiceNumber: row.invoice_no,
@@ -166,16 +169,16 @@ const mapInvoice = (row: InvoiceRow): Invoice => {
         cgst: 0,
         sgst: 0,
         igst: row.tax_amount || 0,
-        total: row.tax_amount || 0
+        total: row.tax_amount || 0,
       },
       discount: row.discount || 0,
       totalAmount: row.total,
       advancePaid: 0,
-      balance: row.total // Assuming unpaid if not paid_at
+      balance: row.total, // Assuming unpaid if not paid_at
     },
     dueDate: row.due_date || new Date().toISOString(),
     paidAt: row.paid_at || undefined,
-    createdAt: row.created_at || new Date().toISOString()
+    createdAt: row.created_at || new Date().toISOString(),
   };
 };
 
@@ -202,12 +205,14 @@ class SupabaseShipmentRepository implements ShipmentRepository {
   async getByAWB(awb: string): Promise<Shipment | null> {
     const { data, error } = await supabase
       .from('shipments')
-      .select(`
+      .select(
+        `
             *,
             customer:customers(name),
             origin_hub:hubs!shipments_origin_hub_id_fkey(code),
             destination_hub:hubs!shipments_destination_hub_id_fkey(code)
-        `)
+        `
+      )
       .eq('awb_number', awb)
       .single();
 
@@ -237,9 +242,10 @@ class SupabaseShipmentRepository implements ShipmentRepository {
       destination_hub_id: destinationHubId,
       org_id: staff.org_id,
       status: 'CREATED',
-      service_type: data.serviceLevel,
-      payment_mode: data.paymentMode,
-      total_packages: data.totalPackageCount,
+      mode: data.mode,
+      service_level: data.serviceLevel,
+      // payment_mode: data.paymentMode, // Not in DB
+      package_count: data.totalPackageCount,
       total_weight: data.totalWeight.dead,
       declared_value: data.declaredValue,
       receiver_name: data.consignee?.name || 'Unknown',
@@ -249,7 +255,7 @@ class SupabaseShipmentRepository implements ShipmentRepository {
         city: data.consignee?.city,
         state: data.consignee?.state,
         zip: data.consignee?.zip,
-        gstin: data.consignee?.gstin
+        gstin: data.consignee?.gstin,
       },
       sender_name: data.consignor?.name || 'Unknown',
       sender_phone: data.consignor?.phone || '',
@@ -258,20 +264,22 @@ class SupabaseShipmentRepository implements ShipmentRepository {
         city: data.consignor?.city,
         state: data.consignor?.state,
         zip: data.consignor?.zip,
-        gstin: data.consignor?.gstin
+        gstin: data.consignor?.gstin,
       },
-      contents: data.contentsDescription
+      special_instructions: data.contentsDescription, // Mapping contents to special_instructions
     };
 
     const { data: newShipment, error } = await supabase
       .from('shipments')
       .insert(shipmentPayload)
-      .select(`
+      .select(
+        `
             *,
             customer:customers(name),
             origin_hub:hubs!shipments_origin_hub_id_fkey(code),
             destination_hub:hubs!shipments_destination_hub_id_fkey(code)
-        `)
+        `
+      )
       .single();
 
     if (error) throw error;
@@ -302,12 +310,14 @@ class SupabaseManifestRepository implements ManifestRepository {
   async getAll(): Promise<Manifest[]> {
     const { data, error } = await supabase
       .from('manifests')
-      .select(`
+      .select(
+        `
             *,
             origin_hub:hubs!manifests_from_hub_id_fkey(code),
             destination_hub:hubs!manifests_to_hub_id_fkey(code),
             manifest_items(shipment_id)
-        `)
+        `
+      )
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -317,12 +327,14 @@ class SupabaseManifestRepository implements ManifestRepository {
   async getByRef(ref: string): Promise<Manifest | null> {
     const { data, error } = await supabase
       .from('manifests')
-      .select(`
+      .select(
+        `
             *,
             origin_hub:hubs!manifests_from_hub_id_fkey(code),
             destination_hub:hubs!manifests_to_hub_id_fkey(code),
             manifest_items(shipment_id)
-        `)
+        `
+      )
       .eq('manifest_no', ref)
       .single();
 
@@ -337,7 +349,11 @@ class SupabaseManifestRepository implements ManifestRepository {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) throw new Error('User not authenticated');
 
-    const { data: staff } = await supabase.from('staff').select('id, org_id').eq('auth_user_id', userData.user.id).single();
+    const { data: staff } = await supabase
+      .from('staff')
+      .select('id, org_id')
+      .eq('auth_user_id', userData.user.id)
+      .single();
     if (!staff) throw new Error('Staff/Org not found');
 
     const payload = {
@@ -353,18 +369,20 @@ class SupabaseManifestRepository implements ManifestRepository {
       driver_phone: data.vehicleMeta.driverPhone,
       vehicle_meta: {
         carrier: data.vehicleMeta.carrier,
-        flightNumber: data.vehicleMeta.flightNumber
-      }
+        flightNumber: data.vehicleMeta.flightNumber,
+      },
     };
 
     const { data: newManifest, error } = await supabase
       .from('manifests')
       .insert(payload)
-      .select(`
+      .select(
+        `
             *,
             origin_hub:hubs!manifests_from_hub_id_fkey(code),
             destination_hub:hubs!manifests_to_hub_id_fkey(code)
-        `)
+        `
+      )
       .single();
 
     if (error) throw error;
@@ -382,7 +400,11 @@ class SupabaseManifestRepository implements ManifestRepository {
 
   async addShipment(manifestId: string, shipmentId: string): Promise<void> {
     const { data: userData } = await supabase.auth.getUser();
-    const { data: staff } = await supabase.from('staff').select('id, org_id').eq('auth_user_id', userData.user?.id || '').single();
+    const { data: staff } = await supabase
+      .from('staff')
+      .select('id, org_id')
+      .eq('auth_user_id', userData.user?.id || '')
+      .single();
 
     if (!staff) throw new Error('Staff context missing');
 
@@ -391,7 +413,7 @@ class SupabaseManifestRepository implements ManifestRepository {
       shipment_id: shipmentId,
       org_id: staff.org_id,
       scanned_by_staff_id: staff.id,
-      scanned_at: new Date().toISOString()
+      scanned_at: new Date().toISOString(),
     });
 
     if (error) throw error;
@@ -402,20 +424,26 @@ class SupabaseInvoiceRepository implements InvoiceRepository {
   async getAll(): Promise<Invoice[]> {
     const { data, error } = await supabase
       .from('invoices')
-      .select(`
+      .select(
+        `
                 *,
                 customer:customers(name),
                 shipment:shipments(awb_number)
-            `)
+            `
+      )
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return (data || []).map(row => mapInvoice(row as any));
+    return (data || []).map((row) => mapInvoice(row as any));
   }
 
   async create(data: Invoice): Promise<Invoice> {
     const { data: userData } = await supabase.auth.getUser();
-    const { data: staff } = await supabase.from('staff').select('org_id').eq('auth_user_id', userData.user?.id || '').single();
+    const { data: staff } = await supabase
+      .from('staff')
+      .select('org_id')
+      .eq('auth_user_id', userData.user?.id || '')
+      .single();
     if (!staff) throw new Error('Staff context missing');
 
     const payload = {
@@ -428,7 +456,7 @@ class SupabaseInvoiceRepository implements InvoiceRepository {
       total: data.financials.totalAmount,
       tax_amount: data.financials.tax.total,
       due_date: data.dueDate,
-      line_items: [] as any // Map line items if available
+      line_items: [] as any, // Map line items if available
     };
 
     const { data: newInvoice, error } = await supabase
@@ -476,8 +504,8 @@ class NotImplementedRepository {
   async create(_data: unknown): Promise<unknown> {
     throw new Error('Not implemented');
   }
-  async updateStatus(_id: string, _status: unknown): Promise<void> { }
-  async resolve(_id: string, _notes: string): Promise<void> { }
+  async updateStatus(_id: string, _status: unknown): Promise<void> {}
+  async resolve(_id: string, _notes: string): Promise<void> {}
   async getByShipmentId(_id: string): Promise<unknown[]> {
     return [];
   }
@@ -486,7 +514,7 @@ class NotImplementedRepository {
     _entityType: string,
     _entityId: string,
     _payload?: Record<string, unknown>
-  ): Promise<void> { }
+  ): Promise<void> {}
 }
 
 export const supabaseRepository: DataAccessLayer = {

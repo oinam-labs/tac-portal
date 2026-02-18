@@ -7,7 +7,7 @@
 import type { Invoice, Customer } from '@/types';
 
 // Validation patterns
-export const AWB_PATTERN = /^TAC\d{8}$/;
+export const AWB_PATTERN = /^TAC\d{8,11}$/i;
 export const GSTIN_PATTERN = /^\d{2}[A-Z]{5}\d{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 export const INVOICE_NO_PATTERN = /^INV-\d{4}-\d{4,}$/;
 
@@ -40,7 +40,7 @@ export function validateAWB(awb: string): ValidationResult {
   } else if (!AWB_PATTERN.test(awb)) {
     errors.push({
       field: 'awb',
-      message: `AWB "${awb}" does not match required format TAC + 8 digits (e.g., TAC48878789)`,
+      message: `AWB "${awb}" does not match required format TAC + 8-11 digits (e.g., TAC48878789)`,
       code: 'AWB_INVALID_FORMAT',
     });
   }

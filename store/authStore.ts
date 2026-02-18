@@ -68,10 +68,7 @@ export const useAuthStore = create<AuthState>()(
           if (profile.avatarUrl !== undefined) updates.avatar_url = profile.avatarUrl;
 
           if (Object.keys(updates).length > 0) {
-            const { error } = await supabase
-              .from('staff')
-              .update(updates)
-              .eq('id', currentUser.id);
+            const { error } = await supabase.from('staff').update(updates).eq('id', currentUser.id);
 
             if (error) throw error;
           }
@@ -115,7 +112,7 @@ export const useAuthStore = create<AuthState>()(
             // Check if aborted before making request
             if (signal.aborted) {
               clearTimeout(timeoutId);
-              return () => { };
+              return () => {};
             }
 
             // Get current session
@@ -127,31 +124,34 @@ export const useAuthStore = create<AuthState>()(
             // Check if aborted after request
             if (signal.aborted) {
               clearTimeout(timeoutId);
-              return () => { };
+              return () => {};
             }
 
             if (sessionError) {
               // Don't log AbortError as it's expected during navigation/remounts
-              if (sessionError.message?.includes('AbortError') || sessionError.message?.includes('aborted')) {
+              if (
+                sessionError.message?.includes('AbortError') ||
+                sessionError.message?.includes('aborted')
+              ) {
                 clearTimeout(timeoutId);
-                return () => { };
+                return () => {};
               }
               console.error('[Auth] Session error:', sessionError);
               clearTimeout(timeoutId);
               set({ isLoading: false, isAuthenticated: false, session: null, user: null });
-              return () => { };
+              return () => {};
             }
 
             if (!session) {
               clearTimeout(timeoutId);
               set({ isLoading: false, isAuthenticated: false, session: null, user: null });
-              return () => { };
+              return () => {};
             }
 
             // Check if aborted before staff fetch
             if (signal.aborted) {
               clearTimeout(timeoutId);
-              return () => { };
+              return () => {};
             }
 
             // Fetch staff record linked to this auth user
@@ -160,14 +160,14 @@ export const useAuthStore = create<AuthState>()(
             // Check if aborted after staff fetch
             if (signal.aborted) {
               clearTimeout(timeoutId);
-              return () => { };
+              return () => {};
             }
 
             if (!staffUser) {
               console.warn('[Auth] No staff record found for user:', session.user.email);
               clearTimeout(timeoutId);
               set({ isLoading: false, isAuthenticated: false, session: null, user: null });
-              return () => { };
+              return () => {};
             }
 
             if (!staffUser.isActive) {
@@ -181,7 +181,7 @@ export const useAuthStore = create<AuthState>()(
                 user: null,
                 error: 'Your account has been deactivated. Please contact an administrator.',
               });
-              return () => { };
+              return () => {};
             }
 
             // Set organization context for services
@@ -202,6 +202,9 @@ export const useAuthStore = create<AuthState>()(
             } = supabase.auth.onAuthStateChange(async (event, newSession) => {
               try {
                 if (event === 'SIGNED_OUT' || !newSession) {
+                  console.warn('[AuthStore] onAuthStateChange: SIGNED_OUT or no session', {
+                    event,
+                  });
                   orgService.clearCurrentOrg();
                   set({ session: null, user: null, isAuthenticated: false });
                   return;
@@ -220,7 +223,10 @@ export const useAuthStore = create<AuthState>()(
                 }
               } catch (error) {
                 // Handle AbortError gracefully - expected during navigation
-                if (error instanceof Error && (error.name === 'AbortError' || error.message?.includes('aborted'))) {
+                if (
+                  error instanceof Error &&
+                  (error.name === 'AbortError' || error.message?.includes('aborted'))
+                ) {
                   return;
                 }
                 console.error('[Auth] Error in auth state change handler:', error);
@@ -233,8 +239,11 @@ export const useAuthStore = create<AuthState>()(
             };
           } catch (error) {
             // Silently ignore AbortError - expected during navigation or StrictMode remounts
-            if (error instanceof Error && (error.name === 'AbortError' || error.message?.includes('aborted'))) {
-              return () => { };
+            if (
+              error instanceof Error &&
+              (error.name === 'AbortError' || error.message?.includes('aborted'))
+            ) {
+              return () => {};
             }
             console.error('[Auth] Initialize error:', error);
             set({
@@ -242,7 +251,7 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: false,
               error: 'Failed to initialize authentication',
             });
-            return () => { };
+            return () => {};
           } finally {
             // Clear the singleton promise when done (success or error)
             initializationPromise = null;
@@ -340,6 +349,7 @@ export const useAuthStore = create<AuthState>()(
           });
 
           await supabase.auth.signOut();
+          console.warn('[AuthStore] Signed out by user action');
           orgService.clearCurrentOrg();
           set({
             session: null,
@@ -390,7 +400,10 @@ export const useAuthStore = create<AuthState>()(
  * @param authUserId - The auth user ID to look up
  * @param signal - Optional AbortSignal for cancellation
  */
-async function fetchStaffByAuthId(authUserId: string, signal?: AbortSignal): Promise<StaffUser | null> {
+async function fetchStaffByAuthId(
+  authUserId: string,
+  signal?: AbortSignal
+): Promise<StaffUser | null> {
   try {
     // Check if already aborted before making request
     if (signal?.aborted) {
@@ -449,7 +462,10 @@ async function fetchStaffByAuthId(authUserId: string, signal?: AbortSignal): Pro
     };
   } catch (error) {
     // Silently ignore AbortError
-    if (error instanceof Error && (error.name === 'AbortError' || error.message?.includes('aborted'))) {
+    if (
+      error instanceof Error &&
+      (error.name === 'AbortError' || error.message?.includes('aborted'))
+    ) {
       return null;
     }
     console.error('[Auth] fetchStaffByAuthId error:', error);

@@ -12,6 +12,8 @@ import { useGSAP, gsap } from '@/lib/gsap';
 import { MOTION_TOKENS } from '@/lib/animation-tokens';
 import { useStore } from '@/store';
 
+import { BookingDialog } from '@/components/bookings/BookingDialog';
+
 export function Navbar() {
   const { setTheme } = useStore();
   const [mounted, setMounted] = React.useState(false);
@@ -20,6 +22,7 @@ export function Navbar() {
   const [activeSection, setActiveSection] = React.useState<string>('');
   const navRef = React.useRef<HTMLElement>(null);
   const blurBgRef = React.useRef<HTMLDivElement>(null);
+  const [bookingDialogOpen, setBookingDialogOpen] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
@@ -71,16 +74,15 @@ export function Navbar() {
         duration: 0.2,
       },
       0
-    )
-      .to(
-        nav,
-        {
-          height: '80px',
-          borderBottomColor: 'var(--border)',
-          boxShadow: 'var(--shadow-sm)',
-        },
-        0
-      );
+    ).to(
+      nav,
+      {
+        height: '80px',
+        borderBottomColor: 'var(--border)',
+        boxShadow: 'var(--shadow-sm)',
+      },
+      0
+    );
   }, []);
 
   const navLinks = [
@@ -99,7 +101,7 @@ export function Navbar() {
       const offsetTop = element.getBoundingClientRect().top + window.scrollY - 80; // Adjust for navbar height
       window.scrollTo({
         top: offsetTop,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
       setIsOpen(false);
     }
@@ -138,7 +140,9 @@ export function Navbar() {
               <span className="text-foreground text-lg font-sans font-bold tracking-tight leading-none group-hover:text-primary transition-colors duration-300">
                 TAC Cargo
               </span>
-              <span className="text-[10px] text-muted-foreground font-mono tracking-widest uppercase">Global Logistics</span>
+              <span className="text-[10px] text-muted-foreground font-mono tracking-widest uppercase">
+                Global Logistics
+              </span>
             </div>
           </Link>
 
@@ -196,12 +200,14 @@ export function Navbar() {
                 Login
               </Button>
             </Link>
-            <Link to="/login">
-              <Button className="relative overflow-hidden rounded-full px-6 font-semibold shadow-glow-primary transition-all duration-300 hover:scale-105 active:scale-95 group">
-                <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                <span className="relative z-10">Book Shipment</span>
-              </Button>
-            </Link>
+
+            <Button
+              onClick={() => setBookingDialogOpen(true)}
+              className="relative overflow-hidden rounded-full px-6 font-semibold shadow-glow-primary transition-all duration-300 hover:scale-105 active:scale-95 group"
+            >
+              <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              <span className="relative z-10">Book Shipment</span>
+            </Button>
           </div>
 
           {/* Mobile Menu */}
@@ -232,7 +238,9 @@ export function Navbar() {
                         <motion.a
                           key={link.name}
                           href={link.href}
-                          onClick={(e: React.MouseEvent<HTMLAnchorElement>) => handleScroll(e, link.href)}
+                          onClick={(e: React.MouseEvent<HTMLAnchorElement>) =>
+                            handleScroll(e, link.href)
+                          }
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.1 + i * 0.05 }}
@@ -244,15 +252,23 @@ export function Navbar() {
                     </div>
                     <div className="p-6 mt-auto space-y-4">
                       <Link to="/login" className="block" onClick={() => setIsOpen(false)}>
-                        <Button variant="outline" className="w-full rounded-full h-12 text-base font-medium">
+                        <Button
+                          variant="outline"
+                          className="w-full rounded-full h-12 text-base font-medium"
+                        >
                           Login
                         </Button>
                       </Link>
-                      <Link to="/login" className="block" onClick={() => setIsOpen(false)}>
-                        <Button className="w-full rounded-full h-12 text-base font-medium shadow-lg shadow-primary/20">
-                          Book Shipment
-                        </Button>
-                      </Link>
+
+                      <Button
+                        onClick={() => {
+                          setIsOpen(false);
+                          setBookingDialogOpen(true);
+                        }}
+                        className="w-full rounded-full h-12 text-base font-medium shadow-lg shadow-primary/20"
+                      >
+                        Book Shipment
+                      </Button>
                     </div>
                   </div>
                 </SheetContent>
@@ -261,6 +277,8 @@ export function Navbar() {
           </div>
         </div>
       </motion.nav>
+
+      <BookingDialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen} />
     </>
   );
 }

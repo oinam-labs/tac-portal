@@ -14,12 +14,7 @@ import {
   Mail,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { InvoiceWithRelations } from '@/hooks/useInvoices';
 
 // Status color mapping using semantic badge classes
@@ -76,17 +71,12 @@ export function getInvoicesColumns(
     {
       accessorKey: 'awb',
       header: 'AWB',
-      accessorFn: (row) =>
-        row.shipment?.awb_number || (row.line_items as any)?.awb || '',
+      accessorFn: (row) => row.shipment?.awb_number || (row.line_items as any)?.awb || '',
       cell: ({ row }) => {
         const awb =
-          row.original.shipment?.awb_number ||
-          (row.original.line_items as any)?.awb ||
-          '';
+          row.original.shipment?.awb_number || (row.original.line_items as any)?.awb || '';
         return awb ? (
-          <span className="font-mono text-sm font-medium text-foreground">
-            {awb}
-          </span>
+          <span className="font-mono text-sm font-medium text-foreground">{awb}</span>
         ) : (
           <span className="text-xs text-muted-foreground italic">—</span>
         );
@@ -153,7 +143,11 @@ export function getInvoicesColumns(
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={() => params.onDownloadLabel(row.original)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => params.onDownloadLabel(row.original)}
+                >
                   <Printer className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
@@ -171,7 +165,23 @@ export function getInvoicesColumns(
                   >
                     <div className="w-4 h-4">
                       {/* Trash icon directly locally or imported */}
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M3 6h18" />
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                        <line x1="10" x2="10" y1="11" y2="17" />
+                        <line x1="14" x2="14" y1="11" y2="17" />
+                      </svg>
                     </div>
                   </Button>
                 </TooltipTrigger>
@@ -182,7 +192,7 @@ export function getInvoicesColumns(
             <CrudRowActions
               onEdit={() => params.onEdit(row.original)}
               // Don't pass onDelete here to avoid duplication, or pass it if you want it in both places.
-              // Let's remove it from dropdown if it's visible outside to avoid clutter? 
+              // Let's remove it from dropdown if it's visible outside to avoid clutter?
               // Actually, keeping it in dropdown is standard, but let's prioritize the visible one.
               extraItems={[
                 {
@@ -202,35 +212,35 @@ export function getInvoicesColumns(
                 },
                 ...(params.onShareWhatsapp
                   ? [
-                    {
-                      label: 'Share WhatsApp',
-                      icon: <MessageCircle className="w-4 h-4" />,
-                      onClick: () => params.onShareWhatsapp!(row.original),
-                    },
-                  ]
+                      {
+                        label: 'Share WhatsApp',
+                        icon: <MessageCircle className="w-4 h-4" />,
+                        onClick: () => params.onShareWhatsapp!(row.original),
+                      },
+                    ]
                   : []),
                 ...(params.onShareEmail
                   ? [
-                    {
-                      label: 'Share Email',
-                      icon: <Mail className="w-4 h-4" />,
-                      onClick: () => params.onShareEmail!(row.original),
-                    },
-                  ]
+                      {
+                        label: 'Share Email',
+                        icon: <Mail className="w-4 h-4" />,
+                        onClick: () => params.onShareEmail!(row.original),
+                      },
+                    ]
                   : []),
                 ...(row.original.status === 'ISSUED'
                   ? [
-                    {
-                      label: 'Mark as Paid',
-                      icon: <CheckCircle className="w-4 h-4" />,
-                      onClick: () => params.onMarkPaid(row.original),
-                    },
-                    {
-                      label: 'Cancel',
-                      icon: <XCircle className="w-4 h-4" />,
-                      onClick: () => params.onCancel(row.original),
-                    },
-                  ]
+                      {
+                        label: 'Mark as Paid',
+                        icon: <CheckCircle className="w-4 h-4" />,
+                        onClick: () => params.onMarkPaid(row.original),
+                      },
+                      {
+                        label: 'Cancel',
+                        icon: <XCircle className="w-4 h-4" />,
+                        onClick: () => params.onCancel(row.original),
+                      },
+                    ]
                   : []),
               ]}
             />

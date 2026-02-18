@@ -38,6 +38,9 @@ const customerFormSchema = z.object({
   email: z.string().email('Invalid email').optional().or(z.literal('')),
   phone: z.string().min(8, 'Phone must be at least 8 characters'),
   address: z.string().min(5, 'Address must be at least 5 characters'),
+  city: z.string().min(2, 'City must be at least 2 characters'),
+  state: z.string().min(2, 'State must be at least 2 characters'),
+  zip: z.string().min(4, 'Zip / Postal code is required'),
   tier: z.enum(['STANDARD', 'PRIORITY', 'ENTERPRISE']),
   gstin: z.string().optional(),
   credit_limit: z.number().min(0).optional(),
@@ -52,9 +55,45 @@ const defaultFormValues: CustomerFormValues = {
   email: '',
   phone: '',
   address: '',
+  city: '',
+  state: '',
+  zip: '',
   tier: 'STANDARD',
   gstin: '',
   credit_limit: 0,
+};
+
+const normalizeCustomerAddressForForm = (customer: Customer | null) => {
+  if (!customer || !customer.address) {
+    return { line1: '', city: '', state: '', zip: '' };
+  }
+
+  const raw = customer.address as any;
+
+  if (typeof raw === 'string') {
+    return { line1: raw, city: '', state: '', zip: '' };
+  }
+
+  if (typeof raw !== 'object' || Array.isArray(raw)) {
+    return { line1: '', city: '', state: '', zip: '' };
+  }
+
+  const line1 = (raw.line1 ?? raw.line_1 ?? raw.street ?? raw.address ?? '') as string;
+  const city = (raw.city ?? '') as string;
+  const state = (raw.state ?? '') as string;
+  const zip = (raw.zip ??
+    raw.postal_code ??
+    raw.postalCode ??
+    raw.pincode ??
+    raw.pin ??
+    '') as string;
+
+  return {
+    line1: line1.trim(),
+    city: city.trim(),
+    state: state.trim(),
+    zip: zip.trim(),
+  };
 };
 
 export const Customers: React.FC = () => {
@@ -90,17 +129,23 @@ export const Customers: React.FC = () => {
 
   // Form default values for editing
   const formDefaultValues: CustomerFormValues = activeRow
-    ? {
-      type: activeRow.type as 'INDIVIDUAL' | 'BUSINESS' | 'CORPORATE',
-      name: activeRow.name,
-      companyName: activeRow.companyName ?? '',
-      email: activeRow.email ?? '',
-      phone: activeRow.phone,
-      address: typeof activeRow.address === 'string' ? activeRow.address : '',
-      tier: (activeRow.tier as 'STANDARD' | 'PRIORITY' | 'ENTERPRISE') ?? 'STANDARD',
-      gstin: activeRow.gstin ?? '',
-      credit_limit: activeRow.credit_limit ?? 0,
-    }
+    ? (() => {
+        const normalized = normalizeCustomerAddressForForm(activeRow);
+        return {
+          type: activeRow.type as 'INDIVIDUAL' | 'BUSINESS' | 'CORPORATE',
+          name: activeRow.name,
+          companyName: activeRow.companyName ?? '',
+          email: activeRow.email ?? '',
+          phone: activeRow.phone,
+          address: normalized.line1 || '',
+          city: normalized.city || '',
+          state: normalized.state || '',
+          zip: normalized.zip || '',
+          tier: (activeRow.tier as 'STANDARD' | 'PRIORITY' | 'ENTERPRISE') ?? 'STANDARD',
+          gstin: activeRow.gstin ?? '',
+          credit_limit: activeRow.credit_limit ?? 0,
+        };
+      })()
     : defaultFormValues;
 
   // Handlers
@@ -113,7 +158,12 @@ export const Customers: React.FC = () => {
         email: values.email || undefined,
         gstin: values.gstin || undefined,
         type: values.type,
-        address: { line1: values.address },
+        address: {
+          line1: values.address,
+          city: values.city,
+          state: values.state,
+          postal_code: values.zip,
+        },
         credit_limit: values.credit_limit ?? 0,
       });
     } else if (activeRow) {
@@ -125,7 +175,12 @@ export const Customers: React.FC = () => {
           email: values.email || null,
           gstin: values.gstin || null,
           type: values.type,
-          address: { line1: values.address },
+          address: {
+            line1: values.address,
+            city: values.city,
+            state: values.state,
+            postal_code: values.zip,
+          },
           credit_limit: values.credit_limit ?? activeRow.credit_limit,
         },
       });
@@ -313,12 +368,56 @@ export const Customers: React.FC = () => {
                 <FormItem>
                   <FormLabel>Billing Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. 123 Business Park, New Delhi" {...field} />
+                    <Input placeholder="e.g. 123 Business Park" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            <div className="grid grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>City</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. New Delhi" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="state"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>State</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Delhi" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="zip"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Zip / Postal Code</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. 110003" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}

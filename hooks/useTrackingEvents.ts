@@ -30,19 +30,20 @@ export function useTrackingEvents(awbNumber: string | null) {
   const query = useQuery({
     queryKey: ['tracking-events', awbNumber],
     queryFn: async () => {
+      // Use the public view for fetching events to adhere to security policies
       const { data, error } = await supabase
-        .from('tracking_events')
-        .select(
-          `
-          *,
-          hub:hubs(code, name)
-        `
-        )
+        .from('public_tracking_events')
+        .select('*')
         .eq('awb_number', awbNumber!)
         .order('event_time', { ascending: false });
 
       if (error) throw error;
-      return data as TrackingEvent[];
+
+      // Map view result to TrackingEvent shape if needed (view flattens hub details)
+      return data.map((event: any) => ({
+        ...event,
+        hub: event.hub_code ? { code: event.hub_code, name: event.hub_name } : undefined,
+      })) as TrackingEvent[];
     },
     enabled: !!awbNumber,
   });

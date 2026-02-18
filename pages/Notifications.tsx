@@ -14,7 +14,9 @@ import {
   Filter,
   Trash2,
 } from 'lucide-react';
-import { Card, Button, Badge } from '../components/ui/CyberComponents';
+import { Card } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
 import { useNotificationStore } from '../lib/notifications/store';
 import type {
   Notification,

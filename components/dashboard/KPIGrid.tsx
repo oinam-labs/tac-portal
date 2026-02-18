@@ -1,12 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion } from '@/lib/motion';
-import {
-  Box,
-  Activity,
-  CheckCircle,
-  AlertTriangle,
-  LucideIcon,
-} from 'lucide-react';
+import { Box, Activity, CheckCircle, AlertTriangle, LucideIcon } from 'lucide-react';
 import { Card } from '../ui/card';
 import { KPIGridSkeleton } from '../ui/skeleton';
 import { usePrevious } from '@/lib/hooks/usePrevious.ts';
@@ -52,7 +46,10 @@ const KPICard = React.memo(({ kpi, index }: KPICardProps) => {
         ease: [0.25, 0.1, 0.25, 1],
       }}
     >
-      <Card data-testid={`kpi-card-${kpi.label.toLowerCase().replace(/\s+/g, '-')}`} className="relative overflow-hidden group hover:shadow-md transition-all duration-300 border-border hover:border-primary/50 bg-card">
+      <Card
+        data-testid={`kpi-card-${kpi.label.toLowerCase().replace(/\s+/g, '-')}`}
+        className="relative overflow-hidden group hover:shadow-md transition-all duration-300 border-border hover:border-primary/50 bg-card"
+      >
         {/* Background Icon */}
         <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity pointer-events-none">
           <kpi.icon className="w-24 h-24" />
@@ -148,7 +145,10 @@ export const KPIGrid: React.FC<KPIGridProps> = ({ isLoading: externalLoading = f
   }
 
   return (
-    <div data-testid="kpi-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px bg-border mb-6">
+    <div
+      data-testid="kpi-grid"
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px bg-border mb-6"
+    >
       {kpis.map((kpi, index) => (
         <KPICard key={kpi.label} kpi={kpi} index={index} />
       ))}

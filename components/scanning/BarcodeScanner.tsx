@@ -1,7 +1,17 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/library';
 import { cn } from '@/lib/utils';
-import { CameraOff, RefreshCw, Volume2, VolumeX, Flashlight, FlashlightOff, ZoomIn, ZoomOut } from 'lucide-react';
+import {
+  CameraOff,
+  RefreshCw,
+  Volume2,
+  VolumeX,
+  Flashlight,
+  FlashlightOff,
+  ZoomIn,
+  ZoomOut,
+  Upload,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '../ui/slider';
 
@@ -18,7 +28,7 @@ export function BarcodeScanner({
   onError,
   active = true,
   className,
-  enableTorch: initialTorch = false
+  enableTorch: initialTorch = false,
 }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
@@ -68,7 +78,7 @@ export function BarcodeScanner({
         audioContext.close();
       }, 100);
     } catch (e) {
-      console.error("Audio playback failed", e);
+      console.error('Audio playback failed', e);
     }
   }, []);
 
@@ -76,7 +86,7 @@ export function BarcodeScanner({
   useEffect(() => {
     if (!active) return;
 
-    console.log('[BarcodeScanner] Initializing camera...', { active });
+    console.debug('[BarcodeScanner] Initializing camera...', { active });
     const reader = new BrowserMultiFormatReader();
     readerRef.current = reader;
 
@@ -84,12 +94,15 @@ export function BarcodeScanner({
     reader
       .listVideoInputDevices()
       .then((devices) => {
-        console.log('[BarcodeScanner] Cameras found:', devices);
+        console.debug('[BarcodeScanner] Cameras found:', devices);
         setCameras(devices);
         if (devices.length > 0) {
           // Prefer back camera on mobile
           const backCamera = devices.find(
-            (d) => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('rear') || d.label.toLowerCase().includes('environment')
+            (d) =>
+              d.label.toLowerCase().includes('back') ||
+              d.label.toLowerCase().includes('rear') ||
+              d.label.toLowerCase().includes('environment')
           );
           setSelectedCamera(backCamera?.deviceId || devices[0].deviceId);
         } else {
@@ -139,45 +152,47 @@ export function BarcodeScanner({
         width: { ideal: 1280 },
         height: { ideal: 720 },
         // @ts-ignore - advanced constraints for zoom/torch
-        advanced: [{ zoom: zoomLevel }, { torch: torchEnabled }]
-      }
+        advanced: [{ zoom: zoomLevel }, { torch: torchEnabled }],
+      },
     };
 
-    reader.decodeFromConstraints(
-      constraints,
-      videoRef.current,
-      (result, _error) => {
+    reader
+      .decodeFromConstraints(constraints, videoRef.current, (result, _error) => {
         if (result) {
           const text = result.getText();
-          console.log('[BarcodeScanner] Decoded text:', text);
+          console.debug('[BarcodeScanner] Decoded text:', text);
           // Debounce: skip if same barcode scanned within 2s
           if (text !== lastScannedRef.current) {
-            console.log('[BarcodeScanner] Valid new scan (not debounced):', text);
+            console.debug('[BarcodeScanner] Valid new scan (not debounced):', text);
             lastScannedRef.current = text;
             playBeep();
             onScanRef.current(text);
             // Reset debounce after 2s
             if (lastScannedTimerRef.current) clearTimeout(lastScannedTimerRef.current);
-            lastScannedTimerRef.current = setTimeout(() => { lastScannedRef.current = null; }, 2000);
+            lastScannedTimerRef.current = setTimeout(() => {
+              lastScannedRef.current = null;
+            }, 2000);
           }
         }
-      }
-    ).then((controls: any) => {
-      controlsRef.current = controls;
+      })
+      .then((controls: any) => {
+        controlsRef.current = controls;
 
-      // Get capabilities for zoom/torch
-      const track = videoRef.current?.srcObject instanceof MediaStream
-        ? videoRef.current.srcObject.getVideoTracks()[0]
-        : null;
+        // Get capabilities for zoom/torch
+        const track =
+          videoRef.current?.srcObject instanceof MediaStream
+            ? videoRef.current.srcObject.getVideoTracks()[0]
+            : null;
 
-      if (track) {
-        setCapabilities(track.getCapabilities());
-      }
-    }).catch(err => {
-      console.error("Decode error", err);
-      setIsScanning(false);
-      onErrorRef.current?.(err);
-    });
+        if (track) {
+          setCapabilities(track.getCapabilities());
+        }
+      })
+      .catch((err) => {
+        console.error('Decode error', err);
+        setIsScanning(false);
+        onErrorRef.current?.(err);
+      });
 
     return () => {
       // Cleanup handled by main effect
@@ -188,21 +203,26 @@ export function BarcodeScanner({
 
   // Apply track constraints when zoom/torch changes without restarting stream
   useEffect(() => {
-    const track = videoRef.current?.srcObject instanceof MediaStream
-      ? videoRef.current.srcObject.getVideoTracks()[0]
-      : null;
+    const track =
+      videoRef.current?.srcObject instanceof MediaStream
+        ? videoRef.current.srcObject.getVideoTracks()[0]
+        : null;
 
     if (track && isScanning) {
       try {
-        track.applyConstraints({
-          advanced: [{
-            // @ts-ignore
-            torch: torchEnabled,
-            zoom: zoomLevel
-          }]
-        }).catch(e => console.warn("Failed to apply constraints", e));
+        track
+          .applyConstraints({
+            advanced: [
+              {
+                // @ts-ignore
+                torch: torchEnabled,
+                zoom: zoomLevel,
+              },
+            ],
+          })
+          .catch((e) => console.warn('Failed to apply constraints', e));
       } catch (e) {
-        console.warn("Constraints error", e);
+        console.warn('Constraints error', e);
       }
     }
   }, [torchEnabled, zoomLevel, isScanning]);
@@ -219,6 +239,36 @@ export function BarcodeScanner({
 
   const toggleTorch = () => {
     setTorchEnabled(!torchEnabled);
+  };
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      // Need a separate reader instance or ensure current is clean
+      // We'll use the existing readerRef if available, or create new
+      const reader = readerRef.current || new BrowserMultiFormatReader();
+      const url = URL.createObjectURL(file);
+
+      console.debug('[BarcodeScanner] Decoding image file...');
+      const result = await reader.decodeFromImageUrl(url);
+      URL.revokeObjectURL(url);
+
+      if (result) {
+        const text = result.getText();
+        console.debug('[BarcodeScanner] Decoded from image:', text);
+        playBeep();
+        onScanRef.current(text);
+      }
+    } catch (err) {
+      console.error('[BarcodeScanner] Failed to decode image:', err);
+      onErrorRef.current?.(err as Error);
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   if (!hasCamera) {
@@ -248,9 +298,10 @@ export function BarcodeScanner({
   // @ts-ignore
   const maxZoom = capabilities?.zoom?.max || 3;
 
-
   return (
-    <div className={cn('relative overflow-hidden rounded-lg bg-black', className)}>
+    <div
+      className={cn('relative overflow-hidden rounded-lg bg-background dark:bg-black', className)}
+    >
       <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
 
       {/* Overlay */}
@@ -276,14 +327,14 @@ export function BarcodeScanner({
               isScanning ? 'bg-status-success animate-pulse' : 'bg-status-warning'
             )}
           />
-          <span className="text-xs font-medium text-white bg-black/50 px-2 py-1 rounded">
+          <span className="text-xs font-medium text-foreground bg-background/60 backdrop-blur-sm px-2 py-1 rounded">
             {isScanning ? 'Scanning...' : 'Initializing...'}
           </span>
         </div>
 
         {/* Last scan indicator */}
         {lastScannedRef.current && (
-          <div className="absolute bottom-4 left-4 right-4 bg-status-success/90 text-white px-4 py-2 rounded-lg text-center font-mono text-sm animate-pulse">
+          <div className="absolute bottom-4 left-4 right-4 bg-status-success/90 text-primary-foreground px-4 py-2 rounded-lg text-center font-mono text-sm animate-pulse">
             ✓ {lastScannedRef.current}
           </div>
         )}
@@ -291,11 +342,10 @@ export function BarcodeScanner({
 
       {/* Controls */}
       <div className="absolute bottom-6 inset-x-0 flex flex-col items-center gap-4 pointer-events-auto px-4">
-
         {/* Zoom Slider */}
         {supportsZoom && (
-          <div className="w-full max-w-xs flex items-center gap-2 bg-black/40 backdrop-blur rounded-full px-3 py-1">
-            <ZoomOut className="w-4 h-4 text-white" />
+          <div className="w-full max-w-xs flex items-center gap-2 bg-background/40 backdrop-blur rounded-full px-3 py-1">
+            <ZoomOut className="w-4 h-4 text-foreground" />
             <Slider
               value={[zoomLevel]}
               min={minZoom}
@@ -304,13 +354,36 @@ export function BarcodeScanner({
               onValueChange={handleZoomChange}
               className="flex-1"
             />
-            <ZoomIn className="w-4 h-4 text-white" />
+            <ZoomIn className="w-4 h-4 text-foreground" />
           </div>
         )}
 
         <div className="flex items-center gap-3">
+          {/* File Upload for Image Scan */}
+          <Button
+            size="icon"
+            variant="secondary"
+            className="rounded-full bg-muted/30 hover:bg-muted/50 text-foreground backdrop-blur-md"
+            onClick={() => fileInputRef.current?.click()}
+            title="Scan Image"
+          >
+            <Upload className="w-5 h-5" />
+          </Button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*"
+            onChange={handleFileUpload}
+          />
+
           {cameras.length > 1 && (
-            <Button size="icon" variant="secondary" className="rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md" onClick={switchCamera}>
+            <Button
+              size="icon"
+              variant="secondary"
+              className="rounded-full bg-muted/30 hover:bg-muted/50 text-foreground backdrop-blur-md"
+              onClick={switchCamera}
+            >
               <RefreshCw className="w-5 h-5" />
             </Button>
           )}
@@ -318,18 +391,22 @@ export function BarcodeScanner({
           {supportsTorch && (
             <Button
               size="icon"
-              variant={torchEnabled ? "default" : "secondary"}
-              className={`rounded-full backdrop-blur-md ${torchEnabled ? 'bg-yellow-500 text-black hover:bg-yellow-400' : 'bg-white/10 text-white hover:bg-white/20'}`}
+              variant={torchEnabled ? 'default' : 'secondary'}
+              className={`rounded-full backdrop-blur-md ${torchEnabled ? 'bg-status-warning text-primary-foreground hover:bg-status-warning/80' : 'bg-muted/30 text-foreground hover:bg-muted/50'}`}
               onClick={toggleTorch}
             >
-              {torchEnabled ? <Flashlight className="w-5 h-5" /> : <FlashlightOff className="w-5 h-5" />}
+              {torchEnabled ? (
+                <Flashlight className="w-5 h-5" />
+              ) : (
+                <FlashlightOff className="w-5 h-5" />
+              )}
             </Button>
           )}
 
           <Button
             size="icon"
             variant="secondary"
-            className="rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md"
+            className="rounded-full bg-muted/30 hover:bg-muted/50 text-foreground backdrop-blur-md"
             onClick={() => setSoundEnabled(!soundEnabled)}
           >
             {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}

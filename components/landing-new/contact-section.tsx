@@ -27,14 +27,12 @@ export function ContactSection() {
     setError(null);
 
     try {
-      const { error: insertError } = await supabase
-        .from('contact_messages')
-        .insert({
-          name,
-          phone,
-          message,
-          status: 'unread'
-        });
+      const { error: insertError } = await supabase.from('contact_messages').insert({
+        name,
+        phone,
+        message,
+        status: 'unread',
+      });
 
       if (insertError) throw insertError;
 
@@ -61,11 +59,13 @@ export function ContactSection() {
       <div className="relative z-10 container mx-auto px-4 md:px-6">
         <FadeUp className="bg-card border border-border/50 mx-auto max-w-5xl overflow-hidden rounded-3xl shadow-2xl shadow-primary/5">
           <div className="grid lg:grid-cols-2">
-
             {/* Left: Content & Image */}
             <div className="relative p-10 lg:p-14 bg-muted/50 border-r border-border/50 flex flex-col justify-between overflow-hidden">
               {/* Technical Grid Pattern */}
-              <div className="absolute inset-0 opacity-[0.03] bg-[url('/assets/grid-pattern.svg')] bg-repeat pointer-events-none" style={{ backgroundSize: '20px 20px' }} />
+              <div
+                className="absolute inset-0 opacity-[0.03] bg-[url('/assets/grid-pattern.svg')] bg-repeat pointer-events-none"
+                style={{ backgroundSize: '20px 20px' }}
+              />
 
               <div className="relative z-10">
                 <FadeUp delay={0.1}>
@@ -75,10 +75,13 @@ export function ContactSection() {
                   </div>
                   <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground mb-4">
                     Ready to <br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Get Started?</span>
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+                      Get Started?
+                    </span>
                   </h2>
                   <p className="text-muted-foreground text-lg leading-relaxed max-w-sm">
-                    Our logistics experts are ready to optimize your supply chain. Reach out for a custom quote or consultation.
+                    Our logistics experts are ready to optimize your supply chain. Reach out for a
+                    custom quote or consultation.
                   </p>
                 </FadeUp>
               </div>
@@ -101,7 +104,12 @@ export function ContactSection() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <StaggerChildren staggerDelay={0.1} initialDelay={0.2} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-foreground/80 font-medium font-mono text-xs uppercase tracking-wider">Full Name</Label>
+                    <Label
+                      htmlFor="name"
+                      className="text-foreground/80 font-medium font-mono text-xs uppercase tracking-wider"
+                    >
+                      Full Name
+                    </Label>
                     <Input
                       id="name"
                       value={name}
@@ -113,7 +121,12 @@ export function ContactSection() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-foreground/80 font-medium font-mono text-xs uppercase tracking-wider">WhatsApp Number</Label>
+                    <Label
+                      htmlFor="phone"
+                      className="text-foreground/80 font-medium font-mono text-xs uppercase tracking-wider"
+                    >
+                      WhatsApp Number
+                    </Label>
                     <Input
                       id="phone"
                       type="tel"
@@ -126,7 +139,12 @@ export function ContactSection() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="message" className="text-foreground/80 font-medium font-mono text-xs uppercase tracking-wider">Message</Label>
+                    <Label
+                      htmlFor="message"
+                      className="text-foreground/80 font-medium font-mono text-xs uppercase tracking-wider"
+                    >
+                      Message
+                    </Label>
                     <Textarea
                       id="message"
                       value={message}

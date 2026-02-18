@@ -2,7 +2,8 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button, Input } from '../ui/CyberComponents';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import { HUBS, SHIPMENT_MODES, SERVICE_LEVELS } from '../../lib/constants';
 
 import { Package, Truck, Plane, Zap, Clock } from 'lucide-react';
@@ -75,7 +76,7 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
   const selectedService = watch('serviceLevel');
 
   const onSubmit = async (data: FormData) => {
-    console.log('Submitting CreateShipmentForm', data);
+    console.debug('Submitting CreateShipmentForm', data);
     if (customers.length === 0) {
       toast.error('Unable to load customers. Please check your connection.');
       return;
@@ -99,7 +100,8 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
         receiver_name: 'Walk-in Customer',
         receiver_phone: '9999999999',
         receiver_address: { line1: 'TBD', city: 'TBD' },
-        special_instructions: data.specialInstructions || `Dims: ${data.dimL}x${data.dimW}x${data.dimH}`,
+        special_instructions:
+          data.specialInstructions || `Dims: ${data.dimL}x${data.dimW}x${data.dimH}`,
       });
 
       toast.success('Shipment created successfully');
@@ -185,10 +187,11 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
                 key={mode.id}
                 className={`
                                 cursor-pointer border rounded-lg p-2 flex flex-col items-center justify-center text-xs transition-all text-center
-                                ${selectedMode === mode.id
-                    ? 'bg-primary/10 border-primary text-primary'
-                    : 'border-input hover:bg-muted text-muted-foreground'
-                  }
+                                ${
+                                  selectedMode === mode.id
+                                    ? 'bg-primary/10 border-primary text-primary'
+                                    : 'border-input hover:bg-muted text-muted-foreground'
+                                }
                             `}
               >
                 <input type="radio" value={mode.id} {...register('mode')} className="hidden" />
@@ -212,10 +215,11 @@ export const CreateShipmentForm: React.FC<Props> = ({ onSuccess, onCancel }) => 
                 key={level.id}
                 className={`
                                 cursor-pointer border rounded-lg p-2 flex flex-col items-center justify-center text-xs transition-all text-center
-                                ${selectedService === level.id
-                    ? 'bg-primary/10 border-primary/30 text-primary'
-                    : 'border-input hover:bg-muted text-muted-foreground'
-                  }
+                                ${
+                                  selectedService === level.id
+                                    ? 'bg-primary/10 border-primary/30 text-primary'
+                                    : 'border-input hover:bg-muted text-muted-foreground'
+                                }
                             `}
               >
                 <input

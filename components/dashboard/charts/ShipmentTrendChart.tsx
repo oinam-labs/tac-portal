@@ -17,7 +17,9 @@ import { format, subDays, startOfDay } from 'date-fns';
 import { CHART_COLORS } from '../../../lib/design-tokens';
 import { DEFAULT_DASHBOARD_TIME_RANGE, type DashboardTimeRange } from '../../../lib/constants';
 
-export const ShipmentTrendChart: React.FC<{ isLoading?: boolean }> = ({ isLoading: externalLoading }) => {
+export const ShipmentTrendChart: React.FC<{ isLoading?: boolean }> = ({
+  isLoading: externalLoading,
+}) => {
   const [timeRange, setTimeRange] = useState(DEFAULT_DASHBOARD_TIME_RANGE);
   const { data: shipments = [], isLoading: shipmentsLoading } = useShipments();
 
@@ -102,7 +104,9 @@ export const ShipmentTrendChart: React.FC<{ isLoading?: boolean }> = ({ isLoadin
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <p className="text-muted-foreground">No shipments for selected period</p>
-              <p className="text-sm text-muted-foreground mt-1">Create shipments to see volume trends</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Create shipments to see volume trends
+              </p>
             </div>
           </div>
         </CardContent>
@@ -175,7 +179,11 @@ export const ShipmentTrendChart: React.FC<{ isLoading?: boolean }> = ({ isLoadin
                   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 }}
               />
-              <YAxis tickLine={false} axisLine={false} tick={{ fill: CHART_COLORS.axis, fontSize: 12 }} />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tick={{ fill: CHART_COLORS.axis, fontSize: 12 }}
+              />
               <Tooltip contentStyle={tooltipStyle} />
               <Legend />
               <Area

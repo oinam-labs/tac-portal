@@ -5,7 +5,10 @@
  */
 
 import React, { useState } from 'react';
-import { Card, Button, Badge, Input } from '../components/ui/CyberComponents';
+import { Card } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
+import { Input } from '../components/ui/input';
 import {
   Skeleton,
   KPICardSkeleton,
@@ -33,7 +36,8 @@ type Section =
   | 'skeletons'
   | 'feedback'
   | 'colors'
-  | 'status';
+  | 'status'
+  | 'scanner';
 
 export const DevUIKit: React.FC = () => {
   const [activeSection, setActiveSection] = useState<Section>('buttons');
@@ -47,6 +51,7 @@ export const DevUIKit: React.FC = () => {
     { id: 'feedback', label: 'Audio/Haptic' },
     { id: 'colors', label: 'Color Tokens' },
     { id: 'status', label: 'Status Badges' },
+    { id: 'scanner', label: 'Scanner Debug' },
   ];
 
   return (
@@ -82,6 +87,7 @@ export const DevUIKit: React.FC = () => {
           {activeSection === 'feedback' && <FeedbackSection />}
           {activeSection === 'colors' && <ColorsSection />}
           {activeSection === 'status' && <StatusSection />}
+          {activeSection === 'scanner' && <ScannerDebugSection />}
         </div>
       </div>
     </div>
@@ -414,3 +420,102 @@ const StatusSection: React.FC = () => {
 };
 
 export default DevUIKit;
+
+// ============================================================================
+// SCANNER DEBUG SECTION
+// ============================================================================
+
+const ScannerDebugSection: React.FC = () => {
+  const [logs, setLogs] = useState<
+    { key: string; time: number; diff: number; isScanner: boolean }[]
+  >([]);
+  const lastTimeRef = React.useRef(0);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const now = Date.now();
+      const diff = lastTimeRef.current ? now - lastTimeRef.current : 0;
+
+      // Heuristic matching the provider
+      const isScanner = diff < 100 && diff > 0;
+
+      setLogs((prev) => {
+        const newLogs = [{ key: e.key, time: now, diff, isScanner }, ...prev];
+        return newLogs.slice(0, 50); // Keep last 50
+      });
+      lastTimeRef.current = now;
+    };
+
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, []);
+
+  return (
+    <div className="space-y-8">
+      <Card>
+        <SectionTitle>Scanner Input Debugger</SectionTitle>
+        <p className="text-muted-foreground mb-4">
+          Focus anywhere on this page and scan/type. This logger intercepts events globally (capture
+          phase).
+          <br />
+          <span className="text-xs font-mono bg-muted px-1 rounded">Threshold: &lt; 100ms</span>
+        </p>
+
+        <div className="border rounded-md overflow-hidden">
+          <div className="bg-muted px-4 py-2 grid grid-cols-12 text-xs font-medium text-muted-foreground">
+            <div className="col-span-2">Key</div>
+            <div className="col-span-3">Time</div>
+            <div className="col-span-3">Diff (ms)</div>
+            <div className="col-span-4">Likely Scanner?</div>
+          </div>
+          <div className="max-h-[400px] overflow-y-auto bg-card">
+            {logs.length === 0 && (
+              <div className="p-8 text-center text-muted-foreground text-sm">
+                Waiting for input...
+              </div>
+            )}
+            {logs.map((log, i) => (
+              <div
+                key={log.time + i}
+                className="px-4 py-2 grid grid-cols-12 text-sm border-t border-border/50 font-mono"
+              >
+                <div className="col-span-2 text-foreground font-bold">
+                  {log.key === ' ' ? 'Space' : log.key}
+                </div>
+                <div className="col-span-3 text-muted-foreground">
+                  {new Date(log.time).toLocaleTimeString().split(' ')[0]}.
+                  {Math.floor(log.time % 1000)}
+                </div>
+                <div
+                  className={`col-span-3 ${log.diff < 100 ? 'text-green-500 font-bold' : 'text-yellow-500'}`}
+                >
+                  {log.diff}ms
+                </div>
+                <div className="col-span-4">
+                  {log.isScanner ? (
+                    <Badge
+                      variant="default"
+                      className="bg-green-500/20 text-green-500 hover:bg-green-500/30 border-0"
+                    >
+                      YES
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-muted-foreground text-xs">
+                      NO
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-4 flex justify-end">
+          <Button variant="outline" onClick={() => setLogs([])}>
+            Clear Log
+          </Button>
+        </div>
+      </Card>
+    </div>
+  );
+};

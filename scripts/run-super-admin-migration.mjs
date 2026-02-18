@@ -3,7 +3,7 @@ import { readFileSync } from 'fs';
 import { resolve, join } from 'path';
 
 // Credentials for Management API
-const PROJECT_REF = process.env.SUPABASE_Project_REF;
+const PROJECT_REF = process.env.SUPABASE_PROJECT_REF;
 const ACCESS_TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
 
 if (!PROJECT_REF || !ACCESS_TOKEN) {

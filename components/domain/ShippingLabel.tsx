@@ -1,8 +1,7 @@
-import { useEffect, useRef } from 'react';
-import JsBarcode from 'jsbarcode';
 import { QRCodeSVG } from 'qrcode.react';
 import { Shipment, HubLocation } from '@/types';
 import { format } from 'date-fns';
+import { UniversalBarcode } from '@/components/barcodes';
 
 interface ShippingLabelProps {
   shipment: Shipment;
@@ -15,23 +14,6 @@ const HUB_INFO: Record<HubLocation, { code: string; name: string; sortCode: stri
 };
 
 export function ShippingLabel({ shipment, packageIndex = 1 }: ShippingLabelProps) {
-  const barcodeRef = useRef<SVGSVGElement>(null);
-
-  useEffect(() => {
-    if (barcodeRef.current && shipment.awb) {
-      JsBarcode(barcodeRef.current, shipment.awb, {
-        format: 'CODE128',
-        width: 2,
-        height: 50,
-        displayValue: true,
-        fontSize: 12,
-        font: 'monospace',
-        textMargin: 4,
-        margin: 0,
-      });
-    }
-  }, [shipment.awb]);
-
   const origin = HUB_INFO[shipment.originHub];
   const dest = HUB_INFO[shipment.destinationHub];
 
@@ -53,11 +35,17 @@ export function ShippingLabel({ shipment, packageIndex = 1 }: ShippingLabelProps
 
       {/* AWB Barcode */}
       <div className="flex justify-center mb-3">
-        <svg ref={barcodeRef} className="w-full max-w-[280px]" />
+        <UniversalBarcode
+          value={shipment.awb}
+          mode="print"
+          displayValue={true}
+          fontSize={12}
+          className="w-full max-w-[280px]"
+        />
       </div>
 
       {/* Route Display */}
-      <div className="flex items-center justify-between bg-black text-white rounded-lg p-3 mb-3">
+      <div className="flex items-center justify-between bg-foreground text-background rounded-lg p-3 mb-3">
         <div className="text-center flex-1">
           <p className="text-3xl font-black">{origin.code}</p>
           <p className="text-[10px] opacity-70">{origin.name}</p>

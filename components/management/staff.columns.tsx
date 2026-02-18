@@ -69,12 +69,14 @@ export function getStaffColumns(params: StaffColumnsParams): ColumnDef<Staff>[] 
       header: 'Status',
       cell: ({ row }) => (
         <span
-          className={`flex items-center gap-1.5 text-xs ${row.original.is_active ? 'text-status-active' : 'text-muted-foreground'
-            }`}
+          className={`flex items-center gap-1.5 text-xs ${
+            row.original.is_active ? 'text-status-active' : 'text-muted-foreground'
+          }`}
         >
           <span
-            className={`w-1.5 h-1.5 rounded-full ${row.original.is_active ? 'bg-status-active' : 'bg-muted'
-              }`}
+            className={`w-1.5 h-1.5 rounded-full ${
+              row.original.is_active ? 'bg-status-active' : 'bg-muted'
+            }`}
           />
           {row.original.is_active ? 'Active' : 'Inactive'}
         </span>

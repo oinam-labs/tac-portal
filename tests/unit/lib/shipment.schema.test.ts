@@ -16,11 +16,20 @@ describe('Shipment Schema Validation', () => {
       expect(isValidAWB('TAC99999999')).toBe(true);
     });
 
+    it('accepts 9-11 digit AWBs', () => {
+      expect(isValidAWB('TAC123456789')).toBe(true); // 9 digits
+      expect(isValidAWB('TAC1234567890')).toBe(true); // 10 digits
+      expect(isValidAWB('TAC12345678901')).toBe(true); // 11 digits
+    });
+
+    it('accepts lowercase AWB (case-insensitive)', () => {
+      expect(isValidAWB('tac12345678')).toBe(true);
+    });
+
     it('rejects invalid AWB formats', () => {
-      expect(isValidAWB('TAC1234567')).toBe(false); // Too short
-      expect(isValidAWB('TAC123456789')).toBe(false); // Too long
+      expect(isValidAWB('TAC1234567')).toBe(false); // Too short (7 digits)
+      expect(isValidAWB('TAC123456789012')).toBe(false); // Too long (12 digits)
       expect(isValidAWB('ABC12345678')).toBe(false); // Wrong prefix
-      expect(isValidAWB('tac12345678')).toBe(false); // Lowercase
       expect(isValidAWB('TAC1234567A')).toBe(false); // Contains letter
       expect(isValidAWB('')).toBe(false); // Empty
     });

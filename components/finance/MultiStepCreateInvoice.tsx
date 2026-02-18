@@ -42,12 +42,18 @@ import {
 } from 'lucide-react';
 import { formatCurrency, calculateFreight } from '@/lib/utils';
 import { validateInvoice, validateDiscount } from '@/lib/validation/invoice-validator';
-import { PAYMENT_MODES, POPULAR_CITIES, CONTENT_TYPES, GSTIN_PATTERN, GSTIN_ERROR_MESSAGE } from '@/lib/constants';
+import {
+  PAYMENT_MODES,
+  POPULAR_CITIES,
+  CONTENT_TYPES,
+  GSTIN_PATTERN,
+  GSTIN_ERROR_MESSAGE,
+} from '@/lib/constants';
 import type { CustomerAddress } from '@/hooks/useCustomers';
 
 // Hub prefill mapping for cities
 const HUB_PREFILL: Record<string, { address: string; zip: string; state: string }> = {
-  'Imphal': { address: 'Singjamei Hub', zip: '795001', state: 'Manipur' },
+  Imphal: { address: 'Singjamei Hub', zip: '795001', state: 'Manipur' },
   'New Delhi': { address: 'Kotla Hub', zip: '110003', state: 'Delhi' },
 };
 import { useCreateInvoice, useUpdateInvoice, InvoiceWithRelations } from '@/hooks/useInvoices';
@@ -75,6 +81,19 @@ const resolveHubId = (city: string): string => {
   return HUBS.NEW_DELHI.uuid;
 };
 
+const isGstinFieldValid = (val?: string | null) => {
+  if (!val) return true;
+  const normalized = val.trim().toUpperCase();
+  if (!normalized) return true; // treat whitespace-only as empty / not provided
+
+  // Allow partial GSTINs without blocking the form; only enforce pattern on full length
+  if (normalized.length < 15) return true;
+  if (normalized.length === 15) return GSTIN_PATTERN.test(normalized);
+
+  // Longer than 15 characters is always invalid
+  return false;
+};
+
 // --- SCHEMA (Same as original) ---
 const schema = z.object({
   awb: z.string().optional(), // Relaxed for NEW_BOOKING auto-gen
@@ -90,7 +109,7 @@ const schema = z.object({
   consignorCity: z.string().min(2, 'City Required'),
   consignorState: z.string().min(2, 'State Required'),
   consignorZip: z.string().min(6, 'Zip Required'),
-  consignorGstin: z.string().optional().refine((val) => !val || GSTIN_PATTERN.test(val), GSTIN_ERROR_MESSAGE),
+  consignorGstin: z.string().optional().refine(isGstinFieldValid, GSTIN_ERROR_MESSAGE),
 
   // Consignee
   consigneeName: z.string().min(2, 'Name Required'),
@@ -99,7 +118,7 @@ const schema = z.object({
   consigneeCity: z.string().min(2, 'City Required'),
   consigneeState: z.string().min(2, 'State Required'),
   consigneeZip: z.string().min(6, 'Zip Required'),
-  consigneeGstin: z.string().optional().refine((val) => !val || GSTIN_PATTERN.test(val), GSTIN_ERROR_MESSAGE),
+  consigneeGstin: z.string().optional().refine(isGstinFieldValid, GSTIN_ERROR_MESSAGE),
 
   // Item Details
   contents: z.string().min(2, 'Contents required'),
@@ -306,7 +325,10 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
   const createInvoiceMutation = useCreateInvoice();
   const createShipmentMutation = useCreateShipment();
   const updateInvoiceMutation = useUpdateInvoice();
-  const isLoading = createInvoiceMutation.isPending || updateInvoiceMutation.isPending || createShipmentMutation.isPending;
+  const isLoading =
+    createInvoiceMutation.isPending ||
+    updateInvoiceMutation.isPending ||
+    createShipmentMutation.isPending;
   const { data: customers = [] } = useCustomers();
 
   // Mode State
@@ -393,20 +415,35 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
       }
       // We saved everything in line_items in onSubmit, so we trust it.
       const directMap = [
-        'contents', 'pieces', 'declaredValue', 'dimL', 'dimB', 'dimH',
-        'actualWeight', 'chargedWeight', 'gstApplicable', 'gstRate'
+        'contents',
+        'pieces',
+        'declaredValue',
+        'dimL',
+        'dimB',
+        'dimH',
+        'actualWeight',
+        'chargedWeight',
+        'gstApplicable',
+        'gstRate',
       ];
-      directMap.forEach(k => {
+      directMap.forEach((k) => {
         if (lines?.[k] !== undefined) setValue(k as any, lines[k]);
       });
 
       // Financials
       const financialMap = [
-        'ratePerKg', 'baseFreight', 'docketCharge', 'pickupCharge',
-        'packingCharge', 'fuelSurcharge', 'handlingFee', 'insurance',
-        'discount', 'advancePaid'
+        'ratePerKg',
+        'baseFreight',
+        'docketCharge',
+        'pickupCharge',
+        'packingCharge',
+        'fuelSurcharge',
+        'handlingFee',
+        'insurance',
+        'discount',
+        'advancePaid',
       ];
-      financialMap.forEach(k => {
+      financialMap.forEach((k) => {
         if (lines?.[k] !== undefined) setValue(k as any, lines[k]);
       });
 
@@ -435,7 +472,6 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
         setMode('EXISTING_SHIPMENT');
         setSelectedShipment({ id: initialData.shipment_id } as Shipment); // Minimal shipment object
       }
-
     } else {
       const draft = localStorage.getItem('invoice_draft');
       if (draft && !getValues('awb')) {
@@ -566,7 +602,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
             volumetric: 0,
             chargeable: shipmentData.total_weight || 0,
           },
-          mode: ((shipmentData.mode?.toUpperCase() === 'AIR' ? 'AIR' : 'TRUCK') as ShipmentMode),
+          mode: (shipmentData.mode?.toUpperCase() === 'AIR' ? 'AIR' : 'TRUCK') as ShipmentMode,
           serviceLevel: (shipmentData.service_level || 'STANDARD') as ServiceLevel,
         };
 
@@ -608,7 +644,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
     setIsGeneratingAwb(true);
     try {
       // Create a plain object without arguments to satisfy the "no args" overload
-      const { data: awb, error } = await supabase.rpc('generate_awb_number', {});
+      const { data: awb, error } = await supabase.rpc('generate_awb_number');
 
       if (error) throw error;
       if (awb) {
@@ -628,7 +664,8 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
     toast.info('Repeat last invoice feature coming soon');
   };
 
-  const getAddressValue = (value: unknown): string => (typeof value === 'string' ? value.trim() : '');
+  const getAddressValue = (value: unknown): string =>
+    typeof value === 'string' ? value.trim() : '';
 
   const parseAddressString = (value: string) => {
     const trimmed = value.trim();
@@ -666,7 +703,12 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
     if (typeof address !== 'object' || Array.isArray(address)) return {};
     const record = address as Record<string, unknown>;
     const line1 = getAddressValue(
-      record.line1 ?? record.line_1 ?? record.street ?? record.address ?? record.addr1 ?? record.address1
+      record.line1 ??
+        record.line_1 ??
+        record.street ??
+        record.address ??
+        record.addr1 ??
+        record.address1
     );
     const line2 = getAddressValue(
       record.line2 ?? record.line_2 ?? record.street2 ?? record.address2 ?? record.addr2
@@ -737,7 +779,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
   };
 
   const onSubmit = async (data: FormData) => {
-    console.log('onSubmit called with data:', data);
+    console.debug('onSubmit called with data:', data);
     try {
       const financials = {
         ratePerKg: safeNum(data.ratePerKg),
@@ -794,7 +836,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
 
         if (!dummyValidation.isValid) {
           // Filter out random errors, though dummy AWB should pass AWB check
-          const realErrors = dummyValidation.errors.filter(e => e.field !== 'awb');
+          const realErrors = dummyValidation.errors.filter((e) => e.field !== 'awb');
           if (realErrors.length > 0) {
             realErrors.forEach((err) => toast.error(err.message));
             return;
@@ -826,7 +868,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
               line1: data.consigneeAddress,
               city: data.consigneeCity,
               state: data.consigneeState,
-              zip: data.consigneeZip
+              zip: data.consigneeZip,
             },
             sender_name: data.consignorName,
             sender_phone: data.consignorPhone,
@@ -834,9 +876,9 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
               line1: data.consignorAddress,
               city: data.consignorCity,
               state: data.consignorState,
-              zip: data.consignorZip
+              zip: data.consignorZip,
             },
-            special_instructions: data.contents
+            special_instructions: data.contents,
           });
 
           finalAwb = newShipment.awb_number;
@@ -847,7 +889,6 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
           toast.error('Failed to create shipment. Invoice cancelled.');
           return;
         }
-
       } else {
         // EXISTING/MANUAL AWB VALIDATION
         const validationResult = validateInvoice(
@@ -911,7 +952,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
               city: data.consignorCity,
               state: data.consignorState,
               zip: data.consignorZip,
-              gstin: data.consignorGstin
+              gstin: data.consignorGstin,
             },
             consignee: {
               name: data.consigneeName,
@@ -920,7 +961,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
               city: data.consigneeCity,
               state: data.consigneeState,
               zip: data.consigneeZip,
-              gstin: data.consigneeGstin
+              gstin: data.consigneeGstin,
             },
           },
         });
@@ -961,6 +1002,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
               city: data.consignorCity,
               state: data.consignorState,
               zip: data.consignorZip,
+              gstin: data.consignorGstin,
             },
             consignee: {
               name: data.consigneeName,
@@ -969,6 +1011,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
               city: data.consigneeCity,
               state: data.consigneeState,
               zip: data.consigneeZip,
+              gstin: data.consigneeGstin,
             },
           },
         });
@@ -1015,7 +1058,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
             city: data.consignorCity,
             state: data.consignorState,
             zip: data.consignorZip,
-            gstin: data.consignorGstin
+            gstin: data.consignorGstin,
           },
           consignee: {
             name: data.consigneeName,
@@ -1024,8 +1067,8 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
             city: data.consigneeCity,
             state: data.consigneeState,
             zip: data.consigneeZip,
-            gstin: data.consigneeGstin
-          }
+            gstin: data.consigneeGstin,
+          },
         },
         // Include consignor/consignee (legacy fallback)
         consignor: {
@@ -1035,7 +1078,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
           city: data.consignorCity,
           state: data.consignorState,
           zip: data.consignorZip,
-          gstin: data.consignorGstin
+          gstin: data.consignorGstin,
         },
         consignee: {
           name: data.consigneeName,
@@ -1044,7 +1087,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
           city: data.consigneeCity,
           state: data.consigneeState,
           zip: data.consigneeZip,
-          gstin: data.consigneeGstin
+          gstin: data.consigneeGstin,
         },
       } as Invoice;
 
@@ -1067,8 +1110,20 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
       title: 'Parties',
       description: 'Sender & Receiver',
       fields: [
-        'consignorName', 'consignorPhone', 'consignorAddress', 'consignorCity', 'consignorState', 'consignorZip', 'consignorGstin',
-        'consigneeName', 'consigneePhone', 'consigneeAddress', 'consigneeCity', 'consigneeState', 'consigneeZip', 'consigneeGstin'
+        'consignorName',
+        'consignorPhone',
+        'consignorAddress',
+        'consignorCity',
+        'consignorState',
+        'consignorZip',
+        'consignorGstin',
+        'consigneeName',
+        'consigneePhone',
+        'consigneeAddress',
+        'consigneeCity',
+        'consigneeState',
+        'consigneeZip',
+        'consigneeGstin',
       ],
     },
     {
@@ -1081,15 +1136,15 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
 
   const nextStep = async () => {
     const fieldsToValidate = steps[currentStep].fields;
-    console.log('Validating fields:', fieldsToValidate);
+    console.debug('Validating fields:', fieldsToValidate);
     const valid = await trigger(fieldsToValidate as any);
-    console.log('Validation result:', valid, form.formState.errors);
+    console.debug('Validation result:', valid, form.formState.errors);
     if (valid) {
       if (currentStep < steps.length - 1) {
         setDirection(1);
         setCurrentStep((prev) => prev + 1);
       } else {
-        console.log('Submitting form...');
+        console.debug('Submitting form...');
         form.handleSubmit(onSubmit, (errors) => {
           console.error('Form validation failed:', errors);
           toast.error('Please check for errors in the form');
@@ -1190,7 +1245,9 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
                   )}
                 </div>
                 {form.formState.errors.awb && (
-                  <span className="text-xs text-destructive">{form.formState.errors.awb.message}</span>
+                  <span className="text-xs text-destructive">
+                    {form.formState.errors.awb.message}
+                  </span>
                 )}
               </div>
               <div className="space-y-2">
@@ -1511,7 +1568,7 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
               <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border/50">
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted-foreground">
-                    Mode: {formValues.transportMode || 'None'} | Debug: {JSON.stringify(watch('transportMode'))}
+                    Mode: {formValues.transportMode === 'AIR' ? 'Air Cargo' : 'Surface / Truck'}
                   </span>
                   <Button
                     type="button"
@@ -1639,7 +1696,9 @@ export default function MultiStepCreateInvoice({ onSuccess, onCancel, initialDat
                   {balance > 0 && balance !== total && (
                     <div className="flex justify-between items-center py-2 bg-status-warning/10 px-3 rounded-lg border border-status-warning/20">
                       <span className="text-sm font-medium text-status-warning">Balance Due</span>
-                      <span className="font-bold text-status-warning">{formatCurrency(balance)}</span>
+                      <span className="font-bold text-status-warning">
+                        {formatCurrency(balance)}
+                      </span>
                     </div>
                   )}
                 </div>

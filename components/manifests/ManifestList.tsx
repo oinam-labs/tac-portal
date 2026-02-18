@@ -1,6 +1,8 @@
 import React from 'react';
 import { useManifests } from '../../hooks/useManifests';
-import { Button, Card, Table, Th, Td } from '../ui/CyberComponents';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
+import { Table, TableHead as Th, TableCell as Td } from '../ui/table';
 import { FileText, Plane, Truck, ArrowRight, Loader } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { format } from 'date-fns';

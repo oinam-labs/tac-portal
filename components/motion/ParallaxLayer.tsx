@@ -55,16 +55,15 @@ export function ParallaxLayer({
 
   // Transform scroll range [initial, final] to output range [-offset, offset]
   // If direction is reverse, range is [offset, -offset]
-  const yRange = direction === 'normal'
-    ? [-offset * depth, offset * depth]
-    : [offset * depth, -offset * depth];
+  const yRange =
+    direction === 'normal' ? [-offset * depth, offset * depth] : [offset * depth, -offset * depth];
 
   const y = useTransform(scrollY, [initial, final], yRange);
 
   const springY = useSpring(y, {
     stiffness: 100,
     damping: 30,
-    restDelta: 0.001
+    restDelta: 0.001,
   });
 
   if (shouldReduceMotion) {

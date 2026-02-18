@@ -68,9 +68,6 @@ export function StepAddShipments({
     playSound: true,
   });
 
-
-
-
   React.useEffect(() => {
     const timer = setTimeout(() => {
       inputRef.current?.focus();
@@ -211,8 +208,8 @@ export function StepAddShipments({
               className={cn(
                 'border transition-colors shrink-0',
                 scanner.lastResult.success &&
-                !scanner.lastResult.duplicate &&
-                'border-status-success/50 bg-status-success/10',
+                  !scanner.lastResult.duplicate &&
+                  'border-status-success/50 bg-status-success/10',
                 scanner.lastResult.duplicate && 'border-status-warning/50 bg-status-warning/10',
                 !scanner.lastResult.success && 'border-status-error/50 bg-status-error/10'
               )}
@@ -225,8 +222,8 @@ export function StepAddShipments({
                       className={cn(
                         'text-sm font-medium',
                         scanner.lastResult.success &&
-                        !scanner.lastResult.duplicate &&
-                        'text-status-success',
+                          !scanner.lastResult.duplicate &&
+                          'text-status-success',
                         scanner.lastResult.duplicate && 'text-status-warning',
                         !scanner.lastResult.success && 'text-status-error'
                       )}
@@ -236,7 +233,8 @@ export function StepAddShipments({
                     {scanner.lastResult.awb_number && (
                       <p className="font-mono text-xs opacity-90">
                         {scanner.lastResult.awb_number}
-                        {scanner.lastResult.receiver_name && (' • ' + scanner.lastResult.receiver_name)}
+                        {scanner.lastResult.receiver_name &&
+                          ' • ' + scanner.lastResult.receiver_name}
                       </p>
                     )}
                   </div>

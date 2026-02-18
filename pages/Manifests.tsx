@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- Data mapping between Supabase and UI types */
 import React, { useState, useMemo, useCallback } from 'react';
-import { Card, Button } from '../components/ui/CyberComponents';
+import { Card } from '../components/ui/card';
+import { Button } from '../components/ui/button';
 import { DataTable } from '../components/ui/data-table';
 import { StatusBadge } from '../components/domain/StatusBadge';
 import { KPICard } from '../components/domain/KPICard';
@@ -13,7 +14,17 @@ import {
 } from '../hooks/useManifests';
 import { useRealtimeManifests } from '../hooks/useRealtime';
 import { ManifestBuilderWizard } from '../components/manifests/ManifestBuilder/ManifestBuilderWizard';
-import { Truck, Plane, Play, CheckCircle, Package, Weight, Scan, AlertCircle, Trash2 } from 'lucide-react';
+import {
+  Truck,
+  Plane,
+  Play,
+  CheckCircle,
+  Package,
+  Weight,
+  Scan,
+  AlertCircle,
+  Trash2,
+} from 'lucide-react';
 import { Skeleton } from '../components/ui/skeleton';
 import { useAuthStore } from '@/store/authStore';
 import { CrudDeleteDialog } from '@/components/crud/CrudDeleteDialog';
@@ -36,9 +47,12 @@ export const Manifests: React.FC = () => {
   // Enable realtime updates
   useRealtimeManifests();
 
-  const handleStatusChange = useCallback(async (id: string, newStatus: 'DEPARTED' | 'ARRIVED') => {
-    await updateStatusMutation.mutateAsync({ id, status: newStatus });
-  }, [updateStatusMutation]);
+  const handleStatusChange = useCallback(
+    async (id: string, newStatus: 'DEPARTED' | 'ARRIVED') => {
+      await updateStatusMutation.mutateAsync({ id, status: newStatus });
+    },
+    [updateStatusMutation]
+  );
 
   const handleEditManifest = useCallback((id: string) => {
     setSelectedManifestId(id);

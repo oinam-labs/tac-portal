@@ -76,10 +76,7 @@ export function TextReveal({
         >
           {words.map((word, i) => (
             <span key={i} className="inline-block overflow-hidden leading-tight py-1 -my-1">
-              <motion.span
-                className="inline-block origin-bottom"
-                variants={itemVariants}
-              >
+              <motion.span className="inline-block origin-bottom" variants={itemVariants}>
                 {word}
               </motion.span>
             </span>
@@ -97,11 +94,7 @@ export function TextReveal({
         variants={containerVariants}
       >
         {chars.map((char, i) => (
-          <motion.span
-            key={i}
-            variants={itemVariants}
-            className="inline-block origin-bottom"
-          >
+          <motion.span key={i} variants={itemVariants} className="inline-block origin-bottom">
             {char === ' ' ? '\u00A0' : char}
           </motion.span>
         ))}

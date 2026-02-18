@@ -1,9 +1,7 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "lib": [
-      "deno.window"
-    ],
+    "lib": ["deno.window"],
     "strict": true
   },
   "imports": {
@@ -12,9 +10,7 @@
   },
   "lint": {
     "rules": {
-      "exclude": [
-        "no-explicit-any"
-      ]
+      "exclude": ["no-explicit-any"]
     }
   }
 }

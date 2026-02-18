@@ -35,7 +35,9 @@ export const initSentry = () => {
   const forceDev = import.meta.env.VITE_ENABLE_SENTRY_DEV === 'true';
 
   if (isDev && !forceDev) {
-    console.warn('[Sentry] Disabled in development to prevent CORS/Ad-block noise. Set VITE_ENABLE_SENTRY_DEV=true to enable.');
+    console.warn(
+      '[Sentry] Disabled in development to prevent CORS/Ad-block noise. Set VITE_ENABLE_SENTRY_DEV=true to enable.'
+    );
     return;
   }
 
@@ -47,11 +49,11 @@ export const initSentry = () => {
     // In production, this should point to a server-side tunnel endpoint
     // https://docs.sentry.io/platforms/javascript/troubleshooting/#using-the-tunnel-option
     ...(import.meta.env.DEV &&
-    {
-      // In dev mode, we'll just let errors through - CORS errors are expected
-      // and don't affect functionality. The browser's privacy protection
-      // blocks direct Sentry requests but errors are still captured locally.
-    }),
+      {
+        // In dev mode, we'll just let errors through - CORS errors are expected
+        // and don't affect functionality. The browser's privacy protection
+        // blocks direct Sentry requests but errors are still captured locally.
+      }),
 
     // Send default PII (IP addresses, user agent)
     // https://docs.sentry.io/platforms/javascript/guides/react/configuration/options/#sendDefaultPii
@@ -76,10 +78,10 @@ export const initSentry = () => {
       ...(import.meta.env.DEV
         ? []
         : [
-          Sentry.consoleLoggingIntegration({
-            levels: ['log', 'warn', 'error'],
-          }),
-        ]),
+            Sentry.consoleLoggingIntegration({
+              levels: ['log', 'warn', 'error'],
+            }),
+          ]),
 
       // User Feedback widget (optional - users can report issues)
       // autoInject: false hides the default button - trigger manually via /dev/sentry page

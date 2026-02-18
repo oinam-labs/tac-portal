@@ -16,7 +16,12 @@ const normalizeAddress = (address: unknown) => {
   const record = address as Record<string, unknown>;
   return {
     line1: getAddressValue(
-      record.line1 ?? record.line_1 ?? record.street ?? record.address ?? record.addr1 ?? record.address1
+      record.line1 ??
+        record.line_1 ??
+        record.street ??
+        record.address ??
+        record.addr1 ??
+        record.address1
     ),
     line2: getAddressValue(
       record.line2 ?? record.line_2 ?? record.street2 ?? record.address2 ?? record.addr2
@@ -202,7 +207,11 @@ export const PrintLabel: React.FC = () => {
           const legacyLocal = localStorage.getItem(legacyKey);
           stored = legacySession || legacyLocal;
           usedKey = legacyKey;
-          usedStorage = legacySession ? 'sessionStorage' : legacyLocal ? 'localStorage' : 'sessionStorage';
+          usedStorage = legacySession
+            ? 'sessionStorage'
+            : legacyLocal
+              ? 'localStorage'
+              : 'sessionStorage';
           logger.debug('[PrintLabel] Legacy key result', { found: !!stored, storage: usedStorage });
         }
 

@@ -111,18 +111,18 @@ export default function FluidExpandingGrid({
                     style={{ borderRadius: 12 }}
                   >
                     {/* Image with overlay */}
-                    <div className={cn(
-                      'absolute inset-0 w-full h-full text-primary/20', // Controls SVG stroke color
-                      isSelected ? 'text-primary/40' : 'text-primary/20'
-                    )}>
+                    <div
+                      className={cn(
+                        'absolute inset-0 w-full h-full text-primary/20', // Controls SVG stroke color
+                        isSelected ? 'text-primary/40' : 'text-primary/20'
+                      )}
+                    >
                       <img
                         src={item.image}
                         alt={item.title}
                         className={cn(
                           'absolute inset-0 w-full h-full object-cover transition-all duration-1000 ease-in-out opacity-100 group-hover:scale-105',
-                          isSelected
-                            ? 'object-[center_35%] scale-105'
-                            : 'object-[center_50%]'
+                          isSelected ? 'object-[center_35%] scale-105' : 'object-[center_50%]'
                         )}
                       />
                     </div>
@@ -148,10 +148,19 @@ export default function FluidExpandingGrid({
                     {/* Top Tech Data */}
                     <div className="absolute top-6 right-6 flex flex-col items-end gap-1 opacity-70">
                       <div className="flex items-center gap-2">
-                        <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", isSelected ? "bg-status-live" : "bg-primary")}></div>
-                        <span className="text-[10px] font-mono tracking-widest uppercase text-muted-foreground">{isSelected ? "SYSTEM_ACTIVE" : "STANDBY"}</span>
+                        <div
+                          className={cn(
+                            'w-1.5 h-1.5 rounded-full animate-pulse',
+                            isSelected ? 'bg-status-live' : 'bg-primary'
+                          )}
+                        ></div>
+                        <span className="text-[10px] font-mono tracking-widest uppercase text-muted-foreground">
+                          {isSelected ? 'SYSTEM_ACTIVE' : 'STANDBY'}
+                        </span>
                       </div>
-                      <span className="text-[10px] font-mono text-muted-foreground/60">ID: {item.id.toUpperCase().substring(0, 4)}_0{index + 1}</span>
+                      <span className="text-[10px] font-mono text-muted-foreground/60">
+                        ID: {item.id.toUpperCase().substring(0, 4)}_0{index + 1}
+                      </span>
                     </div>
 
                     <motion.div layout="position" className="overflow-hidden relative z-20">

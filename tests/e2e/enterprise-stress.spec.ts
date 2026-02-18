@@ -134,16 +134,24 @@ test.describe('Enterprise Stress Tests', () => {
       await page.waitForLoadState('networkidle');
 
       // Look for create invoice button
-      const createButton = page.getByRole('button', { name: /create|new|add/i });
+      const createButton = page
+        .getByRole('button', { name: /new invoice|create invoice|new/i })
+        .first();
 
       if (await createButton.isVisible({ timeout: 5000 })) {
-        await createButton.click();
+        await createButton.scrollIntoViewIfNeeded();
+        await createButton.click({ force: true });
         await page.waitForTimeout(500);
 
-        // Try to submit empty form
-        const submitButton = page.getByRole('button', { name: /save|submit|create/i });
-        if (await submitButton.isVisible({ timeout: 3000 })) {
-          await submitButton.click();
+        const dialog = page.getByRole('dialog').last();
+        if (await dialog.isVisible({ timeout: 3000 })) {
+          // Try to submit empty form
+          const submitButton = dialog
+            .getByRole('button', { name: /save|submit|create|generate/i })
+            .first();
+          if (await submitButton.isVisible({ timeout: 3000 })) {
+            await submitButton.click({ force: true });
+          }
 
           // Should show validation errors - verify form completes without crash
           await page.waitForTimeout(500);
@@ -227,20 +235,24 @@ test.describe('Enterprise Stress Tests', () => {
   });
 
   test.describe('Error Recovery Tests', () => {
-    test('should handle API failures gracefully without exposing raw errors', async ({ page, context }) => {
+    test('should handle API failures gracefully without exposing raw errors', async ({
+      page,
+      context,
+    }) => {
       await page.goto('/dashboard');
       await page.waitForLoadState('networkidle');
 
       // Simulate offline mode
       await context.setOffline(true);
 
-      // Try to navigate
-      await page.goto('/shipments');
-      await page.waitForTimeout(2000);
+      // Offline navigation should fail at network layer.
+      await expect(async () => {
+        await page.goto('/shipments', { timeout: 10000 });
+      }).rejects.toThrow(/ERR_INTERNET_DISCONNECTED|Network/i);
 
       // Go back online
       await context.setOffline(false);
-      await page.reload();
+      await page.goto('/shipments');
       await page.waitForLoadState('networkidle');
 
       // Page should recover

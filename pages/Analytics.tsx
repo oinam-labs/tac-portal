@@ -45,7 +45,9 @@ export const Analytics: React.FC = () => {
         isSameMonth(new Date(s.created_at), month.date)
       );
       const outbound = monthShipments.length;
-      const inbound = monthShipments.filter((s) => ['DELIVERED', 'RECEIVED_AT_DEST'].includes(s.status)).length;
+      const inbound = monthShipments.filter((s) =>
+        ['DELIVERED', 'RECEIVED_AT_DEST'].includes(s.status)
+      ).length;
 
       return {
         month: month.label,
@@ -89,7 +91,10 @@ export const Analytics: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
-      <PageHeader title="Operations Analytics" description="Shipment performance and operational insights." />
+      <PageHeader
+        title="Operations Analytics"
+        description="Shipment performance and operational insights."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Area Chart with Legend - Shipment Volume (In/Out) */}
@@ -115,11 +120,7 @@ export const Analytics: React.FC = () => {
                       <stop offset="95%" stopColor={CHART_COLORS.secondary} stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid
-                    vertical={false}
-                    strokeDasharray="3 3"
-                    stroke="var(--border)"
-                  />
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis
                     dataKey="month"
                     tickLine={false}
@@ -180,11 +181,7 @@ export const Analytics: React.FC = () => {
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={efficiencyData}>
-                  <CartesianGrid
-                    vertical={false}
-                    strokeDasharray="3 3"
-                    stroke="var(--border)"
-                  />
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis
                     dataKey="name"
                     tickLine={false}
@@ -222,7 +219,11 @@ export const Analytics: React.FC = () => {
         />
         <KPICard
           title="Delivery Rate"
-          value={shipments.length > 0 ? `${((shipments.filter((s) => s.status === 'DELIVERED').length / shipments.length) * 100).toFixed(1)}%` : '0.0%'}
+          value={
+            shipments.length > 0
+              ? `${((shipments.filter((s) => s.status === 'DELIVERED').length / shipments.length) * 100).toFixed(1)}%`
+              : '0.0%'
+          }
           icon={<TrendingUp className="w-5 h-5" />}
         />
         <KPICard

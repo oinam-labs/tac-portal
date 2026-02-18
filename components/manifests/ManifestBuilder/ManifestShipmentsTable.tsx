@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import type { ManifestItemWithShipment } from '@/lib/services/manifestService';
+import { ScreenBarcode } from '@/components/barcodes';
 
 interface ManifestShipmentsTableProps {
   items: ManifestItemWithShipment[];
@@ -64,6 +65,23 @@ export function ManifestShipmentsTable({
             {row.original.shipment?.awb_number || 'N/A'}
           </span>
         ),
+      },
+      {
+        id: 'barcode',
+        header: 'Barcode',
+        cell: ({ row }) => {
+          const awb = row.original.shipment?.awb_number;
+          if (!awb) return <span className="text-muted-foreground text-xs">—</span>;
+          return (
+            <div
+              className="cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => onViewShipment?.(row.original.shipment_id)}
+              title="Click to view shipment details"
+            >
+              <ScreenBarcode value={awb} className="scale-75 origin-left" />
+            </div>
+          );
+        },
       },
       {
         id: 'receiver',

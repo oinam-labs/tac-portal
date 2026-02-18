@@ -2,12 +2,29 @@ import React from 'react';
 import { Shipment } from '../../types';
 import { useTrackingEvents } from '../../hooks/useTrackingEvents';
 import { useAuthStore } from '../../store/authStore';
-import { Button, Card, Badge } from '../ui/CyberComponents';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
+import { Badge } from '../ui/badge';
 import { STATUS_COLORS } from '../../lib/design-tokens';
-import { Printer, X, Clock, MapPin, Package, Scale, Truck, Plane, User, Phone, Map, FileText, ArrowRight } from 'lucide-react';
+import {
+  Printer,
+  X,
+  Clock,
+  MapPin,
+  Package,
+  Scale,
+  Truck,
+  Plane,
+  User,
+  Phone,
+  Map,
+  FileText,
+  ArrowRight,
+} from 'lucide-react';
 import { HUBS } from '../../lib/constants';
 import { toast } from 'sonner';
 import { NotesPanel } from '../domain/NotesPanel';
+import { UniversalBarcodePreset } from '../barcodes';
 
 interface Props {
   shipment: Shipment;
@@ -17,7 +34,9 @@ interface Props {
 // Helper to reliably find hub info
 const getHubDetails = (identifier: string) => {
   const hubList = Object.values(HUBS);
-  const found = hubList.find(h => h.code === identifier || h.uuid === identifier || h.id === identifier);
+  const found = hubList.find(
+    (h) => h.code === identifier || h.uuid === identifier || h.id === identifier
+  );
   return found || { code: identifier, name: 'External / Unknown', address: '' };
 };
 
@@ -58,29 +77,64 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card border border-border p-6 rounded-lg shadow-sm">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-primary/10 rounded-xl">
-            {shipment.mode === 'AIR' ? <Plane className="w-8 h-8 text-primary" /> : <Truck className="w-8 h-8 text-primary" />}
+            {shipment.mode === 'AIR' ? (
+              <Plane className="w-8 h-8 text-primary" />
+            ) : (
+              <Truck className="w-8 h-8 text-primary" />
+            )}
           </div>
           <div>
             <div className="flex items-center gap-3">
-              <h2 className="text-3xl font-black tracking-tight font-mono text-foreground">{shipment.awb}</h2>
-              <Badge className={`${STATUS_COLORS[shipment.status]} px-3 py-1 text-xs shadow-sm`}>{shipment.status}</Badge>
+              <h2 className="text-3xl font-black tracking-tight font-mono text-foreground">
+                {shipment.awb}
+              </h2>
+              <Badge className={`${STATUS_COLORS[shipment.status]} px-3 py-1 text-xs shadow-sm`}>
+                {shipment.status}
+              </Badge>
             </div>
             <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5"><FileText className="w-3.5 h-3.5" /> Ref: {shipment.id.slice(0, 8)}...</span>
+              <span className="flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5" /> Ref: {shipment.id.slice(0, 8)}...
+              </span>
               <span className="hidden md:inline">•</span>
-              <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Created: {new Date(shipment.createdAt).toLocaleDateString()}</span>
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" /> Created:{' '}
+                {new Date(shipment.createdAt).toLocaleDateString()}
+              </span>
             </div>
           </div>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
-          <Button onClick={handlePrintLabel} variant="outline" className="flex-1 md:flex-none gap-2 hover:bg-primary/5 hover:text-primary transition-colors">
+          <Button
+            onClick={handlePrintLabel}
+            variant="outline"
+            className="flex-1 md:flex-none gap-2 hover:bg-primary/5 hover:text-primary transition-colors"
+          >
             <Printer className="w-4 h-4" /> Print Label
           </Button>
-          <Button onClick={onClose} variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-foreground">
+          <Button
+            onClick={onClose}
+            variant="ghost"
+            size="icon"
+            className="shrink-0 text-muted-foreground hover:text-foreground"
+          >
             <X className="w-5 h-5" />
           </Button>
         </div>
       </div>
+
+      {/* Barcode Section - Scannable for quick identification */}
+      <Card className="overflow-hidden border-border/60 shadow-sm">
+        <div className="p-6 flex flex-col items-center">
+          <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+            Barcode Scan
+          </div>
+          <UniversalBarcodePreset value={shipment.awb} preset="screenLarge" className="mb-2" />
+          <p className="text-xs text-muted-foreground text-center">
+            Scan this barcode to quickly identify and track this shipment
+          </p>
+        </div>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Route & Tracking */}
@@ -100,13 +154,19 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
                 <div className="relative z-10 text-center bg-card px-4">
                   <div className="w-4 h-4 rounded-full bg-primary ring-4 ring-primary/20 mx-auto mb-4" />
                   <div className="text-2xl font-bold text-foreground">{origin.code}</div>
-                  <div className="text-xs font-medium text-muted-foreground mt-1 max-w-[120px] mx-auto truncate">{origin.name}</div>
+                  <div className="text-xs font-medium text-muted-foreground mt-1 max-w-[120px] mx-auto truncate">
+                    {origin.name}
+                  </div>
                 </div>
 
                 {/* Mode Icon (Center) */}
                 <div className="relative z-10 bg-card px-2">
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted border border-border text-xs font-medium text-foreground shadow-sm">
-                    {shipment.mode === 'AIR' ? <Plane className="w-3.5 h-3.5" /> : <Truck className="w-3.5 h-3.5" />}
+                    {shipment.mode === 'AIR' ? (
+                      <Plane className="w-3.5 h-3.5" />
+                    ) : (
+                      <Truck className="w-3.5 h-3.5" />
+                    )}
                     <span>{shipment.serviceLevel}</span>
                   </div>
                 </div>
@@ -115,7 +175,9 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
                 <div className="relative z-10 text-center bg-card px-4">
                   <div className="w-4 h-4 rounded-full bg-foreground ring-4 ring-foreground/10 mx-auto mb-4" />
                   <div className="text-2xl font-bold text-foreground">{dest.code}</div>
-                  <div className="text-xs font-medium text-muted-foreground mt-1 max-w-[120px] mx-auto truncate">{dest.name}</div>
+                  <div className="text-xs font-medium text-muted-foreground mt-1 max-w-[120px] mx-auto truncate">
+                    {dest.name}
+                  </div>
                 </div>
               </div>
             </div>
@@ -156,21 +218,28 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
                 {trackingEvents.length > 0 ? (
                   trackingEvents.map((evt, idx) => (
                     <div key={evt.id} className="relative pl-8 group">
-                      <div className={`absolute left-0 top-1.5 w-5 h-5 rounded-full border-2 border-card shadow-sm z-10 
+                      <div
+                        className={`absolute left-0 top-1.5 w-5 h-5 rounded-full border-2 border-card shadow-sm z-10 
                         ${idx === 0 ? 'bg-primary ring-4 ring-primary/20' : 'bg-muted-foreground/30'}`}
                       />
                       <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
-                        <span className={`font-semibold text-base ${idx === 0 ? 'text-primary' : 'text-foreground'}`}>
+                        <span
+                          className={`font-semibold text-base ${idx === 0 ? 'text-primary' : 'text-foreground'}`}
+                        >
                           {evt.event_code.replace(/_/g, ' ')}
                         </span>
                         <span className="text-xs font-mono text-muted-foreground">
                           {new Date(evt.event_time).toLocaleString(undefined, {
-                            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
                           })}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {((evt.meta as Record<string, unknown>)?.description as string) || 'Event recorded'}
+                        {((evt.meta as Record<string, unknown>)?.description as string) ||
+                          'Event recorded'}
                       </p>
                       <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground bg-muted/50 w-fit px-2 py-1 rounded">
                         <MapPin className="w-3 h-3" />
@@ -204,14 +273,18 @@ export const ShipmentDetails: React.FC<Props> = ({ shipment, onClose }) => {
                 <div className="font-medium text-lg text-foreground">{shipment.customerName}</div>
               </div>
               <div>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">Contact</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                  Contact
+                </span>
                 <div className="flex items-center gap-2 mt-1">
                   <Phone className="w-3.5 h-3.5 text-muted-foreground" />
                   <span className="text-sm font-mono">{shipment.consignor?.phone || 'N/A'}</span>
                 </div>
               </div>
               <div>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">Destination Address</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                  Destination Address
+                </span>
                 <div className="flex items-start gap-2 mt-1">
                   <MapPin className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
                   <span className="text-sm text-muted-foreground leading-relaxed line-clamp-3">

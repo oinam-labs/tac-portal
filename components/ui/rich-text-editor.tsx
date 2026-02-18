@@ -14,7 +14,15 @@ import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import Image from '@tiptap/extension-image';
 import CharacterCount from '@tiptap/extension-character-count';
-import { memo, useCallback, useEffect, useState, forwardRef, useImperativeHandle, useRef } from 'react';
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+} from 'react';
 import {
   Bold,
   Italic,
@@ -80,40 +88,42 @@ interface ToolbarButtonProps {
   children: React.ReactNode;
 }
 
-const ToolbarButton = memo(forwardRef<HTMLButtonElement, ToolbarButtonProps>(
-  ({ onClick, isActive, disabled, tooltip, children }, ref) => (
-    <TooltipPrimitive.Provider delayDuration={300}>
-      <TooltipPrimitive.Root>
-        <TooltipPrimitive.Trigger asChild ref={ref}>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onClick}
-            disabled={disabled}
-            className={cn(
-              'h-7 w-7 p-0 rounded-md transition-all duration-150',
-              'hover:bg-muted/80 hover:text-foreground',
-              isActive && 'bg-primary/15 text-primary shadow-sm ring-1 ring-primary/20',
-              disabled && 'opacity-30'
-            )}
-          >
-            {children}
-          </Button>
-        </TooltipPrimitive.Trigger>
-        <TooltipPrimitive.Portal>
-          <TooltipPrimitive.Content
-            side="bottom"
-            className="z-50 overflow-hidden rounded-lg bg-popover px-3 py-1.5 text-xs font-medium text-popover-foreground shadow-lg border border-border/50 animate-in fade-in-0 zoom-in-95"
-            sideOffset={6}
-          >
-            {tooltip}
-          </TooltipPrimitive.Content>
-        </TooltipPrimitive.Portal>
-      </TooltipPrimitive.Root>
-    </TooltipPrimitive.Provider>
+const ToolbarButton = memo(
+  forwardRef<HTMLButtonElement, ToolbarButtonProps>(
+    ({ onClick, isActive, disabled, tooltip, children }, ref) => (
+      <TooltipPrimitive.Provider delayDuration={300}>
+        <TooltipPrimitive.Root>
+          <TooltipPrimitive.Trigger asChild ref={ref}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onClick}
+              disabled={disabled}
+              className={cn(
+                'h-7 w-7 p-0 rounded-md transition-all duration-150',
+                'hover:bg-muted/80 hover:text-foreground',
+                isActive && 'bg-primary/15 text-primary shadow-sm ring-1 ring-primary/20',
+                disabled && 'opacity-30'
+              )}
+            >
+              {children}
+            </Button>
+          </TooltipPrimitive.Trigger>
+          <TooltipPrimitive.Portal>
+            <TooltipPrimitive.Content
+              side="bottom"
+              className="z-50 overflow-hidden rounded-lg bg-popover px-3 py-1.5 text-xs font-medium text-popover-foreground shadow-lg border border-border/50 animate-in fade-in-0 zoom-in-95"
+              sideOffset={6}
+            >
+              {tooltip}
+            </TooltipPrimitive.Content>
+          </TooltipPrimitive.Portal>
+        </TooltipPrimitive.Root>
+      </TooltipPrimitive.Provider>
+    )
   )
-));
+);
 ToolbarButton.displayName = 'ToolbarButton';
 
 const ToolbarDivider = memo(() => <div className="mx-0.5 h-5 w-px bg-border/60" />);
@@ -157,12 +167,15 @@ const LinkPopover = memo<{ editor: Editor }>(({ editor }) => {
   }, [editor, url]);
 
   return (
-    <PopoverPrimitive.Root open={open} onOpenChange={(isOpen) => {
-      if (isOpen) handleOpen();
-      setOpen(isOpen);
-    }}>
+    <PopoverPrimitive.Root
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (isOpen) handleOpen();
+        setOpen(isOpen);
+      }}
+    >
       <PopoverPrimitive.Trigger asChild>
-        <ToolbarButton isActive={editor.isActive('link')} tooltip="Add Link" onClick={() => { }}>
+        <ToolbarButton isActive={editor.isActive('link')} tooltip="Add Link" onClick={() => {}}>
           <LinkIcon className="h-3.5 w-3.5" />
         </ToolbarButton>
       </PopoverPrimitive.Trigger>
@@ -218,10 +231,13 @@ const ImagePopover = memo<{ editor: Editor }>(({ editor }) => {
   }, [editor, url]);
 
   return (
-    <PopoverPrimitive.Root open={open} onOpenChange={(isOpen) => {
-      setOpen(isOpen);
-      if (isOpen) setTimeout(() => inputRef.current?.focus(), 100);
-    }}>
+    <PopoverPrimitive.Root
+      open={open}
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (isOpen) setTimeout(() => inputRef.current?.focus(), 100);
+      }}
+    >
       <PopoverPrimitive.Trigger asChild>
         <ToolbarButton tooltip="Add Image">
           <ImageIcon className="h-3.5 w-3.5" />
@@ -482,8 +498,6 @@ const EditorToolbar = memo<EditorToolbarProps>(({ editor, variant }) => {
 });
 EditorToolbar.displayName = 'EditorToolbar';
 
-
-
 /** Footer bar with word/character count */
 const EditorFooter = memo<{ editor: Editor }>(({ editor }) => {
   const characters = editor.storage.characterCount?.characters() ?? 0;
@@ -501,9 +515,7 @@ const EditorFooter = memo<{ editor: Editor }>(({ editor }) => {
         </div>
         <div className="flex items-center gap-1.5">
           <FileText className="h-3 w-3 text-muted-foreground/50" />
-          <span className="text-[10px] font-mono text-muted-foreground/70">
-            {characters} chars
-          </span>
+          <span className="text-[10px] font-mono text-muted-foreground/70">{characters} chars</span>
         </div>
       </div>
       <span className="text-[10px] font-mono text-muted-foreground/50">
@@ -540,7 +552,10 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
         Underline,
         Link.configure({
           openOnClick: false,
-          HTMLAttributes: { class: 'text-primary underline decoration-primary/40 cursor-pointer hover:decoration-primary transition-colors' },
+          HTMLAttributes: {
+            class:
+              'text-primary underline decoration-primary/40 cursor-pointer hover:decoration-primary transition-colors',
+          },
         }),
         TextAlign.configure({ types: ['heading', 'paragraph'] }),
         Highlight.configure({ multicolor: true }),

@@ -22,6 +22,7 @@ import { Printer, Download, Eye } from 'lucide-react';
 import { LabelGenerator, LabelData, ServiceLevel, TransportMode } from './LabelGenerator';
 import { toast } from 'sonner';
 import { sanitizeString } from '../../lib/utils/sanitize';
+import { generateLabelPDF } from '@/lib/pdf-generator';
 
 interface LabelPreviewDialogProps {
   trigger?: React.ReactNode;
@@ -103,8 +104,25 @@ export const LabelPreviewDialog: React.FC<LabelPreviewDialogProps> = ({
     window.print();
   };
 
-  const handleDownload = () => {
-    toast.success('Label downloaded as PDF');
+  const handleDownload = async () => {
+    try {
+      toast.info('Generating label PDF...');
+
+      // Generate PDF directly from labelData — same data the HTML preview uses
+      const pdfUrl = await generateLabelPDF(labelData);
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = `LABEL-${labelData.awb}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(pdfUrl);
+
+      toast.success('Label downloaded as PDF');
+    } catch (error) {
+      console.error('[LabelPreview] PDF generation failed:', error);
+      toast.error('Failed to generate label PDF');
+    }
   };
 
   // Set document title for printing
